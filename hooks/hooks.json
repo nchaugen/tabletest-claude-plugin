@@ -1,0 +1,17 @@
+{
+  "description": "Auto-format TableTest tables after writing or editing Java/Kotlin files",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-use-format.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

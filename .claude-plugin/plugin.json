@@ -1,0 +1,13 @@
+{
+  "name": "tabletest",
+  "description": "A plugin to help write TableTest-style tests in JUnit",
+  "version": "1.0.0",
+  "author": {
+    "name": "Nils Christian Haugen",
+    "url": "https://github.com/nchaugen"
+  },
+  "homepage": "https://tabletest.org",
+  "repository": "https://github.com/nchaugen/tabletest-claude-plugin",
+  "license": "MIT",
+  "keywords": ["testing", "tdd", "bdd", "junit", "tabletest", "parameterized test", "data-driven testing", "table-driven testing", "java", "kotlin"]
+}
