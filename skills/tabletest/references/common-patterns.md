@@ -59,9 +59,9 @@ Requires 6 columns and cross-referencing to understand "MDC succeeded" or "Legac
 
 ### Implementation
 
-**Factory method for parsing:**
+**Custom converter method for parsing:**
 ```java
-@SuppressWarnings("unused")
+@TypeConverter
 public static RouteResponse parseRouteResponse(String value) {
     if (value == null || value.isBlank()) return null;
 
@@ -252,8 +252,8 @@ void records_response_times(
     }
 }
 
-// Parser for < notation
-@SuppressWarnings("unused")
+// Converter for < notation
+@TypeConverter
 public static Long parseResponseTime(String value) {
     if (value == null || value.isBlank()) {
         return null;
@@ -493,7 +493,7 @@ private static class QueryRecorder {
 - Counting invocations for rate limiting
 - Capturing arguments for validation
 
-**Not factory methods**: These are test infrastructure, not type converters. They observe behavior during test execution.
+**Not converter methods**: These are test infrastructure, not `@TypeConverter` methods. They observe behavior during test execution.
 
 ---
 

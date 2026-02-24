@@ -1,6 +1,6 @@
 {
   "name": "tabletest",
-  "description": "A plugin to help write TableTest-style tests in JUnit",
+  "description": "Tools to help write TableTest-style JUnit tests in Java and Kotlin",
   "version": "1.0.0",
   "author": {
     "name": "Nils Christian Haugen",

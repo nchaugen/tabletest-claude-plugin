@@ -264,7 +264,7 @@ void completes_within_threshold(String operation, Long maxMs) {
 
 **Parser for `<` notation:**
 ```java
-@SuppressWarnings("unused")
+@TypeConverter
 public static Long parseResponseTime(String value) {
     if (value == null || value.isBlank()) {
         return null;

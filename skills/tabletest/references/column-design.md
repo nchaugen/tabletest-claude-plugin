@@ -18,7 +18,7 @@ When every scenario uses the same set of properties, separate columns are cleare
     MDC fails    | ERROR in 100ms   | OK in 10ms       | OK in <50ms
     """)
 void test(String mdcRequest, String legacyRequest, String response) {
-    // Need factory methods to parse each combined string
+    // Need converter methods to parse each combined string
 }
 
 // ✅ EASIER TO READ - separate columns when structure is consistent
@@ -29,7 +29,7 @@ void test(String mdcRequest, String legacyRequest, String response) {
     """)
 void test(String mdcStatus, Long mdcMs, String legacyStatus, Long legacyMs,
           String responseStatus, Long responseMs) {
-    // Values directly usable, only need parseResponseTime factory for <50 format
+    // Values directly usable, only need parseResponseTime converter for <50 format
 }
 ```
 
@@ -82,7 +82,7 @@ private RequestConfig buildRequest(Map<String, String> config) {
 
 **Why maps work better here:**
 - Each scenario only specifies what's relevant
-- Factory method provides sensible defaults
+- Converter method provides sensible defaults
 - No sea of blank cells
 - Table focuses on what varies
 
@@ -103,7 +103,7 @@ private RequestConfig buildRequest(Map<String, String> config) {
    }
    ```
 
-   **Why maps win:** Avoids a sea of blank cells. Factory method provides sensible defaults. Table focuses on what varies.
+   **Why maps win:** Avoids a sea of blank cells. Converter method provides sensible defaults. Table focuses on what varies.
 
 2. **Properties form one indivisible concept**
    ```java
@@ -185,7 +185,7 @@ When you need error cases, you realize you need both status and time:
     Fast     | OK in 10ms
     Error    | ERROR in 10ms
     """)
-// Requires factory method with regex parsing
+// Requires converter method with regex parsing
 ```
 
 ### Phase 3: Split for Clarity
@@ -198,7 +198,7 @@ Combined format is hard to read, split into columns:
     Fast     | OK     | 10
     Error    | ERROR  | 10
     """)
-// No factory method needed, direct parameters
+// No converter method needed, direct parameters
 ```
 
 ### Phase 4: Add Threshold Semantics
@@ -211,7 +211,7 @@ Response time is actually a threshold, not exact time:
     Fast     | OK     | <50
     Error    | ERROR  | <50
     """)
-// Factory method only for parseResponseTime to handle "<50"
+// Converter method only for parseResponseTime to handle "<50"
 ```
 
 **Key insight:** Don't try to design perfect columns upfront. Let the table structure emerge as you add scenarios.
@@ -253,17 +253,19 @@ void test(String mdcStatus, Long mdcMs, String legacyStatus, Long legacyMs) {
 }
 ```
 
-### Factory Methods for Formatting Only
-Use factory methods to handle domain-specific formatting conventions (like `<50` for thresholds), not to parse complex combined strings:
+### Converter Methods for Formatting Only
+Use `@TypeConverter` methods to handle domain-specific formatting conventions (like `<50` for thresholds), not to parse complex combined strings:
 
 ```java
 // ✅ Good - handles formatting convention
+@TypeConverter
 public static Long parseResponseTime(String value) {
     if (value.startsWith("<")) return Long.valueOf(value.substring(1));
     return Long.parseLong(value);
 }
 
 // ❌ Bad - parsing complex format suggests wrong column design
+@TypeConverter
 public static Map<String, String> parseRequest(String value) {
     Pattern pattern = Pattern.compile("(OK|ERROR) in (\\d+)ms");
     Matcher matcher = pattern.matcher(value);
@@ -276,8 +278,8 @@ public static Map<String, String> parseRequest(String value) {
 
 These indicate you should split into separate columns:
 
-1. **Regex parsing in factory methods** - If you're using regex to extract multiple values, split them into columns
-2. **Multiple factory methods with same signature** - Can't have two `String → Map` methods; split the columns instead
+1. **Regex parsing in converter methods** - If you're using regex to extract multiple values, split them into columns
+2. **Multiple converter methods with same target type** - Can't have two `@TypeConverter` methods returning the same type; split the columns instead
 3. **Values don't align vertically** - Hard to scan means hard to read
 4. **Different rows have different structures** - Leads to jagged tables and empty map keys
 
@@ -569,7 +571,7 @@ When you have multiple tables in a class:
 
 - [ ] Similar concepts use same column names (`Response Time?` not sometimes `Timing?`)
 - [ ] Same notation for similar values (`<50` not mixed with `50max`)
-- [ ] Shared factory methods/parsers (don't duplicate parsing logic)
+- [ ] Shared `@TypeConverter` methods/parsers (don't duplicate parsing logic)
 - [ ] Same representation for errors (`ERROR`, not mixed with `FAIL` or `ERR`)
 - [ ] Consistent special values (`ROUTE_NOT_IMPLEMENTED` across all tables)
 
@@ -594,7 +596,7 @@ Choose based on your scenario:
 - Many optional properties with sensible defaults
 - Properties form one indivisible concept
 - Need to pass combined value directly to system
-- Benefits: Avoid blank cells, factory provides defaults, table focuses on variations
+- Benefits: Avoid blank cells, converter provides defaults, table focuses on variations
 
 ### Use Encoded Values When:
 - Cause-effect relationship between values
@@ -603,6 +605,6 @@ Choose based on your scenario:
 - Benefits: Fewer columns, shows relationship, documents constraints
 
 ### Refactor Signals:
-- **Combined → Separate**: Writing regex parsers, hard to scan, need multiple factory methods with same signature
+- **Combined → Separate**: Writing regex parsers, hard to scan, need multiple converter methods with same target type
 - **Separate → Map**: Sea of blank cells, many optional columns, defaults scattered in test logic
 - **Separate → Encoded**: Perfect correlation, one column only adds info for specific values in another column

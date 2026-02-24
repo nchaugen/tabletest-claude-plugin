@@ -1,16 +1,15 @@
-# Factory Methods for Custom Type Conversion
+# Custom Type Converter Methods
 
-When JUnit's built-in converters don't support your parameter type, add factory methods.
+When JUnit's built-in converters don't support your parameter type, add custom type converter methods annotated with `@TypeConverter`.
 
 ## Java
 
-Place factory methods as `public static` methods in **a public test class** or a class listed in `@FactorySources`.
+Place custom converter methods as `@TypeConverter`-annotated `public static` methods in **a public test class** or a class listed in `@TypeConverterSources`.
 
-**IMPORTANT:** The test class must be declared `public` for TableTest to discover factory methods:
+**IMPORTANT:** The test class must be declared `public` for TableTest to discover converter methods:
 ```java
-@ExtendWith(MockitoExtension.class)
 public class MyTest {  // Must be public, not package-private
-    // Factory methods here will be found
+    // Converter methods here will be found
 }
 ```
 
@@ -24,6 +23,7 @@ void testDaysUntil(LocalDate date, int expected) {
     assertEquals(expected, ChronoUnit.DAYS.between(LocalDate.now(), date));
 }
 
+@TypeConverter
 public static LocalDate parseLocalDate(String input) {
     return switch (input) {
         case "today" -> LocalDate.now();
@@ -35,14 +35,15 @@ public static LocalDate parseLocalDate(String input) {
 
 ## Kotlin
 
-For Kotlin tests, there are two ways to declare factory methods:
+For Kotlin tests, there are two ways to declare converter methods:
 
 ### Option 1: Package-Level Functions
 
-Declare factory methods at package level in the same file as the test class:
+Declare converter methods at package level in the same file as the test class:
 
 ```kotlin
 // At package level (top of file, outside class)
+@TypeConverter
 fun parseLocalDate(input: String): LocalDate = when (input) {
     "today" -> LocalDate.now()
     "tomorrow" -> LocalDate.now().plusDays(1)
@@ -63,7 +64,7 @@ class DateTest {
 
 ### Option 2: Companion Object with @JvmStatic
 
-Declare factory methods in the companion object with `@JvmStatic`:
+Declare converter methods in the companion object with `@JvmStatic` and `@TypeConverter`:
 
 ```kotlin
 class DateTest {
@@ -78,6 +79,7 @@ class DateTest {
 
     companion object {
         @JvmStatic
+        @TypeConverter
         fun parseLocalDate(input: String): LocalDate = when (input) {
             "today" -> LocalDate.now()
             "tomorrow" -> LocalDate.now().plusDays(1)
@@ -89,25 +91,26 @@ class DateTest {
 
 **Note**: `@Nested` inner classes in Kotlin cannot have companion objects. Use package-level functions or outer class companion object instead.
 
-## Using @FactorySources
+## Using @TypeConverterSources
 
-For shared factory methods across multiple test classes:
+For shared converter methods across multiple test classes:
 
 **Java:**
 ```java
-@FactorySources(DateFactories.class)
+@TypeConverterSources(DateConverters.class)
 class DateTest {
     @TableTest("""
         ...
         """)
-    void testWithSharedFactories(LocalDate date, Duration duration) { ... }
+    void testWithSharedConverters(LocalDate date, Duration duration) { ... }
 }
 ```
 
-**Kotlin** — use an `object` declaration with `@JvmStatic`:
+**Kotlin** — use an `object` declaration with `@JvmStatic` and `@TypeConverter`:
 ```kotlin
-object DateFactories {
+object DateConverters {
     @JvmStatic
+    @TypeConverter
     fun parseLocalDate(input: String): LocalDate = when (input) {
         "today" -> LocalDate.now()
         "tomorrow" -> LocalDate.now().plusDays(1)
@@ -115,35 +118,39 @@ object DateFactories {
     }
 }
 
-@FactorySources(DateFactories::class)
+@TypeConverterSources(DateConverters::class)
 class DateTest {
     @TableTest("""
         ...
         """)
-    fun testWithSharedFactories(date: LocalDate, duration: Duration) { ... }
+    fun testWithSharedConverters(date: LocalDate, duration: Duration) { ... }
 }
 ```
 
-## Factory Method Requirements
+## Converter Method Requirements
 
-A factory method will be used when it:
-1. Is defined as a public static method in a public class
-2. Accepts exactly one parameter
-3. Returns an object of the target parameter type
-4. **Is the only method matching the above criteria in the class**
+A converter method will be used when it:
+1. Is annotated with `@TypeConverter`
+2. Is defined as a `public static` method in a `public class`
+3. Accepts exactly one parameter
+4. Returns an object of the target parameter type
+5. **Is the only `@TypeConverter` method matching the above criteria in the class**
 
 There is no specific naming pattern required, but `parse<TypeName>` (e.g., `parseLocalDate`, `parseMoney`) is conventional.
 
-### One Factory Method Per Signature
+### One Converter Method Per Target Type
 
-You cannot have multiple factory methods with the same signature (same input and return types), even with different names:
+You cannot have multiple converter methods with the same target type (same return type), even with different names:
 
 ```java
-// ❌ WRONG - TableTest cannot determine which to use
+// WRONG - TableTest cannot determine which to use
+@TypeConverter
 public static Map<String, String> parseRequest(String value) { ... }
+@TypeConverter
 public static Map<String, String> parseResponse(String value) { ... }
 
-// ✅ CORRECT - Single factory handles both formats
+// CORRECT - Single converter handles both formats
+@TypeConverter
 public static Map<String, String> parseRequestOrResponse(String value) {
     if (value.startsWith("<")) {
         // Handle response format
@@ -156,15 +163,16 @@ public static Map<String, String> parseRequestOrResponse(String value) {
 
 **Even better - split into separate columns instead:**
 ```java
-// ✅ BEST - No factory method needed
+// BEST - No converter method needed
 @TableTest("""
     Request Status | Request ms | Response Status? | Response ms?
     OK             | 10         | OK               | <50
     """)
 void test(String reqStatus, Integer reqMs, String respStatus, Long respMs) {
-    // Use parseResponseTime factory for respMs to handle "<50" format
+    // Use parseResponseTime converter for respMs to handle "<50" format
 }
 
+@TypeConverter
 public static Long parseResponseTime(String value) {
     if (value.startsWith("<")) {
         return Long.valueOf(value.substring(1));
@@ -175,20 +183,20 @@ public static Long parseResponseTime(String value) {
 
 ## Search Strategy
 
-TableTest searches for factory methods in this order (stops at first match):
+TableTest searches for converter methods in this order (stops at first match):
 
 **Java:**
 1. Current test class (including inherited methods)
 2. Enclosing classes (for `@Nested` tests, starting with direct outer class)
-3. Classes listed in `@FactorySources` (in order listed)
-4. `@FactorySources` of enclosing classes (for `@Nested` tests)
+3. Classes listed in `@TypeConverterSources` (in order listed)
+4. `@TypeConverterSources` of enclosing classes (for `@Nested` tests)
 
 **Kotlin:**
 1. Current file (package-level functions and outer class companion object)
-2. Classes listed in `@FactorySources` (in order listed)
-3. `@FactorySources` of enclosing classes (for `@Nested` tests)
+2. Classes listed in `@TypeConverterSources` (in order listed)
+3. `@TypeConverterSources` of enclosing classes (for `@Nested` tests)
 
-If a factory method isn't being found, check that it meets the requirements above and is in a location that matches the search order.
+If a converter method isn't being found, check that it meets the requirements above and is in a location that matches the search order.
 
 ## Handling Null Values
 
@@ -197,7 +205,7 @@ When table cells can be blank (representing null), use appropriate return types:
 ### Primitive vs Boxed Types
 
 ```java
-// ❌ WRONG - primitives cannot be null
+// WRONG - primitives cannot be null
 @TableTest("""
     Value | Time
     OK    | 10
@@ -205,7 +213,7 @@ When table cells can be blank (representing null), use appropriate return types:
     """)
 void test(String value, long time) { ... }
 
-// ✅ CORRECT - use boxed type
+// CORRECT - use boxed type
 @TableTest("""
     Value | Time
     OK    | 10
@@ -214,15 +222,16 @@ void test(String value, long time) { ... }
 void test(String value, Long time) { ... }
 ```
 
-### Factory Methods with Null Input
+### Converter Methods with Null Input
 
-Factory methods receive `null` for blank cells. Handle this appropriately:
+Converter methods receive `null` for blank cells. Handle this appropriately:
 
 ```java
 // Return null for blank input
+@TypeConverter
 public static Long parseResponseTime(String value) {
     if (value == null || value.isBlank()) {
-        return null;  // Blank cell → null value
+        return null;  // Blank cell -> null value
     }
     if (value.startsWith("<")) {
         return Long.valueOf(value.substring(1));
@@ -231,9 +240,10 @@ public static Long parseResponseTime(String value) {
 }
 
 // Return empty collection for blank input
+@TypeConverter
 public static List<String> parseItems(String value) {
     if (value == null || value.isBlank()) {
-        return List.of();  // Blank cell → empty list
+        return List.of();  // Blank cell -> empty list
     }
     return Arrays.asList(value.split(","));
 }
@@ -243,7 +253,7 @@ public static List<String> parseItems(String value) {
 
 ## Domain-Specific Formatting
 
-Factory methods enable domain-specific formatting conventions that improve table readability:
+Converter methods enable domain-specific formatting conventions that improve table readability:
 
 ```java
 @TableTest("""
@@ -256,6 +266,7 @@ void testResponseTime(Long maxResponseTimeMs) {
     // maxResponseTimeMs is 50, 150, 500 respectively
 }
 
+@TypeConverter
 public static Long parseResponseTime(String value) {
     if (value == null || value.isBlank()) {
         return null;
@@ -270,18 +281,18 @@ public static Long parseResponseTime(String value) {
 
 **Benefits:**
 - `<50` clearly communicates "less than 50ms" in the table
-- Parser handles the formatting detail
+- Converter handles the formatting detail
 - Table is self-documenting without code comments
 
 **Other examples:**
-- Duration: `5m`, `30s` → milliseconds
-- Currency: `$100`, `€50` → numeric values
-- Percentage: `50%` → 0.5
-- File size: `10KB`, `5MB` → bytes
+- Duration: `5m`, `30s` -> milliseconds
+- Currency: `$100`, `EUR50` -> numeric values
+- Percentage: `50%` -> 0.5
+- File size: `10KB`, `5MB` -> bytes
 
-## Factory Methods with Defaults
+## Converter Methods with Defaults
 
-Factory methods can provide sensible defaults for missing map entries, making tables clearer when properties vary by scenario:
+Converter methods can provide sensible defaults for missing map entries, making tables clearer when properties vary by scenario:
 
 ```java
 @TableTest("""
@@ -295,6 +306,7 @@ void testRequest(Map<String, String> config, String expected) {
     assertEquals(expected, process(request));
 }
 
+@TypeConverter
 public static RequestConfig buildRequestConfig(Map<String, String> config) {
     if (config == null || config.isEmpty()) {
         return RequestConfig.defaults();
@@ -312,7 +324,7 @@ public static RequestConfig buildRequestConfig(Map<String, String> config) {
 **Benefits:**
 - Each scenario only specifies what varies from defaults
 - Table focuses on the interesting variations
-- Defaults are documented in one place (factory method)
+- Defaults are documented in one place (converter method)
 - No sea of blank columns
 
 **When to use:**
@@ -326,7 +338,7 @@ public static RequestConfig buildRequestConfig(Map<String, String> config) {
 
 ## Common Wrapper Types
 
-JUnit's built-in converters don't handle wrapper types like `Optional`, `Result`, or `Either`. Factory methods are needed for these common patterns.
+JUnit's built-in converters don't handle wrapper types like `Optional`, `Result`, or `Either`. Converter methods are needed for these common patterns.
 
 ### Optional<T>
 
@@ -341,6 +353,7 @@ void testFeatureToggle(Map<String, Boolean> toggles, Optional<Boolean> result) {
     assertEquals(result, featureResolver.find("feature-x", toggles));
 }
 
+@TypeConverter
 public static Optional<Boolean> result(String value) {
     return switch (value) {
         case "empty" -> Optional.empty();
@@ -365,6 +378,7 @@ void testLookup(String input, Optional<String> result) {
     assertEquals(result, lookup(input));
 }
 
+@TypeConverter
 public static Optional<String> result(String value) {
     return "empty".equals(value) ? Optional.empty() : Optional.of(value);
 }
@@ -385,6 +399,7 @@ void testValidation(String input, Result<Integer, String> result) {
     assertEquals(result, validator.validate(input));
 }
 
+@TypeConverter
 public static Result<Integer, String> result(String value) {
     if (value.equals("OK")) {
         return Result.ok(42);  // Use value from Input column
@@ -415,7 +430,7 @@ void testValidation(String input, Integer success, String error) {
 }
 ```
 
-This avoids the factory method entirely and makes the table clearer.
+This avoids the converter method entirely and makes the table clearer.
 
 ### Multiple Optional Parameters
 
@@ -433,13 +448,15 @@ void testOptionals(Optional<String> primary, Optional<String> fallback) {
     // Test with both optionals
 }
 
+@TypeConverter
 public static Optional<String> primary(String value) {
     return "empty".equals(value) ? Optional.empty() : Optional.of(value);
 }
 
+@TypeConverter
 public static Optional<String> fallback(String value) {
     return "empty".equals(value) ? Optional.empty() : Optional.of(value);
 }
 ```
 
-**Important**: Column name matching works here. The factory method name should match the parameter name, and TableTest will use the appropriate factory for each column.
+**Important**: Column name matching works here. The converter method name should match the parameter name, and TableTest will use the appropriate converter for each column.

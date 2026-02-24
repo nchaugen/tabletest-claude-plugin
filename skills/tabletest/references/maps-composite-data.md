@@ -15,7 +15,7 @@
     Full config       | [method: POST, timeout: 5000, auth: Bearer xyz, retry: 3] | OK
     """)
 void testRequest(Map<String, String> config, String expected) {
-    // Factory method provides sensible defaults for missing keys
+    // Converter method provides sensible defaults for missing keys
     RequestConfig request = buildRequest(config);
     assertEquals(expected, process(request));
 }
@@ -84,7 +84,7 @@ Every row has status and ms, so separate columns are clearer.
 
 ## Trade-offs
 
-- Maps: Better when properties vary by scenario, allow defaults in factory methods
+- Maps: Better when properties vary by scenario, allow defaults in converter methods
 - Separate columns: Better when all scenarios have same structure, easier to scan vertically
 
 See also `references/column-design.md` for comprehensive column design guidance.

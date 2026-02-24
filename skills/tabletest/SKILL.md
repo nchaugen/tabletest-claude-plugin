@@ -12,7 +12,7 @@ Use this skill before converting similar JUnit tests or adding a new TableTest.
 **STOP. Before writing any TableTest code, verify ALL of these:**
 
 ### Dependency Setup
-- [ ] **TableTest dependency exists**: Check `pom.xml`/`build.gradle` for `io.github.nchaugen:tabletest-junit`
+- [ ] **TableTest dependency exists**: Check `pom.xml`/`build.gradle` for `org.tabletest:tabletest-junit`
   - **If missing**: Read `references/dependency-setup.md` for correct coordinates
   - **DO NOT add from memory** - groupId/artifactId are non-obvious
 - [ ] **JUnit 5.11+ available**: Check junit-jupiter version in dependencies
@@ -399,7 +399,7 @@ After writing, verify:
 - [ ] **Uniform assertions**: all rows use the same assertion logic; split into separate TableTests if logic differs per row
 - [ ] **Straightforward method**: no `if`/`switch` statements, no parsing or conversion logic; the method only arranges, acts, and asserts
 - [ ] **Parameter alignment**: parameters match data columns left-to-right (excluding scenario column)
-- [ ] **Parameter conversion**: factory methods or JUnit converters handle type conversion, keeping the test method free of parsing code
+- [ ] **Parameter conversion**: custom type converter methods (annotated `@TypeConverter`) or JUnit converters handle type conversion, keeping the test method free of parsing code
 - [ ] **Valid syntax**: values requiring quotes are quoted, collections use correct bracket syntax, empty collections are explicit (`[]`, `{}`, `[:]`)
 - [ ] **Expectation columns present**: at least one column uses `?` suffix (not prefix)
 - [ ] **Concrete values**: expectation values are traceable to input column values where applicable
@@ -419,7 +419,7 @@ After writing, verify:
 |------------------------------------------|----------------------------------------------------------------------------|
 | `references/dependency-setup.md`         | Project lacks TableTest dependency                                         |
 | `references/value-sets.md`               | Multiple example inputs map to same expectation                            |
-| `references/factory-methods.md`          | Custom types need parsing logic or handling special formats                |
+| `references/type-converters.md`          | Custom types need parsing logic or handling special formats                |
 | `references/column-design.md`            | Deciding whether to split or combine columns; refactoring table structure  |
 | `references/common-patterns.md`          | Consolidating identity+status, positional fields, timing, async testing    |
 | `references/large-tables.md`             | Need comments, grouping, or external table files                           |

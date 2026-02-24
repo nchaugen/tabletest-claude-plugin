@@ -55,7 +55,7 @@ void test2(Long exactMs) { ... }  // Different assertion logic!
 1. **Timing notation**: If one table uses `<50` for thresholds, others should too
 2. **Error representation**: If one table uses `ERROR+1` for suppressed exceptions, others should too
 3. **Special values**: If one table uses `ROUTE_NOT_IMPLEMENTED`, others should use the same constant
-4. **Parsers**: Share factory methods across tables (`parseResponseTime`, `parseRouteResponse`)
+4. **Parsers**: Share `@TypeConverter` methods across tables (`parseResponseTime`, `parseRouteResponse`)
 5. **Helper methods**: Reuse setup code (`createResponder`, `createAsyncSetup`)
 
 ## Benefits

@@ -5,7 +5,7 @@ Build TableTests iteratively, with fast feedback loops:
 1. **Design thoughtfully**: Understand the code and sketch table structure (see Design Phase in SKILL.md)
 2. **Implement fully**: Write complete first table with all planned scenarios
 3. **Run immediately**: Get fast feedback on structure, conversions, and helper needs
-4. **Fix infrastructure**: Address conversion errors, add factory methods, create test helpers
+4. **Fix infrastructure**: Address conversion errors, add custom type converter methods, create test helpers
 5. **Refine iteratively**: Improve names and structure after tests pass
 
 **For simple cases**: You may start with 1-2 rows and build up gradually.
@@ -121,12 +121,12 @@ private static class QueryRecorder {
 }
 ```
 
-**Pattern**: Conversion failures reveal missing factory methods
+**Pattern**: Conversion failures reveal missing custom converter methods
 ```
 Built-in conversion of value "true" to type java.util.Optional failed
 ```
 
-**Solution**: Add factory method for the type (see `references/factory-methods.md`).
+**Solution**: Add a `@TypeConverter` method for the type (see `references/type-converters.md`).
 
 **Key insight**: Don't fight test failures. They show you what infrastructure you need. Add the control, conversion, or helper that the failure asks for.
 
