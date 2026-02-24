@@ -1,5 +1,5 @@
 ---
-name: tabletest
+name: create
 description: Write TableTest-style JUnit tests in Java/Kotlin for data-driven cases. Use test class contain @TableTest methods, when consolidating 2+ similar @Test methods, adding multiple input/output examples, or documenting business rules as a table; avoid for single-case or divergent logic.
 ---
 

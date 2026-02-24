@@ -8,6 +8,6 @@
   },
   "homepage": "https://tabletest.org",
   "repository": "https://github.com/nchaugen/tabletest-claude-plugin",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "keywords": ["testing", "tdd", "bdd", "junit", "tabletest", "parameterized test", "data-driven testing", "table-driven testing", "java", "kotlin"]
 }

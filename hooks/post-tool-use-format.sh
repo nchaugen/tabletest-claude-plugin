@@ -10,7 +10,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-FORMAT_SCRIPT="$PLUGIN_ROOT/skills/tabletest/scripts/format-table.sh"
+FORMAT_SCRIPT="$PLUGIN_ROOT/skills/create/scripts/format-table.sh"
 
 input=$(cat)
 
