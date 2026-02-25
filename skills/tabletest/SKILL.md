@@ -405,7 +405,7 @@ After writing, verify:
 - [ ] **Concrete values**: expectation values are traceable to input column values where applicable
 - [ ] **Complete outputs**: all observable outputs of the same behavioral concern are in one table, not split across separate tests
 - [ ] **Row coherence**: rows match the type of logic being tested (decision points for priority logic, input variations for parsing logic); out-of-place rows may signal mixed responsibilities in the code under test
-- [ ] **Column consolidation**: if multiple columns are mutually exclusive (both identity and status vary together), consider consolidating into single column with composite values (e.g., `MDC OK`, `Legacy ERROR`)
+- [ ] **Column consolidation**: if multiple columns are mutually exclusive (both identity and status vary together), consider consolidating into single column with composite values (e.g., `Modern OK`, `Legacy ERROR`)
 - [ ] **Cross-table consistency**: if multiple TableTests exist in the same class, use consistent notation for similar concerns (timing, errors, special values); share parsers and helper methods
 - [ ] **Test helpers organized**: helper classes placed at bottom of test file with clear names (`QueryCounter`, not `Helper`); only extract to separate file when reused across test classes
 

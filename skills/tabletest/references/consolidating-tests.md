@@ -16,12 +16,12 @@ After expanding table test with fallback scenarios, these became redundant:
 ```java
 @Test
 void testApply_whenModernizedThrowsAndFallbackOnError_executesLegacyFallback() {
-    // Covered by table row: "MDC, fails w/fallback"
+    // Covered by table row: "Modern, fails w/fallback"
 }
 
 @Test
 void testApply_whenPrimaryThrowsAndFallbackOnErrorDisabled_throwsWithoutFallback() {
-    // Covered by table row: "MDC, fails" with fallbackOnError=false
+    // Covered by table row: "Modern, fails" with fallbackOnError=false
 }
 ```
 

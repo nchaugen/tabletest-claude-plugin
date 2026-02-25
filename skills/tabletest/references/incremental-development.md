@@ -26,23 +26,23 @@ Build TableTests iteratively, with fast feedback loops:
 ```java
 // Step 1: Single row
 @TableTest("""
-    Scenario    | Master | Response?
-    MDC master  | true   | mdc
+    Scenario       | Master | Response?
+    Modern master  | true   | modern
     """)
 
 // Step 2: Add contrasting case
 @TableTest("""
     Scenario       | Master | Response?
-    MDC master     | true   | mdc
+    Modern master  | true   | modern
     Legacy master  | false  | legacy
     """)
 
 // Step 3: Add async scenarios
 @TableTest("""
     Scenario       | Master | Dual Dispatch | Response? | Execution Order?
-    MDC master     | true   | false         | mdc       | [mdc]
+    Modern master  | true   | false         | modern    | [modern]
     Legacy master  | false  | false         | legacy    | [legacy]
-    MDC pilot      | true   | true          | mdc       | [mdc, legacy]
+    Modern pilot   | true   | true          | modern    | [modern, legacy]
     """)
 ```
 
@@ -53,30 +53,30 @@ As you add scenarios, column structure often needs adjustment. This is natural:
 ```java
 // Phase 1: Just timing
 @TableTest("""
-    Scenario | MDC Time | Legacy Time | Response Within?
+    Scenario | Modern Time | Legacy Time | Response Within?
     ...      | 10       | 10          | 50
     """)
 
 // Phase 2: Add error cases - need status too
 // First attempt uses combined format
 @TableTest("""
-    Scenario     | MDC Response    | Legacy Response | Response?
-    Normal case  | OK in 10ms      | OK in 10ms      | OK in <50ms
-    MDC fails    | ERROR in 10ms   | OK in 10ms      | OK in <50ms
+    Scenario     | Modern Response  | Legacy Response | Response?
+    Normal case  | OK in 10ms       | OK in 10ms      | OK in <50ms
+    Modern fails | ERROR in 10ms    | OK in 10ms      | OK in <50ms
     """)
 
 // Phase 3: Refactor to separate columns for readability
 @TableTest("""
-    Scenario     | MDC   | MDC ms | Legacy | Legacy ms | Response? | Response ms?
-    Normal case  | OK    | 10     | OK     | 10        | OK        | <50
-    MDC fails    | ERROR | 10     | OK     | 10        | OK        | <50
+    Scenario     | Modern | Modern ms | Legacy | Legacy ms | Response? | Response ms?
+    Normal case  | OK     | 10        | OK     | 10        | OK        | <50
+    Modern fails | ERROR  | 10        | OK     | 10        | OK        | <50
     """)
 
 // Phase 4: Add "not implemented" routes - blank cells work naturally
 @TableTest("""
-    Scenario        | MDC   | MDC ms | Legacy | Legacy ms | Response? | Response ms?
-    MDC in prod     | OK    | 10     |        |           | OK        | <50
-    Legacy in prod  |       |        | OK     | 10        | OK        | <50
+    Scenario        | Modern | Modern ms | Legacy | Legacy ms | Response? | Response ms?
+    Modern in prod  | OK     | 10        |        |           | OK        | <50
+    Legacy in prod  |        |           | OK     | 10        | OK        | <50
     """)
 ```
 
@@ -87,7 +87,7 @@ As you add scenarios, column structure often needs adjustment. This is natural:
 As you add rows, watch for consolidation opportunities:
 - Multiple columns that are mutually exclusive (one populated => others null)
 - Both identity AND status varying together in same position
-- Example: `Master Response?` and `Master Error?` -> `Master Response?` with values like `MDC OK`, `MDC ERROR`
+- Example: `Master Response?` and `Master Error?` -> `Master Response?` with values like `Modern OK`, `Modern ERROR`
 
 See `references/common-patterns.md` for the "Consolidating Identity + Status" pattern.
 

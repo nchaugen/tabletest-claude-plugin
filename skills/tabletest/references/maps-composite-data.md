@@ -70,10 +70,10 @@ Every row has status and ms, so separate columns are clearer.
 
 ```java
 // Easy to compare timing values vertically
-| MDC ms | Legacy ms |
-| 10     | 100       |
-| 100    | 10        |
-| 10     | 10        |
+| Modern ms | Legacy ms |
+| 10        | 100       |
+| 100       | 10        |
+| 10        | 10        |
 ```
 
 ### 3. Properties are independent inputs

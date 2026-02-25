@@ -27,16 +27,16 @@ Consolidate when **both identity AND status vary in the same column**.
 **Example: Positional outputs**
 ```java
 @TableTest("""
-    Scenario                | MDC Is Master | Master Response?  | Other Response?   |
-    MDC master, both OK     | true          | MDC OK            | Legacy OK         |
-    MDC master, other fails | true          | MDC OK            | Legacy ERROR      |
-    Legacy master, both OK  | false         | Legacy OK         | MDC OK            |
-    Legacy master, MDC fails| false         | Legacy OK         | MDC ERROR         |
+    Scenario                   | Modern Is Master | Master Response?  | Other Response?   |
+    Modern master, both OK     | true             | Modern OK         | Legacy OK         |
+    Modern master, other fails | true             | Modern OK         | Legacy ERROR      |
+    Legacy master, both OK     | false            | Legacy OK         | Modern OK         |
+    Legacy master, Modern fails| false            | Legacy OK         | Modern ERROR      |
     """)
 ```
 
 In `Master Response?` column:
-- **Identity varies**: Could be MDC or Legacy (depends on `MDC Is Master`)
+- **Identity varies**: Could be Modern or Legacy (depends on `Modern Is Master`)
 - **Status varies**: Could be OK or ERROR
 
 Both pieces of information vary together in the same position, so consolidate them.
@@ -44,16 +44,16 @@ Both pieces of information vary together in the same position, so consolidate th
 **Without consolidation (harder to read):**
 ```java
 | Master Is? | Master Success? | Master Error? | Other Is? | Other Success? | Other Error? |
-| MDC        | yes             |               | Legacy    | yes            |              |
-| MDC        | yes             |               | Legacy    |                | yes          |
-| Legacy     | yes             |               | MDC       | yes            |              |
+| Modern     | yes             |               | Legacy    | yes            |              |
+| Modern     | yes             |               | Legacy    |                | yes          |
+| Legacy     | yes             |               | Modern    | yes            |              |
 ```
 
-Requires 6 columns and cross-referencing to understand "MDC succeeded" or "Legacy failed."
+Requires 6 columns and cross-referencing to understand "Modern succeeded" or "Legacy failed."
 
 ### Format
 `"<Identity> <Status>"` where both identity and status vary:
-- `MDC OK` / `MDC ERROR` / `Legacy OK` / `Legacy ERROR`
+- `Modern OK` / `Modern ERROR` / `Legacy OK` / `Legacy ERROR`
 - `Cache HIT` / `Database MISS` / `Service TIMEOUT`
 - `Primary SUCCESS` / `Fallback SUCCESS` / `Primary FAILURE`
 
@@ -66,8 +66,8 @@ public static RouteResponse parseRouteResponse(String value) {
     if (value == null || value.isBlank()) return null;
 
     return switch (value.trim()) {
-        case "MDC OK" -> RouteResponse.MDC_OK;
-        case "MDC ERROR" -> RouteResponse.MDC_ERROR;
+        case "Modern OK" -> RouteResponse.MODERN_OK;
+        case "Modern ERROR" -> RouteResponse.MODERN_ERROR;
         case "Legacy OK" -> RouteResponse.LEGACY_OK;
         case "Legacy ERROR" -> RouteResponse.LEGACY_ERROR;
         case "ROUTE_NOT_IMPLEMENTED" -> RouteResponse.ROUTE_NOT_IMPLEMENTED;
@@ -76,8 +76,8 @@ public static RouteResponse parseRouteResponse(String value) {
 }
 
 public enum RouteResponse {
-    MDC_OK,
-    MDC_ERROR,
+    MODERN_OK,
+    MODERN_ERROR,
     LEGACY_OK,
     LEGACY_ERROR,
     ROUTE_NOT_IMPLEMENTED
@@ -91,14 +91,14 @@ private void assertRouteResponse(boolean isMaster, RouteResponse expected, Repor
     String actualError = isMaster ? report.masterError() : report.otherError();
 
     switch (expected) {
-        case MDC_OK -> {
-            assertEquals("MDC", actualResponse);
+        case MODERN_OK -> {
+            assertEquals("Modern", actualResponse);
             assertNull(actualError);
         }
-        case MDC_ERROR -> {
+        case MODERN_ERROR -> {
             assertNull(actualResponse);
             assertNotNull(actualError);
-            assertTrue(actualError.contains("MDC system error"));
+            assertTrue(actualError.contains("Modern system error"));
         }
         // ... other cases
     }
@@ -120,7 +120,7 @@ Don't consolidate when:
 ### Benefits
 - **One cell = complete story**: No cross-referencing needed
 - **Fewer columns**: 2 consolidated vs 6 separate
-- **Natural language**: Reads like "MDC succeeded" or "Legacy failed"
+- **Natural language**: Reads like "Modern succeeded" or "Legacy failed"
 - **Clearer intent**: Combinations are explicit, not inferred
 
 ---
@@ -133,17 +133,17 @@ System uses positional fields (first/second, master/other, primary/secondary) th
 **Example:** A report has `masterResponse` and `otherResponse` fields. Which system is "master" depends on a configuration flag.
 
 ### Solution
-Use fixed identities (MDC, Legacy) in input columns, relative roles (Master, Other) in expectation columns, and map between them in test logic.
+Use fixed identities (Modern, Legacy) in input columns, relative roles (Master, Other) in expectation columns, and map between them in test logic.
 
 ```java
 @TableTest("""
-    Scenario          | MDC Is Master | MDC   | Legacy | Master Response? | Other Response? |
-    MDC is master     | true          | OK    | ERROR  | MDC OK           | Legacy ERROR    |
-    Legacy is master  | false         | OK    | ERROR  | Legacy OK        | MDC ERROR       |
+    Scenario          | Modern Is Master | Modern | Legacy | Master Response? | Other Response? |
+    Modern is master  | true             | OK     | ERROR  | Modern OK        | Legacy ERROR    |
+    Legacy is master  | false            | OK     | ERROR  | Legacy OK        | Modern ERROR    |
     """)
 void reports_with_positional_fields(
-    boolean mdcIsMaster,
-    String mdcStatus,
+    boolean modernIsMaster,
+    String modernStatus,
     String legacyStatus,
     RouteResponse masterResponse,
     RouteResponse otherResponse
@@ -173,10 +173,10 @@ Use this pattern when:
 - Same test scenarios apply regardless of which is master
 
 ### Benefits
-- **Input columns stable**: Fixed system names (MDC, Legacy)
+- **Input columns stable**: Fixed system names (Modern, Legacy)
 - **Expectation columns match API**: Report fields (master, other)
 - **Test logic handles mapping**: Avoids duplicating scenarios
-- **Table reads naturally**: "When MDC is master, master response is MDC OK"
+- **Table reads naturally**: "When Modern is master, master response is Modern OK"
 
 ---
 
@@ -213,7 +213,7 @@ Tests create abstractions (test-only enums, simplified labels) that hide actual 
 **When to create test abstractions:**
 - Value is too verbose for table: `VeryLongProductionConstantName` → `LONG_NAME`
 - Value varies by environment: database IDs, timestamps
-- Combining multiple values: `RouteResponse.MDC_OK` instead of checking two fields separately
+- Combining multiple values: `RouteResponse.MODERN_OK` instead of checking two fields separately
 
 **Example from real session:**
 We used the actual production constant `ROUTE_NOT_IMPLEMENTED` directly in table cells rather than inventing a test-only abbreviation like `NO_ROUTE`. This made the table match the system's actual behavior.
@@ -230,13 +230,13 @@ Use upper-bound assertions with `<` notation to express "completes within X mill
 
 ```java
 @TableTest("""
-    Scenario          | MDC ms | Legacy ms | Master ms? | Other ms? |
-    Both fast         | 10     | 60        | <50        | <100      |
-    Master slow       | 100    | 10        | <150       | <50       |
-    Not implemented   | 10     |           | <50        |           |
+    Scenario          | Modern ms | Legacy ms | Master ms? | Other ms? |
+    Both fast         | 10        | 60        | <50        | <100      |
+    Master slow       | 100       | 10        | <150       | <50       |
+    Not implemented   | 10        |           | <50        |           |
     """)
 void records_response_times(
-    Long mdcMs,
+    Long modernMs,
     Long legacyMs,
     Long expectedMasterMs,
     Long expectedOtherMs

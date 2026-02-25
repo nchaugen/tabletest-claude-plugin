@@ -75,7 +75,7 @@ Then use in test:
 ```java
 String result = router.apply(
     "method",
-    delayedSupplier("mdc", mdcDelayMs, executionOrder),
+    delayedSupplier("modern", modernDelayMs, executionOrder),
     delayedSupplier("legacy", legacyDelayMs, executionOrder)
 );
 ```
@@ -86,13 +86,13 @@ When requests have multiple properties (status, timing, data), use maps to avoid
 
 ```java
 @TableTest("""
-    Scenario          | MDC Request            | Legacy Request          | Response?                     | Responder? | Execution Order?
-    MDC ok in prod    | [status: OK, ms: 10]   | [:]                     | [status: OK, withinMs: 50]    | MDC        | [MDC]
-    MDC fail in prod  | [status: ERROR, ms: 10]| [:]                     | [status: ERROR, withinMs: 50] | MDC        | [MDC]
-    Shadow, MDC fails | [status: ERROR, ms: 100]| [status: OK, ms: 10]   | [status: OK, withinMs: 50]    | Legacy     | [Legacy, MDC]
+    Scenario             | Modern Request          | Legacy Request          | Response?                     | Responder? | Execution Order?
+    Modern ok in prod    | [status: OK, ms: 10]    | [:]                     | [status: OK, withinMs: 50]    | Modern     | [Modern]
+    Modern fail in prod  | [status: ERROR, ms: 10] | [:]                     | [status: ERROR, withinMs: 50] | Modern     | [Modern]
+    Shadow, Modern fails | [status: ERROR, ms: 100]| [status: OK, ms: 10]    | [status: OK, withinMs: 50]    | Legacy     | [Legacy, Modern]
     """)
 void routes_with_error_handling(
-        Map<String, String> mdcRequest,
+        Map<String, String> modernRequest,
         Map<String, String> legacyRequest,
         Map<String, String> expectedResponse,
         String expectedResponder,
@@ -104,7 +104,7 @@ void routes_with_error_handling(
         "method",
         "context",
         "request",
-        createResponder("MDC", mdcRequest, actualExecutionOrder),
+        createResponder("Modern", modernRequest, actualExecutionOrder),
         createResponder("Legacy", legacyRequest, actualExecutionOrder)
     );
 
@@ -150,7 +150,7 @@ private static Supplier<String> createResponder(String responder, Map<String, St
 When async execution depends on scenario data (e.g., master success/failure), calculate latch count dynamically:
 
 ```java
-Map<String, String> masterRequest = isMdcMaster ? mdcRequest : legacyRequest;
+Map<String, String> masterRequest = isModernMaster ? modernRequest : legacyRequest;
 boolean masterWillFail = "ERROR".equals(masterRequest.get("status"));
 boolean asyncWillExecute = dualDispatch && !masterWillFail;
 
@@ -173,22 +173,22 @@ Note: When fallback executes, it runs synchronously (not async) because the rout
 
 ```java
 @TableTest("""
-    Scenario       | Master | Dual Dispatch | MDC Time | Legacy Time | Response Within? | Responder? | Execution Order?
-    MDC in prod    | true   | false         | 10       | 10          | 50               | mdc        | [mdc]
-    Legacy in prod | false  | false         | 10       | 10          | 50               | legacy     | [legacy]
-    MDC in pilot   | true   | true          | 10       | 1000        | 50               | mdc        | [mdc, legacy]
-    MDC in shadow  | false  | true          | 1000     | 10          | 50               | legacy     | [legacy, mdc]
+    Scenario          | Master | Dual Dispatch | Modern Time | Legacy Time | Response Within? | Responder? | Execution Order?
+    Modern in prod    | true   | false         | 10          | 10          | 50               | modern     | [modern]
+    Legacy in prod    | false  | false         | 10          | 10          | 50               | legacy     | [legacy]
+    Modern in pilot   | true   | true          | 10          | 1000        | 50               | modern     | [modern, legacy]
+    Modern in shadow  | false  | true          | 1000        | 10          | 50               | legacy     | [legacy, modern]
     """)
 void routes_requests_based_on_context_flags(
-        boolean isMdcMaster,
+        boolean isModernMaster,
         boolean dualDispatch,
-        long mdcResponseTime,
+        long modernResponseTime,
         long legacyResponseTime,
         long responseWithinMs,
         String expectedResponder,
         List<String> executionOrder
 ) throws InterruptedException {
-    Map<String, String> masterRequest = isMdcMaster ? mdcRequest : legacyRequest;
+    Map<String, String> masterRequest = isModernMaster ? modernRequest : legacyRequest;
     boolean masterWillFail = "ERROR".equals(masterRequest.get("status"));
     boolean asyncWillExecute = dualDispatch && !masterWillFail;
 
@@ -198,13 +198,13 @@ void routes_requests_based_on_context_flags(
         asyncLatch.countDown();
     }).start();
 
-    router = new Router(isMdcMaster, dualDispatch, asyncExecutor);
+    router = new Router(isModernMaster, dualDispatch, asyncExecutor);
 
     List<String> actualExecutionOrder = new CopyOnWriteArrayList<>();
 
     long startTime = System.nanoTime();
     String result = router.apply(
-        createResponder("mdc", mdcResponseTime, actualExecutionOrder),
+        createResponder("modern", modernResponseTime, actualExecutionOrder),
         createResponder("legacy", legacyResponseTime, actualExecutionOrder)
     );
     long actualDurationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
@@ -282,10 +282,10 @@ public static Long parseResponseTime(String value) {
 
 ```java
 @TableTest("""
-    Scenario          | MDC ms | Legacy ms | Response? | Response ms?
-    Fast MDC          | 10     | 100       | OK        | <50
-    Fast Legacy       | 100    | 10        | OK        | <50
-    Both slow         | 60     | 100       | OK        | <100
+    Scenario          | Modern ms | Legacy ms | Response? | Response ms?
+    Fast Modern       | 10        | 100       | OK        | <50
+    Fast Legacy       | 100       | 10        | OK        | <50
+    Both slow         | 60        | 100       | OK        | <100
     """)
 ```
 
@@ -303,13 +303,13 @@ public static Long parseResponseTime(String value) {
 **Example showing separation:**
 ```java
 // Good separation
-| MDC ms | Legacy ms | Response ms? |
-| 10     | 60        | <50          |  // Proves MDC responded (10+40 buffer < 50)
-| 60     | 10        | <100         |  // Proves system responded (60+40 buffer < 100)
+| Modern ms | Legacy ms | Response ms? |
+| 10        | 60        | <50          |  // Proves Modern responded (10+40 buffer < 50)
+| 60        | 10        | <100         |  // Proves system responded (60+40 buffer < 100)
 
 // Bad separation (too close)
-| MDC ms | Legacy ms | Response ms? |
-| 10     | 15        | <50          |  // Both well under threshold - can't prove which responded
+| Modern ms | Legacy ms | Response ms? |
+| 10        | 15        | <50          |  // Both well under threshold - can't prove which responded
 ```
 
 ### Benefits Over Range Assertions

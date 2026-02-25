@@ -64,8 +64,8 @@ void shouldFormatCollection(String input, String formatted) {
 **Before** - Multiple separate tests:
 ```java
 @Test
-void whenMasterIsMdc_returnsMdc() {
-    assertEquals("mdc", router.route(true, false));
+void whenMasterIsModern_returnsModern() {
+    assertEquals("modern", router.route(true, false));
 }
 
 @Test
@@ -76,7 +76,7 @@ void whenMasterIsLegacy_returnsLegacy() {
 @Test
 void whenDualDispatch_executesInOrder() {
     // Complex setup with latches and execution tracking...
-    assertEquals(Arrays.asList("mdc", "legacy"), executionOrder);
+    assertEquals(Arrays.asList("modern", "legacy"), executionOrder);
 }
 ```
 
@@ -84,19 +84,19 @@ void whenDualDispatch_executesInOrder() {
 ```java
 @TableTest("""
     Scenario       | Master | Dual Dispatch | Response? | Execution Order?
-    MDC master     | true   | false         | mdc       | [mdc]
+    Modern master  | true   | false         | modern    | [modern]
     Legacy master  | false  | false         | legacy    | [legacy]
-    MDC dual       | true   | true          | mdc       | [mdc, legacy]
-    Legacy dual    | false  | true          | legacy    | [legacy, mdc]
+    Modern dual    | true   | true          | modern    | [modern, legacy]
+    Legacy dual    | false  | true          | legacy    | [legacy, modern]
     """)
-void routing_behavior(boolean isMdcMaster, boolean dualDispatch,
+void routing_behavior(boolean isModernMaster, boolean dualDispatch,
                       String response, List<String> order) {
     List<String> actualOrder = new CopyOnWriteArrayList<>();
 
     String result = router.route(
-        isMdcMaster,
+        isModernMaster,
         dualDispatch,
-        () -> { actualOrder.add("mdc"); return "mdc"; },
+        () -> { actualOrder.add("modern"); return "modern"; },
         () -> { actualOrder.add("legacy"); return "legacy"; }
     );
 

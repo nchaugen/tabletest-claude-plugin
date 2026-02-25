@@ -13,8 +13,8 @@ When two features are independent (orthogonal), don't cross-multiply them in one
 ```java
 // Routing logic (master selection, dual dispatch, fallback)
 @TableTest("""
-    Scenario      | Master | Dual Dispatch | Fallback | Response?
-    MDC in prod   | true   | false         | false    | mdc
+    Scenario         | Master | Dual Dispatch | Fallback | Response?
+    Modern in prod   | true   | false         | false    | modern
     ...
     """)
 void routes_requests(...)  // reportEvents=false for all rows
@@ -41,9 +41,9 @@ Scenario names should evolve as you add rows. Early names may be adequate initia
 **Initial table** (2 scenarios):
 ```java
 @TableTest("""
-    Scenario              | MDC   | Legacy | Response?
-    Legacy fails          | OK    | ERROR  | OK
-    MDC fails             | ERROR | OK     | OK
+    Scenario              | Modern | Legacy | Response?
+    Legacy fails          | OK     | ERROR  | OK
+    Modern fails          | ERROR  | OK     | OK
     """)
 ```
 Names are clear because they're the only failure scenarios.
@@ -51,11 +51,11 @@ Names are clear because they're the only failure scenarios.
 **Adding fallback scenarios** (4 scenarios):
 ```java
 @TableTest("""
-    Scenario                  | MDC   | Legacy | Fallback? | Response?
-    Legacy fails              | OK    | ERROR  | true      | OK
-    MDC fails                 | ERROR | OK     | true      | OK
-    Legacy fails, no fallback | OK    | ERROR  | false     | ERROR
-    MDC fails, no fallback    | ERROR | OK     | false     | ERROR
+    Scenario                  | Modern | Legacy | Fallback? | Response?
+    Legacy fails              | OK     | ERROR  | true      | OK
+    Modern fails              | ERROR  | OK     | true      | OK
+    Legacy fails, no fallback | OK     | ERROR  | false     | ERROR
+    Modern fails, no fallback | ERROR  | OK     | false     | ERROR
     """)
 ```
 Adding ", no fallback" suffix clarifies the first two have fallback enabled.
@@ -63,13 +63,13 @@ Adding ", no fallback" suffix clarifies the first two have fallback enabled.
 **Adding both-fail scenarios** (6 scenarios):
 ```java
 @TableTest("""
-    Scenario                  | MDC   | Legacy | Fallback? | Response?
-    Legacy fails, fallback ok | OK    | ERROR  | true      | OK
-    MDC fails, fallback ok    | ERROR | OK     | true      | OK
-    Legacy fails, no fallback | OK    | ERROR  | false     | ERROR
-    MDC fails, no fallback    | ERROR | OK     | false     | ERROR
-    Legacy and fallback fail  | ERROR | ERROR  | true      | ERROR
-    MDC and fallback fail     | ERROR | ERROR  | true      | ERROR
+    Scenario                  | Modern | Legacy | Fallback? | Response?
+    Legacy fails, fallback ok | OK     | ERROR  | true      | OK
+    Modern fails, fallback ok | ERROR  | OK     | true      | OK
+    Legacy fails, no fallback | OK     | ERROR  | false     | ERROR
+    Modern fails, no fallback | ERROR  | OK     | false     | ERROR
+    Legacy and fallback fail  | ERROR  | ERROR  | true      | ERROR
+    Modern and fallback fail  | ERROR  | ERROR  | true      | ERROR
     """)
 ```
 Changed "Legacy fails" to "Legacy fails, fallback ok" to distinguish from "Legacy and fallback fail".

@@ -13,21 +13,21 @@ When every scenario uses the same set of properties, separate columns are cleare
 ```java
 // ❌ HARDER TO READ - combined format when structure is consistent
 @TableTest("""
-    Scenario     | MDC Request      | Legacy Request   | Response?
-    Both ok      | OK in 100ms      | OK in 10ms       | OK in <50ms
-    MDC fails    | ERROR in 100ms   | OK in 10ms       | OK in <50ms
+    Scenario      | Modern Request   | Legacy Request   | Response?
+    Both ok       | OK in 100ms      | OK in 10ms       | OK in <50ms
+    Modern fails  | ERROR in 100ms   | OK in 10ms       | OK in <50ms
     """)
-void test(String mdcRequest, String legacyRequest, String response) {
+void test(String modernRequest, String legacyRequest, String response) {
     // Need converter methods to parse each combined string
 }
 
 // ✅ EASIER TO READ - separate columns when structure is consistent
 @TableTest("""
-    Scenario     | MDC   | MDC ms | Legacy | Legacy ms | Response? | Response ms?
-    Both ok      | OK    | 100    | OK     | 10        | OK        | <50
-    MDC fails    | ERROR | 100    | OK     | 10        | OK        | <50
+    Scenario      | Modern | Modern ms | Legacy | Legacy ms | Response? | Response ms?
+    Both ok       | OK     | 100       | OK     | 10        | OK        | <50
+    Modern fails  | ERROR  | 100       | OK     | 10        | OK        | <50
     """)
-void test(String mdcStatus, Long mdcMs, String legacyStatus, Long legacyMs,
+void test(String modernStatus, Long modernMs, String legacyStatus, Long legacyMs,
           String responseStatus, Long responseMs) {
     // Values directly usable, only need parseResponseTime converter for <50 format
 }
@@ -152,9 +152,9 @@ private RequestConfig buildRequest(Map<String, String> config) {
 
 2. **Need to compare values vertically**
    ```java
-   | MDC ms | Legacy ms |
-   | 10     | 100       |  <- Easy to see MDC is faster
-   | 100    | 10        |  <- Easy to see Legacy is faster
+   | Modern ms | Legacy ms |
+   | 10        | 100       |  <- Easy to see Modern is faster
+   | 100       | 10        |  <- Easy to see Legacy is faster
    ```
 
 3. **Properties are independent inputs**
@@ -230,25 +230,25 @@ If you find yourself squinting to parse values in a column, that's a sign to spl
 Blank cells are natural for "not provided":
 ```java
 @TableTest("""
-    Scenario | MDC Status | MDC ms | Legacy Status | Legacy ms
-    MDC only | OK         | 10     |               |
-    Both     | OK         | 10     | OK            | 100
+    Scenario     | Modern Status | Modern ms | Legacy Status | Legacy ms
+    Modern only  | OK            | 10        |               |
+    Both         | OK            | 10        | OK            | 100
     """)
 ```
 
 Clearer than combined format with special notation:
 ```java
 @TableTest("""
-    Scenario | MDC Request | Legacy Request
-    MDC only | OK in 10ms  |
-    Both     | OK in 10ms  | OK in 100ms
+    Scenario     | Modern Request | Legacy Request
+    Modern only  | OK in 10ms     |
+    Both         | OK in 10ms     | OK in 100ms
     """)
 ```
 
 ### Use Boxed Types for Nullable Values
 When blank cells should be null, use boxed types:
 ```java
-void test(String mdcStatus, Long mdcMs, String legacyStatus, Long legacyMs) {
+void test(String modernStatus, Long modernMs, String legacyStatus, Long legacyMs) {
     // Long allows null, primitive long does not
 }
 ```
@@ -497,7 +497,7 @@ Replace technical/parameter names with domain terminology:
 | `expectedQueryCount`   | `Query Count?`      | Proper expectation suffix, concise   |
 | `expected`             | `Result?`           | Clearer what's being checked         |
 | `junitOutputDirOverride`| `JUnit Dir`        | Domain concept, not variable name    |
-| `mdcIsMain`            | `MDC Is Master`     | Business terminology                 |
+| `modernIsMain`         | `Modern Is Master`  | Business terminology                 |
 
 ### Progressive Refinement
 
