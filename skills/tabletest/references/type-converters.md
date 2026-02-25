@@ -1,5 +1,15 @@
 # Custom Type Converter Methods
 
+## Prefer Built-in Conversion Before Writing a Converter
+
+JUnit can convert strings to `Class<?>` when the value is a fully-qualified class name. Write `java.lang.RuntimeException` in the table instead of `RuntimeException` plus a custom `@TypeConverter`. This also works for collection elements: `[java.lang.RuntimeException, java.lang.NullPointerException]` → `List<Class<?>>`.
+
+Only write a converter method when built-in conversion does not cover the type.
+
+---
+
+## Writing Custom Converter Methods
+
 When JUnit's built-in converters don't support your parameter type, add custom type converter methods annotated with `@TypeConverter`.
 
 ## Java

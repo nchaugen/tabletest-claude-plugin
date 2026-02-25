@@ -617,6 +617,53 @@ With wildcards: `O:F:*` means "any version for this org+feature".
 
 ---
 
+## Pattern: Static Constants for Readable Expected Values
+
+### Problem
+
+Expected values in a table are unreadable strings (ANSI escape codes, long URLs, raw bytes) that obscure the table's intent.
+
+### Solution
+
+Define a `static final` map in the test class that translates readable names to actual values. The table uses the readable names; the test body looks them up.
+
+```java
+private static final Map<String, String> COLOR = Map.of(
+    "cyan",   "\u001B[36m",
+    "green",  "\u001B[32m",
+    "yellow", "\u001B[33m"
+);
+
+@TableTest("""
+    Scenario        | Input     | Expected Color?
+    XML tag         | <root>    | cyan
+    XML attribute   | id="x"    | green
+    XML value       | some text | yellow
+    """)
+void colorizes_xml(String input, String colorName) {
+    String expected = COLOR.get(colorName);
+    assertThat(colorizer.colorize(input)).contains(expected);
+}
+```
+
+### Benefits
+- Table stays readable — domain names instead of escape sequences
+- Single place to update if the underlying values change
+- Avoids noise in expected columns from encoding-specific characters
+
+### When to Use
+- Expected values are encoding-specific (ANSI codes, Base64, binary)
+- Expected values are long and repetitive (full URLs, complex regexes)
+- Multiple rows share the same set of possible expected values
+- The name of the value communicates intent better than the raw value
+
+### When Not to Use
+- Expected values are already readable and meaningful (inline them)
+- There are only 1–2 distinct expected values (no benefit to a lookup map)
+- Values vary per row with no repeated set
+
+---
+
 ## Summary
 
 These patterns emerged from real-world TableTest usage. They solve common challenges:
@@ -629,5 +676,6 @@ These patterns emerged from real-world TableTest usage. They solve common challe
 6. **Test Helpers**: Observe behavior beyond return values (counts, sequences, side effects)
 7. **Recording Sequences**: Control stopping with expected sequences
 8. **One-Letter Values**: Improve readability for composite key testing
+9. **Static Constants for Readable Expected Values**: Translate unreadable strings to domain names via a lookup map
 
 When facing similar challenges, consider these patterns before creating custom solutions.

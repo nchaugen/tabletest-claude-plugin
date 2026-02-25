@@ -88,3 +88,41 @@ Changed "Secondary fails" to "Secondary fails, fallback ok" to distinguish from 
 - Names too similar to distinguish ("Fails" vs "Fails with error" - what's the difference?)
 
 **Evolution trigger:** When you add a new scenario and find yourself confused which existing scenario is which, that's the signal to refine all related scenario names.
+
+## Separate Tables When Column Sets Diverge
+
+Keep scenarios in separate tables when one group of scenarios needs a column that is irrelevant (always blank) for another group. A column that is blank for more than half the rows signals the table is mixing two distinct sub-behaviours.
+
+**Example:** A resolver supports three sources (configured value, JUnit property, fallback) — these work well in one table. Adding a fourth source (properties file) that requires a `Properties Value` column — irrelevant to all other rows — is the signal to create a second focused table rather than adding a sparsely-populated column.
+
+**Before (sparsely-populated column):**
+```java
+@TableTest("""
+    Scenario             | Configured Dir | JUnit Property | Properties Value | Resolved Dir?
+    Configured wins      | my-config      | report/junit   |                  | my-config
+    JUnit property wins  |                | report/junit   |                  | report/junit
+    Fallback             |                |                |                  | build/junit-jupiter
+    Properties wins      |                |                | props/reports    | props/reports
+    """)
+```
+The `Properties Value` column is blank for every row except one.
+
+**After (two focused tables):**
+```java
+@TableTest("""
+    Scenario             | Configured Dir | JUnit Property | Resolved Dir?
+    Configured wins      | my-config      | report/junit   | my-config
+    JUnit property wins  |                | report/junit   | report/junit
+    Fallback             |                |                | build/junit-jupiter
+    """)
+void resolves_from_standard_sources(...) { ... }
+
+@TableTest("""
+    Scenario             | Properties Value | Resolved Dir?
+    Properties wins      | props/reports    | props/reports
+    Properties not set   |                  | build/junit-jupiter
+    """)
+void resolves_from_properties_file(...) { ... }
+```
+
+This is different from orthogonal concerns (where features don't affect each other at all). Here the concerns are related — same operation, same method — but their input structures diverge enough to warrant separate tables for clarity.

@@ -20,9 +20,15 @@ Use this skill before converting similar JUnit tests or adding a new TableTest.
 
 ### Test Design
 - [ ] 2+ test cases share the same setup and assertion logic
+  - **Exception**: A single-scenario `@TableTest` is acceptable when it is part of a set of focused, single-responsibility tables (e.g., one table per syntactic feature of a parser). The benefit is structural consistency and the ease of adding rows later, not the current row count.
 - [ ] Differences between cases can be expressed as data (inputs/outputs)
 
 **If any check fails, use standard `@Test` methods instead.**
+
+**Also keep standard `@Test` methods when:**
+- The implementation is trivial (e.g., a single delegating call or log statement). If the interface contract is already tested elsewhere, a TableTest for a trivial implementation adds noise without value.
+- Test setup is inherently complex and test-specific — latches, embedded servers, thread coordination — and cannot be expressed as data columns without obscuring the setup.
+- A higher-level integration test already covers the observable contract of this component, making unit-level TableTests redundant.
 
 ## Quick Example
 
@@ -81,6 +87,12 @@ Use blank cells for `null` (reference types). Use `''` for empty strings. Use `'
 void testValues(String value, String description) { ... }
 ```
 
+**Strategy**: Apply minimal quoting. Start without quotes; if a test fails with a parsing error, add quotes only around the problematic value. Over-quoting obscures the data.
+
+**Quote inside collection values, not the whole collection.** For a collection element containing a special character, quote only that element: `[path: 'C:\\Users']`, not `'[path: C:\\Users]'`. The quotes wrap the problematic element, not the entire collection.
+
+**Newlines in values**: To include a newline character inside a table value, write `\\n` in the table (keeps the row on one line), then process it manually in the test method: `value.replace("\\n", "\n")`. Do not use a literal newline — it would split the row across lines. Note: Java text blocks process `\n` into a real newline before TableTest sees it, so use double-backslash `\\n` to preserve it as text for manual processing.
+
 ### Collections
 
 Lists use `[]`, sets use `{}`, and maps use `[]` with `key: value` entries.
@@ -113,6 +125,8 @@ void testSetSize(Set<Integer> values, int size) { ... }
     """)
 void testHighestScore(Map<String, Integer> scores, int highest) { ... }
 ```
+
+**Common mistake**: Using `[]` for a `Set<>` parameter. Lists use `[]`; sets use `{}`. If a parameter is typed `Set<T>` but the table uses `[]`, JUnit will report a conversion failure. Double-check the brackets match the parameter type.
 
 **Note**: Empty collections are explicit: `[]` for empty list, `{}` for empty set, `[:]` for empty map.
 
