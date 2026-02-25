@@ -330,9 +330,9 @@ When writing TableTests with a pair, follow this collaborative cadence:
 
 4. **Show a mockup**: Before implementing, show 2-3 example rows
    ```
-   | Scenario        | orgId | custId | Feature Toggles      | Query Count? | Result?
-   | Specific match  | O     | C      | [O-a-e-Cd/s/m: true] | 1            | true
-   | Wild customer   | O     | C      | [O-a-e-*d/s/m: true] | 2            | true
+   | Scenario        | orgId | featureId | version | Feature Toggles | Query Count? | Result?
+   | Specific match  | O     | F         | V       | [O:F:V: true]   | 1            | true
+   | Wild version    | O     | F         | V       | [O:F:*: true]   | 2            | true
    ```
 
 This design-first approach reduces rework and clarifies intent before committing to code.
@@ -405,7 +405,7 @@ After writing, verify:
 - [ ] **Concrete values**: expectation values are traceable to input column values where applicable
 - [ ] **Complete outputs**: all observable outputs of the same behavioral concern are in one table, not split across separate tests
 - [ ] **Row coherence**: rows match the type of logic being tested (decision points for priority logic, input variations for parsing logic); out-of-place rows may signal mixed responsibilities in the code under test
-- [ ] **Column consolidation**: if multiple columns are mutually exclusive (both identity and status vary together), consider consolidating into single column with composite values (e.g., `MDC OK`, `Legacy ERROR`)
+- [ ] **Column consolidation**: if multiple columns are mutually exclusive (both identity and status vary together), consider consolidating into single column with composite values (e.g., `Primary OK`, `Secondary ERROR`)
 - [ ] **Cross-table consistency**: if multiple TableTests exist in the same class, use consistent notation for similar concerns (timing, errors, special values); share parsers and helper methods
 - [ ] **Test helpers organized**: helper classes placed at bottom of test file with clear names (`QueryCounter`, not `Helper`); only extract to separate file when reused across test classes
 
@@ -420,15 +420,13 @@ After writing, verify:
 | `references/dependency-setup.md`         | Project lacks TableTest dependency                                         |
 | `references/value-sets.md`               | Multiple example inputs map to same expectation                            |
 | `references/type-converters.md`          | Custom types need parsing logic or handling special formats                |
-| `references/column-design.md`            | Deciding whether to split or combine columns; refactoring table structure  |
+| `references/column-design.md`            | Deciding whether to split, combine, or use maps for columns; cross-table consistency |
 | `references/common-patterns.md`          | Consolidating identity+status, positional fields, timing, async testing    |
 | `references/large-tables.md`             | Need comments, grouping, or external table files                           |
 | `references/example-patterns.md`         | Need inspiration for table design (business rules, boundaries, exceptions) |
 | `references/async-and-performance.md`    | Testing async/non-blocking behavior or tracking execution order            |
 | `references/provided-parameters.md`      | Using `@TempDir` or other injected parameters                              |
-| `references/maps-composite-data.md`      | Using maps vs separate columns for structured data                         |
 | `references/table-design-advanced.md`    | Table has rows that don't fit; mixed concerns suspected; scenario names unclear |
-| `references/cross-table-consistency.md`  | Test class has multiple @TableTest methods                                 |
 | `references/incremental-development.md`  | Building a complex table iteratively; learning from test failures          |
 | `references/consolidating-tests.md`      | Removing @Test methods covered by table                                    |
 | `references/testing-reveals-bugs.md`     | Test design feels wrong; suspecting implementation bug                     |
