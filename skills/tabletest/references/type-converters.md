@@ -6,6 +6,34 @@ JUnit can convert strings to `Class<?>` when the value is a fully-qualified clas
 
 Only write a converter method when built-in conversion does not cover the type.
 
+### Non-obvious built-in conversions
+
+The common types (primitives, `String`, `Path`, `URI`, `URL`, `UUID`, `LocalDate`, `LocalTime`, `LocalDateTime`) are supported as expected. Less obvious conversions worth knowing:
+
+| Table value | Parameter type | Notes |
+|---|---|---|
+| `"SECONDS"` | `TimeUnit` (any enum) | Enum name, case-sensitive |
+| `"0xF"`, `"017"` | `int`/`long` (and boxed) | Hex and octal literals work |
+| `"java.lang.Integer"` | `Class<?>` | Fully-qualified name required |
+| `"java.lang.Thread$State"` | `Class<?>` | `$` for nested classes |
+| `"byte"` | `Class<?>` | Primitive type names work |
+| `"char[]"` | `Class<?>` | Array type names work |
+| `"PT3S"`, `"PT1H30M"` | `Duration` | ISO 8601 duration format |
+| `"P2M6D"` | `Period` | ISO 8601 period format |
+| `"JPY"` | `Currency` | ISO 4217 currency code |
+| `"en-US"` | `Locale` | IETF BCP 47 language tag |
+
+**Enums**: Write the enum constant name — `"SECONDS"` not `"TimeUnit.SECONDS"`. The parameter type tells JUnit which enum to use.
+
+```java
+@TableTest("""
+    Scenario       | Unit    | Duration?
+    In seconds     | SECONDS | PT3S
+    In minutes     | MINUTES | PT5M
+    """)
+void formats_duration(TimeUnit unit, Duration duration) { ... }
+```
+
 ---
 
 ## Writing Custom Converter Methods
