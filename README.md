@@ -10,8 +10,16 @@ A Claude Code plugin for writing [TableTest](https://tabletest.org)-style JUnit 
 
 ## Installation
 
+First, add the marketplace:
+
 ```
-claude plugin install github:nchaugen/tabletest-claude-plugin
+/plugin marketplace add https://tabletest.org/marketplace.json
+```
+
+Then install the plugin:
+
+```
+/plugin install tabletest@tabletest
 ```
 
 ## Usage

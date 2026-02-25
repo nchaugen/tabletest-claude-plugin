@@ -1,0 +1,16 @@
+{
+  "name": "tabletest",
+  "owner": {
+    "name": "Nils Christian Haugen"
+  },
+  "plugins": [
+    {
+      "name": "tabletest",
+      "source": {
+        "source": "github",
+        "repo": "nchaugen/tabletest-claude-plugin"
+      },
+      "description": "Tools to help write TableTest-style JUnit tests in Java and Kotlin"
+    }
+  ]
+}
