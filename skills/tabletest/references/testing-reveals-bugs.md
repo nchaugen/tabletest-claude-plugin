@@ -2,9 +2,9 @@
 
 The process of designing test scenarios can reveal bugs in the implementation. If test rows feel awkward, impossible to express, or inconsistent with black-box expectations, investigate the implementation.
 
-## Real Example: Suppressed Exceptions Bug
+## Example: Suppressed Exceptions Bug
 
-**Scenario:** Writing test for router that falls back to secondary system when primary fails.
+**Scenario:** Writing test for a router that falls back to a secondary service when the primary fails.
 
 **Test design challenge:**
 ```java
@@ -18,15 +18,15 @@ The process of designing test scenarios can reveal bugs in the implementation. I
 
 Expected behavior: When both fail, primary exception should have secondary exception as suppressed (observable via `thrown.getSuppressed()`).
 
-**Problem discovered:** Test couldn't be written cleanly because suppressed exception behavior varied based on `reportEvents` flag:
-- `reportEvents=true` -> suppressed exception added
-- `reportEvents=false` -> suppressed exception NOT added
+**Problem discovered:** Test couldn't be written cleanly because suppressed exception behavior varied based on `reporting` flag:
+- `reporting=true` -> suppressed exception added
+- `reporting=false` -> suppressed exception NOT added
 
 **Investigation revealed the bug:**
 ```java
-// MdcRouter.java:100 - WRONG
+// Router.java - WRONG
 } catch (Throwable suppressed) {
-    if (routerContext.reportEvents()) {
+    if (router.isReporting()) {
         reporter.report(...);
         t.addSuppressed(suppressed);  // Inside if block!
     }
@@ -34,7 +34,7 @@ Expected behavior: When both fail, primary exception should have secondary excep
 }
 ```
 
-**The bug:** `addSuppressed()` was inside the `if (reportEvents)` block, but these are orthogonal concerns:
+**The bug:** `addSuppressed()` was inside the `if (reporting)` block, but these are orthogonal concerns:
 - **Exception chaining** (`addSuppressed`) - preserves error context for the **caller**
 - **Reporting** - sends telemetry to monitoring systems
 
@@ -44,7 +44,7 @@ A caller catching the exception should **always** see both failures when fallbac
 ```java
 // Move addSuppressed outside the if block
 } catch (Throwable suppressed) {
-    if (routerContext.reportEvents()) {
+    if (router.isReporting()) {
         reporter.report(...);
     }
     t.addSuppressed(suppressed);  // ALWAYS add

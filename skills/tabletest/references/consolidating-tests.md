@@ -10,25 +10,25 @@ After building a comprehensive table test, look for individual `@Test` methods t
 4. If fully redundant, remove it
 5. Run full test suite before and after removal to verify coverage
 
-## Example - Real Session
+## Example
 
 After expanding table test with fallback scenarios, these became redundant:
 ```java
 @Test
-void testApply_whenModernizedThrowsAndFallbackOnError_executesLegacyFallback() {
-    // Covered by table row: "MDC, fails w/fallback"
+void testApply_whenPrimaryThrowsAndFallbackEnabled_executesSecondaryFallback() {
+    // Covered by table row: "Primary fails, fallback ok"
 }
 
 @Test
-void testApply_whenPrimaryThrowsAndFallbackOnErrorDisabled_throwsWithoutFallback() {
-    // Covered by table row: "MDC, fails" with fallbackOnError=false
+void testApply_whenPrimaryThrowsAndFallbackDisabled_throwsWithoutFallback() {
+    // Covered by table row: "Primary fails, no fallback"
 }
 ```
 
 This kept (tests suppressed exceptions detail):
 ```java
 @Test
-void testApply_whenBothThrowAndFallbackOnError_throwsPrimaryWithSuppressed() {
+void testApply_whenBothThrowAndFallbackEnabled_throwsPrimaryWithSuppressed() {
     assertEquals(1, thrown.getSuppressed().length); // Not in table
 }
 ```

@@ -86,14 +86,14 @@ When requests have multiple properties (status, timing, data), use maps to avoid
 
 ```java
 @TableTest("""
-    Scenario          | MDC Request            | Legacy Request          | Response?                     | Responder? | Execution Order?
-    MDC ok in prod    | [status: OK, ms: 10]   | [:]                     | [status: OK, withinMs: 50]    | MDC        | [MDC]
-    MDC fail in prod  | [status: ERROR, ms: 10]| [:]                     | [status: ERROR, withinMs: 50] | MDC        | [MDC]
-    Shadow, MDC fails | [status: ERROR, ms: 100]| [status: OK, ms: 10]   | [status: OK, withinMs: 50]    | Legacy     | [Legacy, MDC]
+    Scenario               | Primary Request         | Secondary Request       | Response?                     | Responder? | Execution Order?
+    Primary ok in prod     | [status: OK, ms: 10]    | [:]                     | [status: OK, withinMs: 50]    | Primary    | [Primary]
+    Primary fail in prod   | [status: ERROR, ms: 10] | [:]                     | [status: ERROR, withinMs: 50] | Primary    | [Primary]
+    Shadow, Primary fails  | [status: ERROR, ms: 100]| [status: OK, ms: 10]    | [status: OK, withinMs: 50]    | Secondary  | [Secondary, Primary]
     """)
 void routes_with_error_handling(
-        Map<String, String> mdcRequest,
-        Map<String, String> legacyRequest,
+        Map<String, String> primaryRequest,
+        Map<String, String> secondaryRequest,
         Map<String, String> expectedResponse,
         String expectedResponder,
         List<String> executionOrder
@@ -104,8 +104,8 @@ void routes_with_error_handling(
         "method",
         "context",
         "request",
-        createResponder("MDC", mdcRequest, actualExecutionOrder),
-        createResponder("Legacy", legacyRequest, actualExecutionOrder)
+        createResponder("Primary", primaryRequest, actualExecutionOrder),
+        createResponder("Secondary", secondaryRequest, actualExecutionOrder)
     );
 
     String expectedStatus = expectedResponse.get("status");
@@ -150,7 +150,7 @@ private static Supplier<String> createResponder(String responder, Map<String, St
 When async execution depends on scenario data (e.g., master success/failure), calculate latch count dynamically:
 
 ```java
-Map<String, String> masterRequest = isMdcMaster ? mdcRequest : legacyRequest;
+Map<String, String> masterRequest = isPrimary ? primaryRequest : secondaryRequest;
 boolean masterWillFail = "ERROR".equals(masterRequest.get("status"));
 boolean asyncWillExecute = dualDispatch && !masterWillFail;
 
@@ -173,24 +173,22 @@ Note: When fallback executes, it runs synchronously (not async) because the rout
 
 ```java
 @TableTest("""
-    Scenario       | Master | Dual Dispatch | MDC Time | Legacy Time | Response Within? | Responder? | Execution Order?
-    MDC in prod    | true   | false         | 10       | 10          | 50               | mdc        | [mdc]
-    Legacy in prod | false  | false         | 10       | 10          | 50               | legacy     | [legacy]
-    MDC in pilot   | true   | true          | 10       | 1000        | 50               | mdc        | [mdc, legacy]
-    MDC in shadow  | false  | true          | 1000     | 10          | 50               | legacy     | [legacy, mdc]
+    Scenario               | Master | Dual Dispatch | Primary Time | Secondary Time | Response Within? | Responder? | Execution Order?
+    Primary in prod        | true   | false         | 10           | 10             | 50               | primary    | [primary]
+    Secondary in prod      | false  | false         | 10           | 10             | 50               | secondary  | [secondary]
+    Primary in pilot mode  | true   | true          | 10           | 1000           | 50               | primary    | [primary, secondary]
+    Primary in shadow mode | false  | true          | 1000         | 10             | 50               | secondary  | [secondary, primary]
     """)
 void routes_requests_based_on_context_flags(
-        boolean isMdcMaster,
+        boolean isPrimary,
         boolean dualDispatch,
-        long mdcResponseTime,
-        long legacyResponseTime,
+        long primaryResponseTime,
+        long secondaryResponseTime,
         long responseWithinMs,
         String expectedResponder,
         List<String> executionOrder
 ) throws InterruptedException {
-    Map<String, String> masterRequest = isMdcMaster ? mdcRequest : legacyRequest;
-    boolean masterWillFail = "ERROR".equals(masterRequest.get("status"));
-    boolean asyncWillExecute = dualDispatch && !masterWillFail;
+    boolean asyncWillExecute = dualDispatch;
 
     CountDownLatch asyncLatch = new CountDownLatch(asyncWillExecute ? 1 : 0);
     Executor asyncExecutor = task -> new Thread(() -> {
@@ -198,14 +196,14 @@ void routes_requests_based_on_context_flags(
         asyncLatch.countDown();
     }).start();
 
-    router = new Router(isMdcMaster, dualDispatch, asyncExecutor);
+    router = new Router(isPrimary, dualDispatch, asyncExecutor);
 
     List<String> actualExecutionOrder = new CopyOnWriteArrayList<>();
 
     long startTime = System.nanoTime();
     String result = router.apply(
-        createResponder("mdc", mdcResponseTime, actualExecutionOrder),
-        createResponder("legacy", legacyResponseTime, actualExecutionOrder)
+        createResponder("primary", primaryResponseTime, actualExecutionOrder),
+        createResponder("secondary", secondaryResponseTime, actualExecutionOrder)
     );
     long actualDurationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
 
@@ -262,19 +260,7 @@ void completes_within_threshold(String operation, Long maxMs) {
 }
 ```
 
-**Parser for `<` notation:**
-```java
-@TypeConverter
-public static Long parseResponseTime(String value) {
-    if (value == null || value.isBlank()) {
-        return null;
-    }
-    String trimmed = value.trim();
-    return trimmed.startsWith("<")
-        ? Long.valueOf(trimmed.substring(1))
-        : Long.parseLong(trimmed);
-}
-```
+**Parser for `<` notation:** Use `parseResponseTime` from `references/type-converters.md` (handles `<50` format and null input).
 
 ### Choosing Operation Times vs Assertion Thresholds
 
@@ -282,10 +268,10 @@ public static Long parseResponseTime(String value) {
 
 ```java
 @TableTest("""
-    Scenario          | MDC ms | Legacy ms | Response? | Response ms?
-    Fast MDC          | 10     | 100       | OK        | <50
-    Fast Legacy       | 100    | 10        | OK        | <50
-    Both slow         | 60     | 100       | OK        | <100
+    Scenario          | Primary ms | Secondary ms | Response? | Response ms?
+    Fast Primary      | 10         | 100          | OK        | <50
+    Fast Secondary    | 100        | 10           | OK        | <50
+    Both slow         | 60         | 100          | OK        | <100
     """)
 ```
 
@@ -303,13 +289,13 @@ public static Long parseResponseTime(String value) {
 **Example showing separation:**
 ```java
 // Good separation
-| MDC ms | Legacy ms | Response ms? |
-| 10     | 60        | <50          |  // Proves MDC responded (10+40 buffer < 50)
-| 60     | 10        | <100         |  // Proves system responded (60+40 buffer < 100)
+| Primary ms | Secondary ms | Response ms? |
+| 10         | 60           | <50          |  // Proves Primary responded (10+40 buffer < 50)
+| 60         | 10           | <100         |  // Proves system responded (60+40 buffer < 100)
 
 // Bad separation (too close)
-| MDC ms | Legacy ms | Response ms? |
-| 10     | 15        | <50          |  // Both well under threshold - can't prove which responded
+| Primary ms | Secondary ms | Response ms? |
+| 10         | 15           | <50          |  // Both well under threshold - can't prove which responded
 ```
 
 ### Benefits Over Range Assertions

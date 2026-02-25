@@ -64,40 +64,40 @@ void shouldFormatCollection(String input, String formatted) {
 **Before** - Multiple separate tests:
 ```java
 @Test
-void whenMasterIsMdc_returnsMdc() {
-    assertEquals("mdc", router.route(true, false));
+void whenPrimaryIsMaster_returnsPrimary() {
+    assertEquals("primary", router.route(true, false));
 }
 
 @Test
-void whenMasterIsLegacy_returnsLegacy() {
-    assertEquals("legacy", router.route(false, false));
+void whenSecondaryIsMaster_returnsSecondary() {
+    assertEquals("secondary", router.route(false, false));
 }
 
 @Test
 void whenDualDispatch_executesInOrder() {
     // Complex setup with latches and execution tracking...
-    assertEquals(Arrays.asList("mdc", "legacy"), executionOrder);
+    assertEquals(Arrays.asList("primary", "secondary"), executionOrder);
 }
 ```
 
 **After** - Single consolidated table:
 ```java
 @TableTest("""
-    Scenario       | Master | Dual Dispatch | Response? | Execution Order?
-    MDC master     | true   | false         | mdc       | [mdc]
-    Legacy master  | false  | false         | legacy    | [legacy]
-    MDC dual       | true   | true          | mdc       | [mdc, legacy]
-    Legacy dual    | false  | true          | legacy    | [legacy, mdc]
+    Scenario          | Master | Dual Dispatch | Response? | Execution Order?
+    Primary master    | true   | false         | primary   | [primary]
+    Secondary master  | false  | false         | secondary | [secondary]
+    Primary dual      | true   | true          | primary   | [primary, secondary]
+    Secondary dual    | false  | true          | secondary | [secondary, primary]
     """)
-void routing_behavior(boolean isMdcMaster, boolean dualDispatch,
+void routing_behavior(boolean isPrimary, boolean dualDispatch,
                       String response, List<String> order) {
     List<String> actualOrder = new CopyOnWriteArrayList<>();
 
     String result = router.route(
-        isMdcMaster,
+        isPrimary,
         dualDispatch,
-        () -> { actualOrder.add("mdc"); return "mdc"; },
-        () -> { actualOrder.add("legacy"); return "legacy"; }
+        () -> { actualOrder.add("primary"); return "primary"; },
+        () -> { actualOrder.add("secondary"); return "secondary"; }
     );
 
     assertEquals(response, result);

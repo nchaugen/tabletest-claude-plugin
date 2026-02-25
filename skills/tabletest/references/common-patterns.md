@@ -27,78 +27,78 @@ Consolidate when **both identity AND status vary in the same column**.
 **Example: Positional outputs**
 ```java
 @TableTest("""
-    Scenario                | MDC Is Master | Master Response?  | Other Response?   |
-    MDC master, both OK     | true          | MDC OK            | Legacy OK         |
-    MDC master, other fails | true          | MDC OK            | Legacy ERROR      |
-    Legacy master, both OK  | false         | Legacy OK         | MDC OK            |
-    Legacy master, MDC fails| false         | Legacy OK         | MDC ERROR         |
+    Scenario                         | Primary Is Master | Master Response?   | Other Response?     |
+    Primary master, both ok          | true              | Primary OK         | Secondary OK        |
+    Primary master, secondary fails  | true              | Primary OK         | Secondary ERROR     |
+    Secondary master, both ok        | false             | Secondary OK       | Primary OK          |
+    Secondary master, primary fails  | false             | Secondary OK       | Primary ERROR       |
     """)
 ```
 
 In `Master Response?` column:
-- **Identity varies**: Could be MDC or Legacy (depends on `MDC Is Master`)
+- **Identity varies**: Could be Primary or Secondary (depends on `Primary Is Master`)
 - **Status varies**: Could be OK or ERROR
 
 Both pieces of information vary together in the same position, so consolidate them.
 
 **Without consolidation (harder to read):**
 ```java
-| Master Is? | Master Success? | Master Error? | Other Is? | Other Success? | Other Error? |
-| MDC        | yes             |               | Legacy    | yes            |              |
-| MDC        | yes             |               | Legacy    |                | yes          |
-| Legacy     | yes             |               | MDC       | yes            |              |
+| Master Is? | Master Success? | Master Error? | Other Is?  | Other Success? | Other Error? |
+| Primary    | yes             |               | Secondary  | yes            |              |
+| Primary    | yes             |               | Secondary  |                | yes          |
+| Secondary  | yes             |               | Primary    | yes            |              |
 ```
 
-Requires 6 columns and cross-referencing to understand "MDC succeeded" or "Legacy failed."
+Requires 6 columns and cross-referencing to understand "Primary succeeded" or "Secondary failed."
 
 ### Format
 `"<Identity> <Status>"` where both identity and status vary:
-- `MDC OK` / `MDC ERROR` / `Legacy OK` / `Legacy ERROR`
+- `Primary OK` / `Primary ERROR` / `Secondary OK` / `Secondary ERROR`
 - `Cache HIT` / `Database MISS` / `Service TIMEOUT`
-- `Primary SUCCESS` / `Fallback SUCCESS` / `Primary FAILURE`
+- `Master SUCCESS` / `Fallback SUCCESS` / `Master FAILURE`
 
 ### Implementation
 
 **Custom converter method for parsing:**
 ```java
 @TypeConverter
-public static RouteResponse parseRouteResponse(String value) {
+public static ServiceResponse parseServiceResponse(String value) {
     if (value == null || value.isBlank()) return null;
 
     return switch (value.trim()) {
-        case "MDC OK" -> RouteResponse.MDC_OK;
-        case "MDC ERROR" -> RouteResponse.MDC_ERROR;
-        case "Legacy OK" -> RouteResponse.LEGACY_OK;
-        case "Legacy ERROR" -> RouteResponse.LEGACY_ERROR;
-        case "ROUTE_NOT_IMPLEMENTED" -> RouteResponse.ROUTE_NOT_IMPLEMENTED;
+        case "Primary OK" -> ServiceResponse.PRIMARY_OK;
+        case "Primary ERROR" -> ServiceResponse.PRIMARY_ERROR;
+        case "Secondary OK" -> ServiceResponse.SECONDARY_OK;
+        case "Secondary ERROR" -> ServiceResponse.SECONDARY_ERROR;
+        case "NOT_IMPLEMENTED" -> ServiceResponse.NOT_IMPLEMENTED;
         default -> throw new IllegalArgumentException("Unknown response: " + value);
     };
 }
 
-public enum RouteResponse {
-    MDC_OK,
-    MDC_ERROR,
-    LEGACY_OK,
-    LEGACY_ERROR,
-    ROUTE_NOT_IMPLEMENTED
+public enum ServiceResponse {
+    PRIMARY_OK,
+    PRIMARY_ERROR,
+    SECONDARY_OK,
+    SECONDARY_ERROR,
+    NOT_IMPLEMENTED
 }
 ```
 
 **Assertion helper:**
 ```java
-private void assertRouteResponse(boolean isMaster, RouteResponse expected, Report report) {
+private void assertServiceResponse(boolean isMaster, ServiceResponse expected, Report report) {
     Object actualResponse = isMaster ? report.masterResponse() : report.otherResponse();
     String actualError = isMaster ? report.masterError() : report.otherError();
 
     switch (expected) {
-        case MDC_OK -> {
-            assertEquals("MDC", actualResponse);
+        case PRIMARY_OK -> {
+            assertEquals("Primary", actualResponse);
             assertNull(actualError);
         }
-        case MDC_ERROR -> {
+        case PRIMARY_ERROR -> {
             assertNull(actualResponse);
             assertNotNull(actualError);
-            assertTrue(actualError.contains("MDC system error"));
+            assertTrue(actualError.contains("Primary system error"));
         }
         // ... other cases
     }
@@ -120,7 +120,7 @@ Don't consolidate when:
 ### Benefits
 - **One cell = complete story**: No cross-referencing needed
 - **Fewer columns**: 2 consolidated vs 6 separate
-- **Natural language**: Reads like "MDC succeeded" or "Legacy failed"
+- **Natural language**: Reads like "Primary succeeded" or "Secondary failed"
 - **Clearer intent**: Combinations are explicit, not inferred
 
 ---
@@ -133,31 +133,31 @@ System uses positional fields (first/second, master/other, primary/secondary) th
 **Example:** A report has `masterResponse` and `otherResponse` fields. Which system is "master" depends on a configuration flag.
 
 ### Solution
-Use fixed identities (MDC, Legacy) in input columns, relative roles (Master, Other) in expectation columns, and map between them in test logic.
+Use fixed identities (Primary, Secondary) in input columns, relative roles (Master, Other) in expectation columns, and map between them in test logic.
 
 ```java
 @TableTest("""
-    Scenario          | MDC Is Master | MDC   | Legacy | Master Response? | Other Response? |
-    MDC is master     | true          | OK    | ERROR  | MDC OK           | Legacy ERROR    |
-    Legacy is master  | false         | OK    | ERROR  | Legacy OK        | MDC ERROR       |
+    Scenario                 | Primary Is Master | Primary | Secondary | Master Response? | Other Response? |
+    Primary is master        | true              | OK      | ERROR     | Primary OK       | Secondary ERROR |
+    Secondary is master      | false             | OK      | ERROR     | Secondary OK     | Primary ERROR   |
     """)
 void reports_with_positional_fields(
-    boolean mdcIsMaster,
-    String mdcStatus,
-    String legacyStatus,
-    RouteResponse masterResponse,
-    RouteResponse otherResponse
+    boolean primaryIsMaster,
+    String primaryStatus,
+    String secondaryStatus,
+    ServiceResponse masterResponse,
+    ServiceResponse otherResponse
 ) {
     // ... execute system
 
     // Verify master position (isMaster=true)
-    assertRouteResponse(true, masterResponse, report);
+    assertServiceResponse(true, masterResponse, report);
 
     // Verify other position (isMaster=false)
-    assertRouteResponse(false, otherResponse, report);
+    assertServiceResponse(false, otherResponse, report);
 }
 
-private void assertRouteResponse(boolean isMaster, RouteResponse expected, Report report) {
+private void assertServiceResponse(boolean isMaster, ServiceResponse expected, Report report) {
     Object actualResponse = isMaster ? report.masterResponse() : report.otherResponse();
     String actualError = isMaster ? report.masterError() : report.otherError();
 
@@ -173,10 +173,10 @@ Use this pattern when:
 - Same test scenarios apply regardless of which is master
 
 ### Benefits
-- **Input columns stable**: Fixed system names (MDC, Legacy)
+- **Input columns stable**: Fixed system names (Primary, Secondary)
 - **Expectation columns match API**: Report fields (master, other)
 - **Test logic handles mapping**: Avoids duplicating scenarios
-- **Table reads naturally**: "When MDC is master, master response is MDC OK"
+- **Table reads naturally**: "When Primary is master, master response is Primary OK"
 
 ---
 
@@ -188,19 +188,19 @@ Tests create abstractions (test-only enums, simplified labels) that hide actual 
 **Bad:**
 ```java
 | Other Response? |
-| NOT_IMPL        |  // Test-only abbreviation
+| NO_ROUTE        |  // Test-only abbreviation
 ```
 
 **Good:**
 ```java
-| Other Response?           |
-| ROUTE_NOT_IMPLEMENTED     |  // Actual production constant
+| Other Response?   |
+| NOT_IMPLEMENTED   |  // Actual production constant
 ```
 
 ### Guidance
 
 **Prefer production constants** when they're part of the observable contract:
-- Sentinel values: `ROUTE_NOT_IMPLEMENTED`, `NOT_FOUND`, `UNSET`
+- Sentinel values: `NOT_IMPLEMENTED`, `NOT_FOUND`, `UNSET`
 - Enum values: `Status.PENDING`, `Role.ADMIN`
 - Special strings: `"<empty>"`, `"N/A"`
 
@@ -213,10 +213,7 @@ Tests create abstractions (test-only enums, simplified labels) that hide actual 
 **When to create test abstractions:**
 - Value is too verbose for table: `VeryLongProductionConstantName` → `LONG_NAME`
 - Value varies by environment: database IDs, timestamps
-- Combining multiple values: `RouteResponse.MDC_OK` instead of checking two fields separately
-
-**Example from real session:**
-We used the actual production constant `ROUTE_NOT_IMPLEMENTED` directly in table cells rather than inventing a test-only abbreviation like `NO_ROUTE`. This made the table match the system's actual behavior.
+- Combining multiple values: `ServiceResponse.PRIMARY_OK` instead of checking two fields separately
 
 ---
 
@@ -230,14 +227,14 @@ Use upper-bound assertions with `<` notation to express "completes within X mill
 
 ```java
 @TableTest("""
-    Scenario          | MDC ms | Legacy ms | Master ms? | Other ms? |
-    Both fast         | 10     | 60        | <50        | <100      |
-    Master slow       | 100    | 10        | <150       | <50       |
-    Not implemented   | 10     |           | <50        |           |
+    Scenario          | Primary ms | Secondary ms | Master ms? | Other ms? |
+    Both fast         | 10         | 60           | <50        | <100      |
+    Master slow       | 100        | 10           | <150       | <50       |
+    Not implemented   | 10         |              | <50        |           |
     """)
 void records_response_times(
-    Long mdcMs,
-    Long legacyMs,
+    Long primaryMs,
+    Long secondaryMs,
     Long expectedMasterMs,
     Long expectedOtherMs
 ) {
@@ -252,17 +249,7 @@ void records_response_times(
     }
 }
 
-// Converter for < notation
-@TypeConverter
-public static Long parseResponseTime(String value) {
-    if (value == null || value.isBlank()) {
-        return null;
-    }
-    String trimmed = value.trim();
-    return trimmed.startsWith("<")
-        ? Long.valueOf(trimmed.substring(1))
-        : Long.parseLong(trimmed);
-}
+// See references/type-converters.md for parseResponseTime implementation (handles <50 format)
 ```
 
 ### Operation Times vs Assertion Thresholds
@@ -280,9 +267,9 @@ public static Long parseResponseTime(String value) {
 
 ```java
 @TableTest("""
-    Scenario        | Primary ms | Secondary ms | Response ms? |
-    Primary fast    | 10         | 100          | <50          |  // Proves primary (10+buffer < 50 < 100)
-    Secondary fast  | 100        | 10           | <50          |  // Proves secondary (10+buffer < 50 < 100)
+    Scenario          | Primary ms | Secondary ms | Response ms? |
+    Primary fast      | 10         | 100          | <50          |  // Proves primary (10+buffer < 50 < 100)
+    Secondary fast    | 100        | 10           | <50          |  // Proves secondary (10+buffer < 50 < 100)
     """)
 ```
 
@@ -399,10 +386,10 @@ Create focused test helper classes that spy on or record behavior during test ex
 
 ```java
 @TableTest("""
-    Scenario        | Feature Toggles      | Query Count? | Result?
-    Specific match  | [O-a-e-Cd/s/m: true] | 1            | true
-    Wild customer   | [O-a-e-*d/s/m: true] | 2            | true
-    Not found       | [:]                  | 12           | empty
+    Scenario        | Feature Toggles                | Query Count? | Result?
+    Specific match  | [org-search-v2-cust1: true]    | 1            | true
+    Wild customer   | [org-search-v2-*: true]        | 2            | true
+    Not found       | [:]                            | 12           | empty
     """)
 void finds_feature_toggles(
     Map<String, Boolean> toggles,
@@ -436,9 +423,9 @@ private static class QueryCounter {
 
 ```java
 @TableTest("""
-    Scenario       | Expected Queries?
-    Specific       | [O-a-e-Cd/s/m]
-    Wild customer  | [O-a-e-Cd/s/m, O-a-e-*d/s/m]
+    Scenario        | Expected Queries?
+    Specific        | [org-search-v2-cust1]
+    Wild customer   | [org-search-v2-cust1, org-search-v2-*]
     """)
 void queries_in_precedence_order(List<String> expectedQueries) {
     QueryRecorder recorder = new QueryRecorder(expectedQueries);
@@ -504,8 +491,8 @@ When recording call sequences, the recorder doesn't know when to stop and record
 
 **Example failure:**
 ```
-expected: <[O-a-e-Cd/s/m]>
-but was:  <[O-a-e-Cd/s/m, O-a-e-*d/s/m, ..., *-a-e-*d/*/*]>
+expected: <[org-search-v2-cust1]>
+but was:  <[org-search-v2-cust1, org-search-v2-*, org-*-v2-*, *-*-*-*]>
 ```
 
 The system continues searching after finding a match because the recorder always returns `null`.
@@ -567,35 +554,35 @@ The test failure showed what control was missing. Add the stopping condition tha
 
 ---
 
-## Pattern: One-Letter Values for Composite Strings
+## Pattern: One-Letter Values for Composite Keys
 
 ### Problem
-Testing systems that construct complex strings from multiple inputs produces unreadable table values.
+Testing systems that construct complex lookup keys from multiple inputs produces unreadable table values.
 
 **Unreadable:**
 ```java
-| organizationId | customerId | action   | Feature Toggle
-| Organization-1 | Customer-1 | activate | Organization-1-activate-prod-Customer-1domain/service/method
+| orgId         | featureId | version | Lookup Key
+| Organization1 | search    | v2      | Organization1:search:v2
 ```
 
 ### Solution
-Use single-letter values as placeholders when testing string composition logic.
+Use single-letter values as placeholders when testing key composition logic.
 
 **Readable:**
 ```java
 @TableTest("""
-    Scenario       | orgId | custId | action | env | domain | svc | method | Feature Toggles
-    Specific match | O     | C      | a      | e   | d      | s   | m      | [O-a-e-Cd/s/m: true]
-    Wild customer  | O     | C      | a      | e   | d      | s   | m      | [O-a-e-*d/s/m: true]
+    Scenario       | orgId | featureId | version | Feature Toggles
+    Specific match | O     | F         | V       | [O:F:V: true]
+    Wild version   | O     | F         | V       | [O:F:*: true]
     """)
 ```
 
-**Format**: `O-a-e-Cd/s/m` clearly shows:
+**Format**: `O:F:V` clearly shows:
 - Organization: `O`
-- Action: `a`
-- Environment: `e`
-- Customer: `C`
-- Domain/Service/Method: `d/s/m`
+- Feature: `F`
+- Version: `V`
+
+With wildcards: `O:F:*` means "any version for this org+feature".
 
 ### Benefits
 - **Readable**: Can see the pattern at a glance
@@ -615,17 +602,17 @@ Use single-letter values as placeholders when testing string composition logic.
 - Single complex input (no composition to show)
 
 ### Guidelines
-- Use consistent mapping: `O` always means orgId, `C` always means custId
+- Use consistent mapping: `O` always means orgId, `F` always means featureId
 - Document the mapping in a comment if not obvious
 - Keep pattern visible in expected output
 - Use wildcards `*` for "any" when relevant
 
 **Example with wildcards:**
 ```java
-| orgId | Feature Toggle        | Meaning
-| O     | O-a-e-Cd/s/m         | Specific organization O
-|       | *-a-e-Cd/s/m         | Any organization (null → wildcard)
-| O     | O-a-e-*d/s/m         | Organization O, any customer
+| orgId | Feature Toggle  | Meaning
+| O     | O:F:V           | Specific version for org O
+|       | *:F:V           | Any org (null → wildcard)
+| O     | O:F:*           | Org O, any version
 ```
 
 ---
@@ -641,6 +628,6 @@ These patterns emerged from real-world TableTest usage. They solve common challe
 5. **Async Execution**: Combine sync/async concerns reliably
 6. **Test Helpers**: Observe behavior beyond return values (counts, sequences, side effects)
 7. **Recording Sequences**: Control stopping with expected sequences
-8. **One-Letter Values**: Improve readability for composite string testing
+8. **One-Letter Values**: Improve readability for composite key testing
 
 When facing similar challenges, consider these patterns before creating custom solutions.
