@@ -1,6 +1,6 @@
 ---
 name: tabletest
-description: Create TableTest-style JUnit tests in Java/Kotlin for data-driven cases
+description: Create TableTest-style JUnit tests in Java/Kotlin
 ---
 
 # TableTest Skill
