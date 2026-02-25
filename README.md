@@ -19,12 +19,12 @@ First, add the marketplace:
 Then install the plugin:
 
 ```
-/plugin install tabletest@tabletest
+/plugin install tabletest@tabletest.org
 ```
 
 ## Usage
 
-Invoke the skill with `/tabletest:create` when you want to:
+Invoke the skill with `/tabletest` when you want to:
 
 - Convert two or more similar `@Test` methods into a single `@TableTest`
 - Add a new data-driven test with multiple input/output examples
