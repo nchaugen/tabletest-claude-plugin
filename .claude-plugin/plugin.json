@@ -9,5 +9,5 @@
   "homepage": "https://tabletest.org",
   "repository": "https://github.com/nchaugen/tabletest-claude-plugin",
   "license": "Apache-2.0",
-  "keywords": ["testing", "tdd", "bdd", "junit", "tabletest", "parameterized test", "data-driven testing", "table-driven testing", "java", "kotlin", "planning", "specification", "examples", "fit", "acceptance testing"]
+  "keywords": ["testing", "tdd", "bdd", "junit", "tabletest", "parameterized test", "data-driven testing", "table-driven testing", "java", "kotlin", "specification by example", "spec by example", "examples", "fit", "acceptance testing"]
 }

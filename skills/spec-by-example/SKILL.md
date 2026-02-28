@@ -1,9 +1,9 @@
 ---
-name: planning
+name: spec-by-example
 description: Clarify behaviour with multiple cases or business rules by working through concrete examples as a table
 ---
 
-# Planning with Example Tables
+# Spec by Example
 
 Use this skill when behaviour has multiple cases, conditions, or rules that are not
 yet pinned down by concrete examples. The table becomes a shared specification —
@@ -39,7 +39,7 @@ instead.
 
 ## Quick Example
 
-A planning table for car rental eligibility:
+An example table for car rental eligibility:
 
 | Scenario                          | Customer Age | Has Licence | Car Category      | Eligible? | Reason?              |
 |-----------------------------------|--------------|-------------|-------------------|-----------|----------------------|
@@ -162,7 +162,7 @@ about what is known and unknown.
 
 ---
 
-## Planning Table Design
+## Example Table Design
 
 ### One Table per Concern
 
@@ -273,7 +273,7 @@ what pace it changes. Policy limits typically live in configuration rather than 
 the incoming request, and they may need to be loaded or injected differently from
 transactional inputs.
 
-In a planning table, naming the layer — `Max Age (Policy)` rather than just
+In an example table, naming the layer — `Max Age (Policy)` rather than just
 `Max Age` — signals to the implementer that this is a configurable threshold, not
 a constant to be hardcoded.
 
@@ -354,11 +354,11 @@ as rows that do not fit appear — that is the signal.
 
 ---
 
-## From Planning Table to TableTest
+## From Example Table to TableTest
 
-A planning table maps directly to a `@TableTest` when implementation begins:
+An example table maps directly to a `@TableTest` when implementation begins:
 
-| Planning Table                   | TableTest                               |
+| Example Table                    | TableTest                               |
 |----------------------------------|-----------------------------------------|
 | Plain markdown table             | `@TableTest("""...""")` annotation      |
 | Input columns                    | Method parameters                       |
@@ -367,21 +367,21 @@ A planning table maps directly to a `@TableTest` when implementation begins:
 | Multiple values in a cell        | Value set `{Economy, Premium}`          |
 | Business-language column names   | Kept as-is or refined during the refine phase |
 
-When you hand the planning table to the `/tabletest` skill:
+When you hand the example table to the `/tabletest` skill:
 
 - The column structure carries over directly
 - Column names should stay close to business language; avoid reverting to technical terms
 - Custom types and enums will need type converters — the `/tabletest` skill handles this
 - Open cells marked `?` become the first decisions to resolve during implementation
 
-The planning table is not a throwaway artefact — it is the first draft of the
+The example table is not a throwaway artefact — it is the first draft of the
 living specification. Treat it accordingly.
 
 ---
 
 ## Quality Checks
 
-Before handing off to implementation, verify the planning table:
+Before handing off to implementation, verify the example table:
 
 - [ ] **Named concern**: The table has a clear name describing the single behaviour it specifies
 - [ ] **Multiple rows**: At least 2–3 rows — enough to reveal the column structure and decision boundaries
