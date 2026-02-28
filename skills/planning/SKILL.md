@@ -1,28 +1,36 @@
 ---
 name: planning
-description: Plan software behaviour through example tables before writing any code
+description: Clarify behaviour with multiple cases or business rules by working through concrete examples as a table
 ---
 
 # Planning with Example Tables
 
-Use this skill to capture software behaviour as a set of concrete examples before
-implementation begins. The table becomes a shared specification — readable and
-verifiable by domain experts and developers alike — and a natural starting point
-for a TableTest once coding starts.
+Use this skill when behaviour has multiple cases, conditions, or rules that are not
+yet pinned down by concrete examples. The table becomes a shared specification —
+readable and verifiable by domain experts and developers alike — and a natural
+starting point for a TableTest once coding starts.
 
 The approach is inspired by the FIT (Framework for Integrated Tests) workflow,
 where teams work out business rules collaboratively by filling in tables of
 examples. The goal is not a finished test, but enough agreed-upon examples to
-start programming with confidence.
+implement with confidence.
 
 ## When to Use This Skill
 
-Invoke `/planning` when:
+Use this skill when:
 
-- Specifying a new feature before any implementation exists
-- Clarifying requirements that feel ambiguous or underspecified
-- Working out business rules through concrete examples
-- Creating a shared reference for what the software should do
+- The behaviour depends on multiple conditions and the combinations are not fully
+  worked out ("it depends on the customer's age and whether they hold a licence")
+- Requirements use vague language that concrete examples would sharpen ("eligible
+  customers", "appropriate discount", "valid input")
+- Reading existing code reveals that a rule is more complex than it initially
+  appeared, and examples would clarify the intended behaviour
+- An edge case surfaces mid-implementation that calls the assumed behaviour into
+  question
+
+This skill is useful at any point — before implementation begins, mid-way through,
+or when revisiting a feature. The trigger is encountering conditional logic or
+variation that needs examples to pin down, not the phase of development.
 
 When you already have working tests to consolidate or refine, use `/tabletest`
 instead.
