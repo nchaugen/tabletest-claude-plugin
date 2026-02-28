@@ -275,7 +275,9 @@ transactional inputs.
 
 In an example table, naming the layer — `Max Age (Policy)` rather than just
 `Max Age` — signals to the implementer that this is a configurable threshold, not
-a constant to be hardcoded.
+a constant to be hardcoded. When columns at different levels of change accumulate,
+that is also a signal to consider splitting into separate tables — one for the
+transactional concern, one for the policy or configuration (see "Multiple Tables").
 
 ### Name Scenarios as Conditions
 
@@ -348,6 +350,14 @@ are separate concerns even when they involve the same customer data.
 
 **Different input populations**: If happy-path examples and error/rejection examples
 need different columns, they may belong in separate tables.
+
+**Different levels of change**: When some columns change per transaction and others
+change per policy review or configuration cycle, the data belongs to different
+concerns. A table for customer eligibility requests and a table for the rental
+policies that govern them live at different tempos — mixing them inflates the
+transactional table with rows that only change when someone updates a policy.
+The signal is a constant-valued column that, on reflection, comes from a different
+source than the rest of the inputs (see "Make Thresholds and Limits Visible").
 
 Start with the table that is clearest and most central. Let additional tables emerge
 as rows that do not fit appear — that is the signal.
