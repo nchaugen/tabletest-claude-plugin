@@ -214,6 +214,61 @@ with no additional knowledge:
 `discounted`. When an output is not mathematically derivable, make it a real domain
 value the reader recognises (`Economy`, `Rejected`, `EUR 99.00`).
 
+### Make Thresholds and Limits Visible
+
+When a rule depends on a threshold or limit, include it as a column — even when its
+value is constant across every row of the table.
+
+Without a `Max Age (Policy)` column:
+
+| Scenario            | Customer Age | Eligible? | Rejection Reason? |
+|---------------------|--------------|-----------|-------------------|
+| Standard customer   | 30           | yes       |                   |
+| Over age limit      | 80           | no        | Over age 75       |
+| At the limit        | 75           | yes       |                   |
+| Just over the limit | 76           | no        | Over age 75       |
+
+The number 75 is buried in the `Rejection Reason?` column — or in the code. A
+reader cannot tell from the table where the threshold is, or that the rule is
+strictly greater than rather than greater than or equal to.
+
+With the threshold explicit:
+
+| Scenario            | Customer Age | Max Age (Policy) | Eligible? | Rejection Reason? |
+|---------------------|--------------|-----------------|-----------|-------------------|
+| Standard customer   | 30           | 75              | yes       |                   |
+| Over age limit      | 80           | 75              | no        | Over age 75       |
+| At the limit        | 75           | 75              | yes       |                   |
+| Just over the limit | 76           | 75              | no        | Over age 75       |
+
+The rule is now legible from the table alone. The boundary rows (75 and 76) also
+become natural to add once the threshold column is visible.
+
+**A constant column often signals configuration, not code.** When a column holds
+the same value in every row, ask: "Under what circumstances would this value
+differ?" The answer often reveals a second axis — the limit might vary by car
+category, by hire company, or by market. That variation may become new rows in the
+same table, or it may surface a separate concern that belongs in its own table:
+
+| Scenario                     | Customer Age | Car Category | Max Age (Policy) | Eligible? |
+|------------------------------|--------------|--------------|-----------------|-----------|
+| Economy, within limit        | 30           | Economy      | 75              | yes       |
+| Economy, over limit          | 80           | Economy      | 75              | no        |
+| Premium allows older drivers | 80           | Premium      | 85              | yes       |
+| Premium, over extended limit | 90           | Premium      | 85              | no        |
+
+**Different columns can live at different levels of change.** Customer age is per
+transaction. The max age policy might be reviewed annually. Limits per car category
+might be set per product launch. Recognising that `Max Age (Policy)` is a policy
+setting — not a customer attribute — communicates where the value comes from and at
+what pace it changes. Policy limits typically live in configuration rather than in
+the incoming request, and they may need to be loaded or injected differently from
+transactional inputs.
+
+In a planning table, naming the layer — `Max Age (Policy)` rather than just
+`Max Age` — signals to the implementer that this is a configurable threshold, not
+a constant to be hardcoded.
+
 ### Name Scenarios as Conditions
 
 Scenario names describe **when** — the conditions under test — not **then** — the
