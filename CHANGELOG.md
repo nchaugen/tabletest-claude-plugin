@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2026-02-28
+
+### Added
+- Planning skill (`/planning`) for capturing software behaviour as example tables before writing any code
+  - Elicitation workflow: naming the concern, finding the first example, identifying columns, probing for edge cases and irrelevant inputs
+  - Planning table design principles: one concern per table, business language throughout, concrete domain values, traceable outputs, conditions as scenario names
+  - Multiple-table guidance: when to split, how to let additional tables emerge naturally
+  - Bridge from planning table to `@TableTest`: direct column mapping, value set carry-over, handoff to `/tabletest` skill
+  - Quality checklist for planning tables
+
 ## [1.1.0] - 2026-02-25
 
 ### Added
