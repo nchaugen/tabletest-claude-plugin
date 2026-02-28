@@ -232,18 +232,44 @@ They tell you exactly what to investigate.
 
 ### Leave Blanks Intentionally
 
-A blank cell in an input column means the value is absent or not relevant for that
-scenario. A blank cell in an output column means that output is not the concern of
-that row:
+Use blank cells for values that are genuinely absent, not for values that exist but
+happen not to be the deciding factor in a row.
 
-| Scenario               | Customer Age | Max Age Limit | Eligible? | Reason?      |
-|------------------------|--------------|---------------|-----------|--------------|
-| Standard customer      | 30           |               | yes       |              |
-| Over age limit         | 80           | 75            | no        | Over age 75  |
+**Blank output cells** — when an output does not apply in a scenario:
 
-`Max Age Limit` is blank for the standard customer row — it is not a factor there,
-and leaving it blank keeps the row clean. Do not fill blanks with filler values
-like `N/A` or `none` unless those are real domain values.
+| Scenario                    | Customer Age | Has Licence | Car Category | Eligible? | Rejection Reason? |
+|-----------------------------|--------------|-------------|--------------|-----------|-------------------|
+| Standard adult customer     | 30           | yes         | Economy      | yes       |                   |
+| Underage applicant          | 17           | no          | Economy      | no        | Under 18          |
+| No driving licence          | 25           | no          | Economy      | no        | No licence        |
+
+`Rejection Reason?` is blank for the approved row because there is no rejection
+reason — the value is genuinely absent, not merely irrelevant.
+
+**Blank input cells** — when an optional field is not provided:
+
+| Scenario                   | Base Price | Promo Code | Final Price? |
+|----------------------------|------------|------------|--------------|
+| No promotion applied       | 100        |            | 100          |
+| With 10% promo code        | 100        | SAVE10     | 90           |
+
+`Promo Code` is blank when the customer provides none — the field is optional and
+genuinely not present.
+
+**Use value sets, not blanks, for "regardless of" relationships.** When an input
+exists but simply does not affect the outcome of a particular row, show that
+explicitly with multiple values rather than hiding it behind a blank:
+
+| Scenario                              | Customer Age | Has Licence   | Car Category | Eligible? | Rejection Reason? |
+|---------------------------------------|--------------|---------------|--------------|-----------|-------------------|
+| Underage regardless of licence status | 17           | {yes, no}     | Economy      | no        | Under 18          |
+| Over age limit regardless of category | 80           | yes           | {Economy, Premium} | no  | Over age 75       |
+
+A blank would wrongly suggest the field is absent. The value set makes the claim
+explicit: "this rule holds for all values of this input."
+
+Do not fill genuinely blank cells with filler values like `N/A` or `none` unless
+those are real domain values.
 
 ---
 
