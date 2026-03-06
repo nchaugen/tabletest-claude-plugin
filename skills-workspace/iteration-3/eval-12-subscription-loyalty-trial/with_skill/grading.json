@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-multiple-tables",
+      "text": "Output contains at least 2 separate markdown tables",
+      "passed": true,
+      "evidence": "response.md: four separate markdown tables — Table 1 (Plan Pricing), Table 2 (Trial Eligibility), Table 3 (Cancellation & Refund), Table 4 (Loyalty + Trial Interaction)."
+    },
+    {
+      "id": "annual-no-trial-rule-represented",
+      "text": "A table or note explicitly captures that the free trial is not available on annual plans (not just implied)",
+      "passed": true,
+      "evidence": "response.md Table 2 row: 'New subscriber on annual | Annual | yes | no | Charged immediately (£95.88 or £86.29 with loyalty)' — trial availability is explicitly 'no' for annual plans."
+    },
+    {
+      "id": "loyalty-discount-row-present",
+      "text": "At least one table row demonstrates the loyalty programme discount scenario for annual plan subscribers",
+      "passed": true,
+      "evidence": "response.md Table 1 row: 'Annual plan, loyalty member | Annual | yes | £86.29/year' — loyalty discount explicitly shown as £95.88 − 10% = £86.29."
+    },
+    {
+      "id": "does-not-invent-loyalty-trial-resolution",
+      "text": "The response does NOT state a definitive invented answer about how the loyalty discount interacts with the free trial (e.g. does not silently assign a specific discount amount for a trial+loyalty combo without flagging it as unresolved)",
+      "passed": true,
+      "evidence": "response.md Table 4: the 'Trial subscriber switches to annual mid-trial (loyalty member)' row has Outcome '?' and Status 'Open question'. The response explicitly asks: 'do unused trial days carry over as credit, or are they forfeited upon upgrade?' — no invented resolution is stated."
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The annual/loyalty/trial interaction is explicitly surfaced as an open question — via '?', 'TBD', blank expected value, or a written open question — rather than silently resolved",
+      "passed": true,
+      "evidence": "response.md: Table 4 has two rows with Outcome '?' and Status 'Open question'. A numbered open questions section follows with two explicit questions about mid-trial annual upgrade and mid-trial loyalty join."
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1.0
+}
