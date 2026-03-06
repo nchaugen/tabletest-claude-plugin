@@ -1,34 +1,24 @@
 ---
 name: tabletest
-description: Create TableTest-style JUnit tests in Java/Kotlin
+description: Use when writing or converting JUnit tests in Java or Kotlin with the TableTest library. Trigger whenever the user wants to test multiple scenarios with the same assertion logic, convert repetitive @Test methods into a table, or start a new @TableTest. Also use when the user asks about TableTest syntax, column design, type converters, or value sets — even if they don't say "TableTest" explicitly.
 ---
 
 # TableTest Skill
 
 Use this skill before converting similar JUnit tests or adding a new TableTest.
 
-## ⚠️ Pre-Check - READ THIS FIRST
+## Pre-Check
 
-**STOP. Before writing any TableTest code, verify ALL of these:**
+Before writing any TableTest code, verify two things:
 
-### Dependency Setup
-- [ ] **TableTest dependency exists**: Check `pom.xml`/`build.gradle` for `org.tabletest:tabletest-junit`
-  - **If missing**: Read `references/dependency-setup.md` for correct coordinates
-  - **DO NOT add from memory** - groupId/artifactId are non-obvious
-- [ ] **JUnit 5.11+ available**: Check junit-jupiter version in dependencies
-  - TableTest requires JUnit 5.11 or higher
+**Dependencies**: Check `pom.xml`/`build.gradle` for `org.tabletest:tabletest-junit` and a JUnit Jupiter version of 5.11 or higher. The TableTest groupId and artifactId are non-obvious and easy to get wrong from memory — if they're missing, read `references/dependency-setup.md` for the exact coordinates before adding anything.
 
-### Test Design
-- [ ] 2+ test cases share the same setup and assertion logic
-  - **Exception**: A single-scenario `@TableTest` is acceptable when it is part of a set of focused, single-responsibility tables (e.g., one table per syntactic feature of a parser). The benefit is structural consistency and the ease of adding rows later, not the current row count.
-- [ ] Differences between cases can be expressed as data (inputs/outputs)
+**Test shape**: TableTest shines when 2+ test cases share the same setup and assertion logic and their differences can be expressed as data (inputs/outputs). A single-scenario `@TableTest` is also fine when it's part of a set of focused, single-responsibility tables (e.g., one table per syntactic feature of a parser) — the benefit is structural consistency and easy row addition later.
 
-**If any check fails, use standard `@Test` methods instead.**
-
-**Also keep standard `@Test` methods when:**
-- The implementation is trivial (e.g., a single delegating call or log statement). If the interface contract is already tested elsewhere, a TableTest for a trivial implementation adds noise without value.
-- Test setup is inherently complex and test-specific — latches, embedded servers, thread coordination — and cannot be expressed as data columns without obscuring the setup.
-- A higher-level integration test already covers the observable contract of this component, making unit-level TableTests redundant.
+Stick with standard `@Test` methods when:
+- The implementation is trivial (a single delegating call or log statement) and its contract is already tested elsewhere — a TableTest here adds noise without value.
+- Test setup is inherently complex and test-specific (latches, embedded servers, thread coordination) and can't be expressed as data columns without obscuring the setup.
+- A higher-level integration test already covers the observable contract of this component, making a unit-level TableTest redundant.
 
 ## Quick Example
 
@@ -135,6 +125,8 @@ void testHighestScore(Map<String, Integer> scores, int highest) { ... }
 JUnit converts many standard types automatically: primitives, `String`, `Path`, `File`, `URI`, `URL`, `UUID`, `LocalDate`, `LocalTime`, `LocalDateTime`, enums, and more. Prefer direct parameter types that JUnit can convert.
 
 Built-in conversion also applies to collection elements: `[com/example]` → `List<Path>`, `[Bob: 1980-03-04]` → `Map<String, LocalDate>`, `{https://claude.ai}` → `Set<URL>`.
+
+**Date format limitation**: Built-in `LocalDate`/`LocalDateTime` conversion only handles ISO 8601 format (`yyyy-MM-dd`, e.g. `2024-01-15`). Non-standard formats — slash dates (`15/01/2024`), short years (`24-01-15`), locale-specific patterns — will fail at runtime. If any column contains non-ISO date strings, read `references/type-converters.md` before finalising the table and write a `@TypeConverter` method to handle the parsing.
 
 ```java
 @TableTest("""
@@ -312,44 +304,20 @@ void resolves_values(String input, String resolved) {
 
 ### Pair Programming Flow
 
-When writing TableTests with a pair, follow this collaborative cadence:
-
-1. **Design Phase**: Discuss table structure together (see below)
-2. **Confirmation**: Show mockup with 2-3 example rows, agree on structure
-3. **Implementation**: One person writes while explaining design decisions
-4. **Verification**: Both review test output and failures together
-5. **Refinement**: Both improve names and structure after tests pass
-6. **Enhancement**: Identify additional tables together
-
-**Confirmation checkpoints save time**: A 30-second mockup review prevents 5 minutes of rework.
+When writing TableTests with a pair, the most important habit is showing a mockup before writing any code — a 30-second table sketch prevents 5 minutes of rework. The full collaborative cadence is in `references/pair-programming.md`; read it when pairing or when the user wants a structured walkthrough.
 
 ### Design Phase (Before Writing Code)
 
-**Don't start coding immediately.** Spend time understanding and designing:
+Resist the urge to start coding immediately. The time spent understanding the code under test pays off in a cleaner table structure:
 
-1. **Read and understand the code**: Trace through the logic under test
-   - Map out decision trees, loops, or state transitions
-   - Identify what varies between scenarios
-   - Understanding drives table structure
-
-2. **Sketch the table structure**: On paper, whiteboard, or in comments
-   - What inputs vary?
-   - What outputs do we observe?
-   - How many scenarios do we need?
-
-3. **Discuss with your pair**: Agree on:
-   - Column structure and naming
-   - Scenario coverage
-   - What to assert vs what to ignore
-
-4. **Show a mockup**: Before implementing, show 2-3 example rows
+1. **Trace the logic**: Map decision trees, loops, or state transitions. Identify what actually varies between scenarios — this directly determines your columns.
+2. **Sketch the table**: What inputs vary? What outputs do you observe? How many scenarios do you need?
+3. **Show a mockup** with 2-3 rows before implementing — agree on column structure, naming, and coverage first:
    ```
    | Scenario        | orgId | featureId | version | Feature Toggles | Query Count? | Result?
    | Specific match  | O     | F         | V       | [O:F:V: true]   | 1            | true
    | Wild version    | O     | F         | V       | [O:F:*: true]   | 2            | true
    ```
-
-This design-first approach reduces rework and clarifies intent before committing to code.
 
 ### Converting Existing Tests
 
@@ -372,35 +340,7 @@ This design-first approach reduces rework and clarifies intent before committing
 
 ### Refinement Phase
 
-After tests pass, improve names and structure with your pair.
-
-**Column names evolve**: Replace implementation terms with domain language
-- `registered` → `Feature Toggles`
-- `expectedQueryCount` → `Query Count?`
-- `expected` → `Result?`
-
-**Scenario names evolve**: Add clarity as table grows (see `references/table-design-advanced.md`)
-
-**Refinement is normal**: Names emerge from understanding. Don't expect perfect names on first implementation.
-
-### Test Infrastructure Emerges from Need
-
-Don't design helper classes upfront. Write the table first, then create helpers based on what needs observing.
-
-**Anti-pattern**: Designing `QueryCounter` before knowing what to test
-
-**Good pattern**: Table design reveals what to observe
-```
-Need to count queries → create QueryCounter
-Need to record sequence → create QueryRecorder
-Need to verify timing → create TimingCapture
-```
-
-**Helper organization**:
-- Place at bottom of test class after all test methods
-- Name clearly: `QueryCounter`, `QueryRecorder` (not `Helper`, `Utils`)
-- Keep simple: one focused responsibility per helper
-- Extract to separate file only when reused across test classes
+After tests pass, improve names and structure — see `references/pair-programming.md` for the full refinement workflow. The short version: names emerge from understanding, so don't expect perfect column or scenario names on the first implementation. Replace implementation terms with domain language once the table is working.
 
 ---
 
@@ -433,7 +373,7 @@ After writing, verify:
 |------------------------------------------|----------------------------------------------------------------------------|
 | `references/dependency-setup.md`         | Project lacks TableTest dependency                                         |
 | `references/value-sets.md`               | Multiple example inputs map to same expectation                            |
-| `references/type-converters.md`          | Custom types need parsing logic or handling special formats                |
+| `references/type-converters.md`          | Custom types need parsing logic; non-ISO date formats appear in the table (`dd/MM/yyyy`, `yy-MM-dd`, etc.); or any column value won't convert automatically |
 | `references/column-design.md`            | Deciding whether to split, combine, or use maps for columns; cross-table consistency |
 | `references/common-patterns.md`          | Consolidating identity+status, positional fields, timing, async testing    |
 | `references/large-tables.md`             | Need comments, grouping, or external table files                           |
@@ -444,3 +384,4 @@ After writing, verify:
 | `references/incremental-development.md`  | Building a complex table iteratively; learning from test failures          |
 | `references/consolidating-tests.md`      | Removing @Test methods covered by table                                    |
 | `references/testing-reveals-bugs.md`     | Test design feels wrong; suspecting implementation bug                     |
+| `references/pair-programming.md`         | Pairing with a colleague; need structured collaborative cadence            |
