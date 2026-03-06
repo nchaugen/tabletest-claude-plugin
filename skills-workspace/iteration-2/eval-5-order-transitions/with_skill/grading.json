@@ -1,0 +1,29 @@
+{
+  "assertions": [
+    {
+      "text": "Output contains at least one markdown table",
+      "passed": true,
+      "evidence": "The output contains three markdown tables: Table 1 (Order Cancellation), Table 2 (Standard Status Progression), and Table 3 (Return Flag Eligibility)."
+    },
+    {
+      "text": "Table covers cancellation rules — includes rows for states where cancellation is allowed and where it is not",
+      "passed": true,
+      "evidence": "Table 1 shows PENDING and CONFIRMED as 'yes' (cancellation allowed) and SHIPPED, DELIVERED, CANCELLED, and {SHIPPED, DELIVERED} as 'no' (cancellation not allowed)."
+    },
+    {
+      "text": "The 30-day return window rule is addressed — either as a threshold column, a separate table, or flagged as an open question",
+      "passed": true,
+      "evidence": "Table 3 is entirely dedicated to return flag eligibility, with a 'Return Window (Policy)' column showing '30 days', boundary rows at days 10, 30, 31, and 60, and an open question note about whether the window is measured by timestamp or calendar day."
+    },
+    {
+      "text": "Uses value sets {PENDING, CONFIRMED} or equivalent to express 'regardless of which starting state' for cases where a rule holds across states",
+      "passed": true,
+      "evidence": "Line 12 uses '{SHIPPED, DELIVERED}' for 'Cancellation blocked regardless of state past shipment'. Line 39 uses '{PENDING, CONFIRMED, SHIPPED}' for 'Return request on a non-delivered order'. Line 27 uses '{PENDING, CONFIRMED, SHIPPED, DELIVERED}' for transitions from CANCELLED. Value set notation is clearly demonstrated."
+    },
+    {
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Multiple columns end with '?': 'Allowed?', 'Reason?' (Table 1 and 2), and 'Return Flag Allowed?', 'Reason?' (Table 3)."
+    }
+  ]
+}

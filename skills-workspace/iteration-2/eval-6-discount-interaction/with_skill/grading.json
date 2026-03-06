@@ -1,0 +1,29 @@
+{
+  "assertions": [
+    {
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "The output contains multiple markdown tables: Table 1 (Individual Discounts — Baselines), Table 2 (Both Discounts Apply — Open Questions), and a Decisions Needed table."
+    },
+    {
+      "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved",
+      "passed": true,
+      "evidence": "Table 2 rows are explicitly marked with '?' in the 'Final Price (£)?' column and labelled 'OPEN' in the Open Question column. The intro states 'Rows where the outcome depends on those decisions are marked ? — these are the cells the team needs to agree on before implementation can proceed.'"
+    },
+    {
+      "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)",
+      "passed": true,
+      "evidence": "All rows in Table 2 have both 'Bulk Discount Applied?' = yes and 'Loyalty Discount Applied?' = yes simultaneously, e.g. 'Both apply — if discounts are stacked' (Order Value £150, Years as Customer 3)."
+    },
+    {
+      "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note",
+      "passed": true,
+      "evidence": "Table 2 has an 'Open Question' column with entries starting with 'OPEN:' for every interaction row. The 'Decisions Needed' table explicitly lists three unresolved questions: stacking vs higher-only, whether a cap exists, and if stacking, the order of application."
+    },
+    {
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Multiple columns end with '?': 'Bulk Discount Applied?', 'Loyalty Discount Applied?', and 'Final Price (£)?'."
+    }
+  ]
+}

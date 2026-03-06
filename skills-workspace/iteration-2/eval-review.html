@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Eval Review — tabletest + spec-by-example (Iteration 2)</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; background: #f5f5f5; color: #222; }
+  h1 { margin: 0; font-size: 1.4em; }
+  h2 { font-size: 1.1em; margin: 0 0 0.5em 0; }
+  .header { background: #1a1a2e; color: white; padding: 1.2em 2em; }
+  .header p { margin: 0.3em 0 0 0; font-size: 0.85em; opacity: 0.75; }
+  .tabs { display: flex; background: #eee; border-bottom: 2px solid #ddd; }
+  .tab { padding: 0.7em 1.5em; cursor: pointer; border: none; background: none; font-size: 0.9em; color: #555; }
+  .tab.active { background: white; border-bottom: 2px solid white; margin-bottom: -2px; color: #222; font-weight: 600; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .benchmark { padding: 1.5em 2em; }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1em; margin-bottom: 1.5em; }
+  .summary-card { background: white; border-radius: 8px; padding: 1.2em; border: 1px solid #ddd; }
+  .summary-card h3 { margin: 0 0 0.8em 0; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.05em; color: #888; }
+  .big-stat { font-size: 2.2em; font-weight: 700; }
+  .stat-label { font-size: 0.8em; color: #888; margin-top: 0.2em; }
+  .delta { font-size: 0.85em; padding: 0.2em 0.5em; border-radius: 4px; margin-left: 0.5em; }
+  .delta.better { background: #eafff0; color: #080; }
+  .delta.worse { background: #ffeaea; color: #c00; }
+  .delta.same { background: #f0f0f0; color: #666; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.85em; }
+  th { background: #f8f8f8; text-align: left; padding: 0.6em 0.8em; border-bottom: 2px solid #ddd; }
+  td { padding: 0.5em 0.8em; border-bottom: 1px solid #eee; vertical-align: top; }
+  .pill { display: inline-block; padding: 0.15em 0.5em; border-radius: 10px; font-size: 0.8em; font-weight: 600; }
+  .pill-green { background: #eafff0; color: #080; }
+  .pill-red { background: #ffeaea; color: #c00; }
+  .pill-yellow { background: #fff8e0; color: #885500; }
+  .analyst { background: #fffbe6; border: 1px solid #e6c200; border-radius: 8px; padding: 1em 1.2em; margin-top: 1em; }
+  .analyst h3 { margin: 0 0 0.5em 0; color: #885500; font-size: 0.9em; }
+  .analyst ul { margin: 0; padding-left: 1.2em; font-size: 0.85em; line-height: 1.6; }
+  .outputs { padding: 1.5em 2em; }
+  .eval-card { background: white; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 1.5em; overflow: hidden; }
+  .eval-header { padding: 0.8em 1.2em; background: #f8f8f8; border-bottom: 1px solid #ddd; display: flex; align-items: center; gap: 0.8em; }
+  .eval-header h2 { margin: 0; font-size: 1em; }
+  .eval-body { display: grid; grid-template-columns: 1fr 1fr; }
+  .eval-col { padding: 1em 1.2em; border-right: 1px solid #eee; }
+  .eval-col:last-child { border-right: none; }
+  .eval-col-header { font-size: 0.8em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 0.8em; display: flex; justify-content: space-between; align-items: center; }
+  pre { background: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 6px; padding: 0.8em; font-size: 0.78em; overflow-x: auto; white-space: pre-wrap; margin: 0 0 0.8em 0; line-height: 1.5; }
+  .assertion-list { list-style: none; margin: 0; padding: 0; }
+  .assertion-list li { font-size: 0.8em; padding: 0.3em 0; display: flex; gap: 0.4em; align-items: flex-start; }
+  .check { flex-shrink: 0; }
+  .pass { color: #080; font-weight: 600; }
+  .fail { color: #c00; font-weight: 600; }
+  .skill-badge { font-size: 0.75em; padding: 0.15em 0.5em; border-radius: 4px; background: #e8eeff; color: #3355cc; font-weight: 600; }
+  .fixed-badge { font-size: 0.75em; padding: 0.15em 0.5em; border-radius: 4px; background: #eafff0; color: #080; font-weight: 600; }
+  .regression-badge { font-size: 0.75em; padding: 0.15em 0.5em; border-radius: 4px; background: #ffeaea; color: #c00; font-weight: 600; }
+  .section-label { font-size: 0.8em; font-weight: 700; color: #888; text-transform: uppercase; margin: 0.8em 0 0.3em; }
+  .highlight { background: #fffbe6; border-left: 3px solid #e6c200; padding: 0.5em 0.8em; margin: 0.5em 0; font-size: 0.82em; border-radius: 0 4px 4px 0; }
+  .fix-note { background: #eafff0; border-left: 3px solid #4caf50; padding: 0.5em 0.8em; margin: 0.5em 0; font-size: 0.82em; border-radius: 0 4px 4px 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Eval Review — tabletest + spec-by-example</h1>
+  <p>Iteration 2 · 6 evals · New skill (iter 2) vs Old skill (iter 1) baseline · 12 runs total</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('benchmark')">Benchmark</button>
+  <button class="tab" onclick="showTab('outputs')">Outputs</button>
+</div>
+
+<!-- BENCHMARK TAB -->
+<div id="benchmark" class="tab-content active">
+  <div class="benchmark">
+    <div class="summary-grid">
+      <div class="summary-card">
+        <h3>New Skill (with_skill — iter 2)</h3>
+        <div class="big-stat">100%
+          <span class="delta better">+6.5pp vs iter 1</span>
+        </div>
+        <div class="stat-label">31 / 31 assertions passed</div>
+        <div class="section-label" style="margin-top:0.8em">Iter 1 score</div>
+        <div style="font-size:1em;color:#888">93.5% (29/31)</div>
+      </div>
+      <div class="summary-card">
+        <h3>Old Skill (old_skill — iter 1 baseline)</h3>
+        <div class="big-stat">96.8%
+          <span class="delta worse">−3.2pp vs new</span>
+        </div>
+        <div class="stat-label">30 / 31 assertions passed</div>
+        <div class="section-label" style="margin-top:0.8em">Change vs iter 1</div>
+        <div style="font-size:1em;color:#888">0pp (unchanged)</div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Eval</th>
+          <th>Skill</th>
+          <th>New iter 2 (with_skill)</th>
+          <th>Old iter 1 (baseline)</th>
+          <th>Delta</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1 · Convert repetitive @Test methods</td>
+          <td><span class="skill-badge">tabletest</span></td>
+          <td><span class="pill pill-green">6/6 100%</span></td>
+          <td><span class="pill pill-green">6/6 100%</span></td>
+          <td>0</td>
+          <td>No change</td>
+        </tr>
+        <tr style="background:#f0fff4">
+          <td>2 · Write TableTest for date parsing</td>
+          <td><span class="skill-badge">tabletest</span></td>
+          <td><span class="pill pill-green">5/5 100%</span></td>
+          <td><span class="pill pill-yellow">4/5 80%</span></td>
+          <td><span class="delta better">+1</span></td>
+          <td><span class="fixed-badge">FIXED</span> with_skill now addresses @TypeConverter for non-ISO date formats</td>
+        </tr>
+        <tr>
+          <td>3 · Dependency setup with outdated JUnit</td>
+          <td><span class="skill-badge">tabletest</span></td>
+          <td><span class="pill pill-green">4/4 100%</span></td>
+          <td><span class="pill pill-green">4/4 100%</span></td>
+          <td>0</td>
+          <td>No change</td>
+        </tr>
+        <tr>
+          <td>4 · Loan approval spec with open questions</td>
+          <td><span class="skill-badge">spec-by-example</span></td>
+          <td><span class="pill pill-green">6/6 100%</span></td>
+          <td><span class="pill pill-green">6/6 100%</span></td>
+          <td>0</td>
+          <td>No change</td>
+        </tr>
+        <tr style="background:#f0fff4">
+          <td>5 · Order status transition rules</td>
+          <td><span class="skill-badge">spec-by-example</span></td>
+          <td><span class="pill pill-green">5/5 100%</span></td>
+          <td><span class="pill pill-green">5/5 100%</span></td>
+          <td>0</td>
+          <td><span class="fixed-badge">FIXED</span> with_skill now uses value sets (was 4/5 in iter 1)</td>
+        </tr>
+        <tr>
+          <td>6 · Discount stacking ambiguity</td>
+          <td><span class="skill-badge">spec-by-example</span></td>
+          <td><span class="pill pill-green">5/5 100%</span></td>
+          <td><span class="pill pill-green">5/5 100%</span></td>
+          <td>0</td>
+          <td>No change</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="analyst">
+      <h3>Analyst observations</h3>
+      <ul>
+        <li><strong>Eval 2 fix (@TypeConverter):</strong> The date format limitation warning worked. The new skill's agent imported <code>TypeConverter</code>, wrote explicit comments about when it is and isn't needed, and the explanation.md has a full "Why no @TypeConverter is needed" section. Crucially, it reasoned correctly — non-ISO formats are in the <em>input</em> column (typed String), so no converter is needed here, but it noted when one would be. The old_skill still fails this assertion, confirming the fix is attributable to the iter-2 change.</li>
+        <li><strong>Eval 5 fix (value sets):</strong> The new skill used <code>{SHIPPED, DELIVERED}</code> for "cancellation blocked regardless of state past shipment" and <code>{PENDING, CONFIRMED, SHIPPED}</code> for "return request on non-delivered orders". The grader accepted these as equivalent to the <code>{PENDING, CONFIRMED}</code> pattern — the technique is clearly demonstrated even if the specific PENDING+CONFIRMED allowed-case still uses separate rows. The new state-machine example in section 5 of spec-by-example appears to have reinforced the pattern.</li>
+        <li><strong>Old_skill now trails on eval 2:</strong> The iter-1 old_skill now fails the @TypeConverter assertion (it was also failing in iter 1, but is now the discriminating difference). New skill leads 31/31 vs 30/31.</li>
+        <li><strong>No regressions:</strong> All 6 evals that were passing in iter 1 continue to pass in iter 2. The targeted fixes improved without breaking anything.</li>
+        <li><strong>Partial timing data:</strong> Only 3 of 12 timing samples were captured. This does not affect assertion scores. Timing comparison will be meaningful in future iterations with full capture.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- OUTPUTS TAB -->
+<div id="outputs" class="tab-content">
+  <div class="outputs">
+
+    <!-- Eval 1 -->
+    <div class="eval-card">
+      <div class="eval-header">
+        <span class="skill-badge">tabletest</span>
+        <h2>Eval 1 · Convert repetitive @Test methods</h2>
+        <span class="pill pill-green" style="margin-left:auto">Both 6/6 — no change</span>
+      </div>
+      <div class="eval-body">
+        <div class="eval-col">
+          <div class="eval-col-header">New skill iter 2 (with_skill) <span class="pill pill-green">6/6</span></div>
+          <pre>@TableTest("""
+    Scenario        | Customer Tier | Discount?
+    Gold customer   | GOLD          | 20
+    Silver customer | SILVER        | 10
+    Bronze customer | BRONZE        | 0
+    """)
+void calculatesDiscountByCustomerTier(
+        String customerTier, int discount) {
+    assertEquals(discount,
+        discountService.calculate(customerTier, 100));
+}</pre>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> @TableTest annotation</li>
+            <li><span class="check pass">✓</span> Column ending with '?' (Discount?)</li>
+            <li><span class="check pass">✓</span> Exactly 3 data rows</li>
+            <li><span class="check pass">✓</span> Single assertEquals</li>
+            <li><span class="check pass">✓</span> No if/switch</li>
+            <li><span class="check pass">✓</span> Scenario column leftmost</li>
+          </ul>
+        </div>
+        <div class="eval-col">
+          <div class="eval-col-header">Old skill iter 1 (old_skill) <span class="pill pill-green">6/6</span></div>
+          <pre>@TableTest("""
+    Scenario        | Customer Tier | Amount | Discount?
+    Gold customer   | GOLD          | 100    | 20
+    Silver customer | SILVER        | 100    | 10
+    Bronze customer | BRONZE        | 100    | 0
+    """)
+void calculatesDiscountByCustomerTier(
+        String customerTier, int orderAmount, int discount) {
+    assertEquals(discount,
+        discountService.calculate(customerTier, orderAmount));
+}</pre>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> @TableTest annotation</li>
+            <li><span class="check pass">✓</span> Column ending with '?' (Discount?)</li>
+            <li><span class="check pass">✓</span> Exactly 3 data rows</li>
+            <li><span class="check pass">✓</span> Single assertEquals</li>
+            <li><span class="check pass">✓</span> No if/switch</li>
+            <li><span class="check pass">✓</span> Scenario column leftmost</li>
+          </ul>
+          <p style="font-size:0.8em;color:#888;margin-top:0.5em">Minor style difference: old_skill includes Amount column (constant 100); new skill elides it. Both pass.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Eval 2 — KEY FIX -->
+    <div class="eval-card">
+      <div class="eval-header">
+        <span class="skill-badge">tabletest</span>
+        <h2>Eval 2 · Write TableTest for date parsing</h2>
+        <span style="margin-left:auto;display:flex;gap:0.5em">
+          <span class="fixed-badge">FIXED</span>
+          <span class="pill pill-green">New: 5/5</span>
+          <span class="pill pill-yellow">Old: 4/5</span>
+        </span>
+      </div>
+      <div class="eval-body">
+        <div class="eval-col">
+          <div class="eval-col-header">New skill iter 2 (with_skill) <span class="pill pill-green">5/5</span></div>
+          <div class="fix-note">The date format limitation warning triggered the agent to actively reason through @TypeConverter. It imports <code>TypeConverter</code> and writes a full explanation of when it is vs isn't needed.</div>
+          <pre>import org.tabletest.junit.TypeConverter;
+...
+@TableTest("""
+    Scenario        | Input      | Parsed Date?
+    ISO format      | 2024-01-15 | 2024-01-15
+    Slash format    | 15/01/2024 | 2024-01-15
+    Short year      | 24-01-15   | 2024-01-15
+    Null input      |            |
+    """)
+void parsesDateFormats(String input, LocalDate expectedDate) {
+    assertEquals(expectedDate, parseDate(input));
+}
+// --- Type converter for the input column ---
+// Not needed: input is String, no conversion required.
+// --- Type converter for the Parsed Date? column ---
+// Expectation column holds ISO-format strings,
+// JUnit's built-in LocalDate converter handles these.</pre>
+          <div class="highlight"><strong>Key reasoning in explanation.md:</strong> "@TypeConverter is required when non-ISO date strings appear as table column values that TableTest must convert to a typed parameter. The non-ISO strings (15/01/2024, 24-01-15) appear in the Input column, which has type String — no conversion needed. If the expectation column needed non-ISO dates, a @TypeConverter would be required."</div>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> @TableTest annotation</li>
+            <li><span class="check pass">✓</span> Null as blank cell</li>
+            <li><span class="check pass">✓</span> Exception case handled</li>
+            <li><span class="check pass">✓</span> LocalDate result column</li>
+            <li><span class="check pass">✓</span> @TypeConverter addressed for non-ISO formats</li>
+          </ul>
+        </div>
+        <div class="eval-col">
+          <div class="eval-col-header">Old skill iter 1 (old_skill) <span class="pill pill-yellow">4/5</span></div>
+          <pre>@TableTest("""
+    Scenario       | Input      | Parsed Date?
+    ISO format     | 2024-01-15 | 2024-01-15
+    Slash format   | 15/01/2024 | 2024-01-15
+    Short year     | 24-01-15   | 2024-01-15
+    Null input     |            |
+    """)
+void parsesDateStrings(String input, LocalDate expectedDate) {
+    assertEquals(expectedDate, parseDate(input));
+}
+// No @TypeConverter import</pre>
+          <div class="highlight"><strong>Reasoning in explanation.md:</strong> "Although the parseDate method accepts slash format (15/01/2024) and short year (24-01-15) as inputs, the expected output for all rows is the same LocalDate value (2024-01-15), expressible in standard ISO-8601 that JUnit handles natively. The non-standard formats are inputs (strings), not outputs, so no converter is required." — Correct but doesn't mention @TypeConverter explicitly enough to pass the assertion.</div>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> @TableTest annotation</li>
+            <li><span class="check pass">✓</span> Null as blank cell</li>
+            <li><span class="check pass">✓</span> Exception case handled</li>
+            <li><span class="check pass">✓</span> LocalDate result column</li>
+            <li><span class="check fail">✗</span> @TypeConverter for non-ISO formats not addressed</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Eval 3 -->
+    <div class="eval-card">
+      <div class="eval-header">
+        <span class="skill-badge">tabletest</span>
+        <h2>Eval 3 · Dependency setup with outdated JUnit</h2>
+        <span class="pill pill-green" style="margin-left:auto">Both 4/4 — no change</span>
+      </div>
+      <div class="eval-body">
+        <div class="eval-col">
+          <div class="eval-col-header">New skill iter 2 (with_skill) <span class="pill pill-green">4/4</span></div>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> Flags JUnit 5.10.0 below minimum 5.11</li>
+            <li><span class="check pass">✓</span> groupId: org.tabletest</li>
+            <li><span class="check pass">✓</span> artifactId: tabletest-junit</li>
+            <li><span class="check pass">✓</span> &lt;scope&gt;test&lt;/scope&gt;</li>
+          </ul>
+        </div>
+        <div class="eval-col">
+          <div class="eval-col-header">Old skill iter 1 (old_skill) <span class="pill pill-green">4/4</span></div>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> Flags JUnit 5.10.0 below minimum 5.11</li>
+            <li><span class="check pass">✓</span> groupId: org.tabletest</li>
+            <li><span class="check pass">✓</span> artifactId: tabletest-junit</li>
+            <li><span class="check pass">✓</span> &lt;scope&gt;test&lt;/scope&gt;</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Eval 4 -->
+    <div class="eval-card">
+      <div class="eval-header">
+        <span class="skill-badge">spec-by-example</span>
+        <h2>Eval 4 · Loan approval spec with open questions</h2>
+        <span class="pill pill-green" style="margin-left:auto">Both 6/6 — no change</span>
+      </div>
+      <div class="eval-body">
+        <div class="eval-col">
+          <div class="eval-col-header">New skill iter 2 (with_skill) <span class="pill pill-green">6/6</span></div>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> Markdown table present</li>
+            <li><span class="check pass">✓</span> Output column ends with '?'</li>
+            <li><span class="check pass">✓</span> Business language column names</li>
+            <li><span class="check pass">✓</span> Senior threshold rows</li>
+            <li><span class="check pass">✓</span> Missing income marked uncertain</li>
+            <li><span class="check pass">✓</span> Scenario names describe conditions</li>
+          </ul>
+        </div>
+        <div class="eval-col">
+          <div class="eval-col-header">Old skill iter 1 (old_skill) <span class="pill pill-green">6/6</span></div>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> Markdown table present</li>
+            <li><span class="check pass">✓</span> Output column ends with '?'</li>
+            <li><span class="check pass">✓</span> Business language column names</li>
+            <li><span class="check pass">✓</span> Senior threshold rows</li>
+            <li><span class="check pass">✓</span> Missing income marked uncertain</li>
+            <li><span class="check pass">✓</span> Scenario names describe conditions</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Eval 5 — KEY FIX -->
+    <div class="eval-card">
+      <div class="eval-header">
+        <span class="skill-badge">spec-by-example</span>
+        <h2>Eval 5 · Order status transition rules</h2>
+        <span style="margin-left:auto;display:flex;gap:0.5em">
+          <span class="fixed-badge">FIXED</span>
+          <span class="pill pill-green">Both 5/5</span>
+        </span>
+      </div>
+      <div class="eval-body">
+        <div class="eval-col">
+          <div class="eval-col-header">New skill iter 2 (with_skill) <span class="pill pill-green">5/5</span></div>
+          <div class="fix-note">Value sets now used throughout — the new {…} notation example in section 5 reinforced the pattern.</div>
+          <pre>Table 1: Order Cancellation
+| Scenario                                    | Current Status | Target | Allowed? |
+| Cancel a pending order                      | PENDING        | CANCEL | yes      |
+| Cancel a confirmed but unshipped order      | CONFIRMED      | CANCEL | yes      |
+| Cancel an order that has already shipped    | SHIPPED        | CANCEL | no       |
+| Cancel a delivered order                    | DELIVERED      | CANCEL | no       |
+| Cancel an already-cancelled order           | CANCELLED      | CANCEL | no       |
+| Cancellation blocked regardless of post-ship| {SHIPPED,      | CANCEL | no       |
+|                                             |  DELIVERED}    |        |          |
+
+Table 3: Return Flag Eligibility
+| Return request on a non-delivered order    |
+| {PENDING, CONFIRMED, SHIPPED} | — | 30d  | no |</pre>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> Markdown tables present</li>
+            <li><span class="check pass">✓</span> Cancellation rules covered</li>
+            <li><span class="check pass">✓</span> 30-day window addressed</li>
+            <li><span class="check pass">✓</span> Value sets used ({SHIPPED,DELIVERED}, {PENDING,CONFIRMED,SHIPPED})</li>
+            <li><span class="check pass">✓</span> Output column ends with '?'</li>
+          </ul>
+        </div>
+        <div class="eval-col">
+          <div class="eval-col-header">Old skill iter 1 (old_skill) <span class="pill pill-green">5/5</span></div>
+          <pre>Table 1: Order Status Transition
+| Scenario                               | Current Status | Requested | Allowed? |
+| ...                                    | PENDING        | CONFIRMED | yes      |
+| ...                                    | CONFIRMED      | CANCELLED | yes      |
+| ...                                    | SHIPPED        | CANCELLED | no       |
+| Attempt any transition on cancelled   |
+| CANCELLED | {PENDING,CONFIRMED,SHIPPED,DELIVERED} | no |
+
+Table 2: Return Flag Eligibility
+| Return flag on non-delivered |
+| {PENDING,CONFIRMED,SHIPPED,CANCELLED} | — | 30d | no |</pre>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> Markdown tables present</li>
+            <li><span class="check pass">✓</span> Cancellation rules covered</li>
+            <li><span class="check pass">✓</span> 30-day window addressed</li>
+            <li><span class="check pass">✓</span> Value sets used ({PENDING,CONFIRMED,SHIPPED,DELIVERED})</li>
+            <li><span class="check pass">✓</span> Output column ends with '?'</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Eval 6 -->
+    <div class="eval-card">
+      <div class="eval-header">
+        <span class="skill-badge">spec-by-example</span>
+        <h2>Eval 6 · Discount stacking ambiguity</h2>
+        <span class="pill pill-green" style="margin-left:auto">Both 5/5 — no change</span>
+      </div>
+      <div class="eval-body">
+        <div class="eval-col">
+          <div class="eval-col-header">New skill iter 2 (with_skill) <span class="pill pill-green">5/5</span></div>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> Markdown table present</li>
+            <li><span class="check pass">✓</span> Ambiguity not silently resolved</li>
+            <li><span class="check pass">✓</span> Row with both discounts applying</li>
+            <li><span class="check pass">✓</span> Open questions explicitly surfaced</li>
+            <li><span class="check pass">✓</span> Output column ends with '?'</li>
+          </ul>
+        </div>
+        <div class="eval-col">
+          <div class="eval-col-header">Old skill iter 1 (old_skill) <span class="pill pill-green">5/5</span></div>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> Markdown table present</li>
+            <li><span class="check pass">✓</span> Ambiguity not silently resolved</li>
+            <li><span class="check pass">✓</span> Row with both discounts applying</li>
+            <li><span class="check pass">✓</span> Open questions explicitly surfaced</li>
+            <li><span class="check pass">✓</span> Output column ends with '?'</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelector('[onclick="showTab(\'' + name + '\')"]').classList.add('active');
+  document.getElementById(name).classList.add('active');
+}
+</script>
+</body>
+</html>

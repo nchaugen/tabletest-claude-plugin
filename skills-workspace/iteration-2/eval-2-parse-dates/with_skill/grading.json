@@ -1,0 +1,29 @@
+{
+  "assertions": [
+    {
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "result.java lines 16 and 29: two '@TableTest(\"\"\"' annotations are present"
+    },
+    {
+      "text": "Null input is represented as a blank cell (not the string 'null') in the table",
+      "passed": true,
+      "evidence": "result.java line 21: 'Null input      |            |' — the input and expected cells are blank, not 'null'. explanation.md line 27 confirms: 'A blank cell maps to null (the null-input scenario)'"
+    },
+    {
+      "text": "The empty string / exception case is handled — either via a Throws? column, assertThrows inside the method, or a separate @TableTest — rather than being silently omitted",
+      "passed": true,
+      "evidence": "result.java lines 29-35: a separate @TableTest with an 'Exception?' column and assertThrows handles the empty-string case explicitly"
+    },
+    {
+      "text": "There is a result column typed as LocalDate (or using a string representation that maps to LocalDate)",
+      "passed": true,
+      "evidence": "result.java line 17: 'Parsed Date?' column; method signature line 23: 'LocalDate expectedDate' parameter. ISO-format strings in the column map to LocalDate."
+    },
+    {
+      "text": "The response addresses type conversion for non-standard date formats (slash format, short year) — mentions @TypeConverter or a converter method",
+      "passed": true,
+      "evidence": "explanation.md lines 43-50: explicitly addresses why no @TypeConverter is needed — non-ISO strings appear in the String input column requiring no conversion, and the expectation column only holds ISO-format dates handled natively. The response directly engages with the @TypeConverter question and the SKILL.md guidance around it."
+    }
+  ]
+}

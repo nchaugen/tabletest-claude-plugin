@@ -1,0 +1,9 @@
+{
+  "assertions": [
+    {"text": "Output contains a @TableTest annotation", "passed": true, "evidence": "result.java line 12: '@TableTest(\"\"\"' (and again at line 23 for the exception table)"},
+    {"text": "Null input is represented as a blank cell (not the string 'null') in the table", "passed": true, "evidence": "result.java line 17: 'Null input      |            |' — both the input and result cells are blank, not the string 'null'"},
+    {"text": "The empty string / exception case is handled — either via a Throws? column, assertThrows inside the method, or a separate @TableTest — rather than being silently omitted", "passed": true, "evidence": "result.java lines 23-29: a separate @TableTest method 'throwsOnInvalidInput' handles the empty string case using assertThrows"},
+    {"text": "There is a result column typed as LocalDate (or using a string representation that maps to LocalDate)", "passed": true, "evidence": "result.java line 19: method signature 'void parsesDateFormats(String input, LocalDate expectedDate)' — the expected result parameter is typed as LocalDate"},
+    {"text": "The response addresses type conversion for non-standard date formats (slash format, short year) — mentions @TypeConverter or a converter method", "passed": false, "evidence": "explanation.md line 32: 'the non-standard formats are inputs (strings), not outputs, so no converter is required' — the response explicitly addresses the topic but concludes no converter is needed and does not mention @TypeConverter or a converter method in the context of handling these formats"}
+  ]
+}

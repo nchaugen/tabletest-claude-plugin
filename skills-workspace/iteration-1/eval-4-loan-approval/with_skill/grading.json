@@ -1,0 +1,10 @@
+{
+  "assertions": [
+    {"text": "Output contains a markdown table (using | column | syntax)", "passed": true, "evidence": "The output contains a markdown table starting on line 3 with pipe-delimited columns."},
+    {"text": "At least one output column name ends with '?' (e.g. 'Eligible?' or 'Approved?')", "passed": true, "evidence": "Column names include 'Approved?' and 'Rejection Reason?' — both end with '?'."},
+    {"text": "Column names use domain/business language — no implementation terms like 'creditScore', 'isEligible', 'boolean', 'int'", "passed": true, "evidence": "Column names are: Scenario, Credit Score, Minimum Score (Policy), Applicant Age, Stable Income?, Approved?, Rejection Reason? — all plain business language with no camelCase or type names."},
+    {"text": "Table includes at least one row specifically for the senior applicant (65+) threshold scenario", "passed": true, "evidence": "Multiple rows cover the senior applicant threshold, e.g. 'Senior applicant, credit at senior threshold' (age 65, score 600) and 'Just at senior age, uses lower threshold' (age 65, score 649)."},
+    {"text": "The missing income scenario is represented — either as a row with an open/uncertain expected value (?, TBD, or blank) or as an explicit open question note", "passed": true, "evidence": "Row 'Standard applicant, income info missing' has Stable Income? blank and Approved? = '?', with an explicit open question in Rejection Reason. A corresponding senior row is also present."},
+    {"text": "Scenario names describe conditions ('Senior applicant at threshold') not outcomes ('Approved')", "passed": true, "evidence": "All scenario names describe conditions, e.g. 'Standard applicant, strong credit', 'Senior applicant, credit at senior threshold', 'Just below senior age, uses standard threshold' — none describe outcomes like 'Approved' or 'Rejected'."}
+  ]
+}

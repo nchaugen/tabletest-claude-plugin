@@ -1,0 +1,29 @@
+{
+  "assertions": [
+    {
+      "text": "Output contains at least one markdown table",
+      "passed": true,
+      "evidence": "Three markdown tables are present: Table 1 (Order Cancellation), Table 2 (Return Flag Eligibility), and an Open Questions table."
+    },
+    {
+      "text": "Table covers cancellation rules — includes rows for states where cancellation is allowed and where it is not",
+      "passed": true,
+      "evidence": "Table 1 has rows for PENDING and CONFIRMED (Transition Allowed? = yes) and rows for SHIPPED, DELIVERED, and CANCELLED (Transition Allowed? = no)."
+    },
+    {
+      "text": "The 30-day return window rule is addressed — either as a threshold column, a separate table, or flagged as an open question",
+      "passed": true,
+      "evidence": "Table 2 is dedicated to return flag eligibility with a 'Return Window (Policy)' column explicitly set to 30 days, and rows testing within, at, and beyond the 30-day boundary."
+    },
+    {
+      "text": "Uses value sets {PENDING, CONFIRMED} or equivalent to express 'regardless of which starting state' for cases where a rule holds across states",
+      "passed": true,
+      "evidence": "Table 1 row 6 has Current Status = '{PENDING, CONFIRMED}' with the scenario 'Cancellation regardless of pending or confirmed', explicitly using the value-set notation."
+    },
+    {
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Columns 'Transition Allowed?' and 'Reason?' in Table 1, 'Return Flag Allowed?' and 'Open Questions' in the open-questions table — multiple columns end with '?'."
+    }
+  ]
+}

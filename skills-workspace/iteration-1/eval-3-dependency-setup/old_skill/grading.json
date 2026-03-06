@@ -1,0 +1,8 @@
+{
+  "assertions": [
+    {"text": "Response explicitly flags that JUnit 5.10.0 is below the required minimum (5.11) and recommends upgrading", "passed": true, "evidence": "Lines 20-26 state 'Your current JUnit version is a problem. TableTest requires JUnit 5.11 or higher, but your pom.xml has 5.10.0' and recommends upgrading to at least 5.11."},
+    {"text": "Response provides the tabletest dependency with groupId 'org.tabletest' (not guessed)", "passed": true, "evidence": "Line 9 shows <groupId>org.tabletest</groupId> in the dependency block."},
+    {"text": "Response includes 'tabletest-junit' as the artifactId", "passed": true, "evidence": "Line 10 shows <artifactId>tabletest-junit</artifactId> in the dependency block."},
+    {"text": "The suggested dependency includes <scope>test</scope>", "passed": true, "evidence": "Line 12 shows <scope>test</scope> in the tabletest dependency block."}
+  ]
+}

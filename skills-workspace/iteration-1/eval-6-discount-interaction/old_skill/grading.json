@@ -1,0 +1,29 @@
+{
+  "assertions": [
+    {
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "A markdown table titled 'Discount Interaction — Bulk and Loyalty Combined' is present with 9 data rows."
+    },
+    {
+      "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved",
+      "passed": true,
+      "evidence": "Rows where both discounts apply show '?' in 'Discount Applied?' and 'Final Price?' columns, with Open Questions cells asking 'Do we stack (18%) or take higher (10%)?' and similar. The ambiguity is not silently resolved."
+    },
+    {
+      "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)",
+      "passed": true,
+      "evidence": "Multiple rows expose the interaction, e.g. 'Both discounts qualify — stacked or higher only?' (£150, 10% bulk, 8% loyalty) and 'Both qualify, loyalty is higher — stacked or higher only?' (£150, 10% bulk, 15% loyalty)."
+    },
+    {
+      "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note",
+      "passed": true,
+      "evidence": "The table has an 'Open Questions' column. Rows with both discounts active explicitly ask 'Do we stack (X%) or take higher (Y%)?' and the cap-exceeding row asks whether the cap or higher-only rule applies."
+    },
+    {
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Columns 'Discount Applied?', 'Final Price?', and 'Open Questions' — 'Discount Applied?' and 'Final Price?' both end with '?'."
+    }
+  ]
+}
