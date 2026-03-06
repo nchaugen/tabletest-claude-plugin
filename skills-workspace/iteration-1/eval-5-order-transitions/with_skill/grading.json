@@ -1,0 +1,29 @@
+{
+  "assertions": [
+    {
+      "text": "Output contains at least one markdown table",
+      "passed": true,
+      "evidence": "Two full markdown tables are present: Table 1 (Order Cancellation) and Table 2 (Return Eligibility for Delivered Orders)."
+    },
+    {
+      "text": "Table covers cancellation rules — includes rows for states where cancellation is allowed and where it is not",
+      "passed": true,
+      "evidence": "Table 1 includes rows for PENDING and CONFIRMED (Allowed? = yes) and rows for SHIPPED, DELIVERED, and CANCELLED (Allowed? = no), covering both allowed and disallowed cases."
+    },
+    {
+      "text": "The 30-day return window rule is addressed — either as a threshold column, a separate table, or flagged as an open question",
+      "passed": true,
+      "evidence": "Table 2 is a dedicated return eligibility table with a 'Return Window (Policy)' column and rows that test at, within, and beyond the 30-day boundary."
+    },
+    {
+      "text": "Uses value sets {PENDING, CONFIRMED} or equivalent to express 'regardless of which starting state' for cases where a rule holds across states",
+      "passed": false,
+      "evidence": "The output uses separate rows for PENDING and CONFIRMED rather than a combined value set. No cell uses {PENDING, CONFIRMED} or an equivalent combined notation in the Current Status column to express 'regardless of starting state'."
+    },
+    {
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Columns 'Allowed?' and 'Rejection Reason?' in Table 1, and 'Return Allowed?' and 'Rejection Reason?' in Table 2, all end with '?'."
+    }
+  ]
+}

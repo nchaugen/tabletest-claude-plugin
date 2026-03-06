@@ -1,0 +1,166 @@
+{
+  "skill_name": "tabletest + spec-by-example",
+  "iteration": 2,
+  "configs": [
+    "with_skill",
+    "old_skill"
+  ],
+  "evals": [
+    {
+      "id": "eval-1-convert-repetitive-tests",
+      "name": "Convert repetitive @Test methods",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 6,
+          "assertions_total": 6,
+          "pass_rate": 1.0,
+          "duration_ms": 42484,
+          "total_tokens": 20035
+        },
+        "old_skill": {
+          "assertions_passed": 6,
+          "assertions_total": 6,
+          "pass_rate": 1.0,
+          "duration_ms": 54334,
+          "total_tokens": 19661
+        }
+      }
+    },
+    {
+      "id": "eval-2-parse-dates",
+      "name": "Write TableTest for date parsing",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1.0,
+          "duration_ms": 71551,
+          "total_tokens": 28717
+        },
+        "old_skill": {
+          "assertions_passed": 4,
+          "assertions_total": 5,
+          "pass_rate": 0.8,
+          "duration_ms": 59654,
+          "total_tokens": 27763,
+          "failed_assertions": [
+            "The response addresses type conversion for non-standard date formats (slash format, short year) \u2014 mentions @TypeConverter or a converter method"
+          ]
+        }
+      }
+    },
+    {
+      "id": "eval-3-dependency-setup",
+      "name": "Dependency setup with outdated JUnit",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 4,
+          "assertions_total": 4,
+          "pass_rate": 1.0,
+          "duration_ms": 51710,
+          "total_tokens": 20854
+        },
+        "old_skill": {
+          "assertions_passed": 4,
+          "assertions_total": 4,
+          "pass_rate": 1.0,
+          "duration_ms": 39946,
+          "total_tokens": 19862
+        }
+      }
+    },
+    {
+      "id": "eval-4-loan-approval",
+      "name": "Loan approval spec with open questions",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 6,
+          "assertions_total": 6,
+          "pass_rate": 1.0,
+          "duration_ms": 66350,
+          "total_tokens": 19848
+        },
+        "old_skill": {
+          "assertions_passed": 6,
+          "assertions_total": 6,
+          "pass_rate": 1.0,
+          "duration_ms": 49088,
+          "total_tokens": 19359
+        }
+      }
+    },
+    {
+      "id": "eval-5-order-transitions",
+      "name": "Order status transition rules",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1.0,
+          "duration_ms": 39432,
+          "total_tokens": 19250
+        },
+        "old_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1.0,
+          "duration_ms": 52430,
+          "total_tokens": 19147
+        }
+      }
+    },
+    {
+      "id": "eval-6-discount-interaction",
+      "name": "Discount stacking ambiguity",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1.0,
+          "duration_ms": 69138,
+          "total_tokens": 20404
+        },
+        "old_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1.0,
+          "duration_ms": 51380,
+          "total_tokens": 19050
+        }
+      }
+    }
+  ],
+  "summary": {
+    "with_skill": {
+      "assertions_passed": 31,
+      "assertions_total": 31,
+      "pass_rate": 1.0,
+      "avg_duration_ms": 56778,
+      "avg_tokens": 21518,
+      "vs_iteration_1": "+2 assertions (+6.5pp)"
+    },
+    "old_skill": {
+      "assertions_passed": 30,
+      "assertions_total": 31,
+      "pass_rate": 0.968,
+      "avg_duration_ms": 51139,
+      "avg_tokens": 20807,
+      "vs_iteration_1": "0 (unchanged)"
+    }
+  },
+  "analyst_notes": [
+    "Eval 2 (@TypeConverter) \u2014 FIXED in with_skill: The date format limitation warning caused the agent to read references/type-converters.md, import TypeConverter, and explicitly reason through when it is and isn't needed for non-standard formats. Old_skill still fails this \u2014 confirming the fix is attributable to the iter-2 change.",
+    "Eval 5 (value sets) \u2014 FIXED in with_skill: The agent used {SHIPPED, DELIVERED} and {PENDING, CONFIRMED, SHIPPED} as value sets, which the grader accepted as equivalent to the {PENDING, CONFIRMED} pattern. The new state-machine example and {\u2026} notation explanation appear to have reinforced the technique sufficiently.",
+    "Eval 2 old_skill now trails: The old skill still has no @TypeConverter warning, so it continues to miss the type conversion assertion. with_skill now leads old_skill by 1 assertion on this eval.",
+    "Regressions: None. All previously-passing evals continue to pass in both configs.",
+    "Net result: with_skill reaches 31/31 (100%). The two targeted fixes resolved both iter-1 regressions without breaking anything else.",
+    "Token comparison: with_skill averages slightly more tokens (21,518 vs 20,954) on iter 2, largely driven by eval-2 where the @TypeConverter reasoning added content. Eval-2 is the most token-intensive eval for both configs.",
+    "Speed comparison: old_skill is somewhat faster on average (51,472ms vs 56,794ms). Both are within normal variance for single-run evals."
+  ]
+}

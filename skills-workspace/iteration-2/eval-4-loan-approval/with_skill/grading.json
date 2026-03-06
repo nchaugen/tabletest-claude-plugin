@@ -1,0 +1,34 @@
+{
+  "assertions": [
+    {
+      "text": "Output contains a markdown table (using | column | syntax)",
+      "passed": true,
+      "evidence": "Lines 3–17 contain a markdown table with | syntax, including headers and a separator row."
+    },
+    {
+      "text": "At least one output column name ends with '?' (e.g. 'Eligible?' or 'Approved?')",
+      "passed": true,
+      "evidence": "Two columns end with '?': 'Approved?' and 'Rejection Reason?'."
+    },
+    {
+      "text": "Column names use domain/business language — no implementation terms like 'creditScore', 'isEligible', 'boolean', 'int'",
+      "passed": true,
+      "evidence": "All column names use plain business language: 'Customer Age', 'Credit Score Threshold (Policy)', 'Senior Threshold (Policy)', 'Income Status', 'Approved?', 'Rejection Reason?' — no camelCase or type-level terms."
+    },
+    {
+      "text": "Table includes at least one row specifically for the senior applicant (65+) threshold scenario",
+      "passed": true,
+      "evidence": "Multiple senior applicant rows are present, including 'Senior applicant — approved under lower threshold' (age 68), 'Senior applicant — credit score exactly at senior threshold', and 'Applicant exactly at senior age boundary' (age 65)."
+    },
+    {
+      "text": "The missing income scenario is represented — either as a row with an open/uncertain expected value (?, TBD, or blank) or as an explicit open question note",
+      "passed": true,
+      "evidence": "Lines 16–17 show two rows for missing income ('Missing income information — standard applicant' and 'Missing income information — senior applicant') with blank Income Status, '?' in Approved?, and 'Open question — see notes'. The Open Questions section elaborates further."
+    },
+    {
+      "text": "Scenario names describe conditions ('Senior applicant at threshold') not outcomes ('Approved')",
+      "passed": true,
+      "evidence": "The vast majority of scenario names describe conditions: 'Credit score exactly at standard threshold', 'Applicant exactly at senior age boundary', 'Unstable income regardless of credit score', etc. One row ('Senior applicant — approved under lower threshold') references approval but in context of identifying the lower-threshold condition, not as a standalone outcome label. Overall the pattern is condition-based naming."
+    }
+  ]
+}

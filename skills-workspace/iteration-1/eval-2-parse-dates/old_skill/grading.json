@@ -1,0 +1,9 @@
+{
+  "assertions": [
+    {"text": "Output contains a @TableTest annotation", "passed": true, "evidence": "Two @TableTest annotations are present in result.java (lines 10 and 21)."},
+    {"text": "Null input is represented as a blank cell (not the string 'null') in the table", "passed": true, "evidence": "The 'Null input' row uses a blank cell for the Input column: '| Null input     |            |' (line 15). Explanation.md line 22 confirms blank cell represents null."},
+    {"text": "The empty string / exception case is handled — either via a Throws? column, assertThrows inside the method, or a separate @TableTest — rather than being silently omitted", "passed": true, "evidence": "A separate @TableTest with an 'Exception?' column handles the empty string case (lines 21-27 of result.java), using assertThrows."},
+    {"text": "There is a result column typed as LocalDate (or using a string representation that maps to LocalDate)", "passed": true, "evidence": "The method signature on line 17 uses 'LocalDate expectedDate' as a parameter, and the 'Parsed Date?' column contains ISO-8601 date strings that map to LocalDate."},
+    {"text": "The response addresses type conversion for non-standard date formats (slash format, short year) — mentions @TypeConverter or a converter method", "passed": false, "evidence": "explanation.md (line 16) states JUnit's built-in converter handles ISO-8601 format but does not address how slash format ('15/01/2024') or short year ('24-01-15') would be converted — no @TypeConverter or custom converter method is mentioned for these non-standard formats."}
+  ]
+}

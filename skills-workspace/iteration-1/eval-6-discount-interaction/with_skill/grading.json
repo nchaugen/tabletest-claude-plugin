@@ -1,0 +1,29 @@
+{
+  "assertions": [
+    {
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "A large markdown table titled 'Discount Combination Rules' is present with 13 data rows."
+    },
+    {
+      "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved",
+      "passed": true,
+      "evidence": "Rows for 'Both discounts apply' show competing interpretations (stack vs higher-only vs stacked-but-capped) as separate rows each with open-question notes, and rows at thresholds have '?' cells. A separate 'Open Decisions' section also enumerates unresolved questions."
+    },
+    {
+      "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)",
+      "passed": true,
+      "evidence": "Multiple rows show both discounts applying, e.g. 'Both discounts apply — stacked (additive)' (£150, bulk 10%, loyalty 15%), 'Both discounts apply — higher wins', and 'High-value order, both discounts, no cap'."
+    },
+    {
+      "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note",
+      "passed": true,
+      "evidence": "The table has an 'Open Questions' column with explicit notes on stacking vs higher-only, cap questions, and threshold inclusivity. The 'Open Decisions' section below the table lists all four unresolved decisions explicitly."
+    },
+    {
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Columns 'Final Discount?', 'Amount Charged?', and 'Open Questions' — 'Final Discount?' and 'Amount Charged?' both end with '?'."
+    }
+  ]
+}

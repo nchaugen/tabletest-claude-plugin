@@ -1,0 +1,9 @@
+{
+  "assertions": [
+    {"text": "Output contains at least one markdown table", "passed": true, "evidence": "Two markdown tables are present: Table 1 (Order Status Transition, lines 7-20) and Table 2 (Return Flag Eligibility, lines 28-34), plus a third Open Questions table."},
+    {"text": "Table covers cancellation rules — includes rows for states where cancellation is allowed and where it is not", "passed": true, "evidence": "Table 1 has rows showing cancellation allowed: PENDING→CANCELLED (yes) and CONFIRMED→CANCELLED (yes); and not allowed: SHIPPED→CANCELLED (no, 'Cannot cancel after order has shipped') and DELIVERED→CANCELLED (no, same reason)."},
+    {"text": "The 30-day return window rule is addressed — either as a threshold column, a separate table, or flagged as an open question", "passed": true, "evidence": "Table 2 is entirely dedicated to return flag eligibility with a 'Days Since Delivery' column and a 'Return Window (Policy)' column set to '30 days', covering boundary scenarios at days 30 and 31."},
+    {"text": "Uses value sets {PENDING, CONFIRMED} or equivalent to express 'regardless of which starting state' for cases where a rule holds across states", "passed": true, "evidence": "Line 20 of Table 1: 'Attempt any transition on a cancelled order' uses '{PENDING, CONFIRMED, SHIPPED, DELIVERED}' in the Requested Transition column. Line 34 of Table 2 uses '{PENDING, CONFIRMED, SHIPPED, CANCELLED}' in the Current Status column to express the rule holds across all non-delivered states."},
+    {"text": "At least one output column ends with '?'", "passed": true, "evidence": "Table 1 has columns 'Allowed?' and 'Rejection Reason?'. Table 2 has columns 'Return Flag Allowed?' and 'Rejection Reason?'."}
+  ]
+}

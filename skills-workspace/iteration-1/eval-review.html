@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Eval Review — tabletest + spec-by-example (Iteration 1)</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; background: #f5f5f5; color: #222; }
+  h1 { margin: 0; font-size: 1.4em; }
+  h2 { font-size: 1.1em; margin: 0 0 0.5em 0; }
+  h3 { font-size: 1em; margin: 0.8em 0 0.4em 0; color: #555; }
+  .header { background: #1a1a2e; color: white; padding: 1.2em 2em; }
+  .header p { margin: 0.3em 0 0 0; font-size: 0.85em; opacity: 0.75; }
+  .tabs { display: flex; background: #eee; border-bottom: 2px solid #ddd; }
+  .tab { padding: 0.7em 1.5em; cursor: pointer; border: none; background: none; font-size: 0.9em; color: #555; }
+  .tab.active { background: white; border-bottom: 2px solid white; margin-bottom: -2px; color: #222; font-weight: 600; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .benchmark { padding: 1.5em 2em; }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1em; margin-bottom: 1.5em; }
+  .summary-card { background: white; border-radius: 8px; padding: 1.2em; border: 1px solid #ddd; }
+  .summary-card h3 { margin: 0 0 0.8em 0; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.05em; color: #888; }
+  .big-stat { font-size: 2.2em; font-weight: 700; }
+  .stat-label { font-size: 0.8em; color: #888; margin-top: 0.2em; }
+  .delta { font-size: 0.85em; padding: 0.2em 0.5em; border-radius: 4px; margin-left: 0.5em; }
+  .delta.worse { background: #ffeaea; color: #c00; }
+  .delta.better { background: #eafff0; color: #080; }
+  .delta.same { background: #f0f0f0; color: #666; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.85em; }
+  th { background: #f8f8f8; text-align: left; padding: 0.6em 0.8em; border-bottom: 2px solid #ddd; }
+  td { padding: 0.5em 0.8em; border-bottom: 1px solid #eee; vertical-align: top; }
+  .pass { color: #080; font-weight: 600; }
+  .fail { color: #c00; font-weight: 600; }
+  .pill { display: inline-block; padding: 0.15em 0.5em; border-radius: 10px; font-size: 0.8em; font-weight: 600; }
+  .pill-green { background: #eafff0; color: #080; }
+  .pill-red { background: #ffeaea; color: #c00; }
+  .pill-yellow { background: #fff8e0; color: #885500; }
+  .analyst { background: #fffbe6; border: 1px solid #e6c200; border-radius: 8px; padding: 1em 1.2em; margin-top: 1em; }
+  .analyst h3 { margin: 0 0 0.5em 0; color: #885500; font-size: 0.9em; }
+  .analyst ul { margin: 0; padding-left: 1.2em; font-size: 0.85em; line-height: 1.6; }
+  .outputs { padding: 1.5em 2em; }
+  .eval-card { background: white; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 1.5em; overflow: hidden; }
+  .eval-header { padding: 0.8em 1.2em; background: #f8f8f8; border-bottom: 1px solid #ddd; display: flex; align-items: center; gap: 0.8em; }
+  .eval-header h2 { margin: 0; font-size: 1em; }
+  .eval-body { display: grid; grid-template-columns: 1fr 1fr; }
+  .eval-col { padding: 1em 1.2em; border-right: 1px solid #eee; }
+  .eval-col:last-child { border-right: none; }
+  .eval-col-header { font-size: 0.8em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 0.8em; display: flex; justify-content: space-between; align-items: center; }
+  pre { background: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 6px; padding: 0.8em; font-size: 0.78em; overflow-x: auto; white-space: pre-wrap; margin: 0 0 0.8em 0; line-height: 1.5; }
+  .assertion-list { list-style: none; margin: 0; padding: 0; }
+  .assertion-list li { font-size: 0.8em; padding: 0.3em 0; display: flex; gap: 0.4em; align-items: flex-start; }
+  .check { flex-shrink: 0; }
+  .skill-badge { font-size: 0.75em; padding: 0.15em 0.5em; border-radius: 4px; background: #e8eeff; color: #3355cc; font-weight: 600; }
+  .section-label { font-size: 0.8em; font-weight: 700; color: #888; text-transform: uppercase; margin: 0.8em 0 0.3em; }
+  .score-bar-wrap { display: flex; align-items: center; gap: 0.5em; margin-top: 0.3em; }
+  .score-bar { height: 6px; background: #eee; border-radius: 3px; flex: 1; }
+  .score-fill { height: 100%; border-radius: 3px; background: #4caf50; }
+  .score-fill.partial { background: #ff9800; }
+  .score-text { font-size: 0.8em; color: #666; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Eval Review — tabletest + spec-by-example</h1>
+  <p>Iteration 1 · 6 evals · New skill vs Old skill baseline · 12 runs total</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('benchmark')">Benchmark</button>
+  <button class="tab" onclick="showTab('outputs')">Outputs</button>
+</div>
+
+<!-- BENCHMARK TAB -->
+<div id="benchmark" class="tab-content active">
+  <div class="benchmark">
+    <div class="summary-grid">
+      <div class="summary-card">
+        <h3>New Skill (with_skill)</h3>
+        <div class="big-stat">93.5%
+          <span class="delta worse">−3.3pp</span>
+        </div>
+        <div class="stat-label">29 / 31 assertions passed</div>
+        <div class="section-label" style="margin-top:0.8em">Avg tokens</div>
+        <div style="font-size:1.1em;font-weight:600">20,842</div>
+        <div class="section-label">Avg duration</div>
+        <div style="font-size:1.1em;font-weight:600">40.9s</div>
+      </div>
+      <div class="summary-card">
+        <h3>Old Skill (old_skill baseline)</h3>
+        <div class="big-stat">96.8%</div>
+        <div class="stat-label">30 / 31 assertions passed</div>
+        <div class="section-label" style="margin-top:0.8em">Avg tokens</div>
+        <div style="font-size:1.1em;font-weight:600">21,328</div>
+        <div class="section-label">Avg duration</div>
+        <div style="font-size:1.1em;font-weight:600">40.3s</div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Eval</th>
+          <th>Skill</th>
+          <th>New (with_skill)</th>
+          <th>Old (baseline)</th>
+          <th>Delta</th>
+          <th>Failed assertion (new)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1 · Convert repetitive @Test methods</td>
+          <td><span class="skill-badge">tabletest</span></td>
+          <td><span class="pill pill-green">6/6 100%</span></td>
+          <td><span class="pill pill-green">6/6 100%</span></td>
+          <td><span class="delta same">0</span></td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>2 · Write TableTest for date parsing</td>
+          <td><span class="skill-badge">tabletest</span></td>
+          <td><span class="pill pill-yellow">4/5 80%</span></td>
+          <td><span class="pill pill-yellow">4/5 80%</span></td>
+          <td><span class="delta same">0</span></td>
+          <td>@TypeConverter for non-standard date formats not addressed (same in both)</td>
+        </tr>
+        <tr>
+          <td>3 · Dependency setup with outdated JUnit</td>
+          <td><span class="skill-badge">tabletest</span></td>
+          <td><span class="pill pill-green">4/4 100%</span></td>
+          <td><span class="pill pill-green">4/4 100%</span></td>
+          <td><span class="delta same">0</span></td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>4 · Loan approval spec with open questions</td>
+          <td><span class="skill-badge">spec-by-example</span></td>
+          <td><span class="pill pill-green">6/6 100%</span></td>
+          <td><span class="pill pill-green">6/6 100%</span></td>
+          <td><span class="delta same">0</span></td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>5 · Order status transition rules</td>
+          <td><span class="skill-badge">spec-by-example</span></td>
+          <td><span class="pill pill-yellow">4/5 80%</span></td>
+          <td><span class="pill pill-green">5/5 100%</span></td>
+          <td><span class="delta worse">−1</span></td>
+          <td>Value sets {PENDING, CONFIRMED} not used — used separate rows instead</td>
+        </tr>
+        <tr>
+          <td>6 · Discount stacking ambiguity</td>
+          <td><span class="skill-badge">spec-by-example</span></td>
+          <td><span class="pill pill-green">5/5 100%</span></td>
+          <td><span class="pill pill-green">5/5 100%</span></td>
+          <td><span class="delta same">0</span></td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="analyst">
+      <h3>Analyst observations</h3>
+      <ul>
+        <li><strong>Eval 2 (@TypeConverter gap):</strong> Both configs fail identically — non-standard date formats (slash, short year) are silently assumed to work with JUnit's built-in converter. This is a skill content gap unrelated to the tone/description changes. The <code>references/type-converters.md</code> reference should be triggered more explicitly for non-ISO date formats.</li>
+        <li><strong>Eval 3 (dependency-setup):</strong> Non-discriminating — both pass 4/4 since the content comes deterministically from the reference file. Confirms the pre-check rewrite didn't break anything.</li>
+        <li><strong>Eval 5 regression (value sets):</strong> The new skill used separate rows for PENDING and CONFIRMED where the old skill used <code>{PENDING, CONFIRMED}</code>. The old skill's more detailed Workflow section reinforced the value-sets pattern more directly. The condensed workflow section may have reduced its salience. <em>Suggested fix: add a short reminder in the spec-by-example body that value sets are the preferred way to express "regardless of" relationships.</em></li>
+        <li><strong>Evals 1, 4, 6:</strong> Both configs fully pass — core guidance is sound in both versions. The description and tone improvements did not hurt quality.</li>
+        <li><strong>Token efficiency:</strong> New skill uses slightly fewer tokens on average (20,842 vs 21,328), suggesting the leaner pre-check prose reduces preamble without losing quality.</li>
+        <li><strong>Overall verdict:</strong> The new skill is marginally behind on assertions due to the eval-5 regression, but the qualitative outputs (visible in the Outputs tab) are comparable. The eval-5 miss is a narrow, fixable issue. The @TypeConverter gap is the more impactful finding and applies to both versions.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- OUTPUTS TAB -->
+<div id="outputs" class="tab-content">
+  <div class="outputs">
+
+    <!-- Eval 1 -->
+    <div class="eval-card">
+      <div class="eval-header">
+        <span class="skill-badge">tabletest</span>
+        <h2>Eval 1 · Convert repetitive @Test methods</h2>
+        <span class="pill pill-green" style="margin-left:auto">Both 6/6</span>
+      </div>
+      <div class="eval-body">
+        <div class="eval-col">
+          <div class="eval-col-header">
+            New skill (with_skill)
+            <span class="pill pill-green">6/6</span>
+          </div>
+          <pre>@TableTest("""
+    Scenario       | Customer Tier | Order Total | Discount?
+    Gold customer  | GOLD          | 100         | 20
+    Silver customer| SILVER        | 100         | 10
+    Bronze customer| BRONZE        | 100         | 0
+    """)
+void calculatesDiscountByCustomerTier(
+        String customerTier, int orderTotal, int discount) {
+    assertEquals(discount,
+        discountService.calculate(customerTier, orderTotal));
+}</pre>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> @TableTest annotation present</li>
+            <li><span class="check pass">✓</span> Column ending with '?' (Discount?)</li>
+            <li><span class="check pass">✓</span> Exactly 3 data rows (GOLD, SILVER, BRONZE)</li>
+            <li><span class="check pass">✓</span> Single assertEquals in method body</li>
+            <li><span class="check pass">✓</span> No if/switch statements</li>
+            <li><span class="check pass">✓</span> Scenario column leftmost</li>
+          </ul>
+        </div>
+        <div class="eval-col">
+          <div class="eval-col-header">
+            Old skill (baseline)
+            <span class="pill pill-green">6/6</span>
+          </div>
+          <pre>@TableTest("""
+    Scenario        | Customer Tier | Order Amount | Discount?
+    Gold customer   | GOLD          | 100          | 20
+    Silver customer | SILVER        | 100          | 10
+    Bronze customer | BRONZE        | 100          | 0
+    """)
+void calculatesDiscountByCustomerTier(
+        String customerTier, int orderAmount, int discount) {
+    assertEquals(discount,
+        discountService.calculate(customerTier, orderAmount));
+}</pre>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> @TableTest annotation present</li>
+            <li><span class="check pass">✓</span> Column ending with '?' (Discount?)</li>
+            <li><span class="check pass">✓</span> Exactly 3 data rows (GOLD, SILVER, BRONZE)</li>
+            <li><span class="check pass">✓</span> Single assertEquals in method body</li>
+            <li><span class="check pass">✓</span> No if/switch statements</li>
+            <li><span class="check pass">✓</span> Scenario column leftmost</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Eval 2 -->
+    <div class="eval-card">
+      <div class="eval-header">
+        <span class="skill-badge">tabletest</span>
+        <h2>Eval 2 · Write TableTest for date parsing</h2>
+        <span class="pill pill-yellow" style="margin-left:auto">Both 4/5 — @TypeConverter gap (same in both)</span>
+      </div>
+      <div class="eval-body">
+        <div class="eval-col">
+          <div class="eval-col-header">New skill (with_skill) <span class="pill pill-yellow">4/5</span></div>
+          <pre>@TableTest("""
+    Scenario       | Input      | Parsed Date?
+    ISO format     | 2024-01-15 | 2024-01-15
+    Slash format   | 15/01/2024 | 2024-01-15
+    Short year     | 24-01-15   | 2024-01-15
+    Null input     |            |
+    """)
+void parsesDateFromVariousFormats(
+        String input, LocalDate expectedDate) {
+    assertEquals(expectedDate, parseDate(input));
+}
+
+@TableTest("""
+    Scenario     | Input | Exception?
+    Empty string | ''    | java.lang.IllegalArgumentException
+    """)
+void throwsOnInvalidInput(
+        String input, Class&lt;? extends Throwable&gt; ex) {
+    assertThrows(ex, () -> parseDate(input));
+}</pre>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> @TableTest annotation present</li>
+            <li><span class="check pass">✓</span> Null as blank cell</li>
+            <li><span class="check pass">✓</span> Exception case handled (separate @TableTest)</li>
+            <li><span class="check pass">✓</span> LocalDate result column</li>
+            <li><span class="check fail">✗</span> @TypeConverter for slash/short-year formats not addressed</li>
+          </ul>
+        </div>
+        <div class="eval-col">
+          <div class="eval-col-header">Old skill (baseline) <span class="pill pill-yellow">4/5</span></div>
+          <pre>@TableTest("""
+    Scenario       | Input      | Parsed Date?
+    ISO format     | 2024-01-15 | 2024-01-15
+    Slash format   | 15/01/2024 | 2024-01-15
+    Short year     | 24-01-15   | 2024-01-15
+    Null input     |            |
+    """)
+void parsesDateStrings(String input, LocalDate expectedDate) {
+    assertEquals(expectedDate, parseDate(input));
+}
+
+@TableTest("""
+    Scenario     | Input | Exception?
+    Empty string | ''    | java.lang.IllegalArgumentException
+    """)
+void throwsOnInvalidInput(
+        String input, Class&lt;? extends Throwable&gt; ex) {
+    assertThrows(ex, () -> parseDate(input));
+}</pre>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> @TableTest annotation present</li>
+            <li><span class="check pass">✓</span> Null as blank cell</li>
+            <li><span class="check pass">✓</span> Exception case handled (separate @TableTest)</li>
+            <li><span class="check pass">✓</span> LocalDate result column</li>
+            <li><span class="check fail">✗</span> @TypeConverter for slash/short-year formats not addressed</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Eval 3 -->
+    <div class="eval-card">
+      <div class="eval-header">
+        <span class="skill-badge">tabletest</span>
+        <h2>Eval 3 · Dependency setup with outdated JUnit</h2>
+        <span class="pill pill-green" style="margin-left:auto">Both 4/4 — non-discriminating</span>
+      </div>
+      <div class="eval-body">
+        <div class="eval-col">
+          <div class="eval-col-header">New skill (with_skill) <span class="pill pill-green">4/4</span></div>
+          <pre>Add org.tabletest:tabletest-junit with &lt;scope&gt;test&lt;/scope&gt;.
+
+⚠️ Watch out: JUnit 5.10.0 is below the required minimum
+of 5.11. Upgrade junit-jupiter to 5.11+ before adding
+TableTest — without this, TableTest will not work.
+
+Imports: org.tabletest.junit.TableTest (always needed).
+@Scenario, @TypeConverter, @TypeConverterSources only
+when those features are in use.</pre>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> Flags JUnit 5.10.0 below minimum 5.11</li>
+            <li><span class="check pass">✓</span> groupId: org.tabletest</li>
+            <li><span class="check pass">✓</span> artifactId: tabletest-junit</li>
+            <li><span class="check pass">✓</span> &lt;scope&gt;test&lt;/scope&gt;</li>
+          </ul>
+        </div>
+        <div class="eval-col">
+          <div class="eval-col-header">Old skill (baseline) <span class="pill pill-green">4/4</span></div>
+          <pre>Add org.tabletest:tabletest-junit with &lt;scope&gt;test&lt;/scope&gt;.
+
+⚠️ Your current JUnit version (5.10.0) is a problem.
+TableTest requires JUnit 5.11 or higher. Upgrade before
+adding TableTest or it won't work correctly.
+
+Two changes needed:
+1. Upgrade junit-jupiter to 5.11+
+2. Add org.tabletest:tabletest-junit:VERSION (test scope)</pre>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> Flags JUnit 5.10.0 below minimum 5.11</li>
+            <li><span class="check pass">✓</span> groupId: org.tabletest</li>
+            <li><span class="check pass">✓</span> artifactId: tabletest-junit</li>
+            <li><span class="check pass">✓</span> &lt;scope&gt;test&lt;/scope&gt;</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Eval 4 -->
+    <div class="eval-card">
+      <div class="eval-header">
+        <span class="skill-badge">spec-by-example</span>
+        <h2>Eval 4 · Loan approval spec with open questions</h2>
+        <span class="pill pill-green" style="margin-left:auto">Both 6/6</span>
+      </div>
+      <div class="eval-body">
+        <div class="eval-col">
+          <div class="eval-col-header">New skill (with_skill) <span class="pill pill-green">6/6</span></div>
+          <pre>| Scenario                          | Credit Score | Min Score (Policy) | Age | Stable Income? | Approved? | Rejection Reason? |
+| Standard applicant, strong credit | 700          | 650                | 40  | yes            | yes       |                   |
+| Credit just above threshold       | 651          | 650                | 40  | yes            | yes       |                   |
+| Credit at threshold               | 650          | 650                | 40  | yes            | yes       |                   |
+| Credit just below threshold       | 649          | 650                | 40  | yes            | no        | Score below 650   |
+| No stable income                  | 700          | 650                | 40  | no             | no        | No stable income  |
+| Senior above senior threshold     | 620          | 600                | 65  | yes            | yes       |                   |
+| Senior at senior threshold        | 600          | 600                | 65  | yes            | yes       |                   |
+| Senior below senior threshold     | 599          | 600                | 65  | yes            | no        | Score below 600   |
+| Just below senior age             | 649          | 650                | 64  | yes            | no        | Score below 650   |
+| Just at senior age                | 649          | 600                | 65  | yes            | yes       |                   |
+| Income info missing               | 700          | 650                | 40  |                | ?         | Open: reject or hold? |</pre>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> Markdown table present</li>
+            <li><span class="check pass">✓</span> Output column ends with '?' (Approved?, Rejection Reason?)</li>
+            <li><span class="check pass">✓</span> Business language column names</li>
+            <li><span class="check pass">✓</span> Senior threshold row present</li>
+            <li><span class="check pass">✓</span> Missing income marked open/uncertain</li>
+            <li><span class="check pass">✓</span> Scenario names describe conditions</li>
+          </ul>
+        </div>
+        <div class="eval-col">
+          <div class="eval-col-header">Old skill (baseline) <span class="pill pill-green">6/6</span></div>
+          <pre>| Scenario                          | Credit Score | Score Threshold (Policy) | Age | Income Status | Approved? | Rejection Reason? |
+| Standard applicant, above         | 700          | 650                      | 40  | Stable        | yes       |                   |
+| Standard applicant, at            | 650          | 650                      | 40  | Stable        | no        | Score below 650   |
+| Standard applicant, just above    | 651          | 650                      | 40  | Stable        | yes       |                   |
+| Senior above senior threshold     | 620          | 600                      | 65  | Stable        | yes       |                   |
+| Senior at senior threshold        | 600          | 600                      | 65  | Stable        | no        | Score below 600   |
+| Senior just above                 | 601          | 600                      | 65  | Stable        | yes       |                   |
+| Just below senior age             | 620          | 650                      | 64  | Stable        | no        | Score below 650   |
+| Unstable income                   | 700          | 650                      | 40  | Unstable      | no        | Not stable        |
+| Income info missing               | 700          | 650                      | 40  |               | ?         | Open: reject or hold? |
+
+Open Questions section lists: missing income, senior boundary
+inclusivity, and threshold ≥ vs &gt; question.</pre>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> Markdown table present</li>
+            <li><span class="check pass">✓</span> Output column ends with '?' (Approved?, Rejection Reason?)</li>
+            <li><span class="check pass">✓</span> Business language column names</li>
+            <li><span class="check pass">✓</span> Senior threshold row present</li>
+            <li><span class="check pass">✓</span> Missing income marked open with separate Open Questions section</li>
+            <li><span class="check pass">✓</span> Scenario names describe conditions</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Eval 5 -->
+    <div class="eval-card">
+      <div class="eval-header">
+        <span class="skill-badge">spec-by-example</span>
+        <h2>Eval 5 · Order status transition rules</h2>
+        <span style="margin-left:auto;display:flex;gap:0.5em">
+          <span class="pill pill-yellow">New: 4/5</span>
+          <span class="pill pill-green">Old: 5/5</span>
+        </span>
+      </div>
+      <div class="eval-body">
+        <div class="eval-col">
+          <div class="eval-col-header">New skill (with_skill) <span class="pill pill-yellow">4/5</span></div>
+          <pre>Table 1: Order Cancellation
+| Scenario                           | Current Status | Transition To | Allowed? | Rejection Reason? |
+| Cancellation of pending order      | PENDING        | CANCELLED     | yes      |                   |
+| Cancellation of confirmed order    | CONFIRMED      | CANCELLED     | yes      |                   |
+| Cancellation after shipment        | SHIPPED        | CANCELLED     | no       | Cannot cancel     |
+| Cancellation of delivered order    | DELIVERED      | CANCELLED     | no       | Cannot cancel     |
+| Already cancelled                  | CANCELLED      | CANCELLED     | no       | Already cancelled |
+...
+
+Table 2: Return Eligibility
+| Scenario                    | Current Status | Days Since Delivery | Return Window | Return Allowed? |
+| Within window               | DELIVERED      | 5 days              | 30 days       | yes             |
+| Last day of window          | DELIVERED      | 30 days             | 30 days       | yes             |
+| One day after window        | DELIVERED      | 31 days             | 30 days       | no              |
+...
+<strong style="color:#c00">❌ No value set used — PENDING and CONFIRMED appear as separate rows</strong></pre>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> Markdown tables present</li>
+            <li><span class="check pass">✓</span> Cancellation rules covered (allowed + blocked)</li>
+            <li><span class="check pass">✓</span> 30-day window addressed (separate table with policy column)</li>
+            <li><span class="check fail">✗</span> Value sets not used — PENDING/CONFIRMED on separate rows</li>
+            <li><span class="check pass">✓</span> Output column ends with '?'</li>
+          </ul>
+        </div>
+        <div class="eval-col">
+          <div class="eval-col-header">Old skill (baseline) <span class="pill pill-green">5/5</span></div>
+          <pre>Table 1: Order Cancellation
+| Scenario                                   | Current Status     | Policy         | Allowed? | Reason? |
+| Standard pending cancelled                 | PENDING            | before SHIPPED | yes      |         |
+| Confirmed cancelled before shipment        | CONFIRMED          | before SHIPPED | yes      |         |
+| Shipped — cancellation blocked             | SHIPPED            | before SHIPPED | no       | ...     |
+| Delivered — cancellation blocked           | DELIVERED          | before SHIPPED | no       | ...     |
+| Already cancelled                          | CANCELLED          | before SHIPPED | no       | ...     |
+| <strong>Regardless of pre-shipment state</strong>          | <strong>{PENDING, CONFIRMED}</strong> | before SHIPPED | yes      |         |
+
+Table 2: Return Flag Eligibility
+| Scenario                    | Status    | Days | Window  | Return Allowed? |
+| Within window               | DELIVERED | 1    | 30 days | yes             |
+| Last valid day              | DELIVERED | 30   | 30 days | yes             |
+| First invalid day           | DELIVERED | 31   | 30 days | no              |
+...
+
+Open Questions table for CANCELLED-from-DELIVERED and repeated flags.</pre>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> Markdown tables present</li>
+            <li><span class="check pass">✓</span> Cancellation rules covered (allowed + blocked)</li>
+            <li><span class="check pass">✓</span> 30-day window addressed (separate table)</li>
+            <li><span class="check pass">✓</span> Value set {PENDING, CONFIRMED} explicitly used</li>
+            <li><span class="check pass">✓</span> Output column ends with '?'</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Eval 6 -->
+    <div class="eval-card">
+      <div class="eval-header">
+        <span class="skill-badge">spec-by-example</span>
+        <h2>Eval 6 · Discount stacking ambiguity</h2>
+        <span class="pill pill-green" style="margin-left:auto">Both 5/5</span>
+      </div>
+      <div class="eval-body">
+        <div class="eval-col">
+          <div class="eval-col-header">New skill (with_skill) <span class="pill pill-green">5/5</span></div>
+          <pre>Shows competing interpretations as separate concrete rows:
+| Scenario                        | Order  | Bulk | Loyalty | Cap  | Rule         | Final Discount? |
+| Neither applies                 | £80    | 10%  | 15%     | ?    | ?            | 0%              |
+| Bulk only                       | £150   | 10%  | 15%     | ?    | ?            | 10%             |
+| Loyalty only                    | £80    | 10%  | 15%     | ?    | ?            | 15%             |
+| Both — stacked                  | £150   | 10%  | 15%     | none | stack        | 25%             |
+| Both — higher wins              | £150   | 10%  | 15%     | none | higher only  | 15%             |
+| Both — stacked but capped       | £150   | 10%  | 15%     | 20%  | stack+cap    | 20%             |
+| At bulk threshold               | £100   | 10%  | 15%     | ?    | ?            | ?               |
+...
+
+Open Decisions section with 4 numbered unresolved questions.
+Ambiguity surfaced as alternative rows — team can point at a row and say yes/no.</pre>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> Markdown table present</li>
+            <li><span class="check pass">✓</span> Ambiguity not silently resolved</li>
+            <li><span class="check pass">✓</span> Row where both discounts apply</li>
+            <li><span class="check pass">✓</span> Open questions explicitly surfaced</li>
+            <li><span class="check pass">✓</span> Output column ends with '?'</li>
+          </ul>
+        </div>
+        <div class="eval-col">
+          <div class="eval-col-header">Old skill (baseline) <span class="pill pill-green">5/5</span></div>
+          <pre>Marks ambiguous rows with '?' and Open Questions column:
+| Scenario                          | Value | Bulk% | Loyalty% | Cap | Discount? | Final Price? | Open Questions              |
+| Neither qualifies                 | £80   | 10%   | 8%       | 25% | 0%        | £80.00       |                             |
+| Bulk only                         | £150  | 10%   | 0%       | 25% | 10%       | £135.00      |                             |
+| Loyalty only                      | £80   | 0%    | 8%       | 25% | 8%        | £73.60       |                             |
+| Both — stacked or higher only?    | £150  | 10%   | 8%       | 25% | ?         | ?            | Stack (18%) or higher (10%)?|
+| Both — loyalty higher, stack/high?| £150  | 10%   | 15%      | 25% | ?         | ?            | Stack (25%) or higher (15%)?|
+| Stacked would exceed cap          | £150  | 10%   | 20%      | 25% | ?         | ?            | Cap at 25% or use higher?   |
+...
+
+9 rows total. Ambiguous cells marked '?', Open Questions column inline.</pre>
+          <ul class="assertion-list">
+            <li><span class="check pass">✓</span> Markdown table present</li>
+            <li><span class="check pass">✓</span> Ambiguity not silently resolved (? cells + open questions column)</li>
+            <li><span class="check pass">✓</span> Row where both discounts apply</li>
+            <li><span class="check pass">✓</span> Open questions explicitly surfaced</li>
+            <li><span class="check pass">✓</span> Output column ends with '?'</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelector('[onclick="showTab(\'' + name + '\')"]').classList.add('active');
+  document.getElementById(name).classList.add('active');
+}
+</script>
+</body>
+</html>

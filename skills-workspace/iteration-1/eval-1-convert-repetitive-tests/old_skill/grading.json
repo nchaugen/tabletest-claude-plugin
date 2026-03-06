@@ -1,0 +1,10 @@
+{
+  "assertions": [
+    {"text": "Output contains a @TableTest annotation", "passed": true, "evidence": "Line 4 of result.java: '@TableTest(\"\"\"' is present."},
+    {"text": "Table has at least one column name ending with '?' (e.g. 'Discount?' or 'Expected?')", "passed": true, "evidence": "Column header 'Discount?' appears in the table (line 5 of result.java)."},
+    {"text": "Table has exactly 3 data rows (GOLD, SILVER, BRONZE)", "passed": true, "evidence": "Three data rows present: 'Gold customer | GOLD', 'Silver customer | SILVER', 'Bronze customer | BRONZE' (lines 6-8)."},
+    {"text": "Test method body contains only one assertEquals (or equivalent assertion) — not three", "passed": true, "evidence": "The method body contains a single 'assertEquals(discount, discountService.calculate(customerTier, orderAmount));' on line 11."},
+    {"text": "Test method body contains no if or switch statements", "passed": true, "evidence": "No 'if' or 'switch' statements appear anywhere in the test method body."},
+    {"text": "Table has a scenario/description column as the leftmost column", "passed": true, "evidence": "The leftmost column is named 'Scenario' (line 5 of result.java)."}
+  ]
+}
