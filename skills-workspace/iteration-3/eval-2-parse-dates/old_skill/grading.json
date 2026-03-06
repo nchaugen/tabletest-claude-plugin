@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\" ... \"\"\")"
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell (not the string 'null') in the table",
+      "passed": false,
+      "evidence": "Table row reads '| null |' as a literal string, and the test code does '\"null\".equals(input) ? null : input' to work around it — null is not left as a blank cell"
+    },
+    {
+      "id": "exception-handled-cleanly",
+      "text": "The empty string / exception case is handled — either via a Throws? column, assertThrows inside the method, or a separate @TableTest — rather than being silently omitted",
+      "passed": true,
+      "evidence": "A separate @Test method uses assertThrows(IllegalArgumentException.class, () -> parseDate(\"\"))"
+    },
+    {
+      "id": "localdate-result-column",
+      "text": "There is a result column typed as LocalDate (or using a string representation that maps to LocalDate)",
+      "passed": true,
+      "evidence": "Method parameter declared as 'LocalDate expected' for the Result? column, with ISO-format string values in the table (2024-01-15)"
+    },
+    {
+      "id": "type-conversion-addressed",
+      "text": "The response addresses type conversion for non-standard date formats (slash format, short year) — mentions @TypeConverter or a converter method",
+      "passed": true,
+      "evidence": "Response mentions '@TypeConverter annotation or a converter registration mechanism' and discusses registering a converter for LocalDate string representations"
+    }
+  ],
+  "assertions_passed": 4,
+  "assertions_total": 5,
+  "pass_rate": 0.8
+}

@@ -1,0 +1,329 @@
+{
+  "skill_name": "tabletest + spec-by-example",
+  "evals": [
+    {
+      "id": 1,
+      "skill": "tabletest",
+      "prompt": "I have these three JUnit 5 tests that all test the same method but with different inputs. Can you convert them into a single TableTest?\n\n```java\n@Test\nvoid returnsDiscountForGoldCustomer() {\n    assertEquals(20, discountService.calculate(\"GOLD\", 100));\n}\n\n@Test\nvoid returnsDiscountForSilverCustomer() {\n    assertEquals(10, discountService.calculate(\"SILVER\", 100));\n}\n\n@Test\nvoid returnsNoDiscountForBronzeCustomer() {\n    assertEquals(0, discountService.calculate(\"BRONZE\", 100));\n}\n```",
+      "expected_output": "A single @TableTest method with a scenario column, a customer tier column, an order amount column, and a discount expectation column (suffixed with ?). The table should have 3 rows, one per original test. The method body should contain a single assertEquals.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "has-tabletest-annotation",
+          "text": "Output contains a @TableTest annotation"
+        },
+        {
+          "id": "has-question-mark-column",
+          "text": "Table has at least one column name ending with '?' (e.g. 'Discount?' or 'Expected?')"
+        },
+        {
+          "id": "has-three-data-rows",
+          "text": "Table has exactly 3 data rows (GOLD, SILVER, BRONZE)"
+        },
+        {
+          "id": "single-assertion-in-method",
+          "text": "Test method body contains only one assertEquals (or equivalent assertion) — not three"
+        },
+        {
+          "id": "no-if-switch-in-method",
+          "text": "Test method body contains no if or switch statements"
+        },
+        {
+          "id": "scenario-column-present",
+          "text": "Table has a scenario/description column as the leftmost column"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "skill": "tabletest",
+      "prompt": "I want to write a TableTest for a method that parses date strings. The method signature is:\n\n```java\nLocalDate parseDate(String input)\n```\n\nI want to test: ISO format (2024-01-15), slash format (15/01/2024), short year (24-01-15), null input should return null, and empty string should throw IllegalArgumentException.",
+      "expected_output": "A @TableTest with a scenario column and an input column. The valid cases should have a LocalDate result column. The exception case should use a Throws? column or be split into a separate @TableTest. The method should handle type conversion cleanly, using @TypeConverter if needed for non-standard formats. Null should be represented as a blank cell.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "has-tabletest-annotation",
+          "text": "Output contains a @TableTest annotation"
+        },
+        {
+          "id": "null-as-blank-cell",
+          "text": "Null input is represented as a blank cell (not the string 'null') in the table"
+        },
+        {
+          "id": "exception-handled-cleanly",
+          "text": "The empty string / exception case is handled — either via a Throws? column, assertThrows inside the method, or a separate @TableTest — rather than being silently omitted"
+        },
+        {
+          "id": "localdate-result-column",
+          "text": "There is a result column typed as LocalDate (or using a string representation that maps to LocalDate)"
+        },
+        {
+          "id": "type-conversion-addressed",
+          "text": "The response addresses type conversion for non-standard date formats (slash format, short year) — mentions @TypeConverter or a converter method"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "skill": "tabletest",
+      "prompt": "We're adding TableTest to our project. The pom.xml currently has:\n\n```xml\n<dependency>\n    <groupId>org.junit.jupiter</groupId>\n    <artifactId>junit-jupiter</artifactId>\n    <version>5.10.0</version>\n    <scope>test</scope>\n</dependency>\n```\n\nWhat do I need to add and is there anything I should watch out for?",
+      "expected_output": "The response should flag that JUnit 5.10.0 is below the required 5.11 minimum and recommend upgrading. It should provide the correct tabletest-junit dependency coordinates from the dependency-setup reference (not from memory). It should not guess the groupId/artifactId.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "flags-junit-version",
+          "text": "Response explicitly flags that JUnit 5.10.0 is below the required minimum (5.11) and recommends upgrading"
+        },
+        {
+          "id": "provides-correct-groupid",
+          "text": "Response provides the tabletest dependency with groupId 'org.tabletest' (not guessed)"
+        },
+        {
+          "id": "provides-artifactid",
+          "text": "Response includes 'tabletest-junit' as the artifactId"
+        },
+        {
+          "id": "includes-test-scope",
+          "text": "The suggested dependency includes <scope>test</scope>"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "skill": "spec-by-example",
+      "prompt": "We're implementing a loan approval feature. The rule is: customers are approved if their credit score is above 650 and they have a stable income. But senior applicants (65+) get approved with a lower threshold of 600. We're not sure what happens if income info is missing. Can you help me work out the examples?",
+      "expected_output": "A markdown example table in business language with a Scenario column, Customer Age column, Credit Score column, Has Stable Income column, and Eligible? (and possibly Reason?) output columns. Should include: standard approval, standard rejection, senior threshold, below senior threshold, and at least one row marking the missing income case as open/uncertain. Column names should use domain terms, not implementation terms.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "produces-markdown-table",
+          "text": "Output contains a markdown table (using | column | syntax)"
+        },
+        {
+          "id": "output-column-has-question-mark",
+          "text": "At least one output column name ends with '?' (e.g. 'Eligible?' or 'Approved?')"
+        },
+        {
+          "id": "business-language-columns",
+          "text": "Column names use domain/business language — no implementation terms like 'creditScore', 'isEligible', 'boolean', 'int'"
+        },
+        {
+          "id": "senior-threshold-row",
+          "text": "Table includes at least one row specifically for the senior applicant (65+) threshold scenario"
+        },
+        {
+          "id": "missing-income-marked-open",
+          "text": "The missing income scenario is represented — either as a row with an open/uncertain expected value (?, TBD, or blank) or as an explicit open question note"
+        },
+        {
+          "id": "scenario-names-describe-conditions",
+          "text": "Scenario names describe conditions ('Senior applicant at threshold') not outcomes ('Approved')"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "skill": "spec-by-example",
+      "prompt": "I'm building an order status transition system. An order can be in states: PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED. The rules are getting complex — cancellation is allowed from PENDING and CONFIRMED but not after SHIPPED, and DELIVERED orders can be flagged for return within 30 days. Help me write out the examples before I start coding.",
+      "expected_output": "One or more example tables covering the transitions. Should use business language (not enum names as-is unless they're domain terms). Should include the 'regardless of' pattern for cases where a rule holds across multiple states. Should flag the '30 days' rule as either a threshold column or an open question. Scenario names should describe conditions, not outcomes.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "produces-markdown-table",
+          "text": "Output contains at least one markdown table"
+        },
+        {
+          "id": "cancellation-coverage",
+          "text": "Table covers cancellation rules — includes rows for states where cancellation is allowed and where it is not"
+        },
+        {
+          "id": "return-window-addressed",
+          "text": "The 30-day return window rule is addressed — either as a threshold column, a separate table, or flagged as an open question"
+        },
+        {
+          "id": "value-set-or-multiple-states",
+          "text": "Uses value sets {PENDING, CONFIRMED} or equivalent to express 'regardless of which starting state' for cases where a rule holds across states"
+        },
+        {
+          "id": "output-column-has-question-mark",
+          "text": "At least one output column ends with '?'"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "skill": "spec-by-example",
+      "prompt": "Midway through implementing a discount calculator I found that the 'bulk' discount and the 'loyalty' discount interact in ways we haven't agreed on. Specifically: does a customer get both discounts stacked, or only the higher one, and is there a cap? I need to work this out with the team.",
+      "expected_output": "An example table that makes the interaction concrete, with columns for order amount, whether bulk threshold is met, loyalty tier (or years), and the resulting discount. Should include rows that expose the ambiguity (e.g., rows where both apply) and should use an Open Questions column or blank expected values to mark what is still unresolved. Should NOT invent a resolution — the table surfaces the decision for the team.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "produces-markdown-table",
+          "text": "Output contains a markdown table"
+        },
+        {
+          "id": "does-not-invent-resolution",
+          "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved"
+        },
+        {
+          "id": "covers-both-discounts-applying",
+          "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)"
+        },
+        {
+          "id": "open-question-surfaced",
+          "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note"
+        },
+        {
+          "id": "output-column-has-question-mark",
+          "text": "At least one output column ends with '?'"
+        }
+      ]
+    }
+  ,
+    {
+      "id": 7,
+      "skill": "tabletest",
+      "prompt": "Write a TableTest for a permission check method:\n\n```java\nboolean canPerform(Role role, Action action)\n```\n\nThe rules are:\n- ADMIN can perform any action\n- USER can READ and WRITE but not DELETE\n- GUEST can only READ",
+      "expected_output": "A @TableTest that uses value sets (e.g. {READ, WRITE, DELETE} or {READ, WRITE}) to express rules that hold across multiple actions, rather than writing one row per role/action combination. Should not have 9 individual rows. No if/switch in method body.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "has-tabletest-annotation",
+          "text": "Output contains a @TableTest annotation"
+        },
+        {
+          "id": "uses-value-sets",
+          "text": "Table uses value-set syntax (curly braces like {READ, WRITE} or {READ, WRITE, DELETE}) to express rules that hold across multiple actions — rather than one row per role/action combination"
+        },
+        {
+          "id": "fewer-than-nine-rows",
+          "text": "Table has fewer than 9 data rows (i.e. does not enumerate every role/action combination individually)"
+        },
+        {
+          "id": "no-if-switch-in-method",
+          "text": "Test method body contains no if or switch statements"
+        },
+        {
+          "id": "scenario-column-present",
+          "text": "Table has a scenario/description column as the leftmost column"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "skill": "tabletest",
+      "prompt": "Write a TableTest for this method:\n\n```java\nMoney parse(String input)\n```\n\nThe method should:\n- Return a Money object for valid inputs like '10.00' and '0.01'\n- Return null for null input\n- Throw IllegalArgumentException for: empty string, letters-only input (e.g. 'abc'), and negative values (e.g. '-5.00')",
+      "expected_output": "A @TableTest (or pair of @TableTest methods) covering both valid and invalid inputs. Valid inputs use a result column with '?' suffix. Null input is a blank cell. The exception cases use a Throws? column or a separate @TableTest with assertThrows. No duplication of assertion logic across rows.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "has-tabletest-annotation",
+          "text": "Output contains a @TableTest annotation"
+        },
+        {
+          "id": "null-as-blank-cell",
+          "text": "Null input is represented as a blank cell (not the string 'null') in the table"
+        },
+        {
+          "id": "exception-cases-handled",
+          "text": "The exception cases (empty string, letters-only, negative) are handled — via a Throws? column, assertThrows in the method body, or a separate @TableTest — not silently omitted"
+        },
+        {
+          "id": "result-column-with-question-mark",
+          "text": "Valid inputs have a result column name ending with '?' (e.g. 'Money?' or 'Result?')"
+        },
+        {
+          "id": "no-if-switch-in-method",
+          "text": "Test method body contains no if or switch statements"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "skill": "tabletest",
+      "prompt": "I want to write a TableTest for this method:\n\n```java\ndouble calculateBonus(Employee employee)\n```\n\nThe bonus rules are:\n- SENIOR + SALES department = 15%\n- SENIOR + ENGINEERING department = 12%\n- JUNIOR + SALES department = 8%\n- JUNIOR + ENGINEERING department = 5%\n- CONTRACTOR level always gets 0%, regardless of department",
+      "expected_output": "The response should recognise that CONTRACTOR breaks the orthogonal structure of the other rules (level × department). It should either: (a) put CONTRACTOR in a separate @TableTest, or (b) explicitly note the structural asymmetry and handle it cleanly. It should NOT silently stuff CONTRACTOR into the level×department grid with dummy/placeholder department values.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "has-tabletest-annotation",
+          "text": "Output contains a @TableTest annotation"
+        },
+        {
+          "id": "contractor-handled-separately-or-noted",
+          "text": "CONTRACTOR is either placed in a separate @TableTest (not mixed with the level×department grid) OR the response explicitly notes the structural asymmetry and explains the design choice"
+        },
+        {
+          "id": "no-dummy-department-for-contractor",
+          "text": "If CONTRACTOR appears in the same table as SENIOR/JUNIOR rows, the department value is not a dummy or placeholder (e.g. 'ANY', 'N/A') just to fill the grid"
+        },
+        {
+          "id": "four-core-rules-covered",
+          "text": "The four level×department combinations (SENIOR+SALES, SENIOR+ENGINEERING, JUNIOR+SALES, JUNIOR+ENGINEERING) are all present in the table(s)"
+        },
+        {
+          "id": "no-if-switch-in-method",
+          "text": "Test method body contains no if or switch statements"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "skill": "spec-by-example",
+      "prompt": "Help me spec out a subscription billing feature. The rules are:\n- Monthly plan costs £9.99/month; annual plan costs £95.88/year\n- New subscribers get a 30-day free trial, then auto-convert to monthly\n- Cancellation mid-cycle: subscriber gets a prorated refund for unused days\n- Exception: if they cancel within 24 hours of a renewal charge, no refund is given",
+      "expected_output": "The response should produce at least two separate example tables covering distinct concerns — e.g. one for plan pricing, one for cancellation/refund rules. It should not try to combine everything into a single table. Each table should have a clear named concern, business-language column names, and at least one output column ending with '?'.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "produces-multiple-tables",
+          "text": "Output contains at least 2 separate markdown tables (not everything crammed into one table)"
+        },
+        {
+          "id": "tables-have-distinct-concerns",
+          "text": "The tables cover distinct concerns — e.g. pricing/plans is separate from cancellation/refund rules"
+        },
+        {
+          "id": "output-columns-have-question-marks",
+          "text": "At least one output column in each table ends with '?'"
+        },
+        {
+          "id": "refund-exception-covered",
+          "text": "The 24-hour no-refund exception is included as a distinct scenario row"
+        },
+        {
+          "id": "business-language-columns",
+          "text": "Column names use domain/business language — no implementation terms like 'boolean', 'int', 'isProrated', camelCase identifiers"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "skill": "spec-by-example",
+      "prompt": "Help me spec a shipping cost calculator:\n- Standard shipping always costs £3.99, regardless of order value or destination\n- Express shipping costs £9.99 for orders under £50, and is free for orders £50 and over\n- Overnight shipping costs £14.99 and is only available for UK destinations",
+      "expected_output": "An example table where blank cells are used for fields that genuinely don't apply (e.g. destination country is irrelevant for standard and express), and value sets or explicit values are used where a field is present but doesn't affect the outcome. The response should not conflate 'not applicable' (blank) with 'any value' (value set).",
+      "files": [],
+      "assertions": [
+        {
+          "id": "produces-markdown-table",
+          "text": "Output contains a markdown table"
+        },
+        {
+          "id": "blank-for-inapplicable-fields",
+          "text": "Destination/country is blank (or absent from the table) for standard and express shipping rows — not filled with a dummy value or 'ANY'"
+        },
+        {
+          "id": "overnight-country-specified",
+          "text": "Overnight rows include an explicit UK destination value (not blank), since availability depends on it"
+        },
+        {
+          "id": "output-column-has-question-mark",
+          "text": "At least one output column ends with '?'"
+        },
+        {
+          "id": "all-three-shipping-types-present",
+          "text": "Table includes rows for all three shipping types: standard, express, and overnight"
+        }
+      ]
+    }
+  ]
+}

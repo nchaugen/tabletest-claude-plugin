@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains at least one markdown table",
+      "passed": true,
+      "evidence": "Three markdown tables are present: Cancellation Rules, Return Eligibility, and Invalid/No-Op Transitions"
+    },
+    {
+      "id": "cancellation-coverage",
+      "text": "Table covers cancellation rules — includes rows for states where cancellation is allowed and where it is not",
+      "passed": true,
+      "evidence": "Table 1 rows: PENDING -> Yes, CONFIRMED -> Yes, SHIPPED -> No, DELIVERED -> No, CANCELLED -> No"
+    },
+    {
+      "id": "return-window-addressed",
+      "text": "The 30-day return window rule is addressed — either as a threshold column, a separate table, or flagged as an open question",
+      "passed": true,
+      "evidence": "Table 2 'Return Eligibility' includes a 'Days Since Delivery' column with rows at 15, 30, 31, and 60 days explicitly testing the 30-day boundary"
+    },
+    {
+      "id": "value-set-or-multiple-states",
+      "text": "Uses value sets {PENDING, CONFIRMED} or equivalent to express 'regardless of which starting state' for cases where a rule holds across states",
+      "passed": false,
+      "evidence": "PENDING and CONFIRMED are listed as separate rows in Table 1 rather than grouped with value set notation {PENDING, CONFIRMED} in a single cell"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Columns 'Cancel Allowed?', 'Return Allowed?', and 'Allowed?' are all present in the three tables"
+    }
+  ],
+  "assertions_passed": 4,
+  "assertions_total": 5,
+  "pass_rate": 0.8
+}

@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-multiple-tables",
+      "text": "Output contains at least 2 separate markdown tables (not everything crammed into one table)",
+      "passed": true,
+      "evidence": "Three separate markdown tables are present: 'Plan Pricing', 'Free Trial', and 'Cancellation and Refunds'"
+    },
+    {
+      "id": "tables-have-distinct-concerns",
+      "text": "The tables cover distinct concerns — e.g. pricing/plans is separate from cancellation/refund rules",
+      "passed": true,
+      "evidence": "Table 1 covers plan pricing, Table 2 covers free trial behaviour, Table 3 covers cancellation and refund rules — each is a distinct concern"
+    },
+    {
+      "id": "output-columns-have-question-marks",
+      "text": "At least one output column in each table ends with '?'",
+      "passed": true,
+      "evidence": "Table 1: 'Price?'; Table 2: 'Trial duration?', 'Auto-converts to?'; Table 3: 'Refund given?' — all tables have at least one output column ending with '?'"
+    },
+    {
+      "id": "refund-exception-covered",
+      "text": "The 24-hour no-refund exception is included as a distinct scenario row",
+      "passed": true,
+      "evidence": "Row in Cancellation table: 'Cancel within 24h of renewal charge | ≤ 24 hours | No refund'"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language — no implementation terms like 'boolean', 'int', 'isProrated', camelCase identifiers",
+      "passed": true,
+      "evidence": "All column names use business language: 'Plan', 'Billing cycle', 'Price?', 'New subscriber?', 'Trial duration?', 'Auto-converts to?', 'Scenario', 'Time since renewal charge', 'Refund given?' — no implementation terms present"
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1.0
+}

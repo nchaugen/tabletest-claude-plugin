@@ -1,0 +1,43 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table (using | column | syntax)",
+      "passed": true,
+      "evidence": "| Scenario | Age | Credit Score | Income Status | Approved? | — full table present with pipe syntax"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column name ends with '?' (e.g. 'Eligible?' or 'Approved?')",
+      "passed": true,
+      "evidence": "Column header 'Approved?' is present in the table"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language — no implementation terms like 'creditScore', 'isEligible', 'boolean', 'int'",
+      "passed": true,
+      "evidence": "Columns are: Scenario, Age, Credit Score, Income Status, Approved? — all plain business language, no camelCase or type names"
+    },
+    {
+      "id": "senior-threshold-row",
+      "text": "Table includes at least one row specifically for the senior applicant (65+) threshold scenario",
+      "passed": true,
+      "evidence": "Row 'Senior applicant, at senior threshold | 65 | 600 | Stable | Yes' directly tests the 600 threshold for seniors"
+    },
+    {
+      "id": "missing-income-marked-open",
+      "text": "The missing income scenario is represented — either as a row with an open/uncertain expected value (?, TBD, or blank) or as an explicit open question note",
+      "passed": true,
+      "evidence": "Row 'Standard applicant, missing income info | 40 | 720 | Unknown | ?' uses '?' in the Approved? column, and Open Question 1 explicitly discusses the gap"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('Senior applicant at threshold') not outcomes ('Approved')",
+      "passed": true,
+      "evidence": "Scenario names such as 'Senior applicant, at senior threshold', 'Standard applicant, good score, no income', 'Standard applicant, missing income info' all describe input conditions"
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 6,
+  "pass_rate": 1.0
+}

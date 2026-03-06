@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "response.md: two @TableTest annotations present — 'shouldCalculateBonusByLevelAndDepartment' and 'contractorAlwaysGetsZeroBonus'"
+    },
+    {
+      "id": "contractor-handled-separately-or-noted",
+      "text": "CONTRACTOR is either placed in a separate @TableTest (not mixed with the level×department grid) OR the response explicitly notes the structural asymmetry and explains the design choice",
+      "passed": true,
+      "evidence": "response.md: CONTRACTOR placed in a separate @TableTest ('contractorAlwaysGetsZeroBonus'). The response also explicitly explains the asymmetry: 'CONTRACTOR breaks that structure: the department is irrelevant for contractors, so there is no meaningful department value to put in a shared column.'"
+    },
+    {
+      "id": "no-dummy-department-for-contractor",
+      "text": "If CONTRACTOR appears in the same table as SENIOR/JUNIOR rows, the department value is not a dummy or placeholder (e.g. 'ANY', 'N/A') just to fill the grid",
+      "passed": true,
+      "evidence": "response.md: CONTRACTOR table uses value set '{SALES, ENGINEERING}' which explicitly expresses 'regardless of department' semantics — not a dummy value to fit the grid. The response is in its own separate table, so the department column serves a different purpose (demonstrating irrelevance)."
+    },
+    {
+      "id": "four-core-rules-covered",
+      "text": "The four level×department combinations (SENIOR+SALES, SENIOR+ENGINEERING, JUNIOR+SALES, JUNIOR+ENGINEERING) are all present in the table(s)",
+      "passed": true,
+      "evidence": "response.md Table 1: all four combinations present — 'SENIOR | SALES | 0.15', 'SENIOR | ENGINEERING | 0.12', 'JUNIOR | SALES | 0.08', 'JUNIOR | ENGINEERING | 0.05'"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "response.md: both method bodies contain only object construction and assertEquals — no if or switch. Also confirmed by the note: 'Neither method contains if or switch — the tables are pure data, the methods are pure assertion.'"
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1.0
+}

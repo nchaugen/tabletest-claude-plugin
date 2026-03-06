@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\" ... \"\"\") annotation is present on testCalculateBonus"
+    },
+    {
+      "id": "contractor-handled-separately-or-noted",
+      "text": "CONTRACTOR is either placed in a separate @TableTest (not mixed with the level×department grid) OR the response explicitly notes the structural asymmetry and explains the design choice",
+      "passed": false,
+      "evidence": "CONTRACTOR is mixed into the same table as SENIOR/JUNIOR rows. The note says 'department has no effect on the outcome for contractors' but does not explain the design choice of mixing it into the grid nor acknowledge that this creates a structural asymmetry that could be handled differently. This falls short of 'explicitly notes the structural asymmetry and explains the design choice'."
+    },
+    {
+      "id": "no-dummy-department-for-contractor",
+      "text": "If CONTRACTOR appears in the same table as SENIOR/JUNIOR rows, the department value is not a dummy or placeholder (e.g. 'ANY', 'N/A') just to fill the grid",
+      "passed": true,
+      "evidence": "CONTRACTOR rows use real department values: 'SALES' and 'ENGINEERING' — not placeholder values like ANY or N/A"
+    },
+    {
+      "id": "four-core-rules-covered",
+      "text": "The four level×department combinations (SENIOR+SALES, SENIOR+ENGINEERING, JUNIOR+SALES, JUNIOR+ENGINEERING) are all present in the table(s)",
+      "passed": true,
+      "evidence": "All four combinations are present: 'Senior in Sales | SENIOR | SALES | 15.0', 'Senior in Engineering | SENIOR | ENGINEERING | 12.0', 'Junior in Sales | JUNIOR | SALES | 8.0', 'Junior in Engineering | JUNIOR | ENGINEERING | 5.0'"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "Method body contains only: Employee employee = new Employee(level, department); double bonus = bonusCalculator.calculateBonus(employee); assertThat(bonus).isEqualTo(expectedBonus); — no if or switch"
+    }
+  ],
+  "assertions_passed": 4,
+  "assertions_total": 5,
+  "pass_rate": 0.8
+}
