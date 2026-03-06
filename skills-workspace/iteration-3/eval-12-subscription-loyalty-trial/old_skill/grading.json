@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-multiple-tables",
+      "text": "Output contains at least 2 separate markdown tables",
+      "passed": true,
+      "evidence": "response.md: two separate markdown tables — Table 1 (Plan Selection & Pricing) and Table 2 (Cancellation & Refund)."
+    },
+    {
+      "id": "annual-no-trial-rule-represented",
+      "text": "A table or note explicitly captures that the free trial is not available on annual plans (not just implied)",
+      "passed": true,
+      "evidence": "response.md Table 1: 'New annual subscriber | Annual | no | no | £95.88/year' — trial availability column is explicitly 'no'. Also stated in the note: 'Trial is not available on annual plans.'"
+    },
+    {
+      "id": "loyalty-discount-row-present",
+      "text": "At least one table row demonstrates the loyalty programme discount scenario for annual plan subscribers",
+      "passed": true,
+      "evidence": "response.md Table 1 row: 'New loyalty member, annual plan | Annual | yes | no | £86.29/year' — loyalty discount shown."
+    },
+    {
+      "id": "does-not-invent-loyalty-trial-resolution",
+      "text": "The response does NOT state a definitive invented answer about how the loyalty discount interacts with the free trial (e.g. does not silently assign a specific discount amount for a trial+loyalty combo without flagging it as unresolved)",
+      "passed": false,
+      "evidence": "response.md Table 1 row: 'Loyalty member trial, upgrades to annual | Monthly → Annual | yes | yes | £0 during trial, then £86.29/year'. The note states: 'Loyalty members who start on the free trial (monthly) and then upgrade to annual receive the 10% loyalty discount (£86.29/year). Unused trial days are forfeited on upgrade to annual.' This is a definitive invented resolution — the timing of the upgrade, the price applied, and the forfeiture of unused days are all stated without flagging them as open questions."
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The annual/loyalty/trial interaction is explicitly surfaced as an open question — via '?', 'TBD', blank expected value, or a written open question — rather than silently resolved",
+      "passed": false,
+      "evidence": "response.md: no open questions, '?' cells, or TBD markers. The loyalty+trial upgrade scenario is presented as fully resolved in Table 1 with a specific price (£86.29/year) and a rule ('Unused trial days are forfeited'). No uncertainty is acknowledged."
+    }
+  ],
+  "assertions_passed": 3,
+  "assertions_total": 5,
+  "pass_rate": 0.6
+}

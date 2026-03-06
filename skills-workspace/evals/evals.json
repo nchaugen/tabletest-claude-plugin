@@ -324,6 +324,64 @@
           "text": "Table includes rows for all three shipping types: standard, express, and overnight"
         }
       ]
+    },
+    {
+      "id": 12,
+      "skill": "spec-by-example",
+      "prompt": "Help me spec the subscription billing feature, but we've just added two more rules:\n- Annual plan subscribers who are also members of a partner loyalty programme receive a 10% discount\n- Free trial is not available on annual plans\n\nTo recap the full set of rules:\n- Monthly plan costs £9.99/month; annual plan costs £95.88/year\n- New subscribers get a 30-day free trial, then auto-convert to monthly\n- Cancellation mid-cycle: subscriber gets a prorated refund for unused days\n- Exception: if they cancel within 24 hours of a renewal charge, no refund is given\n- Annual plan subscribers who are also loyalty members get a 10% discount\n- Free trial is not available on annual plans\n\nI'm not sure exactly how the loyalty discount and trial period interact for the edge cases.",
+      "expected_output": "The response should produce multiple example tables. Crucially, it should NOT silently resolve the ambiguous interaction between the annual plan, loyalty discount, and trial period — for example: does the discount apply from day 1 or after a trial? Can a loyalty member switch from trial-monthly to annual mid-trial? The table(s) should explicitly mark these interaction cases as open questions rather than inventing answers.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "produces-multiple-tables",
+          "text": "Output contains at least 2 separate markdown tables"
+        },
+        {
+          "id": "annual-no-trial-rule-represented",
+          "text": "A table or note explicitly captures that the free trial is not available on annual plans (not just implied)"
+        },
+        {
+          "id": "loyalty-discount-row-present",
+          "text": "At least one table row demonstrates the loyalty programme discount scenario for annual plan subscribers"
+        },
+        {
+          "id": "does-not-invent-loyalty-trial-resolution",
+          "text": "The response does NOT state a definitive invented answer about how the loyalty discount interacts with the free trial (e.g. does not silently assign a specific discount amount for a trial+loyalty combo without flagging it as unresolved)"
+        },
+        {
+          "id": "open-question-surfaced",
+          "text": "The annual/loyalty/trial interaction is explicitly surfaced as an open question — via '?', 'TBD', blank expected value, or a written open question — rather than silently resolved"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "skill": "spec-by-example",
+      "prompt": "Help me spec a shipping cost calculator with these rules:\n- Standard shipping always costs £3.99, regardless of order value or destination\n- Express shipping costs £9.99 for orders under £50, and is free for orders £50 and over — but the free tier only applies in the UK\n- Overnight shipping costs £14.99 and is only available for UK and Ireland destinations",
+      "expected_output": "An example table where Express shipping is split into at least two cases: one for the destination-independent paid tier (any destination, order under £50), and one for the UK-only free tier (UK destination, order £50+). The response should not leave destination blank for all Express rows, nor enumerate UK/non-UK redundantly for the paid tier. Standard shipping destination should be blank (irrelevant). Overnight should specify UK and Ireland explicitly.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "produces-markdown-table",
+          "text": "Output contains a markdown table"
+        },
+        {
+          "id": "express-split-into-two-cases",
+          "text": "Express shipping is represented as at least two distinct rows or cases: one where destination is irrelevant (paid tier, order under £50) and one where UK is specified (free tier, order £50+)"
+        },
+        {
+          "id": "standard-destination-blank",
+          "text": "Standard shipping destination is blank or absent from the table — it is genuinely irrelevant and should not be filled with a dummy value"
+        },
+        {
+          "id": "overnight-destinations-specified",
+          "text": "Overnight shipping rows specify UK and/or Ireland as destinations — not left blank, since availability depends on it"
+        },
+        {
+          "id": "output-column-has-question-mark",
+          "text": "At least one output column ends with '?'"
+        }
+      ]
     }
   ]
 }

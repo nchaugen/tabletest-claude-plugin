@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "response.md: markdown table present with columns Scenario, Shipping Type, Order Value, Destination, Cost?."
+    },
+    {
+      "id": "express-split-into-two-cases",
+      "text": "Express shipping is represented as at least two distinct rows or cases: one where destination is irrelevant (paid tier, order under £50) and one where UK is specified (free tier, order £50+)",
+      "passed": false,
+      "evidence": "response.md: 'Express, large order | Express | £50 or over | [blank] | £0' — destination is blank for the free tier row, treating it as worldwide. The note reinforces the error: 'Express shipping is free for orders of £50 and over, regardless of destination.' This contradicts the rule that the free tier is UK-only. The UK-specific free tier is never represented as a separate case; the destination asymmetry between the paid and free tiers is not noticed."
+    },
+    {
+      "id": "standard-destination-blank",
+      "text": "Standard shipping destination is blank or absent from the table — it is genuinely irrelevant and should not be filled with a dummy value",
+      "passed": true,
+      "evidence": "response.md: 'Standard shipping | Standard | any | [blank] | £3.99' — destination cell is blank."
+    },
+    {
+      "id": "overnight-destinations-specified",
+      "text": "Overnight shipping rows specify UK and/or Ireland as destinations — not left blank, since availability depends on it",
+      "passed": true,
+      "evidence": "response.md: 'Overnight shipping, UK | Overnight | any | UK | £14.99' and 'Overnight shipping, Ireland | Overnight | any | Ireland | £14.99' — both destinations explicitly specified."
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "response.md: column header 'Cost?' present."
+    }
+  ],
+  "assertions_passed": 4,
+  "assertions_total": 5,
+  "pass_rate": 0.8
+}

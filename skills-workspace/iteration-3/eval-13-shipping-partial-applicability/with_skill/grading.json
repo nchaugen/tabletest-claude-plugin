@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "response.md: markdown table present with columns Scenario, Shipping Type, Order Value, Destination, Cost?."
+    },
+    {
+      "id": "express-split-into-two-cases",
+      "text": "Express shipping is represented as at least two distinct rows or cases: one where destination is irrelevant (paid tier, order under £50) and one where UK is specified (free tier, order £50+)",
+      "passed": true,
+      "evidence": "response.md: 'Express, order under £50 | Express | under £50 | [blank] | £9.99' (destination blank — irrelevant) and 'Express, order £50+, UK destination | Express | £50 or over | UK | £0' (UK specified for free tier) and 'Express, order £50+, non-UK destination | Express | £50 or over | non-UK | £9.99' (non-UK pays full price). The preamble also explicitly explains the asymmetry: 'destination is irrelevant for the paid tier, but determines the outcome for the high-value tier.'"
+    },
+    {
+      "id": "standard-destination-blank",
+      "text": "Standard shipping destination is blank or absent from the table — it is genuinely irrelevant and should not be filled with a dummy value",
+      "passed": true,
+      "evidence": "response.md: 'Standard shipping, any order | Standard | any | [blank] | £3.99' — destination cell is blank. Preamble also confirms: 'Standard shipping destination is genuinely irrelevant — blank.'"
+    },
+    {
+      "id": "overnight-destinations-specified",
+      "text": "Overnight shipping rows specify UK and/or Ireland as destinations — not left blank, since availability depends on it",
+      "passed": true,
+      "evidence": "response.md: 'Overnight shipping, UK | Overnight | any | UK | £14.99' and 'Overnight shipping, Ireland | Overnight | any | Ireland | £14.99' — both destinations explicitly specified. An additional row handles 'Other' destinations with 'not available'."
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "response.md: column header 'Cost?' present."
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1.0
+}
