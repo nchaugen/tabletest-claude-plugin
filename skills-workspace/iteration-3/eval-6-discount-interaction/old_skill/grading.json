@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "Table present with columns: Scenario, Bulk Discount, Loyalty Discount, Final Discount?"
+    },
+    {
+      "id": "does-not-invent-resolution",
+      "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved",
+      "passed": true,
+      "evidence": "All rows where both discounts apply show '?' in the Final Discount? column; Open Questions section explicitly states 'the team needs to decide' and lists stacking vs. higher-only vs. cap as unresolved"
+    },
+    {
+      "id": "covers-both-discounts-applying",
+      "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)",
+      "passed": true,
+      "evidence": "Four rows show both Bulk Discount and Loyalty Discount as non-None values simultaneously, e.g. 'Both apply — lower loyalty, higher bulk | 10% | 5% | ?'"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note",
+      "passed": true,
+      "evidence": "Open Questions section item 1: 'Stacking vs. higher-only — When both discounts apply, do we add them together (10% + 15% = 25%), take the higher one (15%), or something else'; item 2 addresses cap explicitly"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Column header 'Final Discount?' is present in the table"
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1.0
+}

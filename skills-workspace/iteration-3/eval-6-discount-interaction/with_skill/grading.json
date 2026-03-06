@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "Multiple markdown tables present, starting with the main table '| Scenario | Bulk Discount | Loyalty Discount | Final Discount? | Open Questions |'"
+    },
+    {
+      "id": "does-not-invent-resolution",
+      "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved",
+      "passed": true,
+      "evidence": "All rows where both discounts apply have '?' in Final Discount? column. The response explicitly states 'The rows marked ? all depend on one unresolved policy decision that the team needs to make' and presents Options A, B, C as alternatives without choosing one."
+    },
+    {
+      "id": "covers-both-discounts-applying",
+      "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)",
+      "passed": true,
+      "evidence": "Multiple rows with both discounts non-zero: 'Both apply — stacked' (20%, 15%), 'Both apply — higher only' (20%, 15%), 'Both apply, loyalty is higher' (10%, 15%), 'Both apply, equal discounts' (15%, 15%)"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note",
+      "passed": true,
+      "evidence": "Table has an 'Open Questions' column with per-row notes (e.g. 'Stacked = 35%? Or compounded = 32%?', 'Higher only = 20%?', 'What is the cap? 25%? 30%?'). Also a dedicated 'The Open Decision' section naming all three options explicitly."
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "'Final Discount?' column ends with '?' in all tables"
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1.0
+}

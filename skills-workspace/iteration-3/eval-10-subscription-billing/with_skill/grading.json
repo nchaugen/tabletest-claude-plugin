@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-multiple-tables",
+      "text": "Output contains at least 2 separate markdown tables (not everything crammed into one table)",
+      "passed": true,
+      "evidence": "Two markdown tables produced: 'Table 1: Plan Pricing' and 'Table 2: Cancellation and Refund'"
+    },
+    {
+      "id": "tables-have-distinct-concerns",
+      "text": "The tables cover distinct concerns — e.g. pricing/plans is separate from cancellation/refund rules",
+      "passed": true,
+      "evidence": "Table 1 covers plan pricing (Monthly, Annual, Trial). Table 2 covers cancellation and refund calculation including the 24-hour exception. Different input columns confirm different concerns."
+    },
+    {
+      "id": "output-columns-have-question-marks",
+      "text": "At least one output column in each table ends with '?'",
+      "passed": true,
+      "evidence": "Table 1 has 'Price?' column. Table 2 has 'Refund?' column. Both end with '?'."
+    },
+    {
+      "id": "refund-exception-covered",
+      "text": "The 24-hour no-refund exception is included as a distinct scenario row",
+      "passed": true,
+      "evidence": "Row in Table 2: 'Cancel within 24h of renewal — no refund | Monthly | 0 | yes | 30 | £0.00' — distinct row with Renewal Just Charged? = yes"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language — no implementation terms like 'boolean', 'int', 'isProrated', camelCase identifiers",
+      "passed": true,
+      "evidence": "Column names used: Plan, Billing Cycle, Price?, Days Into Cycle, Renewal Just Charged?, Days in Cycle, Refund? — all domain language, no camelCase or type names"
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1.0
+}

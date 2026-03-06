@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "A markdown table with columns: Scenario | Shipping Type | Order Value | Destination | Cost? is present in the response"
+    },
+    {
+      "id": "blank-for-inapplicable-fields",
+      "text": "Destination/country is blank (or absent from the table) for standard and express shipping rows — not filled with a dummy value or 'ANY'",
+      "passed": true,
+      "evidence": "Standard and Express rows have empty Destination cells: '| Standard      | £10.00      |             | £3.99  |' and '| Express       | £49.99      |             | £9.99  |' — explicitly noted: 'not filled with ANY or N/A'"
+    },
+    {
+      "id": "overnight-country-specified",
+      "text": "Overnight rows include an explicit UK destination value (not blank), since availability depends on it",
+      "passed": true,
+      "evidence": "Both overnight rows have 'UK' in the Destination column: '| Overnight     | £30.00      | UK          | £14.99 |'"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Column 'Cost?' is the output column, ending with '?'"
+    },
+    {
+      "id": "all-three-shipping-types-present",
+      "text": "Table includes rows for all three shipping types: standard, express, and overnight",
+      "passed": true,
+      "evidence": "Table contains rows with Shipping Type values: Standard (2 rows), Express (3 rows), Overnight (2 rows)"
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1.0
+}

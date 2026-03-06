@@ -1,0 +1,31 @@
+{
+  "assertions": [
+    {
+      "id": "flags-junit-version",
+      "text": "Response explicitly flags that JUnit 5.10.0 is below the required minimum (5.11) and recommends upgrading",
+      "passed": true,
+      "evidence": "Your current JUnit version (5.10.0) may be below the minimum required by TableTest. Many TableTest libraries require JUnit 5.11 or later... I recommend upgrading your JUnit dependency to 5.11.0"
+    },
+    {
+      "id": "provides-correct-groupid",
+      "text": "Response provides the tabletest dependency with groupId 'org.tabletest' (not guessed)",
+      "passed": false,
+      "evidence": "Response uses groupId 'org.tabletest' but explicitly caveats: 'I am not certain of the exact coordinates above... you should verify them on Maven Central before adding them.' The groupId happens to match but is labelled as a guess."
+    },
+    {
+      "id": "provides-artifactid",
+      "text": "Response includes 'tabletest-junit' as the artifactId",
+      "passed": true,
+      "evidence": "<artifactId>tabletest-junit</artifactId> appears in the dependency snippet"
+    },
+    {
+      "id": "includes-test-scope",
+      "text": "The suggested dependency includes <scope>test</scope>",
+      "passed": true,
+      "evidence": "<scope>test</scope> is present in the tabletest dependency snippet"
+    }
+  ],
+  "assertions_passed": 3,
+  "assertions_total": 4,
+  "pass_rate": 0.75
+}

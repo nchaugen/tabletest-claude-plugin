@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Two @TableTest annotations are present: testParseValidInputs and testParseInvalidInputs"
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell (not the string 'null') in the table",
+      "passed": true,
+      "evidence": "Row 'Null input' has a blank Input cell: '| Null input            |        | null |'"
+    },
+    {
+      "id": "exception-cases-handled",
+      "text": "The exception cases (empty string, letters-only, negative) are handled — via a Throws? column, assertThrows in the method body, or a separate @TableTest — not silently omitted",
+      "passed": true,
+      "evidence": "A separate @TableTest with a 'Throws?' column covers empty string, 'abc', and '-5.00' rows, each mapped to IllegalArgumentException"
+    },
+    {
+      "id": "result-column-with-question-mark",
+      "text": "Valid inputs have a result column name ending with '?' (e.g. 'Money?' or 'Result?')",
+      "passed": true,
+      "evidence": "Valid inputs table has column 'Money?' as the output column"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "testParseValidInputs body: assertThat(Money.parse(input)).isEqualTo(expected); — testParseInvalidInputs body: assertThrows(expectedEx, () -> Money.parse(input)); — neither contains if or switch"
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1.0
+}

@@ -1,0 +1,238 @@
+{
+  "skill_name": "tabletest + spec-by-example",
+  "iteration": 3,
+  "configs": [
+    "with_skill",
+    "old_skill"
+  ],
+  "methodology": "Manual batch run — responses generated inline by Claude agents with/without skill loaded. Timing not captured per eval; agent-level totals recorded in summary.",
+  "evals": [
+    {
+      "id": "eval-1-convert-repetitive-tests",
+      "name": "Convert repetitive @Test methods",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 6,
+          "assertions_total": 6,
+          "pass_rate": 1.0
+        },
+        "old_skill": {
+          "assertions_passed": 6,
+          "assertions_total": 6,
+          "pass_rate": 1.0
+        }
+      }
+    },
+    {
+      "id": "eval-2-parse-dates",
+      "name": "Write TableTest for date parsing",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1.0
+        },
+        "old_skill": {
+          "assertions_passed": 4,
+          "assertions_total": 5,
+          "pass_rate": 0.8,
+          "failed_assertions": [
+            "Null input is represented as a blank cell (not the string 'null') in the table"
+          ]
+        }
+      }
+    },
+    {
+      "id": "eval-3-dependency-setup",
+      "name": "Dependency setup with outdated JUnit",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 4,
+          "assertions_total": 4,
+          "pass_rate": 1.0
+        },
+        "old_skill": {
+          "assertions_passed": 3,
+          "assertions_total": 4,
+          "pass_rate": 0.75,
+          "failed_assertions": [
+            "Response provides the tabletest dependency with groupId 'org.tabletest' (not guessed)"
+          ]
+        }
+      }
+    },
+    {
+      "id": "eval-4-loan-approval",
+      "name": "Loan approval spec with open questions",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 6,
+          "assertions_total": 6,
+          "pass_rate": 1.0
+        },
+        "old_skill": {
+          "assertions_passed": 6,
+          "assertions_total": 6,
+          "pass_rate": 1.0
+        }
+      }
+    },
+    {
+      "id": "eval-5-order-transitions",
+      "name": "Order status transition rules",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1.0
+        },
+        "old_skill": {
+          "assertions_passed": 4,
+          "assertions_total": 5,
+          "pass_rate": 0.8,
+          "failed_assertions": [
+            "Uses value sets {PENDING, CONFIRMED} or equivalent to express 'regardless of which starting state' for cases where a rule holds across states"
+          ]
+        }
+      }
+    },
+    {
+      "id": "eval-6-discount-interaction",
+      "name": "Discount stacking ambiguity",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1.0
+        },
+        "old_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1.0
+        }
+      }
+    },
+    {
+      "id": "eval-7-permission-check",
+      "name": "Permission check with value sets",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1.0
+        },
+        "old_skill": {
+          "assertions_passed": 3,
+          "assertions_total": 5,
+          "pass_rate": 0.6,
+          "failed_assertions": [
+            "Table uses value-set syntax (curly braces like {READ, WRITE} or {READ, WRITE, DELETE}) to express rules that hold across multiple actions — rather than one row per role/action combination",
+            "Table has fewer than 9 data rows (i.e. does not enumerate every role/action combination individually)"
+          ]
+        }
+      }
+    },
+    {
+      "id": "eval-8-money-parse",
+      "name": "Money parse with exceptions",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1.0
+        },
+        "old_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1.0
+        }
+      }
+    },
+    {
+      "id": "eval-9-bonus-contractor-structure",
+      "name": "Bonus calculation — CONTRACTOR structural issue",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1.0
+        },
+        "old_skill": {
+          "assertions_passed": 4,
+          "assertions_total": 5,
+          "pass_rate": 0.8,
+          "failed_assertions": [
+            "CONTRACTOR is either placed in a separate @TableTest (not mixed with the level×department grid) OR the response explicitly notes the structural asymmetry and explains the design choice"
+          ]
+        }
+      }
+    },
+    {
+      "id": "eval-10-subscription-billing",
+      "name": "Subscription billing spec — multiple tables",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1.0
+        },
+        "old_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1.0
+        }
+      }
+    },
+    {
+      "id": "eval-11-shipping-cost",
+      "name": "Shipping cost spec — blank vs value set",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1.0
+        },
+        "old_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1.0
+        }
+      }
+    }
+  ],
+  "summary": {
+    "with_skill": {
+      "assertions_passed": 56,
+      "assertions_total": 56,
+      "pass_rate": 1.0,
+      "vs_iteration_2": "+25 assertions (+11 new evals), 100% maintained"
+    },
+    "old_skill": {
+      "assertions_passed": 50,
+      "assertions_total": 56,
+      "pass_rate": 0.893,
+      "vs_iteration_2": "6 failures on expanded eval set (evals 1-6 had 3 failures vs iter-2's 1)"
+    }
+  },
+  "analyst_notes": [
+    "Eval 7 (permission check / value sets) — LARGEST GAP: old_skill scores 3/5 (60%) vs with_skill 5/5. Without skill guidance, the model enumerates all 9 role/action combinations individually, completely missing the {READ, WRITE} value-set syntax. This is the clearest demonstration of skill value in iteration 3.",
+    "Eval 9 (contractor structure) — SKILL-ATTRIBUTABLE: old_skill fails contractor-handled-separately-or-noted (4/5 vs 5/5). Without the skill's 'Match Table Structure to the Logic' guidance, the model mixed CONTRACTOR into the main grid without recognising the structural asymmetry.",
+    "Eval 2 old_skill — CHANGED FAILURE MODE: In iteration 2, old_skill failed type-conversion-addressed. In iteration 3, it fails null-as-blank-cell instead (and passes type-conversion-addressed). Single-run variance — both are real weaknesses the skill addresses.",
+    "Eval 3 old_skill — REGRESSION vs iteration 2: was 4/4 in iter 2, now 3/4. The agent guessed 'org.tabletest' correctly but flagged it as uncertain; graded as fail per the '(not guessed)' qualifier in the assertion text. Iter-2 grading may have been more lenient on confidence. Single-run variance.",
+    "Evals 10, 11 (new spec-by-example evals) — old_skill passes both at 100%. Multiple-table splitting and blank-vs-value-set distinction appear within the base model's capability without the skill. These evals are less discriminating for the current model.",
+    "Evals 4, 6, 8 — both configs pass at 100%, consistent with iteration 2. These are robustly covered by both configs.",
+    "with_skill maintains 100% across all 11 evals (56/56), demonstrating consistent performance on the expanded eval set.",
+    "Net skill advantage in iteration 3: +6 assertions (10.7pp gap). Largest contributors: eval 7 (value sets, 2 assertions), eval 9 (contractor structure, 1), eval 2 (null convention, 1), eval 3 (dependency confidence, 1), eval 5 (value sets, 1)."
+  ]
+}

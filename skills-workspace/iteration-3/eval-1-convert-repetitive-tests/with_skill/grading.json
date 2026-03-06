@@ -1,0 +1,43 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"\n    Scenario              | Tier   | Order Amount | Discount?"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Discount?' or 'Expected?')",
+      "passed": true,
+      "evidence": "Column header 'Discount?' appears in the table"
+    },
+    {
+      "id": "has-three-data-rows",
+      "text": "Table has exactly 3 data rows (GOLD, SILVER, BRONZE)",
+      "passed": true,
+      "evidence": "Three rows present: 'Gold customer | GOLD | 100 | 20', 'Silver customer | SILVER | 100 | 10', 'Bronze customer | BRONZE | 100 | 0'"
+    },
+    {
+      "id": "single-assertion-in-method",
+      "text": "Test method body contains only one assertEquals (or equivalent assertion) — not three",
+      "passed": true,
+      "evidence": "Method body contains exactly: 'assertEquals(discount, discountService.calculate(tier, orderAmount));'"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "Method body is a single assertEquals call with no conditional logic"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "'Scenario' is the leftmost column header in the table"
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 6,
+  "pass_rate": 1.0
+}
