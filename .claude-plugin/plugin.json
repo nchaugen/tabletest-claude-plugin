@@ -1,7 +1,7 @@
 {
   "name": "tabletest",
-  "description": "Tools to help write TableTest-style JUnit tests in Java and Kotlin",
-  "version": "1.2.0",
+  "description": "Skills for writing TableTest-style JUnit tests and clarifying behaviour through concrete example tables (Java/Kotlin)",
+  "version": "1.3.0",
   "author": {
     "name": "Nils Christian Haugen",
     "url": "https://github.com/nchaugen"
@@ -9,5 +9,5 @@
   "homepage": "https://tabletest.org",
   "repository": "https://github.com/nchaugen/tabletest-claude-plugin",
   "license": "Apache-2.0",
-  "keywords": ["testing", "tdd", "bdd", "junit", "tabletest", "parameterized test", "data-driven testing", "table-driven testing", "java", "kotlin", "specification by example", "spec by example", "examples", "fit", "acceptance testing"]
+  "keywords": ["testing", "tdd", "bdd", "junit", "tabletest", "parameterized test", "data-driven testing", "table-driven testing", "java", "kotlin", "specification by example", "spec by example", "spec-by-example", "examples", "example mapping"]
 }
