@@ -1,6 +1,6 @@
 ---
 name: spec-by-example
-description: Clarify behaviour with multiple cases or business rules by working through concrete examples as a table
+description: Use to pin down behaviour through concrete examples before or during implementation. Trigger when requirements use vague terms ("eligible customers", "valid input", "appropriate discount"), when behaviour depends on multiple conditions whose combinations aren't fully worked out, or when an edge case surfaces mid-implementation that calls the assumed behaviour into question. Use this even when the user doesn't say "spec" or "example" — if they're describing conditional logic that needs examples to clarify, this skill applies.
 ---
 
 # Spec by Example
@@ -47,7 +47,7 @@ An example table for car rental eligibility:
 | Underage applicant                | 17           | no          | Economy           | no        | Under 18             |
 | No driving licence                | 25           | no          | Economy           | no        | No licence           |
 | Young driver in premium car       | 22           | yes         | Premium           | no        | Under 25 for Premium |
-| Underage regardless of category   | 17           | yes         | Economy, Premium  | no        | Under 18             |
+| Underage regardless of category   | 17           | yes         | {Economy, Premium}  | no        | Under 18             |
 | Senior with valid licence         | 72           | yes         | Economy           | yes       |                      |
 
 Key properties of this table:
@@ -126,16 +126,33 @@ Work through variations systematically:
 
 ### 5. Probe for Irrelevant Inputs
 
-When one input clearly does not affect the outcome, mark it with multiple values
-in a single cell to express "regardless of":
+When one input clearly does not affect the outcome, put multiple values in a single
+cell — surrounded by `{...}` — to express "regardless of":
 
-| Scenario                        | Customer Age | Has Licence | Car Category      | Eligible? | Reason?  |
-|---------------------------------|--------------|-------------|-------------------|-----------|----------|
-| Underage regardless of category | 17           | yes         | Economy, Premium  | no        | Under 18 |
+| Scenario                        | Customer Age | Has Licence | Car Category        | Eligible? | Reason?  |
+|---------------------------------|--------------|-------------|---------------------|-----------|----------|
+| Underage regardless of category | 17           | yes         | {Economy, Premium}  | no        | Under 18 |
 
 This single row documents that the age rule takes precedence over category — without
 listing every category separately. It also prevents implementation assumptions where
 the category is left unspecified.
+
+The `{...}` notation reads as "any of these values". It maps directly to the value-set
+syntax in `@TableTest`, so the spec carries over into code without translation. Prefer
+it over listing near-identical rows — two rows that differ only in one irrelevant
+column are harder to read and easier to get out of sync than one row with a value set.
+
+**State and status values** — value sets are especially useful when a rule holds
+regardless of which status or state an entity is in:
+
+| Scenario                              | Current Status       | Target Status | Allowed? | Reason?            |
+|---------------------------------------|----------------------|---------------|----------|--------------------|
+| Cancellation from pre-shipment states | {PENDING, CONFIRMED} | CANCELLED     | yes      |                    |
+| Cancellation after shipment           | SHIPPED              | CANCELLED     | no       | Already dispatched |
+
+Without the value set, you would need two almost-identical rows. One row with
+`{PENDING, CONFIRMED}` states the rule more precisely: cancellation is allowed
+from any pre-shipment state, not just the two listed.
 
 ### 6. Review the Table
 
@@ -297,6 +314,8 @@ They tell you exactly what to investigate.
 
 ### Leave Blanks Intentionally
 
+Blank cells and value sets mean different things — using the wrong one hides information. A blank means "this field is absent"; a value set like `{yes, no}` means "this field exists but doesn't affect the outcome". Mixing them up creates tables that silently mislead readers about what the rule actually is.
+
 Use blank cells for values that are genuinely absent, not for values that exist but
 happen not to be the deciding factor in a row.
 
@@ -366,7 +385,7 @@ as rows that do not fit appear — that is the signal.
 
 ## From Example Table to TableTest
 
-An example table maps directly to a `@TableTest` when implementation begins:
+When implementation begins, hand the table to `/tabletest` — the column structure carries over directly. An example table maps to `@TableTest` like this:
 
 | Example Table                    | TableTest                               |
 |----------------------------------|-----------------------------------------|
@@ -377,15 +396,12 @@ An example table maps directly to a `@TableTest` when implementation begins:
 | Multiple values in a cell        | Value set `{Economy, Premium}`          |
 | Business-language column names   | Kept as-is or refined during the refine phase |
 
-When you hand the example table to the `/tabletest` skill:
-
-- The column structure carries over directly
-- Column names should stay close to business language; avoid reverting to technical terms
-- Custom types and enums will need type converters — the `/tabletest` skill handles this
+A few things to keep in mind for the handoff:
+- Column names should stay close to business language; avoid reverting to technical terms during translation
+- Custom types and enums will need type converters — `/tabletest` handles this
 - Open cells marked `?` become the first decisions to resolve during implementation
 
-The example table is not a throwaway artefact — it is the first draft of the
-living specification. Treat it accordingly.
+The example table is not a throwaway artefact — it is the first draft of the living specification. Treat it accordingly.
 
 ---
 
