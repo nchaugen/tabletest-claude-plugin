@@ -113,8 +113,6 @@ Work through variations systematically:
 
 - "At what exact value does this rule kick in?"
 - "What happens just at the threshold, just above, and just below?"
-- Include rows at exact boundaries (e.g., 40 hours, 41 hours for an overtime threshold)
-- Boundaries are where misunderstandings live — a table that only shows mid-range values illustrates rule *types* but does not *specify* the behaviour
 
 **Special cases** — important situations that may surprise people:
 
@@ -156,55 +154,7 @@ Without the value set, you would need two almost-identical rows. One row with
 `{PENDING, CONFIRMED}` states the rule more precisely: cancellation is allowed
 from any pre-shipment state, not just the two listed.
 
-### 6. Focus Tables on Rules, Not Arithmetic
-
-When a feature involves both domain rules and arithmetic, separate them. Tables should
-specify the interesting decisions — classifications, eligibility rules, tier lookups,
-state transitions — not test that multiplication works.
-
-**Good decomposition** — tables focus on the rule:
-
-| Scenario              | Package weight | Destination zone | Size category? | Surcharge? |
-|-----------------------|----------------|-----------------|----------------|------------|
-| Light domestic parcel | 0.5 kg         | Domestic         | Standard       | none       |
-| Heavy domestic parcel | 12 kg          | Domestic         | Oversize       | 5.00       |
-| Light international   | 0.5 kg         | International    | Standard       | none       |
-| Heavy international   | 12 kg          | International    | Oversize       | 8.50       |
-
-The interesting rule is how weight and destination determine the size category and
-surcharge. Once the category is known, shipping cost = base rate + surcharge is
-arithmetic — a separate, minimal table.
-
-**Signs you are testing arithmetic, not rules:**
-- Every row has the same decision outcome but different numbers
-- The table is testing that `a × b = c` for various values of a and b
-- Removing rows would not lose any rule coverage
-
-When arithmetic is the only thing left to test, a small table (2–3 rows) verifying
-the formula is sufficient. The bulk of the table rows should cover the domain rules.
-
-### 7. Frame Stateful Features as Rules
-
-When a feature involves state (carts, orders, workflows), frame each row as a
-**state transition rule** — not a step in a sequential path:
-
-| Scenario                | Playlist before      | Action           | Message?       | Playlist after?      |
-|-------------------------|----------------------|------------------|----------------|----------------------|
-| Add to empty playlist   | []                   | add "Hey Jude"   | Added          | [Hey Jude]           |
-| Remove last song        | [Hey Jude]           | remove Hey Jude  | Removed        | []                   |
-| Remove unknown song     | [Hey Jude]           | remove Yesterday | Not in list    | [Hey Jude]           |
-
-Each row is independent: given this state, when this action happens, expect this result.
-No row depends on a previous row's outcome. This matches TableTest's execution model
-where rows run independently.
-
-**Sequential paths** ("Step 1: add song, Step 2: add another, Step 3: shuffle") create
-row dependencies and belong in `@Test` methods with `@DisplayName`, not in tables.
-
-The distinction: tables define **what the rules are**; `@Test` methods verify **that
-the rules compose correctly in a real scenario**.
-
-### 8. Review the Table
+### 6. Review the Table
 
 Show the table to a domain expert (or read it as one) and ask:
 
@@ -214,7 +164,7 @@ Show the table to a domain expert (or read it as one) and ask:
 - "Are any two rows testing the same thing?"
 - "Could a new team member understand each row without asking questions?"
 
-### 9. Note What Is Still Open
+### 7. Note What Is Still Open
 
 Not everything needs to be resolved before coding starts. Mark uncertain cells or
 add a notes column for open questions:
@@ -389,22 +339,6 @@ reason — the value is genuinely absent, not merely irrelevant.
 
 `Promo Code` is blank when the customer provides none — the field is optional and
 genuinely not present.
-
-**Blank input cells for optional or defaulting inputs** — when an input exists but
-defaults to zero (or another baseline) and is not relevant to a particular scenario,
-use a blank cell to signal "not part of this scenario":
-
-| Scenario              | Base fare | Peak surcharge | Airport fee | Total fare? |
-|-----------------------|-----------|---------------|-------------|-------------|
-| Off-peak city ride    | 12.00     |               |             | 12.00       |
-| Peak-hour city ride   | 12.00     | 5.00          |             | 17.00       |
-| Airport pickup        | 12.00     |               | 8.00        | 20.00       |
-| Peak airport pickup   | 12.00     | 5.00          | 8.00        | 25.00       |
-
-The blank cells for Peak surcharge and Airport fee make it immediately clear which
-cost components apply to each scenario. Filling them with `0` obscures this — the
-reader must scan every cell to understand the scenario. In a `@TableTest`, blank
-cells translate to `null`; the test method handles null-to-default conversion.
 
 **Use value sets, not blanks, for "regardless of" relationships.** When an input
 exists but simply does not affect the outcome of a particular row, show that

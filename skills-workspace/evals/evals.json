@@ -382,6 +382,238 @@
           "text": "At least one output column ends with '?'"
         }
       ]
+    },
+    {
+      "id": 14,
+      "skill": "tabletest + spec-by-example",
+      "experiment": "experiment-1",
+      "prompt": "Write one or more @TableTest methods that serve as both executable tests and readable behaviour specifications. Use business language in scenario names and column headers. Include @DisplayName on test methods and @Description on the test class or methods.\n\nHere is the feature requirement:\n\n---\n\nCalculate weekly pay for hourly employees\n\nWe need to calculate weekly pay based on hours worked. The rules:\n- Weekday hours up to 40 are paid at the base hourly rate\n- Weekday hours beyond 40 are overtime, paid at 1.5× the base rate (time-and-a-half)\n- Sunday hours are always paid at 2× the base rate (double time)\n- Holiday hours are always paid at 2× the base rate (double time)\n- Total pay cannot go below zero\n- A negative hourly rate is not allowed (should be rejected)\n\nThe employee submits their hours (weekday, Sunday, holiday) and their hourly rate. The system calculates their weekly pay.",
+      "expected_output": "Multiple @TableTest methods decomposing into: (a) how different hour types convert to payable hours, and (b) payable hours × rate = pay. The interesting rule is hour classification, not arithmetic. Tables should use empty cells for Sunday/Holiday when not relevant, test the overtime threshold boundary, and include error/edge cases.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "1.1-decomposition-concern-separation",
+          "text": "Hour classification (how hours convert to payable hours) is in a separate table from pay calculation (payable hours × rate). Not one big table with all inputs and final pay."
+        },
+        {
+          "id": "1.2-decomposition-rules-not-arithmetic",
+          "text": "Tables focus on the conversion rules (regular, overtime, Sunday, holiday → payable hours). Pay = payable hours × rate is treated as arithmetic, not a rule worthy of exhaustive testing."
+        },
+        {
+          "id": "1.3-depth-overtime-boundary",
+          "text": "Overtime threshold boundary is covered: at least a value at the threshold (40) and just above (41 or similar). Not just values well below and well above."
+        },
+        {
+          "id": "1.4-depth-combined-scenario",
+          "text": "A combined scenario is present: a row with weekday + Sunday + holiday hours, testing the composition of all hour types."
+        },
+        {
+          "id": "1.5-depth-error-edge-cases",
+          "text": "Error/edge cases covered: at least negative hours (floored at zero) and negative or missing rate (rejected)."
+        },
+        {
+          "id": "1.6-readability-empty-cells",
+          "text": "Sunday and Holiday hour columns use empty cells (not 0) when those inputs are not relevant to a scenario. Parameter types are Integer (not int) to support null from blank cells."
+        },
+        {
+          "id": "1.7-readability-scenario-names",
+          "text": "Scenario names describe work patterns (e.g. 'Part-time', 'Five hours overtime', 'Full Sunday shift') — not 'Test case 1' or expected outcomes."
+        },
+        {
+          "id": "1.8-correctness-payable-hours",
+          "text": "Expected payable hours are arithmetically correct for every row: regular + overtime×1.5 + sunday×2 + holiday×2."
+        },
+        {
+          "id": "1.9-correctness-value-set-semantics",
+          "text": "Value sets are only used where all values in the set produce the same expected result (e.g. any rate × 0 = 0). Not used where results would differ."
+        },
+        {
+          "id": "1.10-format-displayname",
+          "text": "@DisplayName is present on test methods."
+        },
+        {
+          "id": "1.11-format-description",
+          "text": "@Description is present on at least the payable hours method, explaining the conversion rules."
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "skill": "tabletest + spec-by-example",
+      "experiment": "experiment-1",
+      "prompt": "Write one or more @TableTest methods that serve as both executable tests and readable behaviour specifications. Use business language in scenario names and column headers. Include @DisplayName on test methods and @Description on the test class or methods.\n\nHere is the feature requirement:\n\n---\n\nImplement the Reis loyalty discount for single tickets\n\nWe're launching a loyalty programme called Reis for single ticket travellers. Frequent travellers earn progressive discounts based on their purchase history in a rolling 30-day window.\n\nDiscount tiers (based on single tickets purchased in the last 30 days):\n- 1–4 tickets: 0%\n- 5–9 tickets: 5%\n- 10–14: 10%\n- 15–19: 15%\n- 20–24: 20%\n- 25–29: 25%\n- 30–34: 30%\n- 35–39: 35%\n- 40+: 40% (maximum)\n\nZone pricing (adult, full price): 1 zone = 46 kr, 2 zones = 75, 3 = 105, 4 = 134, 5 = 162.\n\nEligibility:\n- Adults and pensioners: full Reis discount ladder\n- Children: flat 20% discount (no ladder — always 20% regardless of ticket count)\n- Youth and students: no discount — they purchase adult tickets at full price\n\nThe 30-day rolling window counts all ticket purchases regardless of zone or traveller category. Only tickets with a purchase timestamp within the last 30 days are counted.\n\nTicket price = zone base price × (1 − discount%).",
+      "expected_output": "Multiple @TableTest methods with separate tables for: tier determination (using value sets per tier), traveller eligibility, end-to-end pricing (with discount traceability column), and 30-day rolling window counting (with boundary testing at day 30/31). Should use TypeConverters for human-readable values.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "2.1-decomposition-concern-separation",
+          "text": "Discount ladder, traveller eligibility, and ticket pricing are in separate tables. Rolling window counting as a fourth table is desirable."
+        },
+        {
+          "id": "2.2-decomposition-rules-not-arithmetic",
+          "text": "Tables focus on tier rules and eligibility, not on price arithmetic (zone_price × discount). The pricing table tests the end-to-end pipeline."
+        },
+        {
+          "id": "2.3-depth-every-tier-boundary",
+          "text": "Every tier (0%, 5%, 10%, …, 40%) has at least one row. Ideally with boundary values (4→5, 9→10, etc.) or value sets covering the full range per tier."
+        },
+        {
+          "id": "2.4-depth-rolling-window-boundary",
+          "text": "The 30-day rolling window boundary is tested: a ticket at exactly 30 days is included, at 31 days is excluded."
+        },
+        {
+          "id": "2.5-depth-youth-student-addressed",
+          "text": "Youth and students are explicitly shown as paying adult price with no discount. Not left ambiguous or omitted."
+        },
+        {
+          "id": "2.6-readability-human-readable-values",
+          "text": "Eligibility uses human-readable values (yes/no or equivalent) rather than raw true/false. TypeConverter or similar mechanism mentioned."
+        },
+        {
+          "id": "2.7-readability-traceability-column",
+          "text": "Pricing table includes a discount column (e.g. 'Discount?') so the reader can trace: traveller + tickets → discount tier → price."
+        },
+        {
+          "id": "2.8-correctness-ticket-prices",
+          "text": "Ticket prices are arithmetically correct: zone_price × (1 − discount/100) for every pricing row."
+        },
+        {
+          "id": "2.9-correctness-value-set-tier-semantics",
+          "text": "Value sets in the tier table contain exactly the values that produce the same discount. No cross-tier contamination."
+        },
+        {
+          "id": "2.10-format-displayname",
+          "text": "@DisplayName is present on test methods."
+        },
+        {
+          "id": "2.11-format-description",
+          "text": "@Description is present on at least the class or the tier method, explaining the discount ladder structure."
+        },
+        {
+          "id": "2.12-format-typeconverter",
+          "text": "TypeConverterSources is used for at least one human-readable conversion (yes/no, or rolling window notation)."
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "skill": "tabletest + spec-by-example",
+      "experiment": "experiment-1",
+      "prompt": "Write one or more @TableTest methods that serve as both executable tests and readable behaviour specifications. Use business language in scenario names and column headers. Include @DisplayName on test methods and @Description on the test class or methods.\n\nHere is the feature requirement:\n\n---\n\nSplit orders into multiple shipments when needed\n\nAn order must be split into multiple shipments when:\n1. Items have mixed fulfilment methods (some for store pickup, some for home delivery)\n2. Items have mixed stock status (some in-stock, some pre-order)\n3. No single warehouse has all items in stock\n4. Items are going to different delivery addresses\n\nWhen splitting is required, minimise the number of shipments — prefer fewer shipments with more items each.\n\nCompanion products (e.g., a camera body and its matching lens) should ship together from the same location.",
+      "expected_output": "Multiple @TableTest methods with separate tables for: trigger detection (using set notation, including trigger interactions), shipment optimisation (using scalar quantity column), and companion constraint. The companion table should surface the 'no warehouse has both companions' case as an open question rather than silently resolving it.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "3.1-decomposition-concern-separation",
+          "text": "Trigger detection, shipment optimisation, and companion constraint are in separate tables. Not one monolithic table."
+        },
+        {
+          "id": "3.2-decomposition-trigger-interactions",
+          "text": "At least one row where multiple triggers fire simultaneously (e.g. mixed fulfilment AND mixed stock status)."
+        },
+        {
+          "id": "3.3-depth-all-four-triggers",
+          "text": "All four split triggers are covered: mixed fulfilment, mixed stock status, no single warehouse has all items, different addresses."
+        },
+        {
+          "id": "3.4-depth-companion-ambiguity-surfaced",
+          "text": "The 'no warehouse has both companions' case is flagged as an open question or product decision, not silently resolved as either 'error' or 'ship separately'. The requirement does NOT hint at this — the agent must recognise the ambiguity unprompted."
+        },
+        {
+          "id": "3.5-depth-companion-edge-cases",
+          "text": "Companion constraint covers at least: companions at same location, companions split from non-companion items, and the ambiguous case (no location has both)."
+        },
+        {
+          "id": "3.6-readability-scenario-names",
+          "text": "Optimisation scenarios describe the business situation (e.g. 'Consolidate: two beats three', 'Everything at one warehouse') — not 'Test case 2'."
+        },
+        {
+          "id": "3.7-readability-set-notation",
+          "text": "Trigger table uses set notation ({delivery, pickup}) for closed enumerations rather than prose or lists."
+        },
+        {
+          "id": "3.8-readability-scalar-column",
+          "text": "Optimisation table uses a scalar count column (e.g. 'Shirts ordered') not item lists, when product identity doesn't matter for the logic."
+        },
+        {
+          "id": "3.9-correctness-valid-assignments",
+          "text": "Inventory assignments are physically valid: items are only assigned to locations that have them. Shipment counts match the assignments shown."
+        },
+        {
+          "id": "3.10-format-displayname",
+          "text": "@DisplayName is present on test methods."
+        },
+        {
+          "id": "3.11-format-description",
+          "text": "@Description is present on at least the class, explaining the splitting rules and constraints."
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "skill": "tabletest + spec-by-example",
+      "experiment": "experiment-1",
+      "prompt": "Write one or more @TableTest methods that serve as both executable tests and readable behaviour specifications. Use business language in scenario names and column headers. Include @DisplayName on test methods and @Description on the test class or methods.\n\nHere is the feature requirement:\n\n---\n\nBuild a shopping cart with coupons and checkout\n\nThe cart supports:\n- Add item: specify product and quantity. Price is looked up from the product catalogue.\n- Remove item: removes all units of that product from the cart.\n- Apply coupon: enter a coupon code. If valid, the discount is applied. If expired or unrecognised, show an error message. Only one coupon can be active at a time — applying a new one replaces the previous.\n- Checkout: fails if any item has insufficient stock, or if the cart is empty.\n\nCoupon types: percentage off the total, fixed amount off the total, or a discount on a specific product.\n\nCart total = sum of (quantity × price) for all items, minus coupon discount, floored at zero.\n\nThe system should return user-facing messages for all operations (e.g., 'Added to cart', 'Coupon has expired', 'Only 3 available').",
+      "expected_output": "Multiple @TableTest methods with separate tables for: item operations (state × action → new state), coupon validation (with 'Valid coupons' and 'Coupon code entered' columns), cart total calculation, and checkout validation. Tables should use state-transition framing (not sequential paths) with user-facing column names ('Message?' not 'Result?').",
+      "files": [],
+      "assertions": [
+        {
+          "id": "4.1-decomposition-items-separate-from-coupons",
+          "text": "Item operations (add/remove) are in a separate table from coupon validation. Not interleaved in one table."
+        },
+        {
+          "id": "4.2-decomposition-total-separate-from-checkout",
+          "text": "Cart total calculation and checkout validation are in separate tables. Total is a pure function; checkout involves stock checking."
+        },
+        {
+          "id": "4.3-decomposition-state-as-rules",
+          "text": "Item and coupon tables use state × action → new state rows. Each row is independently executable — no row depends on a prior row's result."
+        },
+        {
+          "id": "4.4-depth-item-operations",
+          "text": "Item operations covered: add to empty cart, add different product, add more of same, remove product, remove unknown product, remove last item."
+        },
+        {
+          "id": "4.5-depth-coupon-variations",
+          "text": "Coupon variations covered: valid percentage, valid fixed amount, product-specific, expired, unknown code, replace existing coupon."
+        },
+        {
+          "id": "4.6-depth-coupon-exceeds-total",
+          "text": "A scenario where the coupon discount exceeds the cart total — total floors at zero."
+        },
+        {
+          "id": "4.7-depth-checkout-edge-cases",
+          "text": "Checkout covers: sufficient stock, insufficient stock, and empty cart."
+        },
+        {
+          "id": "4.8-readability-user-facing-columns",
+          "text": "User-facing column names: 'Message?' (not 'Result?'), and action/input columns use user-perspective names (e.g. 'Coupon code entered' not 'coupon')."
+        },
+        {
+          "id": "4.9-readability-system-knowledge-explicit",
+          "text": "Coupon rules are defined in a visible column ('Valid coupons' or similar) rather than hardcoded in test setup."
+        },
+        {
+          "id": "4.10-readability-catalogue-separate",
+          "text": "Product prices come from an explicit catalogue column or setup, not embedded in action strings. The price lookup is a visible part of the table."
+        },
+        {
+          "id": "4.11-correctness-cart-totals",
+          "text": "Cart totals are arithmetically correct: sum(quantity × price) − coupon = total, for every row in the total calculation table."
+        },
+        {
+          "id": "4.12-correctness-state-consistency",
+          "text": "'Cart after' values in one row are consistent with 'Cart before' values in other rows. State transitions are internally consistent."
+        },
+        {
+          "id": "4.13-format-displayname",
+          "text": "@DisplayName is present on test methods."
+        },
+        {
+          "id": "4.14-format-description",
+          "text": "@Description is present on at least the class, explaining the cart model."
+        }
+      ]
     }
   ]
 }

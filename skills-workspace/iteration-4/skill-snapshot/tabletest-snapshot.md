@@ -208,34 +208,6 @@ Examples: `Valid?`, `Formatted?`, `Result?`, `Throws?`, `Expected?`
 Source?        ← CORRECT
 ```
 
-### Use @Description for Spec Context
-
-Add `@Description` to test methods or classes to provide context that the table alone cannot convey — the "why" behind the rules, the domain context, or the relationship between tables.
-
-```java
-@DisplayName("Tax bracket determination")
-@Description("Income is taxed at progressive rates: 0% up to 12,570, "
-    + "20% from 12,571 to 50,270, 40% above 50,270")
-void shouldDetermineTaxBracket(...) { ... }
-```
-
-`@DisplayName` serves as a section header in reports. `@Description` provides the explanatory text underneath. Together they make the published test report readable as documentation without the table needing to be self-explanatory on every detail.
-
-### Include Traceability Columns
-
-When a table tests a pipeline (input → intermediate result → final result), include the intermediate result as an expectation column. This lets readers trace the logic step by step:
-
-```java
-@TableTest("""
-    Scenario                    | Customer type | Order value | Loyalty years | Discount tier? | Final price?
-    New customer, small order   | Regular       | 50.00       | 0             | None           | 50.00
-    Loyal customer, small order | Regular       | 50.00       | 5             | Silver         | 45.00
-    VIP, large order            | VIP           | 200.00      | 10            | Gold           | 160.00
-    """)
-```
-
-The `Discount tier?` column is not strictly necessary (the test could verify only `Final price?`), but it lets the reader trace: customer + order + loyalty → discount tier → price. When a row fails, the intermediate column shows where in the pipeline the error occurred.
-
 ### Name Scenarios Descriptively
 
 Describe the condition being tested, not the expected outcome. Good scenario names answer "under what circumstances?" rather than "what happens?".
@@ -307,20 +279,6 @@ When one input takes precedence regardless of other inputs, use value sets to ex
 
 This single row generates 3 tests, all asserting `main` wins regardless of fallback state. See `references/value-sets.md` for full syntax.
 
-**Value set semantics: every value must produce the same expected result.** A value set `{A, B, C}` asserts that the result is identical regardless of which value is chosen. Do not use value sets where results differ:
-
-```java
-// WRONG — 40 × 15.00 = 600, but 40 × 20.00 = 800; results differ
-Standard week | 40 | {15.00, 20.00} | *
-
-// CORRECT — use separate rows when results differ
-Standard week               | 40 | 15.00 | 600.00
-Standard week, higher rate  | 40 | 20.00 | 800.00
-
-// CORRECT — value set is fine when result is genuinely identical
-Zero hours | 0 | {15.00, 20.00} | 0.00
-```
-
 ### Null, Empty, and Blank Values
 
 Use blank cells for null, `''` for empty strings, and `'   '` for blank strings.
@@ -339,29 +297,6 @@ void resolves_values(String input, String resolved) {
 ```
 
 **Note**: These are syntax examples, not test design patterns. Null/empty/blank variants of an input should typically be additional rows in the test that covers the feature, not in a separate test method. For example, if a resolver ignores blank JUnit dir values, add those as rows in the main resolution test rather than creating a separate "handles blank values" test.
-
-### Empty Cells for Optional Inputs
-
-When an input column is not relevant to certain scenarios (e.g., a peak surcharge when testing off-peak rides), use blank cells to signal "not part of this scenario" — do not fill with 0 or a default value. This makes it immediately clear which inputs matter for each row.
-
-```java
-@TableTest("""
-    Scenario              | Base fare | Peak surcharge | Airport fee | Total fare?
-    Off-peak city ride    | 12.00     |                |             | 12.00
-    Peak-hour city ride   | 12.00     | 5.00           |             | 17.00
-    Airport pickup        | 12.00     |                | 8.00        | 20.00
-    Peak airport pickup   | 12.00     | 5.00           | 8.00        | 25.00
-    """)
-void shouldCalculateTotalFare(BigDecimal baseFare, BigDecimal peakSurcharge,
-        BigDecimal airportFee, BigDecimal totalFare) {
-    // Blank cells → null (BigDecimal is a reference type); null treated as 0.00
-    BigDecimal peak = peakSurcharge != null ? peakSurcharge : BigDecimal.ZERO;
-    BigDecimal airport = airportFee != null ? airportFee : BigDecimal.ZERO;
-    // ...
-}
-```
-
-Use `Integer` (not `int`) for parameters that may be blank — primitive `int` cannot represent null. Handle null-to-default conversion in the test method body.
 
 ---
 
@@ -422,11 +357,6 @@ After writing, verify:
 - [ ] **Valid syntax**: values requiring quotes are quoted, collections use correct bracket syntax, empty collections are explicit (`[]`, `{}`, `[:]`)
 - [ ] **Expectation columns present**: at least one column uses `?` suffix (not prefix)
 - [ ] **Concrete values**: expectation values are traceable to input column values where applicable
-- [ ] **Correct expected values**: arithmetic in expected columns verified independently; every row's output matches the stated rules
-- [ ] **Value set semantics**: value sets only used where every value produces the same result; not used as shorthand for "test multiple values"
-- [ ] **Optional inputs blank**: columns not relevant to a scenario use blank cells (not 0 or defaults); parameter types support null
-- [ ] **Traceability columns**: intermediate expected values included where they help trace multi-step logic
-- [ ] **@Description present**: test methods or class have descriptions providing spec context beyond what the table shows
 - [ ] **Complete outputs**: all observable outputs of the same behavioral concern are in one table, not split across separate tests
 - [ ] **Row coherence**: rows match the type of logic being tested (decision points for priority logic, input variations for parsing logic); out-of-place rows may signal mixed responsibilities in the code under test
 - [ ] **Column consolidation**: if multiple columns are mutually exclusive (both identity and status vary together), consider consolidating into single column with composite values (e.g., `Primary OK`, `Secondary ERROR`)
