@@ -138,8 +138,137 @@ function cleanupWorktree(worktreePath) {
   }
 }
 
+function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 300000 }) {
+  return new Promise((resolve, reject) => {
+    const args = ["--bare", "--print", "--output-format", "json", "--model", model];
+
+    if (pluginDir) {
+      args.push("--plugin-dir", pluginDir);
+    }
+    if (systemPrompt) {
+      args.push("--system-prompt", systemPrompt);
+    }
+    args.push("-p", prompt);
+
+    let stdout = "";
+    let stderr = "";
+
+    const proc = spawn("claude", args, {
+      cwd,
+      env: { ...process.env },
+    });
+
+    const timer = setTimeout(() => {
+      proc.kill("SIGTERM");
+      reject(new Error(`Timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    proc.stdout.on("data", (data) => { stdout += data; });
+    proc.stderr.on("data", (data) => { stderr += data; });
+
+    proc.on("close", (code) => {
+      clearTimeout(timer);
+      if (code !== 0) {
+        reject(new Error(`claude exited with code ${code}: ${stderr}`));
+        return;
+      }
+      try {
+        resolve(JSON.parse(stdout));
+      } catch {
+        reject(new Error(`Failed to parse claude output: ${stdout.slice(0, 200)}`));
+      }
+    });
+
+    proc.on("error", (err) => {
+      clearTimeout(timer);
+      reject(err);
+    });
+  });
+}
+
+async function generateResponses(evals, worktreePath, iterationDir, args) {
+  const configs = ["with_skill"];
+  if (args.baseline) configs.push("no_skill");
+
+  console.log(
+    `\nGenerating responses (${configs.join(", ")}, parallel=${args.parallel})...`
+  );
+
+  const jobs = [];
+  for (const evalDef of evals) {
+    for (const config of configs) {
+      jobs.push({ evalDef, config });
+    }
+  }
+
+  for (let i = 0; i < jobs.length; i += args.parallel) {
+    const batch = jobs.slice(i, i + args.parallel);
+    await Promise.all(
+      batch.map(({ evalDef, config }) =>
+        generateOne(evalDef, config, worktreePath, iterationDir, args.model)
+      )
+    );
+  }
+}
+
+async function generateOne(evalDef, config, worktreePath, iterationDir, model) {
+  const evalDir = path.join(
+    iterationDir,
+    `eval-${evalDef.id}-${evalDef.slug}`,
+    config
+  );
+  fs.mkdirSync(path.join(evalDir, "outputs"), { recursive: true });
+
+  console.log(`  Running eval ${evalDef.id} (${evalDef.slug}) [${config}]...`);
+
+  try {
+    const result = await runClaude({
+      prompt: evalDef.prompt,
+      model,
+      cwd: worktreePath,
+      pluginDir: config === "with_skill" ? worktreePath : undefined,
+    });
+
+    fs.writeFileSync(
+      path.join(evalDir, "outputs", "response.md"),
+      result.result || "",
+      "utf-8"
+    );
+
+    const timing = {
+      duration_ms: result.duration_ms || 0,
+      total_tokens:
+        (result.usage?.input_tokens || 0) +
+        (result.usage?.output_tokens || 0),
+      input_tokens: result.usage?.input_tokens || 0,
+      output_tokens: result.usage?.output_tokens || 0,
+      cost_usd: result.total_cost_usd || 0,
+    };
+    fs.writeFileSync(
+      path.join(evalDir, "timing.json"),
+      JSON.stringify(timing, null, 2),
+      "utf-8"
+    );
+
+    console.log(
+      `  ✓ Eval ${evalDef.id} [${config}] — ${timing.total_tokens} tokens, ${timing.duration_ms}ms`
+    );
+  } catch (err) {
+    console.error(`  ✗ Eval ${evalDef.id} [${config}] — ${err.message}`);
+    fs.writeFileSync(
+      path.join(evalDir, "outputs", "response.md"),
+      `ERROR: ${err.message}`,
+      "utf-8"
+    );
+    fs.writeFileSync(
+      path.join(evalDir, "timing.json"),
+      JSON.stringify({ error: err.message }, null, 2),
+      "utf-8"
+    );
+  }
+}
+
 // Placeholder stubs — implemented in later tasks
-async function generateResponses() { throw new Error("Not implemented"); }
 async function gradeResponses() { throw new Error("Not implemented"); }
 function aggregateResults() { throw new Error("Not implemented"); }
 function loadPreviousBenchmark() { return null; }
