@@ -387,8 +387,243 @@ async function gradeResponses(evals, iterationDir, args) {
     }
   }
 }
-function aggregateResults() { throw new Error("Not implemented"); }
-function loadPreviousBenchmark() { return null; }
+function aggregateResults(evals, iterationDir, args) {
+  const configs = ["with_skill"];
+  if (args.baseline) configs.push("no_skill");
+
+  const benchmark = {
+    skill_name: "tabletest + spec-by-example",
+    iteration: args.iteration,
+    model: args.model,
+    timestamp: new Date().toISOString(),
+    evals: [],
+    summary: {},
+  };
+
+  for (const evalDef of evals) {
+    const evalEntry = {
+      id: `eval-${evalDef.id}-${evalDef.slug}`,
+      name: evalDef.slug.replace(/-/g, " "),
+      skill: evalDef.skill,
+      results: {},
+    };
+
+    for (const config of configs) {
+      const evalDir = path.join(
+        iterationDir,
+        `eval-${evalDef.id}-${evalDef.slug}`,
+        config
+      );
+
+      const gradingPath = path.join(evalDir, "grading.json");
+      const timingPath = path.join(evalDir, "timing.json");
+
+      if (fs.existsSync(gradingPath)) {
+        const grading = JSON.parse(fs.readFileSync(gradingPath, "utf-8"));
+        const timing = fs.existsSync(timingPath)
+          ? JSON.parse(fs.readFileSync(timingPath, "utf-8"))
+          : {};
+
+        evalEntry.results[config] = {
+          assertions_passed: grading.assertions_passed,
+          assertions_total: grading.assertions_total,
+          pass_rate: grading.pass_rate,
+          failed_assertions: grading.assertions
+            .filter((a) => !a.passed)
+            .map((a) => a.id),
+          total_tokens: timing.total_tokens || 0,
+          duration_ms: timing.duration_ms || 0,
+          cost_usd: timing.cost_usd || 0,
+        };
+      }
+    }
+
+    benchmark.evals.push(evalEntry);
+  }
+
+  // Compute summaries per config
+  for (const config of configs) {
+    const results = benchmark.evals
+      .map((e) => e.results[config])
+      .filter(Boolean);
+
+    benchmark.summary[config] = {
+      assertions_passed: results.reduce(
+        (sum, r) => sum + r.assertions_passed,
+        0
+      ),
+      assertions_total: results.reduce(
+        (sum, r) => sum + r.assertions_total,
+        0
+      ),
+      pass_rate:
+        results.reduce((sum, r) => sum + r.assertions_total, 0) > 0
+          ? results.reduce((sum, r) => sum + r.assertions_passed, 0) /
+            results.reduce((sum, r) => sum + r.assertions_total, 0)
+          : 0,
+      total_tokens: results.reduce((sum, r) => sum + r.total_tokens, 0),
+      total_duration_ms: results.reduce((sum, r) => sum + r.duration_ms, 0),
+      total_cost_usd: results.reduce((sum, r) => sum + r.cost_usd, 0),
+    };
+  }
+
+  fs.writeFileSync(
+    path.join(iterationDir, "benchmark.json"),
+    JSON.stringify(benchmark, null, 2),
+    "utf-8"
+  );
+
+  console.log("\nBenchmark saved:", path.join(iterationDir, "benchmark.json"));
+  return benchmark;
+}
+
+function loadPreviousBenchmark(repoRoot, currentIteration) {
+  const prevDir = path.join(
+    repoRoot,
+    WORKSPACE_PATH,
+    `iteration-${currentIteration - 1}`
+  );
+  const prevPath = path.join(prevDir, "benchmark.json");
+
+  if (!fs.existsSync(prevPath)) {
+    return null;
+  }
+
+  return JSON.parse(fs.readFileSync(prevPath, "utf-8"));
+}
+
+// TODO: implement in next commit
+function detectRegressions_PLACEHOLDER(benchmark, previousBenchmark) {
+  if (!previousBenchmark) return { regressions: [], improvements: [] };
+
+  const regressions = [];
+  const improvements = [];
+
+  const prevByEvalNum = {};
+  for (const prevEval of previousBenchmark.evals) {
+    const match = prevEval.id.match(/eval-(\d+)/);
+    if (match) prevByEvalNum[match[1]] = prevEval;
+  }
+
+  for (const evalEntry of benchmark.evals) {
+    const evalNum = String(
+      evalEntry.id.match(/eval-(\d+)/)?.[1]
+    );
+    const prevEval = prevByEvalNum[evalNum];
+    if (!prevEval) continue;
+
+    const currResult = evalEntry.results.with_skill;
+    // Fallback to old_skill for backward compat with iterations 1-3
+    const prevResult = prevEval.results.with_skill || prevEval.results.old_skill;
+    if (!currResult || !prevResult) continue;
+
+    const prevFailed = new Set(prevResult.failed_assertions || []);
+    const currFailed = new Set(currResult.failed_assertions || []);
+
+    for (const assertionId of currFailed) {
+      if (!prevFailed.has(assertionId)) {
+        regressions.push({
+          eval: evalEntry.id,
+          assertion: assertionId,
+        });
+      }
+    }
+
+    for (const assertionId of prevFailed) {
+      if (!currFailed.has(assertionId)) {
+        improvements.push({
+          eval: evalEntry.id,
+          assertion: assertionId,
+        });
+      }
+    }
+  }
+
+  return { regressions, improvements };
+}
+
+function generateReport_PLACEHOLDER(benchmark, previousBenchmark, iterationDir, args) {
+  const { regressions, improvements } = detectRegressions_PLACEHOLDER(
+    benchmark,
+    previousBenchmark
+  );
+  const configs = ["with_skill"];
+  if (args.baseline) configs.push("no_skill");
+
+  let md = `# Eval Review — Iteration ${args.iteration}\n\n`;
+  md += `**Model:** ${args.model} · **Date:** ${new Date().toISOString().split("T")[0]} · **Evals:** ${benchmark.evals.length}\n\n`;
+
+  // Summary
+  md += `## Summary\n\n`;
+  for (const config of configs) {
+    const s = benchmark.summary[config];
+    if (!s) continue;
+    md += `**${config}:** ${s.assertions_passed}/${s.assertions_total} (${(s.pass_rate * 100).toFixed(1)}%)`;
+    md += ` · ${s.total_tokens} tokens · ${(s.total_duration_ms / 1000).toFixed(1)}s`;
+    if (s.total_cost_usd > 0) md += ` · $${s.total_cost_usd.toFixed(4)}`;
+    md += `\n\n`;
+  }
+
+  // Regression summary
+  if (previousBenchmark) {
+    md += `## Delta vs Iteration ${args.iteration - 1}\n\n`;
+    if (regressions.length === 0 && improvements.length === 0) {
+      md += `No changes.\n\n`;
+    } else {
+      if (regressions.length > 0) {
+        md += `**Regressions (${regressions.length}):**\n`;
+        for (const r of regressions) {
+          md += `- ❌ ${r.eval}: \`${r.assertion}\`\n`;
+        }
+        md += `\n`;
+      }
+      if (improvements.length > 0) {
+        md += `**Improvements (${improvements.length}):**\n`;
+        for (const imp of improvements) {
+          md += `- ✅ ${imp.eval}: \`${imp.assertion}\`\n`;
+        }
+        md += `\n`;
+      }
+    }
+  }
+
+  // Per-eval breakdown
+  md += `## Per-Eval Results\n\n`;
+  for (const evalEntry of benchmark.evals) {
+    for (const config of configs) {
+      const result = evalEntry.results[config];
+      if (!result) continue;
+
+      const status = result.pass_rate === 1 ? "✅" : "⚠️";
+      md += `### ${status} Eval ${evalEntry.id} [${config}]\n\n`;
+      md += `**${result.assertions_passed}/${result.assertions_total}** · ${result.total_tokens} tokens · ${result.duration_ms}ms\n\n`;
+
+      // Load grading for evidence
+      const gradingPath = path.join(
+        iterationDir,
+        evalEntry.id,
+        config,
+        "grading.json"
+      );
+      if (fs.existsSync(gradingPath)) {
+        const grading = JSON.parse(fs.readFileSync(gradingPath, "utf-8"));
+        for (const a of grading.assertions) {
+          const mark = a.passed ? "✅" : "❌";
+          md += `- ${mark} **${a.id}**: ${a.text}\n`;
+          if (!a.passed && a.evidence) {
+            md += `  > ${a.evidence}\n`;
+          }
+        }
+      }
+      md += `\n`;
+    }
+  }
+
+  const reportPath = path.join(iterationDir, "eval-review.md");
+  fs.writeFileSync(reportPath, md, "utf-8");
+  console.log("Report saved:", reportPath);
+}
+
 function generateReport() {}
 
 main().catch((err) => {
