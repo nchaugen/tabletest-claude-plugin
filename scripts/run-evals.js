@@ -80,6 +80,13 @@ function parseArgs(argv) {
 
 async function main() {
   const args = parseArgs(process.argv);
+
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.error("ANTHROPIC_API_KEY must be set (--bare mode skips OAuth/keychain)");
+    console.error("Export it before running: export ANTHROPIC_API_KEY=sk-ant-...");
+    process.exit(1);
+  }
+
   const repoRoot = execSync("git rev-parse --show-toplevel", {
     encoding: "utf-8",
   }).trim();
