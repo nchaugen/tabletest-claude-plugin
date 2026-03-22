@@ -115,7 +115,7 @@ The published spec-tables are comprehensible to product/business people without 
 **Setup:** Use the same 3–5 features from Experiment 0. For each, write a natural-language requirement as a product person would write in a ticket.
 
 **Protocol:**
-1. Give an agent the requirement and the instruction: *"Write one or more `@TableTest` methods that serve as both executable tests and readable behaviour specifications. Use business language in scenario names and column headers. Include `@Description` annotations explaining the behaviour being specified."*
+1. Give an agent the requirement and the instruction: *"Write one or more `@TableTest` methods that serve as both executable tests and readable behaviour specifications. Use business language in scenario names and column headers. Include `@DisplayName` on test methods (used as section headers in reports) and `@Description` on test classes (used as explanatory text in reports)."*
 2. Run three variants:
    - **With spec-by-example + tabletest skills** (full guidance)
    - **With tabletest skill only** (knows the format but not the spec design process)
@@ -138,9 +138,23 @@ The published spec-tables are comprehensible to product/business people without 
 - Complex values represented concisely and readably?
 - Value sets used where appropriate for "regardless of" conditions?
 
+**Part 2 — Iterative refinement:**
+
+The single-shot run tests agent capability in isolation. But the real workflow is iterative: human and agent pair to refine the spec through conversation. This part tests whether the table format supports efficient iteration.
+
+4. Take the best single-shot output (from part 1) for each feature. Give the agent 2–3 rounds of realistic feedback:
+   - Round 1: A missing edge case ("What happens when the customer has both a loyalty discount and a promotional code?")
+   - Round 2: A readability concern ("The 'Discount Factor' column is confusing — can you use business terms?")
+   - Round 3: A structural suggestion ("This table mixes pricing and eligibility concerns — should those be separate?")
+5. Grade the final iterated output against the same three rubrics (A, B, C).
+6. Record: How many rounds did it take to reach a good table? Did the agent understand table-level feedback (e.g., "split this table") or did it need code-level instructions?
+
 **Grading:**
-- For each feature, compute the per-feature minimum of the three rubric scores (A, B, C). This penalises imbalance — a table that is a great test but a poor spec scores low.
-- Pass threshold: the average of per-feature minimums is ≥ 3.5, and no individual feature has any rubric score below 3.
+- **Single-shot scores:** For each feature, compute the per-feature minimum of the three rubric scores (A, B, C). This penalises imbalance — a table that is a great test but a poor spec scores low.
+- **Iterated scores:** Same per-feature minimum, computed on the final iterated output.
+- **Iteration delta:** How much did iteration improve scores? If single-shot scores are already high and iteration adds little, that's a positive signal (agents are good out of the box). If single-shot scores are low but iteration brings them up, that's also useful (the format supports refinement, but agents need guidance).
+- **Iteration efficiency:** Number of rounds to reach a satisfactory result. Feedback comprehension — did the agent act on table-level feedback directly?
+- Pass threshold: the average of per-feature minimums is ≥ 3.5 (single-shot or iterated), and no individual feature has any rubric score below 3.
 - Informational comparison (not part of pass/fail): compare agent outputs against the merged tables from Experiment 0. How close does the agent get? Where does it diverge? This provides insight but does not gate the result, since the agent may find equally valid alternative structures.
 - Compare the three variants — does the spec-by-example skill make a measurable difference in spec quality and table structure?
 
@@ -231,6 +245,35 @@ Full validation = H0 + H1 + H2 + H3.
 Minimum viable validation = H0 + H1 + H2.
 Proceed to implementation design after minimum viable validation.
 ```
+
+## Workflow Coverage
+
+Tables are relevant at different points in a development workflow. The experiments above cover the initial creation and review stages. Later stages become relevant only if the core hypotheses hold.
+
+| Workflow step | Description | Covered by |
+|---|---|---|
+| 1. Iterative spec development | Agent + human pair to build a spec for a new feature | Exp 1 (part 2 — iterative refinement) |
+| 2. Reviewing a spec | Human and/or agent review a completed spec for correctness and completeness | Exp 2 (spec-only review), Exp 3 (stakeholder review) |
+| 3. Reviewing implementation before merge | Human verifies agent-generated code matches the spec | Exp 2 (spec review vs code review, faithfulness check) |
+| 4. Understanding a feature | Agent or human uses published specs to familiarise themselves with existing behaviour | Exp 2/3 implicitly — not tested as a distinct task |
+| 5. Specifying changes | Updating an existing spec-table when requirements change (by agent or human) | Not covered — future experiment |
+| 6. Reviewing changes via table diff | Using table diffs to review what changed in a feature's behaviour | Not covered — future experiment |
+
+### Future Experiments (gated on H0–H2 passing)
+
+**Experiment 4: Spec Evolution (tests workflow steps 5–6)**
+
+Can existing spec-tables be updated efficiently when requirements change? Are table diffs structurally meaningful — i.e., does a row added/removed/changed in a table clearly communicate a behaviour added/removed/changed?
+
+This is a particularly interesting differentiator from prose specs: a diff of a well-structured table is inherently more meaningful than a diff of prose paragraphs, because each row represents a discrete behaviour.
+
+*Design deferred until core hypotheses are validated.*
+
+**Experiment 5: Feature Comprehension (tests workflow step 4)**
+
+Can a developer or agent unfamiliar with a feature understand its behaviour from the published spec-tables alone, without reading the implementation? This tests the "living documentation" value independent of the verification workflow.
+
+*Design deferred until core hypotheses are validated.*
 
 ## Bias Acknowledgement
 
