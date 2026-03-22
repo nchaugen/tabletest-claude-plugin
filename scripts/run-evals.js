@@ -492,8 +492,7 @@ function loadPreviousBenchmark(repoRoot, currentIteration) {
   return JSON.parse(fs.readFileSync(prevPath, "utf-8"));
 }
 
-// TODO: implement in next commit
-function detectRegressions_PLACEHOLDER(benchmark, previousBenchmark) {
+function detectRegressions(benchmark, previousBenchmark) {
   if (!previousBenchmark) return { regressions: [], improvements: [] };
 
   const regressions = [];
@@ -542,8 +541,8 @@ function detectRegressions_PLACEHOLDER(benchmark, previousBenchmark) {
   return { regressions, improvements };
 }
 
-function generateReport_PLACEHOLDER(benchmark, previousBenchmark, iterationDir, args) {
-  const { regressions, improvements } = detectRegressions_PLACEHOLDER(
+function generateReport(benchmark, previousBenchmark, iterationDir, args) {
+  const { regressions, improvements } = detectRegressions(
     benchmark,
     previousBenchmark
   );
@@ -623,8 +622,6 @@ function generateReport_PLACEHOLDER(benchmark, previousBenchmark, iterationDir, 
   fs.writeFileSync(reportPath, md, "utf-8");
   console.log("Report saved:", reportPath);
 }
-
-function generateReport() {}
 
 main().catch((err) => {
   console.error("Fatal error:", err.message);
