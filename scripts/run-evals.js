@@ -81,12 +81,6 @@ function parseArgs(argv) {
 async function main() {
   const args = parseArgs(process.argv);
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.error("ANTHROPIC_API_KEY must be set (--bare mode skips OAuth/keychain)");
-    console.error("Export it before running: export ANTHROPIC_API_KEY=sk-ant-...");
-    process.exit(1);
-  }
-
   const repoRoot = execSync("git rev-parse --show-toplevel", {
     encoding: "utf-8",
   }).trim();
@@ -168,7 +162,11 @@ function cleanupWorktree(worktreePath) {
 
 function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 300000 }) {
   return new Promise((resolve, reject) => {
-    const args = ["--bare", "--print", "--output-format", "json", "--model", model];
+    const args = [
+      "--print", "--output-format", "json", "--model", model,
+      "--no-session-persistence",
+      "--setting-sources", "",
+    ];
 
     if (pluginDir) {
       args.push("--plugin-dir", pluginDir);
@@ -263,13 +261,18 @@ async function generateOne(evalDef, config, worktreePath, iterationDir, model) {
       "utf-8"
     );
 
+    const usage = result.usage || {};
     const timing = {
       duration_ms: result.duration_ms || 0,
+      input_tokens: usage.input_tokens || 0,
+      output_tokens: usage.output_tokens || 0,
+      cache_creation_input_tokens: usage.cache_creation_input_tokens || 0,
+      cache_read_input_tokens: usage.cache_read_input_tokens || 0,
       total_tokens:
-        (result.usage?.input_tokens || 0) +
-        (result.usage?.output_tokens || 0),
-      input_tokens: result.usage?.input_tokens || 0,
-      output_tokens: result.usage?.output_tokens || 0,
+        (usage.input_tokens || 0) +
+        (usage.output_tokens || 0) +
+        (usage.cache_creation_input_tokens || 0) +
+        (usage.cache_read_input_tokens || 0),
       cost_usd: result.total_cost_usd || 0,
     };
     fs.writeFileSync(

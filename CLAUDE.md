@@ -37,10 +37,9 @@ iteration-N/
       ...same structure
 ```
 
-**Running evals:** Use `scripts/run-evals.js`. Requires `ANTHROPIC_API_KEY` (the script uses `--bare` mode which skips OAuth/keychain). See `docs/superpowers/specs/2026-03-22-eval-automation-design.md` for the full design.
+**Running evals:** Use `scripts/run-evals.js`. See `docs/superpowers/specs/2026-03-22-eval-automation-design.md` for the full design.
 
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...
 node scripts/run-evals.js --iteration N              # run all evals
 node scripts/run-evals.js --iteration N --evals 1,2  # run specific evals
 node scripts/run-evals.js --iteration N --baseline   # also run without skill
