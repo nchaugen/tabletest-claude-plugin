@@ -3,6 +3,7 @@
   "evals": [
     {
       "id": 1,
+      "slug": "convert-repetitive-tests",
       "skill": "tabletest",
       "prompt": "I have these three JUnit 5 tests that all test the same method but with different inputs. Can you convert them into a single TableTest?\n\n```java\n@Test\nvoid returnsDiscountForGoldCustomer() {\n    assertEquals(20, discountService.calculate(\"GOLD\", 100));\n}\n\n@Test\nvoid returnsDiscountForSilverCustomer() {\n    assertEquals(10, discountService.calculate(\"SILVER\", 100));\n}\n\n@Test\nvoid returnsNoDiscountForBronzeCustomer() {\n    assertEquals(0, discountService.calculate(\"BRONZE\", 100));\n}\n```",
       "expected_output": "A single @TableTest method with a scenario column, a customer tier column, an order amount column, and a discount expectation column (suffixed with ?). The table should have 3 rows, one per original test. The method body should contain a single assertEquals.",
@@ -36,6 +37,7 @@
     },
     {
       "id": 2,
+      "slug": "parse-dates",
       "skill": "tabletest",
       "prompt": "I want to write a TableTest for a method that parses date strings. The method signature is:\n\n```java\nLocalDate parseDate(String input)\n```\n\nI want to test: ISO format (2024-01-15), slash format (15/01/2024), short year (24-01-15), null input should return null, and empty string should throw IllegalArgumentException.",
       "expected_output": "A @TableTest with a scenario column and an input column. The valid cases should have a LocalDate result column. The exception case should use a Throws? column or be split into a separate @TableTest. The method should handle type conversion cleanly, using @TypeConverter if needed for non-standard formats. Null should be represented as a blank cell.",
@@ -65,6 +67,7 @@
     },
     {
       "id": 3,
+      "slug": "dependency-setup",
       "skill": "tabletest",
       "prompt": "We're adding TableTest to our project. The pom.xml currently has:\n\n```xml\n<dependency>\n    <groupId>org.junit.jupiter</groupId>\n    <artifactId>junit-jupiter</artifactId>\n    <version>5.10.0</version>\n    <scope>test</scope>\n</dependency>\n```\n\nWhat do I need to add and is there anything I should watch out for?",
       "expected_output": "The response should flag that JUnit 5.10.0 is below the required 5.11 minimum and recommend upgrading. It should provide the correct tabletest-junit dependency coordinates from the dependency-setup reference (not from memory). It should not guess the groupId/artifactId.",
@@ -90,6 +93,7 @@
     },
     {
       "id": 4,
+      "slug": "loan-approval",
       "skill": "spec-by-example",
       "prompt": "We're implementing a loan approval feature. The rule is: customers are approved if their credit score is above 650 and they have a stable income. But senior applicants (65+) get approved with a lower threshold of 600. We're not sure what happens if income info is missing. Can you help me work out the examples?",
       "expected_output": "A markdown example table in business language with a Scenario column, Customer Age column, Credit Score column, Has Stable Income column, and Eligible? (and possibly Reason?) output columns. Should include: standard approval, standard rejection, senior threshold, below senior threshold, and at least one row marking the missing income case as open/uncertain. Column names should use domain terms, not implementation terms.",
@@ -123,6 +127,7 @@
     },
     {
       "id": 5,
+      "slug": "order-transitions",
       "skill": "spec-by-example",
       "prompt": "I'm building an order status transition system. An order can be in states: PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED. The rules are getting complex — cancellation is allowed from PENDING and CONFIRMED but not after SHIPPED, and DELIVERED orders can be flagged for return within 30 days. Help me write out the examples before I start coding.",
       "expected_output": "One or more example tables covering the transitions. Should use business language (not enum names as-is unless they're domain terms). Should include the 'regardless of' pattern for cases where a rule holds across multiple states. Should flag the '30 days' rule as either a threshold column or an open question. Scenario names should describe conditions, not outcomes.",
@@ -152,6 +157,7 @@
     },
     {
       "id": 6,
+      "slug": "discount-interaction",
       "skill": "spec-by-example",
       "prompt": "Midway through implementing a discount calculator I found that the 'bulk' discount and the 'loyalty' discount interact in ways we haven't agreed on. Specifically: does a customer get both discounts stacked, or only the higher one, and is there a cap? I need to work this out with the team.",
       "expected_output": "An example table that makes the interaction concrete, with columns for order amount, whether bulk threshold is met, loyalty tier (or years), and the resulting discount. Should include rows that expose the ambiguity (e.g., rows where both apply) and should use an Open Questions column or blank expected values to mark what is still unresolved. Should NOT invent a resolution — the table surfaces the decision for the team.",
@@ -178,10 +184,10 @@
           "text": "At least one output column ends with '?'"
         }
       ]
-    }
-  ,
+    },
     {
       "id": 7,
+      "slug": "permission-check",
       "skill": "tabletest",
       "prompt": "Write a TableTest for a permission check method:\n\n```java\nboolean canPerform(Role role, Action action)\n```\n\nThe rules are:\n- ADMIN can perform any action\n- USER can READ and WRITE but not DELETE\n- GUEST can only READ",
       "expected_output": "A @TableTest that uses value sets (e.g. {READ, WRITE, DELETE} or {READ, WRITE}) to express rules that hold across multiple actions, rather than writing one row per role/action combination. Should not have 9 individual rows. No if/switch in method body.",
@@ -211,6 +217,7 @@
     },
     {
       "id": 8,
+      "slug": "money-parse",
       "skill": "tabletest",
       "prompt": "Write a TableTest for this method:\n\n```java\nMoney parse(String input)\n```\n\nThe method should:\n- Return a Money object for valid inputs like '10.00' and '0.01'\n- Return null for null input\n- Throw IllegalArgumentException for: empty string, letters-only input (e.g. 'abc'), and negative values (e.g. '-5.00')",
       "expected_output": "A @TableTest (or pair of @TableTest methods) covering both valid and invalid inputs. Valid inputs use a result column with '?' suffix. Null input is a blank cell. The exception cases use a Throws? column or a separate @TableTest with assertThrows. No duplication of assertion logic across rows.",
@@ -240,6 +247,7 @@
     },
     {
       "id": 9,
+      "slug": "bonus-contractor-structure",
       "skill": "tabletest",
       "prompt": "I want to write a TableTest for this method:\n\n```java\ndouble calculateBonus(Employee employee)\n```\n\nThe bonus rules are:\n- SENIOR + SALES department = 15%\n- SENIOR + ENGINEERING department = 12%\n- JUNIOR + SALES department = 8%\n- JUNIOR + ENGINEERING department = 5%\n- CONTRACTOR level always gets 0%, regardless of department",
       "expected_output": "The response should recognise that CONTRACTOR breaks the orthogonal structure of the other rules (level × department). It should either: (a) put CONTRACTOR in a separate @TableTest, or (b) explicitly note the structural asymmetry and handle it cleanly. It should NOT silently stuff CONTRACTOR into the level×department grid with dummy/placeholder department values.",
@@ -269,6 +277,7 @@
     },
     {
       "id": 10,
+      "slug": "subscription-billing",
       "skill": "spec-by-example",
       "prompt": "Help me spec out a subscription billing feature. The rules are:\n- Monthly plan costs £9.99/month; annual plan costs £95.88/year\n- New subscribers get a 30-day free trial, then auto-convert to monthly\n- Cancellation mid-cycle: subscriber gets a prorated refund for unused days\n- Exception: if they cancel within 24 hours of a renewal charge, no refund is given",
       "expected_output": "The response should produce at least two separate example tables covering distinct concerns — e.g. one for plan pricing, one for cancellation/refund rules. It should not try to combine everything into a single table. Each table should have a clear named concern, business-language column names, and at least one output column ending with '?'.",
@@ -298,6 +307,7 @@
     },
     {
       "id": 11,
+      "slug": "shipping-cost",
       "skill": "spec-by-example",
       "prompt": "Help me spec a shipping cost calculator:\n- Standard shipping always costs £3.99, regardless of order value or destination\n- Express shipping costs £9.99 for orders under £50, and is free for orders £50 and over\n- Overnight shipping costs £14.99 and is only available for UK destinations",
       "expected_output": "An example table where blank cells are used for fields that genuinely don't apply (e.g. destination country is irrelevant for standard and express), and value sets or explicit values are used where a field is present but doesn't affect the outcome. The response should not conflate 'not applicable' (blank) with 'any value' (value set).",
@@ -327,6 +337,7 @@
     },
     {
       "id": 12,
+      "slug": "subscription-loyalty-trial",
       "skill": "spec-by-example",
       "prompt": "Help me spec the subscription billing feature, but we've just added two more rules:\n- Annual plan subscribers who are also members of a partner loyalty programme receive a 10% discount\n- Free trial is not available on annual plans\n\nTo recap the full set of rules:\n- Monthly plan costs £9.99/month; annual plan costs £95.88/year\n- New subscribers get a 30-day free trial, then auto-convert to monthly\n- Cancellation mid-cycle: subscriber gets a prorated refund for unused days\n- Exception: if they cancel within 24 hours of a renewal charge, no refund is given\n- Annual plan subscribers who are also loyalty members get a 10% discount\n- Free trial is not available on annual plans\n\nI'm not sure exactly how the loyalty discount and trial period interact for the edge cases.",
       "expected_output": "The response should produce multiple example tables. Crucially, it should NOT silently resolve the ambiguous interaction between the annual plan, loyalty discount, and trial period — for example: does the discount apply from day 1 or after a trial? Can a loyalty member switch from trial-monthly to annual mid-trial? The table(s) should explicitly mark these interaction cases as open questions rather than inventing answers.",
@@ -356,6 +367,7 @@
     },
     {
       "id": 13,
+      "slug": "shipping-partial-applicability",
       "skill": "spec-by-example",
       "prompt": "Help me spec a shipping cost calculator with these rules:\n- Standard shipping always costs £3.99, regardless of order value or destination\n- Express shipping costs £9.99 for orders under £50, and is free for orders £50 and over — but the free tier only applies in the UK\n- Overnight shipping costs £14.99 and is only available for UK and Ireland destinations",
       "expected_output": "An example table where Express shipping is split into at least two cases: one for the destination-independent paid tier (any destination, order under £50), and one for the UK-only free tier (UK destination, order £50+). The response should not leave destination blank for all Express rows, nor enumerate UK/non-UK redundantly for the paid tier. Standard shipping destination should be blank (irrelevant). Overnight should specify UK and Ireland explicitly.",
@@ -385,8 +397,8 @@
     },
     {
       "id": 14,
+      "slug": "weekly-pay",
       "skill": "tabletest + spec-by-example",
-      "experiment": "experiment-1",
       "prompt": "Write one or more @TableTest methods that serve as both executable tests and readable behaviour specifications. Use business language in scenario names and column headers. Include @DisplayName on test methods and @Description on the test class or methods.\n\nHere is the feature requirement:\n\n---\n\nCalculate weekly pay for hourly employees\n\nWe need to calculate weekly pay based on hours worked. The rules:\n- Weekday hours up to 40 are paid at the base hourly rate\n- Weekday hours beyond 40 are overtime, paid at 1.5× the base rate (time-and-a-half)\n- Sunday hours are always paid at 2× the base rate (double time)\n- Holiday hours are always paid at 2× the base rate (double time)\n- Total pay cannot go below zero\n- A negative hourly rate is not allowed (should be rejected)\n\nThe employee submits their hours (weekday, Sunday, holiday) and their hourly rate. The system calculates their weekly pay.",
       "expected_output": "Multiple @TableTest methods decomposing into: (a) how different hour types convert to payable hours, and (b) payable hours × rate = pay. The interesting rule is hour classification, not arithmetic. Tables should use empty cells for Sunday/Holiday when not relevant, test the overtime threshold boundary, and include error/edge cases.",
       "files": [],
@@ -439,8 +451,8 @@
     },
     {
       "id": 15,
+      "slug": "reis-discount",
       "skill": "tabletest + spec-by-example",
-      "experiment": "experiment-1",
       "prompt": "Write one or more @TableTest methods that serve as both executable tests and readable behaviour specifications. Use business language in scenario names and column headers. Include @DisplayName on test methods and @Description on the test class or methods.\n\nHere is the feature requirement:\n\n---\n\nImplement the Reis loyalty discount for single tickets\n\nWe're launching a loyalty programme called Reis for single ticket travellers. Frequent travellers earn progressive discounts based on their purchase history in a rolling 30-day window.\n\nDiscount tiers (based on single tickets purchased in the last 30 days):\n- 1–4 tickets: 0%\n- 5–9 tickets: 5%\n- 10–14: 10%\n- 15–19: 15%\n- 20–24: 20%\n- 25–29: 25%\n- 30–34: 30%\n- 35–39: 35%\n- 40+: 40% (maximum)\n\nZone pricing (adult, full price): 1 zone = 46 kr, 2 zones = 75, 3 = 105, 4 = 134, 5 = 162.\n\nEligibility:\n- Adults and pensioners: full Reis discount ladder\n- Children: flat 20% discount (no ladder — always 20% regardless of ticket count)\n- Youth and students: no discount — they purchase adult tickets at full price\n\nThe 30-day rolling window counts all ticket purchases regardless of zone or traveller category. Only tickets with a purchase timestamp within the last 30 days are counted.\n\nTicket price = zone base price × (1 − discount%).",
       "expected_output": "Multiple @TableTest methods with separate tables for: tier determination (using value sets per tier), traveller eligibility, end-to-end pricing (with discount traceability column), and 30-day rolling window counting (with boundary testing at day 30/31). Should use TypeConverters for human-readable values.",
       "files": [],
@@ -497,8 +509,8 @@
     },
     {
       "id": 16,
+      "slug": "order-splitting",
       "skill": "tabletest + spec-by-example",
-      "experiment": "experiment-1",
       "prompt": "Write one or more @TableTest methods that serve as both executable tests and readable behaviour specifications. Use business language in scenario names and column headers. Include @DisplayName on test methods and @Description on the test class or methods.\n\nHere is the feature requirement:\n\n---\n\nSplit orders into multiple shipments when needed\n\nAn order must be split into multiple shipments when:\n1. Items have mixed fulfilment methods (some for store pickup, some for home delivery)\n2. Items have mixed stock status (some in-stock, some pre-order)\n3. No single warehouse has all items in stock\n4. Items are going to different delivery addresses\n\nWhen splitting is required, minimise the number of shipments — prefer fewer shipments with more items each.\n\nCompanion products (e.g., a camera body and its matching lens) should ship together from the same location.",
       "expected_output": "Multiple @TableTest methods with separate tables for: trigger detection (using set notation, including trigger interactions), shipment optimisation (using scalar quantity column), and companion constraint. The companion table should surface the 'no warehouse has both companions' case as an open question rather than silently resolving it.",
       "files": [],
@@ -551,8 +563,8 @@
     },
     {
       "id": 17,
+      "slug": "shopping-cart",
       "skill": "tabletest + spec-by-example",
-      "experiment": "experiment-1",
       "prompt": "Write one or more @TableTest methods that serve as both executable tests and readable behaviour specifications. Use business language in scenario names and column headers. Include @DisplayName on test methods and @Description on the test class or methods.\n\nHere is the feature requirement:\n\n---\n\nBuild a shopping cart with coupons and checkout\n\nThe cart supports:\n- Add item: specify product and quantity. Price is looked up from the product catalogue.\n- Remove item: removes all units of that product from the cart.\n- Apply coupon: enter a coupon code. If valid, the discount is applied. If expired or unrecognised, show an error message. Only one coupon can be active at a time — applying a new one replaces the previous.\n- Checkout: fails if any item has insufficient stock, or if the cart is empty.\n\nCoupon types: percentage off the total, fixed amount off the total, or a discount on a specific product.\n\nCart total = sum of (quantity × price) for all items, minus coupon discount, floored at zero.\n\nThe system should return user-facing messages for all operations (e.g., 'Added to cart', 'Coupon has expired', 'Only 3 available').",
       "expected_output": "Multiple @TableTest methods with separate tables for: item operations (state × action → new state), coupon validation (with 'Valid coupons' and 'Coupon code entered' columns), cart total calculation, and checkout validation. Tables should use state-transition framing (not sequential paths) with user-facing column names ('Message?' not 'Result?').",
       "files": [],
