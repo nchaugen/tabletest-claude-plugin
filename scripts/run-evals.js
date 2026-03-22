@@ -7,6 +7,27 @@ const path = require("path");
 const EVALS_PATH = "skills-workspace/evals/evals.json";
 const WORKSPACE_PATH = "skills-workspace";
 
+const GRADING_SYSTEM_PROMPT = `You are an eval grader. You will receive a model response and a list of assertions.
+For each assertion, determine whether it passes or fails based on the response content.
+
+Return ONLY a JSON object (no markdown fencing, no explanation) with this exact structure:
+{
+  "assertions": [
+    {
+      "id": "<assertion id>",
+      "text": "<assertion text>",
+      "passed": true or false,
+      "evidence": "<direct quote or specific reference from the response supporting your judgement>"
+    }
+  ]
+}
+
+Rules:
+- Be strict. An assertion passes only if clearly demonstrated in the response.
+- The evidence field must contain a direct quote from the response, not your interpretation.
+- If the assertion is about absence (e.g. "does NOT invent..."), evidence should explain what you checked and why it passes/fails.
+- Return valid JSON only. No markdown code fences. No text before or after the JSON.`;
+
 function parseArgs(argv) {
   const args = {
     iteration: null,
@@ -268,8 +289,104 @@ async function generateOne(evalDef, config, worktreePath, iterationDir, model) {
   }
 }
 
-// Placeholder stubs — implemented in later tasks
-async function gradeResponses() { throw new Error("Not implemented"); }
+function buildGradingPrompt(evalDef, response) {
+  const assertionsList = evalDef.assertions
+    .map((a) => `- [${a.id}] ${a.text}`)
+    .join("\n");
+
+  return `## Assertions
+
+${assertionsList}
+
+## Expected Output Description
+
+${evalDef.expected_output}
+
+## Model Response
+
+${response}`;
+}
+
+async function gradeOne(evalDef, config, iterationDir, model) {
+  const evalDir = path.join(
+    iterationDir,
+    `eval-${evalDef.id}-${evalDef.slug}`,
+    config
+  );
+  const responsePath = path.join(evalDir, "outputs", "response.md");
+
+  if (!fs.existsSync(responsePath)) {
+    console.log(`  Skipping eval ${evalDef.id} [${config}] — no response`);
+    return;
+  }
+
+  const response = fs.readFileSync(responsePath, "utf-8");
+  if (response.startsWith("ERROR:")) {
+    console.log(`  Skipping eval ${evalDef.id} [${config}] — generation error`);
+    return;
+  }
+
+  console.log(`  Grading eval ${evalDef.id} (${evalDef.slug}) [${config}]...`);
+
+  const gradingPrompt = buildGradingPrompt(evalDef, response);
+
+  const result = await runClaude({
+    prompt: gradingPrompt,
+    systemPrompt: GRADING_SYSTEM_PROMPT,
+    model: model,
+    cwd: process.cwd(),
+  });
+
+  // Parse grading JSON from the response
+  const gradingText = result.result || "";
+  let grading;
+  try {
+    grading = JSON.parse(gradingText);
+  } catch {
+    // Try extracting JSON from markdown code fences
+    const match = gradingText.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (match) {
+      grading = JSON.parse(match[1]);
+    } else {
+      throw new Error(
+        `Failed to parse grading JSON for eval ${evalDef.id}: ${gradingText.slice(0, 200)}`
+      );
+    }
+  }
+
+  // Add summary fields
+  grading.assertions_passed = grading.assertions.filter((a) => a.passed).length;
+  grading.assertions_total = grading.assertions.length;
+  grading.pass_rate =
+    grading.assertions_total > 0
+      ? grading.assertions_passed / grading.assertions_total
+      : 0;
+
+  fs.writeFileSync(
+    path.join(evalDir, "grading.json"),
+    JSON.stringify(grading, null, 2),
+    "utf-8"
+  );
+
+  const status = grading.pass_rate === 1 ? "✓" : "✗";
+  console.log(
+    `  ${status} Eval ${evalDef.id} [${config}] — ${grading.assertions_passed}/${grading.assertions_total}`
+  );
+}
+
+async function gradeResponses(evals, iterationDir, args) {
+  const configs = ["with_skill"];
+  if (args.baseline) configs.push("no_skill");
+
+  console.log(`\nGrading responses...`);
+
+  // Grade sequentially — grading is cheap, no need for parallelism
+  for (const evalDef of evals) {
+    for (const config of configs) {
+      await gradeOne(evalDef, config, iterationDir, args.model);
+    }
+  }
+}
 function aggregateResults() { throw new Error("Not implemented"); }
 function loadPreviousBenchmark() { return null; }
 function generateReport() {}
