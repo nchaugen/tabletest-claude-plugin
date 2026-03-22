@@ -100,6 +100,51 @@ async function main() {
   }
 }
 
+function setupWorktree(repoRoot) {
+  const worktreePath = path.join(
+    require("os").tmpdir(),
+    `eval-run-${Date.now()}`
+  );
+  console.log("Creating clean worktree at:", worktreePath);
+
+  execSync(`git worktree add --detach "${worktreePath}" HEAD`, {
+    cwd: repoRoot,
+    stdio: "inherit",
+  });
+
+  // Remove experiment documents to prevent contamination
+  const experimentsDir = path.join(
+    worktreePath,
+    "docs",
+    "superpowers",
+    "experiments"
+  );
+  if (fs.existsSync(experimentsDir)) {
+    fs.rmSync(experimentsDir, { recursive: true });
+    console.log("Removed experiment documents for contamination isolation");
+  }
+
+  return worktreePath;
+}
+
+function cleanupWorktree(worktreePath) {
+  console.log("Cleaning up worktree...");
+  try {
+    execSync(`git worktree remove --force "${worktreePath}"`, {
+      stdio: "inherit",
+    });
+  } catch {
+    console.warn("Warning: could not remove worktree at", worktreePath);
+  }
+}
+
+// Placeholder stubs — implemented in later tasks
+async function generateResponses() { throw new Error("Not implemented"); }
+async function gradeResponses() { throw new Error("Not implemented"); }
+function aggregateResults() { throw new Error("Not implemented"); }
+function loadPreviousBenchmark() { return null; }
+function generateReport() {}
+
 main().catch((err) => {
   console.error("Fatal error:", err.message);
   process.exit(1);
