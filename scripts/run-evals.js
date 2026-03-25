@@ -253,6 +253,7 @@ async function generateOne(evalDef, config, worktreePath, iterationDir, model) {
       model,
       cwd: worktreePath,
       pluginDir: config === "with_skill" ? worktreePath : undefined,
+      timeoutMs: evalDef.timeout_ms,
     });
 
     fs.writeFileSync(
