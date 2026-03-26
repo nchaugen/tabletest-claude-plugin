@@ -456,7 +456,7 @@
     {
       "id": 14,
       "slug": "weekly-pay",
-      "skill": "tabletest + spec-by-example",
+      "skill": "tabletest",
       "prompt": "Write tests for this feature:\n\n---\n\nCalculate weekly pay for hourly employees\n\nWe need to calculate weekly pay based on hours worked. The rules:\n- Weekday hours up to 40 are paid at the base hourly rate\n- Weekday hours beyond 40 are overtime, paid at 1.5× the base rate (time-and-a-half)\n- Sunday hours are always paid at 2× the base rate (double time)\n- Holiday hours are always paid at 2× the base rate (double time)\n- Total pay cannot go below zero\n- A negative hourly rate is not allowed (should be rejected)\n\nThe employee submits their hours (weekday, Sunday, holiday) and their hourly rate. The system calculates their weekly pay.",
       "expected_output": "One or more @TableTest methods covering weekly pay calculation. The main pay table should have intermediate expected columns (e.g. Regular pay?, Overtime pay?, Premium pay?) for traceability, with @Description explaining the conversion formulas. Empty cells for Sunday/Holiday when not relevant. Error cases in a separate @TableTest with an expected exception column. Annotation order: @DisplayName, @Description, @TableTest.",
       "files": [],
@@ -518,8 +518,8 @@
     {
       "id": 15,
       "slug": "reis-discount",
-      "skill": "tabletest + spec-by-example",
-      "prompt": "Write tests for this feature:\n\n---\n\nTravel discount on single tickets\nIf you purchase a single ticket for yourself as an adult or senior, you automatically receive a discount through Reis, regardless of the zones you travel in. The discount is applied when you buy single tickets in the app.\nTravel is perfect for you if you travel 1–3 days a week or are not sure how much you will be traveling in the future. Perhaps you find that a period ticket is not cost-effective for you, and that you need more flexibility when you travel.\nHere's how to get a discount with Reis\nIn short:\nThe discount you receive depends on how often you travel: With Reis, you will accumulate a personal discount based on the number of single tickets you have purchased in the last 30 days. The more you travel, the higher your discount will be.\nYou buy a single ticket as usual every time you travel.\nYou start to accumulate your personal discount from the first single ticket, but the first discount applies to ticket number five.\nDuring the first 30 days, every fifth trip will take you one step higher on the discount ladder.\nAfter the first 30 days, your discount will level off and remain the same if you have a consistent travel pattern.\nIf you travel less than usual, your discount may decrease.\nIf you travel more than usual, your discount will increase. The maximum discount is 40% off the price of a standard single ticket.\nThe price you pay for each ticket is therefore always adjusted to your unique travel pattern.\n\nAll children get a flat discount of 20% on single tickets.",
+      "skill": "tabletest",
+      "prompt": "Write tests for this feature:\n\n---\n\nTravel discount on single tickets\nIf you purchase a single ticket for yourself as an adult or senior, you automatically receive a discount through Reis, regardless of the zones you travel in. The discount is applied when you buy single tickets in the app.\nTravel is perfect for you if you travel 1–3 days a week or are not sure how much you will be traveling in the future. Perhaps you find that a period ticket is not cost-effective for you, and that you need more flexibility when you travel.\nHere's how to get a discount with Reis\nIn short:\nThe discount you receive depends on how often you travel: With Reis, you will accumulate a personal discount based on the number of single tickets you have purchased in the last 30 days, measured at the time of purchase. The more you travel, the higher your discount will be.\nYou buy a single ticket as usual every time you travel.\nYou start to accumulate your personal discount from the first single ticket, but the first discount applies to ticket number five.\nDuring the first 30 days, every fifth trip will take you 5% higher on the discount ladder.\nAfter the first 30 days, your discount will level off and remain the same if you have a consistent travel pattern.\nIf you travel less than usual, that is, your number of travels in the past 30 days drops, your discount may decrease.\nIf you travel more than usual, your discount will increase. The maximum discount is 40% off the price of a standard single ticket.\nThe price you pay for each ticket is therefore always adjusted to your unique travel pattern.\n\nChildren always get a flat discount of 20% on single tickets.",
       "expected_output": "Multiple @TableTest methods with separate tables for: discount ladder (deriving tiers from the 'every fifth trip' rule, using value sets per tier), traveller eligibility (adults/seniors vs children), and 30-day rolling window counting (with boundary testing). Should use TypeConverters for human-readable values.",
       "files": [],
       "assertions": [
@@ -572,8 +572,8 @@
     {
       "id": 16,
       "slug": "order-splitting",
-      "skill": "tabletest + spec-by-example",
-      "prompt": "We need to handle order splitting — when a customer places an order for multiple items, sometimes we can't ship everything together and need to break it into separate shipments.\n\nThis happens in a few situations we keep running into. Sometimes a customer adds items to their cart where some are for store pickup and others for home delivery — obviously those can't go in the same shipment. We also see orders where some items are in stock and others are pre-orders that won't be available for a while, and we don't want to make the customer wait for everything just because one item is backordered. Then there's the inventory distribution problem — say someone orders six shirts but no single warehouse has all six. Chicago might have four, LA has one, Houston has one. We need to split across locations. And occasionally customers want items delivered to different addresses, like when they're ordering a gift for someone along with something for themselves.\n\nWhen we do split, we want to minimise the number of shipments. In that shirt example, if Philadelphia and Washington each have three shirts, we should ship from those two locations rather than three. Fewer shipments means lower cost and less confusion for the customer.\n\nOne important constraint: some products are companions — like a camera body and its matching lens, which are separate line items but useless without each other. Those must always ship together from the same location.\n\nPlease help us map out these scenarios as test cases.",
+      "skill": "tabletest",
+      "prompt": "We need to handle order splitting — when a customer places an order for multiple items, sometimes we can't ship everything together and need to break it into separate shipments.\n\nThis happens in a few situations we keep running into. Sometimes a customer adds items to their cart where some are for store pickup and others for home delivery — obviously those can't go in the same shipment. We also see orders where some items are in stock and others are pre-orders or backorders that won't be available for a while. We don't want to make the customer wait for everything, so items should ship when they are available. Then there's the inventory distribution problem — say someone orders six shirts and no single warehouse has all six. If a combination of warehouses can make up the order, e.g. Chicago might have four, LA has one, Houston has one, we split across locations rather than reject the order. And occasionally customers want items delivered to different addresses, like when they're ordering a gift for someone along with something for themselves.\n\nWhen we do split, we want to minimise the number of shipments. In that shirt example, if Philadelphia and Washington each have three shirts, we should ship from those two locations rather than three. Fewer shipments means lower cost and less confusion for the customer.\n\nOne important constraint: some products are companions — like a camera body and its matching lens, which are separate line items but useless without each other. If possible those should ship together from the same location.\n\nPlease help us map out these scenarios as test cases.",
       "expected_output": "Multiple @TableTest methods with separate tables for: trigger detection (using set notation, including trigger interactions), shipment optimisation (using scalar quantity column), and companion constraint. The companion table should surface the 'no warehouse has both companions' case as an open question rather than silently resolving it.",
       "files": [],
       "assertions": [
@@ -637,7 +637,7 @@
       "skill": "tabletest + spec-by-example",
       "timeout_ms": 600000,
       "prompt": "We're building a shopping cart and I want to make sure we have good test coverage before we ship.\n\nThe basic flow is: customers browse a product catalogue, add items to their cart with a quantity, and can remove them again. Prices come from the catalogue, not from the customer — so the cart looks up what things cost. Customers can also enter a coupon code at any point. We support three kinds of coupons: percentage off the whole cart, a fixed amount off, or a discount on a specific product. Only one coupon can be active at a time though — if they enter a new code, it replaces whatever was there before. If the code is expired or doesn't exist, we show them an error message.\n\nAt checkout we verify stock levels. If anything in the cart doesn't have enough inventory, checkout fails and we tell them what's short. You also can't check out with an empty cart, obviously.\n\nThe cart total is the sum of quantity times price for each item, minus whatever coupon discount applies, and it can never go below zero — even if someone has a massive coupon on a small order.\n\nWe want every operation to return a user-facing message so the frontend can display it — things like 'Added 2x Widget to cart', 'Coupon has expired', 'Only 3 available' and so on.\n\nCan you help us think through the test scenarios for this?",
-      "expected_output": "Multiple @TableTest methods with separate tables for distinct concerns (item operations, coupon validation, cart total, checkout). Rows should be independently executable. Column names should use business language. Test data (prices, coupon rules) should be visible in the table, not hidden in setup. Should surface open questions about underspecified interactions.",
+      "expected_output": "Multiple tables for distinct concerns (item operations, coupon validation, cart total, checkout). Rows should be independently executable. Column names should use business language. Test data (prices, coupon rules) should be visible in the table. Coupon table uses columns to signal expiry and cart contents for product-specific coupons. Should surface open questions about underspecified interactions.",
       "files": [],
       "assertions": [
         {
@@ -670,7 +670,7 @@
         },
         {
           "id": "4.9-readability-test-data-visible",
-          "text": "Test data that affects the outcome — product prices, coupon rules (type, amount, expiry) — is visible in the table via columns, @Description, or explicit setup, not silently hardcoded. The reader can trace how inputs lead to outputs."
+          "text": "Test data that affects the outcome — product prices, coupon rules (type, amount, expiry) — is visible in the table via columns, notes, or explicit setup, not silently hardcoded. The reader can trace how inputs lead to outputs."
         },
         {
           "id": "4.10-depth-open-questions-surfaced",
@@ -681,20 +681,16 @@
           "text": "Cart totals are arithmetically correct: sum(quantity × price) − coupon = total, for every row in the total calculation table."
         },
         {
-          "id": "4.13-format-displayname",
-          "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case."
+          "id": "4.12-coupon-expiry-column",
+          "text": "Coupon table uses a column to signal expiry status — either an 'Expired?' yes/no column, an expiry date column, or equivalent. Expiry is visible per row, not just implied by the scenario name."
         },
         {
-          "id": "4.14-format-description",
-          "text": "@Description is present on at least the class and provides context beyond what the table rows already express — such as the cart model, state management approach, or application context. Does NOT merely restate the column names or summarise what the rows show."
+          "id": "4.13-coupon-cart-contents-column",
+          "text": "Coupon table includes a cart contents column (or 'Applies to' / 'Product in cart?' column) so the reader can see whether a product-specific coupon's target is actually in the cart. The product discount applied/not-applied distinction is driven by visible data, not just the scenario name."
         },
         {
-          "id": "4.15-format-annotation-order",
-          "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order."
-        },
-        {
-          "id": "4.16-format-description-textblock",
-          "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +."
+          "id": "4.14-coupon-before-after-columns",
+          "text": "Coupon entry scenarios use before/after columns (e.g. 'Coupon before' / 'Coupon after?' or 'Active coupon' / 'Active coupon after?') to specify the state change when entering, replacing, or entering invalid coupon codes."
         }
       ]
     }
