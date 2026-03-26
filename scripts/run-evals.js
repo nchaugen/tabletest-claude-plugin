@@ -394,7 +394,11 @@ async function gradeResponses(evals, iterationDir, args) {
   // Grade sequentially — grading is cheap, no need for parallelism
   for (const evalDef of evals) {
     for (const config of configs) {
-      await gradeOne(evalDef, config, iterationDir, args.model);
+      try {
+        await gradeOne(evalDef, config, iterationDir, args.model);
+      } catch (err) {
+        console.error(`  ✗ Eval ${evalDef.id} [${config}] — GRADING FAILED: ${err.message}`);
+      }
     }
   }
 }

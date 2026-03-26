@@ -154,6 +154,10 @@
         {
           "id": "scenario-names-describe-conditions",
           "text": "Scenario names describe conditions ('Senior applicant at threshold') not outcomes ('Approved')"
+        },
+        {
+          "id": "threshold-values-visible",
+          "text": "The policy thresholds (650 for standard, 600 for senior) appear as concrete values in the Credit Score column — not just described in prose. The reader can see the boundary values in the table rows."
         }
       ]
     },
@@ -214,6 +218,10 @@
         {
           "id": "output-column-has-question-mark",
           "text": "At least one output column ends with '?'"
+        },
+        {
+          "id": "extreme-discount-row",
+          "text": "Table includes at least one row with a high combined discount (e.g. large order + top loyalty tier) that would force a decision about whether a cap applies — making the cap question concrete, not theoretical."
         }
       ]
     },
@@ -321,7 +329,7 @@
       "id": 9,
       "slug": "bonus-contractor-structure",
       "skill": "tabletest",
-      "prompt": "I want to write a TableTest for this method:\n\n```java\ndouble calculateBonus(Employee employee)\n```\n\nThe bonus rules are:\n- SENIOR + SALES department = 15%\n- SENIOR + ENGINEERING department = 12%\n- JUNIOR + SALES department = 8%\n- JUNIOR + ENGINEERING department = 5%\n- CONTRACTOR level always gets 0%, regardless of department",
+      "prompt": "I want to write a TableTest for this method:\n\n```java\ndouble calculateBonusPercentage(Employee employee)\n```\n\nThe bonus rules are:\n- SENIOR + SALES department = 15%\n- SENIOR + ENGINEERING department = 12%\n- JUNIOR + SALES department = 8%\n- JUNIOR + ENGINEERING department = 5%\n- CONTRACTOR level always gets 0%, regardless of department",
       "expected_output": "A single @TableTest with CONTRACTOR using a value set for Department ({SALES, ENGINEERING}) to express 'regardless of department'. Not a separate table, not dummy placeholder values like 'ANY' or 'N/A', and not enumerated as individual rows.",
       "files": [],
       "assertions": [
@@ -336,6 +344,10 @@
         {
           "id": "four-core-rules-covered",
           "text": "The four level×department combinations (SENIOR+SALES, SENIOR+ENGINEERING, JUNIOR+SALES, JUNIOR+ENGINEERING) are all present in the table(s)"
+        },
+        {
+          "id": "expects-bonus-percentage",
+          "text": "The expected output column contains bonus percentages (e.g. 15%, 12%, 0%) — not bonus amounts. The method returns a percentage, and the table should reflect that."
         },
         {
           "id": "no-if-switch-in-method",
@@ -386,6 +398,26 @@
         {
           "id": "business-language-columns",
           "text": "Column names use domain/business language — no implementation terms like 'boolean', 'int', 'isProrated', camelCase identifiers"
+        },
+        {
+          "id": "trial-cancellation-row",
+          "text": "Includes a row or scenario for cancelling during the free trial — no charge was made, so no refund applies. This case should be explicit, not omitted."
+        },
+        {
+          "id": "prorated-refund-formula",
+          "text": "The prorated refund calculation is shown or explained — e.g. days remaining × daily rate, or an equivalent formula. Not just 'prorated refund' without showing how."
+        },
+        {
+          "id": "24h-boundary-near-boundary",
+          "text": "The 24-hour no-refund window is tested near the boundary (e.g. values at or close to 23h, 24h, 25h) — not just 'within 24h' vs 'well after renewal'."
+        },
+        {
+          "id": "eligibility-separate-from-amount",
+          "text": "Refund eligibility (yes/no, based on 24h rule and trial status) and refund amount (prorated calculation) are in separate tables — not mixed into one table. This separation makes each concern independently reviewable."
+        },
+        {
+          "id": "question-mark-only-on-outputs",
+          "text": "The '?' suffix is only used on output/expected columns (e.g. 'Refund Eligible?', 'Refund Amount?') — not on input columns like plan type, loyalty status, or yes/no flags. Input columns should not have '?' suffixes."
         }
       ]
     },
@@ -416,6 +448,26 @@
         {
           "id": "open-question-surfaced",
           "text": "The annual/loyalty/trial interaction is explicitly surfaced as an open question — via '?', 'TBD', blank expected value, or a written open question — rather than silently resolved"
+        },
+        {
+          "id": "loyalty-discount-annual-only",
+          "text": "Makes clear (via table structure, a note, or explicit rows) that the loyalty discount applies to the annual plan only — a loyalty member on monthly pays the same as anyone else."
+        },
+        {
+          "id": "loyalty-refund-ambiguity",
+          "text": "Surfaces whether a loyalty annual subscriber's prorated cancellation refund is calculated from the discounted price (£86.29) or the list price (£95.88) — as an open question, '?', or note. Not silently resolved."
+        },
+        {
+          "id": "cancellation-refund-table",
+          "text": "Includes a cancellation/refund table or section (not just pricing) — the loyalty discount creates a refund calculation ambiguity that should be shown with concrete rows."
+        },
+        {
+          "id": "refund-table-includes-loyalty-dimension",
+          "text": "The cancellation/refund table includes a loyalty member column (or equivalent) to distinguish loyalty vs non-loyalty annual refund rows — not just plan type alone."
+        },
+        {
+          "id": "question-mark-only-on-outputs",
+          "text": "The '?' suffix is only used on output/expected columns (e.g. 'Refund?', 'Price?') — not on input columns like plan type, loyalty status, or yes/no flags. Input columns should not have '?' suffixes."
         }
       ]
     },
@@ -548,6 +600,14 @@
           "text": "Value sets in the tier table contain exactly the values that produce the same discount. No cross-tier contamination."
         },
         {
+          "id": "2.15-ticket-count-uses-value-sets",
+          "text": "The discount ladder table uses value sets for the ticket count column to group counts within the same tier (e.g. {5, 6, 7, 8, 9} or {5, 9} for min/max → 5%) — not one row per boundary value. The 'every fifth trip' rule creates tiers; the table should express tiers, not enumerate boundaries."
+        },
+        {
+          "id": "2.16-no-duplicate-tier-mapping",
+          "text": "The tier-to-discount mapping is expressed once — not repeated across multiple tables. A price application table (if present) should test the arithmetic (base price × discount → final price) without re-enumerating which ticket counts map to which tier."
+        },
+        {
           "id": "2.10-format-displayname",
           "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case."
         },
@@ -574,7 +634,7 @@
       "slug": "order-splitting",
       "skill": "tabletest",
       "prompt": "We need to handle order splitting — when a customer places an order for multiple items, sometimes we can't ship everything together and need to break it into separate shipments.\n\nThis happens in a few situations we keep running into. Sometimes a customer adds items to their cart where some are for store pickup and others for home delivery — obviously those can't go in the same shipment. We also see orders where some items are in stock and others are pre-orders or backorders that won't be available for a while. We don't want to make the customer wait for everything, so items should ship when they are available. Then there's the inventory distribution problem — say someone orders six shirts and no single warehouse has all six. If a combination of warehouses can make up the order, e.g. Chicago might have four, LA has one, Houston has one, we split across locations rather than reject the order. And occasionally customers want items delivered to different addresses, like when they're ordering a gift for someone along with something for themselves.\n\nWhen we do split, we want to minimise the number of shipments. In that shirt example, if Philadelphia and Washington each have three shirts, we should ship from those two locations rather than three. Fewer shipments means lower cost and less confusion for the customer.\n\nOne important constraint: some products are companions — like a camera body and its matching lens, which are separate line items but useless without each other. If possible those should ship together from the same location.\n\nPlease help us map out these scenarios as test cases.",
-      "expected_output": "Multiple @TableTest methods with separate tables for: trigger detection (using set notation, including trigger interactions), shipment optimisation (using scalar quantity column), and companion constraint. The companion table should surface the 'no warehouse has both companions' case as an open question rather than silently resolving it.",
+      "expected_output": "Multiple @TableTest methods with separate tables for: trigger detection (including trigger interactions), shipment optimisation (using scalar quantity column), and companion constraint. The trigger table represents multi-item orders — each item has its own fulfillment type, address, and availability, so per-item properties need an unambiguous notation (not value sets, which lose the item-to-property mapping). The companion table should recognise that 'no warehouse has both companions' creates a product decision.",
       "files": [],
       "assertions": [
         {
@@ -591,7 +651,7 @@
         },
         {
           "id": "3.4-depth-companion-ambiguity-surfaced",
-          "text": "The 'no warehouse has both companions' case is flagged as an open question or product decision, not silently resolved as either 'error' or 'ship separately'. The requirement does NOT hint at this — the agent must recognise the ambiguity unprompted."
+          "text": "The 'no warehouse has both companions' case is included and recognised as a product decision — e.g. flagged as an open question, or the chosen resolution is explained. Not silently omitted."
         },
         {
           "id": "3.5-depth-companion-edge-cases",
@@ -602,8 +662,8 @@
           "text": "Optimisation scenarios describe the business situation (e.g. 'Consolidate: two beats three', 'Everything at one warehouse') — not 'Test case 2'."
         },
         {
-          "id": "3.7-readability-set-notation",
-          "text": "Trigger table uses set notation ({delivery, pickup}) for closed enumerations rather than prose or lists."
+          "id": "3.7-readability-item-property-mapping",
+          "text": "The trigger table represents multi-item orders where each item has its own fulfillment type, address, and availability. The notation used makes the item-to-property mapping unambiguous — not value sets like {delivery, pickup} which lose which item has which property."
         },
         {
           "id": "3.8-readability-scalar-column",
