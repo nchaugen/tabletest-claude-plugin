@@ -1,0 +1,43 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "The response contains a well-formatted markdown table starting with \"| Scenario | Order Value | Bulk Threshold (Policy) | Bulk Discount (Policy) | Loyalty Tier | Loyalty Discount (Policy) | Discount Applied? | Final Price? | Open Questions |\" with proper pipe delimiters and rows of data."
+    },
+    {
+      "id": "does-not-invent-resolution",
+      "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved",
+      "passed": true,
+      "evidence": "Rows with both discounts applying show '?' in the Discount Applied? and Final Price? columns instead of picking a resolution. For example: 'Both apply — which wins?' row has '?' and the open question 'Stack (15%) → £170, or higher-only (10%) → £180?' presenting both options without selecting one. The text confirms: 'The `?` cells are the decisions your team needs to make.'"
+    },
+    {
+      "id": "covers-both-discounts-applying",
+      "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)",
+      "passed": true,
+      "evidence": "The table includes multiple rows where both discounts apply: 'Both apply — which wins?' (Order Value £200, Bulk Discount 10%, Loyalty Tier silver 5%), 'Both apply — loyalty higher' (Order Value £200, Bulk Discount 10%, Loyalty Tier gold 15%), and 'Both apply — equal discounts' (Order Value £200, both 10%)."
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note",
+      "passed": true,
+      "evidence": "The table includes an 'Open Questions' column with explicit questions like 'Stack (15%) → £170, or higher-only (10%) → £180?' and 'Is 25% uncapped, or is there a max (e.g. 20%)?' Below the table, there is a section titled 'On stacking vs. higher-only:' and 'On a cap:' with bulleted questions to drive conversation."
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "The column headers 'Discount Applied?' and 'Final Price?' both end with question marks, indicating uncertainty and unresolved outputs."
+    },
+    {
+      "id": "extreme-discount-row",
+      "text": "Table includes at least one row with a high combined discount (e.g. large order + top loyalty tier) that would force a decision about whether a cap applies — making the cap question concrete, not theoretical",
+      "passed": true,
+      "evidence": "The row 'Cap scenario — large stacked discount' has Order Value £500, Loyalty Tier gold (15% discount), and explicitly asks 'Is 25% uncapped, or is there a max (e.g. 20%)?' making the cap decision concrete and tied to a high-value scenario."
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 6,
+  "pass_rate": 1
+}

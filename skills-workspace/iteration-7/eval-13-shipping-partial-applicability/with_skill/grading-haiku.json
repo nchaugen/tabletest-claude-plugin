@@ -1,0 +1,43 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "| Scenario | Shipping Method | Destination | Order Value | Cost? | ... with complete markdown table structure throughout the response"
+    },
+    {
+      "id": "express-split-by-uk-free-tier",
+      "text": "Express shipping is split into at least two cases distinguishing the UK free tier (UK, order £50+, free) from the paid tier",
+      "passed": true,
+      "evidence": "Express at threshold — UK | Express | UK | £50.00 | £0.00 ... Express over threshold — UK | Express | UK | £75 | £0.00 ... Express at or over threshold — non-UK | Express | {Ireland, France} | {£50, £75} | £9.99"
+    },
+    {
+      "id": "express-uses-value-sets",
+      "text": "Express rows use value sets to consolidate cases with the same outcome — not enumerated as separate rows per destination or per order value when the result is identical",
+      "passed": false,
+      "evidence": "Express at threshold — UK | Express | UK | £50.00 | £0.00 followed by Express over threshold — UK | Express | UK | £75 | £0.00 are separate rows with identical outcomes (£0.00) for UK, which should be consolidated into one row with {£50, £75} value set"
+    },
+    {
+      "id": "overnight-grouped",
+      "text": "Overnight UK and Ireland are in one row using a value set ({UK, Ireland}) — not separate rows",
+      "passed": false,
+      "evidence": "Overnight — UK | Overnight | UK | {£25, £75} | £14.99 and Overnight — Ireland | Overnight | Ireland | {£25, £75} | £14.99 are enumerated as two separate rows instead of consolidated into one row with {UK, Ireland}"
+    },
+    {
+      "id": "standard-destination-value-set-or-blank",
+      "text": "Standard shipping destination uses a value set covering all options or is blank/absent",
+      "passed": true,
+      "evidence": "Standard — always flat rate | Standard | {UK, Ireland, France}"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Cost? column header"
+    }
+  ],
+  "assertions_passed": 4,
+  "assertions_total": 6,
+  "pass_rate": 0.6666666666666666
+}

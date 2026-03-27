@@ -1,0 +1,61 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\")"
+    },
+    {
+      "id": "contractor-uses-value-set",
+      "text": "CONTRACTOR row uses a value set for Department (e.g. {SALES, ENGINEERING}) to express 'regardless of department' — not a dummy placeholder like 'ANY' or 'N/A', and not enumerated as separate rows.",
+      "passed": true,
+      "evidence": "Contractor regardless        | CONTRACTOR | {SALES, ENGINEERING}  | 0.0"
+    },
+    {
+      "id": "four-core-rules-covered",
+      "text": "The four level×department combinations (SENIOR+SALES, SENIOR+ENGINEERING, JUNIOR+SALES, JUNIOR+ENGINEERING) are all present in the table(s)",
+      "passed": true,
+      "evidence": "Senior in Sales | SENIOR | SALES | 15.0\n    Senior in Engineering | SENIOR | ENGINEERING | 12.0\n    Junior in Sales | JUNIOR | SALES | 8.0\n    Junior in Engineering | JUNIOR | ENGINEERING | 5.0"
+    },
+    {
+      "id": "expects-bonus-percentage",
+      "text": "The expected output column contains bonus percentages (e.g. 15%, 12%, 0%) — not bonus amounts. The method returns a percentage, and the table should reflect that.",
+      "passed": true,
+      "evidence": "Bonus%? column contains values: 15.0, 12.0, 8.0, 5.0, 0.0"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "Method body only contains: Employee employee = new Employee(level, department); assertEquals(expectedBonus, calculateBonusPercentage(employee));"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'bonusByLevelAndDepartment' → 'Bonus By Level And Department'). Not a generic name like 'test1' or 'testMethod'.",
+      "passed": true,
+      "evidence": "void shouldCalculateBonusPercentage(Level level, Department department, double expectedBonus)"
+    },
+    {
+      "id": "description-adds-information",
+      "text": "@Description is present and provides context beyond what the table rows already express — such as how bonus rates are applied (e.g. as percentage of base salary), or open questions. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": false,
+      "evidence": "@Description(\"Bonus percentage is determined by employee level and department. \" + \"Contractors always receive 0% regardless of department.\") — this merely restates what the table rows already show (level/department determine bonus, contractor=0%), adding no new context such as how percentages are applied or open questions."
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "@Description appears before @TableTest, and no @DisplayName is present. Order: @Description, @TableTest."
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +.",
+      "passed": false,
+      "evidence": "@Description(\"Bonus percentage is determined by employee level and department. \" + \"Contractors always receive 0% regardless of department.\") — uses string concatenation with + instead of a text block."
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 9,
+  "pass_rate": 0.7777777777777778
+}

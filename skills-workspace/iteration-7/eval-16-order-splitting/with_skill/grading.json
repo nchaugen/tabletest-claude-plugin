@@ -1,0 +1,85 @@
+{
+  "assertions": [
+    {
+      "id": "3.1-decomposition-concern-separation",
+      "text": "Trigger detection, shipment optimisation, and companion constraint are in separate tables. Not one monolithic table.",
+      "passed": true,
+      "evidence": "Response has three separate tables: '1. Order Shipment Grouping', '2. Warehouse Selection (Minimising Shipments)', and '3. Companion Product Co-location', each addressing a distinct concern."
+    },
+    {
+      "id": "3.2-decomposition-trigger-interactions",
+      "text": "At least one row where multiple triggers fire simultaneously (e.g. mixed fulfilment AND mixed stock status).",
+      "passed": true,
+      "evidence": "'All three split triggers at once | Shirt (home, in stock, 123 Main) + Mug (pickup, in stock, Store A) + Book (home, pre-order, 123 Main) | 3 | Each group separate' — fires mixed fulfilment type and mixed stock status simultaneously."
+    },
+    {
+      "id": "3.3-depth-all-four-triggers",
+      "text": "All four split triggers are covered: mixed fulfilment, mixed stock status, no single warehouse has all items, different addresses.",
+      "passed": true,
+      "evidence": "Mixed fulfilment: 'Pickup alongside home delivery'; Mixed stock status: 'In-stock item + pre-order'; Different addresses: 'Personal item + gift, different addresses'; No single warehouse: Table 2 rows 'Only a two-warehouse combination works' and 'No two-warehouse solution; three required'."
+    },
+    {
+      "id": "3.4-depth-companion-ambiguity-surfaced",
+      "text": "The 'no warehouse has both companions' case is included and recognised as a product decision — e.g. flagged as an open question, or the chosen resolution is explained. Not silently omitted.",
+      "passed": true,
+      "evidence": "'Companions at different warehouses, no overlap | Camera body + 50mm lens | yes | Chicago: body only, LA: lens only | no | Co-location impossible; ships separately' — resolution is explicitly stated."
+    },
+    {
+      "id": "3.5-depth-companion-edge-cases",
+      "text": "Companion constraint covers at least: companions at same location, companions split from non-companion items, and the ambiguous case (no location has both).",
+      "passed": true,
+      "evidence": "Same location: 'Both companions at same warehouse'; Non-companions split: 'Non-companions split across warehouses | Shirt + Coffee mug | no | Chicago: shirt, LA: mug | no'; No location has both: 'Companions at different warehouses, no overlap'."
+    },
+    {
+      "id": "3.6-readability-scenario-names",
+      "text": "Optimisation scenarios describe the business situation (e.g. 'Consolidate: two beats three', 'Everything at one warehouse') — not 'Test case 2'.",
+      "passed": true,
+      "evidence": "Scenario names include: 'One warehouse covers full quantity', 'Two-warehouse solution exists; avoid three', 'Only a two-warehouse combination works', 'No two-warehouse solution; three required', 'Total stock across all warehouses falls short'."
+    },
+    {
+      "id": "3.7-readability-item-property-mapping",
+      "text": "The trigger table represents multi-item orders where each item has its own fulfillment type, address, and availability. The notation used makes the item-to-property mapping unambiguous — not value sets like {delivery, pickup} which lose which item has which property.",
+      "passed": true,
+      "evidence": "'Pickup alongside home delivery | Shirt (home delivery, in stock) + Mug (store pickup, in stock) | 2 | Shirt → home delivery; Mug → store pickup' — each item is paired with its own properties inline."
+    },
+    {
+      "id": "3.8-readability-scalar-column",
+      "text": "Optimisation table uses a scalar count column (e.g. 'Shirts ordered') not item lists, when product identity doesn't matter for the logic.",
+      "passed": true,
+      "evidence": "Table 2 has a 'Quantity ordered' column with scalar values like '6 shirts' consistently across all rows, not item-by-item lists."
+    },
+    {
+      "id": "3.9-correctness-valid-assignments",
+      "text": "Inventory assignments are physically valid: items are only assigned to locations that have them. Shipment counts match the assignments shown.",
+      "passed": true,
+      "evidence": "Row 1: Chicago 6 assigned for order of 6 (valid). Row 2: Philly 3 + DC 3 = 6 (valid). Row 3: Chicago 4 + LA 2 = 6 (valid). Row 5: Chicago 3 + LA 2 + Houston 2 = 7 ≥ 6 (valid). Row 6: total stock 5 < 6, no assignment shown, flagged open. All shipment counts match assignments."
+    },
+    {
+      "id": "3.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": false,
+      "evidence": "The response contains no Java or Kotlin test code whatsoever — it is a pure spec-by-example table analysis. No @DisplayName annotations or test method names appear anywhere."
+    },
+    {
+      "id": "3.11-format-description",
+      "text": "@Description is present on at least the class and provides context beyond what the table rows already express — such as the splitting rules, constraints, or application context. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": false,
+      "evidence": "The response contains no Java or Kotlin test code. No @Description annotation is present anywhere in the output."
+    },
+    {
+      "id": "3.12-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": false,
+      "evidence": "No annotations of any kind appear in the response; it contains only markdown tables and prose, no Java/Kotlin code."
+    },
+    {
+      "id": "3.13-format-description-textblock",
+      "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +.",
+      "passed": false,
+      "evidence": "No @Description annotation or any Java/Kotlin code is present in the response."
+    }
+  ],
+  "assertions_passed": 9,
+  "assertions_total": 13,
+  "pass_rate": 0.6923076923076923
+}

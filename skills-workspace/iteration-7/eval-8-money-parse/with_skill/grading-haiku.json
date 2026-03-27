@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\" appears twice in the response: once for valid inputs and once for invalid inputs"
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell in the valid inputs @TableTest table (not the string 'null', and not as a separate @Test method). The blank cell maps to a null parameter.",
+      "passed": false,
+      "evidence": "The valid inputs table contains only two rows with non-null values (10.00 and 0.01); null is instead handled by a separate @Test method: 'void returnsNullForNullInput() { assertNull(parse(null)); }'. This violates the explicit requirement that null should NOT be 'as a separate @Test method'."
+    },
+    {
+      "id": "exception-has-expected-column",
+      "text": "The exception/invalid-input table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row — rather than hardcoding the exception type in @Description or the method name.",
+      "passed": false,
+      "evidence": "The invalid-input table shows only two columns: 'Scenario | Input' with no 'Throws?' or 'Exception?' column. The response explicitly states: 'No `Exception?` column in the rejection table' and instead hardcodes the exception in the method body via 'assertThrows(IllegalArgumentException.class, ...)'"
+    },
+    {
+      "id": "exception-cases-handled",
+      "text": "The exception cases (empty string, letters-only, negative) are handled — via a Throws? column, assertThrows in the method body, or a separate @TableTest — not silently omitted",
+      "passed": true,
+      "evidence": "All three exception cases are present as rows in the invalid-input @TableTest: 'Empty string | ''', 'Letters only | abc', 'Negative value | -5.00', followed by 'assertThrows(IllegalArgumentException.class, ...)'"
+    },
+    {
+      "id": "result-column-with-question-mark",
+      "text": "Valid inputs have a result column name ending with '?' (e.g. 'Money?' or 'Result?')",
+      "passed": true,
+      "evidence": "Valid inputs table header shows: 'Scenario | Input | Amount?' where the result column is named 'Amount?' with the required '?' suffix"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "All three method bodies contain only assertions: 'assertThat(parse(input).getAmount()).isEqualByComparingTo(expectedAmount)', 'assertNull(parse(null))', and 'assertThrows(IllegalArgumentException.class, ())' — no if or switch statements present"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'moneyParsing' → 'Money Parsing'). Not a generic name like 'test1' or 'testMethod'.",
+      "passed": true,
+      "evidence": "Method names are 'parsesValidInput' (→ 'Parses Valid Input'), 'returnsNullForNullInput' (→ 'Returns Null For Null Input'), and 'rejectsInvalidInput' (→ 'Rejects Invalid Input') — all clear and descriptive, not generic"
+    },
+    {
+      "id": "description-adds-information",
+      "text": "@Description is present and provides context beyond what the table rows already express — such as the expected currency format, or open questions. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": true,
+      "evidence": "Both @TableTest methods include @Description annotations that provide context: 'Valid decimal strings are parsed into Money objects with the correct amount' explains the Money object creation beyond what the table rows show, and 'Malformed or negative inputs are rejected immediately' adds context about immediate rejection"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Both @TableTest methods show @Description immediately before @TableTest (e.g., '@Description(...) @TableTest(...)'), with no @DisplayName, maintaining correct order"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +.",
+      "passed": true,
+      "evidence": "@Description annotations use simple quoted strings (approximately 85 and 65 characters respectively) without + concatenation; these are short enough to not require triple-quoted text blocks"
+    }
+  ],
+  "assertions_passed": 8,
+  "assertions_total": 10,
+  "pass_rate": 0.8
+}

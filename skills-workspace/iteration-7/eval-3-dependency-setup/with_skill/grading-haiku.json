@@ -1,0 +1,31 @@
+{
+  "assertions": [
+    {
+      "id": "flags-junit-version",
+      "text": "Response explicitly flags that JUnit 5.10.0 is below the required minimum (5.11) and recommends upgrading",
+      "passed": true,
+      "evidence": "your current JUnit Jupiter version is **5.10.0**, but TableTest requires **5.11 or higher**. You'll need to bump it:"
+    },
+    {
+      "id": "provides-correct-groupid",
+      "text": "Response provides the tabletest dependency with groupId 'org.tabletest' (not guessed)",
+      "passed": true,
+      "evidence": "<groupId>org.tabletest</groupId>"
+    },
+    {
+      "id": "provides-artifactid",
+      "text": "Response includes 'tabletest-junit' as the artifactId",
+      "passed": true,
+      "evidence": "<artifactId>tabletest-junit</artifactId>"
+    },
+    {
+      "id": "includes-test-scope",
+      "text": "The suggested dependency includes <scope>test</scope>",
+      "passed": true,
+      "evidence": "<scope>test</scope>"
+    }
+  ],
+  "assertions_passed": 4,
+  "assertions_total": 4,
+  "pass_rate": 1
+}

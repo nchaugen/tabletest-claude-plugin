@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"\n    Scenario      | Input | Amount?\n    Typical value | 10.00 | 10.00\n    Minimum value | 0.01  | 0.01\n    \"\"\")"
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell in the valid inputs @TableTest table (not the string 'null', and not as a separate @Test method). The blank cell maps to a null parameter.",
+      "passed": false,
+      "evidence": "@Test\nvoid returnsNullForNullInput() {\n    assertNull(parse(null));\n} — null is handled as a separate @Test method, not as a blank cell in the @TableTest table"
+    },
+    {
+      "id": "exception-has-expected-column",
+      "text": "The exception/invalid-input table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row — rather than hardcoding the exception type in @Description or the method name.",
+      "passed": false,
+      "evidence": "The rejection table only has columns \"Scenario | Input\" with no exception column; the exception type is hardcoded in the method body: \"assertThrows(IllegalArgumentException.class, () -> parse(input))\""
+    },
+    {
+      "id": "exception-cases-handled",
+      "text": "The exception cases (empty string, letters-only, negative) are handled — via a Throws? column, assertThrows in the method body, or a separate @TableTest — not silently omitted",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"\n    Scenario       | Input\n    Empty string   | ''\n    Letters only   | abc\n    Negative value | -5.00\n    \"\"\") ... assertThrows(IllegalArgumentException.class, () -> parse(input));"
+    },
+    {
+      "id": "result-column-with-question-mark",
+      "text": "Valid inputs have a result column name ending with '?' (e.g. 'Money?' or 'Result?')",
+      "passed": true,
+      "evidence": "Scenario      | Input | Amount?"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "All three method bodies — parsesValidInput, returnsNullForNullInput, rejectsInvalidInput — contain no if or switch statements; they use assertThat, assertNull, and assertThrows respectively."
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'moneyParsing' → 'Money Parsing'). Not a generic name like 'test1' or 'testMethod'.",
+      "passed": true,
+      "evidence": "Method names: parsesValidInput, returnsNullForNullInput, rejectsInvalidInput — all read as clear descriptive titles when converted from camelCase."
+    },
+    {
+      "id": "description-adds-information",
+      "text": "@Description is present and provides context beyond what the table rows already express — such as the expected currency format, or open questions. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": false,
+      "evidence": "@Description(\"Valid decimal strings are parsed into Money objects with the correct amount\") and @Description(\"Malformed or negative inputs are rejected immediately\") — both descriptions merely summarize the test behavior visible from the rows and method names; neither mentions currency format, units, open questions, or other context not already evident from the table."
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "@Description(\"Valid decimal strings are parsed into Money objects with the correct amount\")\n@TableTest(\"\"\" — @Description appears before @TableTest; no @DisplayName is used."
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +.",
+      "passed": true,
+      "evidence": "Both @Description values are short single-line strings (\"Valid decimal strings are parsed into Money objects with the correct amount\" and \"Malformed or negative inputs are rejected immediately\"), so the text-block requirement for long text does not apply."
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 10,
+  "pass_rate": 0.7
+}

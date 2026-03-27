@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "produces-multiple-tables",
+      "text": "Output contains at least 2 separate markdown tables (not everything crammed into one table)",
+      "passed": true,
+      "evidence": "Response contains two separate markdown tables: '## Subscription Cancellation Refund' and '## Trial Lifecycle'"
+    },
+    {
+      "id": "tables-have-distinct-concerns",
+      "text": "The tables cover distinct concerns — e.g. pricing/plans is separate from cancellation/refund rules",
+      "passed": true,
+      "evidence": "Intro states: 'Two distinct concerns here: whether a refund is given and how much (driven by proration and the 24h exception), and what happens during the trial period. I'll spec them as separate tables'"
+    },
+    {
+      "id": "output-columns-have-question-marks",
+      "text": "At least one output column in each table ends with '?'",
+      "passed": true,
+      "evidence": "Table 1 contains 'Refund given?' and 'Refund amount?' columns; Table 2 contains 'Charged?' and 'Refund?' columns, all ending with '?'"
+    },
+    {
+      "id": "refund-exception-covered",
+      "text": "The 24-hour no-refund exception is included as a distinct scenario row",
+      "passed": true,
+      "evidence": "Table 1 row 3: 'Cancel within 24h of monthly renewal | Monthly | yes | 29 | 30 | no | £0.00' and row 6: 'Cancel within 24h of annual renewal | Annual | yes | 364 | 365 | no | £0.00'"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language — no implementation terms like 'boolean', 'int', 'isProrated', camelCase identifiers",
+      "passed": true,
+      "evidence": "All column names use plain English: 'Scenario', 'Plan', 'Days remaining in cycle', 'Cycle length (days)', 'Refund given?', 'Refund amount?', 'Days since sign-up', 'Action', 'Charged?', 'Refund?' — no camelCase or technical identifiers"
+    },
+    {
+      "id": "trial-cancellation-row",
+      "text": "Includes a row or scenario for cancelling during the free trial — no charge was made, so no refund applies. This case should be explicit, not omitted.",
+      "passed": true,
+      "evidence": "Table 2 row 1: 'Cancel early in trial | 5 | Cancel | (none) | no | £0.00' and row 2: 'Cancel before trial expires | 28 | Cancel | (none) | no | £0.00'"
+    },
+    {
+      "id": "prorated-refund-formula",
+      "text": "The prorated refund calculation is shown or explained — e.g. days remaining × daily rate, or an equivalent formula. Not just 'prorated refund' without showing how.",
+      "passed": true,
+      "evidence": "Below Table 1: 'Refund formula: `days remaining × (plan price / cycle length)` — e.g. `20 × (£9.99 / 30) = £6.66`.'"
+    },
+    {
+      "id": "24h-boundary-near-boundary",
+      "text": "The 24-hour no-refund window is tested near the boundary (e.g. values at or close to 23h, 24h, 25h) — not just 'within 24h' vs 'well after renewal'.",
+      "passed": false,
+      "evidence": "Table 1 shows 'Cancel within 24h of monthly renewal' (row 3, value 'yes') and 'Cancel exactly 24h after monthly renewal' (row 4, value 'at boundary'), but no explicit distinct test rows for specific hour values like 23h or 25h near the 24h boundary as the assertion requires"
+    },
+    {
+      "id": "eligibility-separate-from-amount",
+      "text": "Refund eligibility (yes/no, based on 24h rule and trial status) and refund amount (prorated calculation) are in separate tables — not mixed into one table. This separation makes each concern independently reviewable.",
+      "passed": false,
+      "evidence": "Table 1 'Subscription Cancellation Refund' contains both 'Refund given?' (eligibility) and 'Refund amount?' (amount calculation) in the same table, not separated into distinct tables"
+    },
+    {
+      "id": "question-mark-only-on-outputs",
+      "text": "The '?' suffix is only used on output/expected columns (e.g. 'Refund Eligible?', 'Refund Amount?') — not on input columns like plan type, loyalty status, or yes/no flags. Input columns should not have '?' suffixes.",
+      "passed": false,
+      "evidence": "Table 1 column header 'Within 24h of renewal?' is an input condition describing the scenario state (like 'Plan' and 'Days remaining'), yet it has a '?' suffix; per the assertion rule, only output columns like 'Refund given?' and 'Refund amount?' should have '?'"
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 10,
+  "pass_rate": 0.7
+}

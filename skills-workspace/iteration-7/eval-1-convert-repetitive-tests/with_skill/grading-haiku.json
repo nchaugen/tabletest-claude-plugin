@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\" appears at the start of the method"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Discount?' or 'Expected?')",
+      "passed": true,
+      "evidence": "Column header 'Discount?' is present in the table"
+    },
+    {
+      "id": "has-three-data-rows",
+      "text": "Table has exactly 3 data rows (GOLD, SILVER, BRONZE)",
+      "passed": true,
+      "evidence": "Three data rows present: 'Gold customer | GOLD | 20', 'Silver customer | SILVER | 10', 'Bronze customer | BRONZE | 0'"
+    },
+    {
+      "id": "single-assertion-in-method",
+      "text": "Test method body contains only one assertEquals (or equivalent assertion) — not three",
+      "passed": true,
+      "evidence": "Method body contains only: assertEquals(discount, discountService.calculate(customerTier, 100));"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "Method body is a single assertEquals statement with no conditional logic"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Leftmost column header is 'Scenario' with values 'Gold customer', 'Silver customer', 'Bronze customer'"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case",
+      "passed": true,
+      "evidence": "Method name 'calculatesDiscountByTier' converts to 'Calculates Discount By Tier', a clear descriptive title"
+    },
+    {
+      "id": "description-adds-information",
+      "text": "@Description is present and provides context beyond what the table rows already express",
+      "passed": false,
+      "evidence": "No @Description annotation is present in the output"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order",
+      "passed": true,
+      "evidence": "Only @TableTest is present; no @DisplayName or @Description, so the ordering rule is satisfied"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +",
+      "passed": false,
+      "evidence": "No @Description annotation is present in the output"
+    }
+  ],
+  "assertions_passed": 8,
+  "assertions_total": 10,
+  "pass_rate": 0.8
+}

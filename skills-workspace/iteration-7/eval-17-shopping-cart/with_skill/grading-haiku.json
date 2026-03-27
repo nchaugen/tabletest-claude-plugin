@@ -1,0 +1,85 @@
+{
+  "assertions": [
+    {
+      "id": "4.1-decomposition-items-separate-from-coupons",
+      "text": "Item operations (add/remove) are in a separate table from coupon validation. Not interleaved in one table.",
+      "passed": true,
+      "evidence": "The response has two distinct sections: '## Cart Item Operations' table with rows for add/remove actions, and '## Coupon Application' table with rows for coupon code entry. They are not interleaved."
+    },
+    {
+      "id": "4.3-rows-independently-executable",
+      "text": "Each table row is independently executable — no row depends on a prior row's result. The table expresses rules, not a sequential test script.",
+      "passed": true,
+      "evidence": "Each row in all four tables specifies its own precondition state (e.g., Cart before, Existing coupon, Items in cart, Cart contents). For example, 'Add item to empty cart' starts with [], 'Add different item' starts with [1× Gadget]. Rows can be run in any order."
+    },
+    {
+      "id": "4.4-depth-item-operations",
+      "text": "Item operations covered: add to empty cart, add different product, add more of same, remove product, remove unknown product, remove last item.",
+      "passed": true,
+      "evidence": "Cart Item Operations table contains all six: row 1 'Add item to empty cart', row 2 'Add different item', row 3 'Add more of existing item', row 4 'Remove one item from multi-item cart', row 5 'Remove last item', row 6 'Remove item not in cart'."
+    },
+    {
+      "id": "4.5-depth-coupon-variations",
+      "text": "Coupon variations covered: valid percentage, valid fixed amount, product-specific, expired, unknown code, replace existing coupon.",
+      "passed": true,
+      "evidence": "Coupon Application table includes: row 1 'Apply first coupon — percentage' (valid 10%), row 2 'fixed amount' (valid £5.00), row 3 'product-specific' (valid £2.00 off Widget), rows 5 & 7 'expired', rows 6 & 8 'unknown code', row 4 'Replace existing coupon with new valid code'."
+    },
+    {
+      "id": "4.6-depth-coupon-exceeds-total",
+      "text": "A scenario where the coupon discount exceeds the cart total — total floors at zero.",
+      "passed": true,
+      "evidence": "Cart Total table row 6: 'Massive coupon — total floors at zero' with 1× Widget £5.00 and £50.00 coupon resulting in £0.00. Row 7: '100%' coupon on £5.00 cart also results in £0.00."
+    },
+    {
+      "id": "4.7-depth-checkout-edge-cases",
+      "text": "Checkout covers: sufficient stock, insufficient stock, and empty cart.",
+      "passed": true,
+      "evidence": "Checkout table includes: row 1 'Empty cart', row 2 'All items in stock' (sufficient), row 3 'Exactly enough stock' (sufficient), rows 4-6 show insufficient stock scenarios ('One item short', 'Item fully out of stock', 'Multiple items short')."
+    },
+    {
+      "id": "4.8-readability-business-language",
+      "text": "Column names use business/user-perspective language (e.g. 'Message?' not 'Result?', 'Coupon code' not 'input'). The table reads as a specification a product person could review.",
+      "passed": true,
+      "evidence": "Column names across tables use business language: 'Message?' (not 'Result'), 'Cart after?' (not 'state'), 'Code entered' (not 'input'), 'Code status', 'Coupon type', 'Outcome?' (not 'result'), 'Items in cart'. Terminology is user-centric throughout."
+    },
+    {
+      "id": "4.9-readability-test-data-visible",
+      "text": "Test data that affects the outcome — product prices, coupon rules (type, amount, expiry) — is visible in the table via columns, notes, or explicit setup, not silently hardcoded. The reader can trace how inputs lead to outputs.",
+      "passed": true,
+      "evidence": "Prices shown explicitly: 'add 2× Widget (£5.00)', '2× Widget £5.00, 1× Gadget £10.00'. Coupon types and values visible: '10% off cart', '£5.00 off cart', '£2.00 off Widget'. Cart Total calculations traceable: '2×5 + 1×10 = 20 − 5 = 15'. Stock levels shown in Checkout table."
+    },
+    {
+      "id": "4.10-depth-open-questions-surfaced",
+      "text": "At least one genuinely underspecified interaction is surfaced as an open question — such as: what happens to a product-specific coupon when that product is removed from the cart, or how does a percentage coupon interact with a product-specific discount. These are NOT stated in the requirements.",
+      "passed": true,
+      "evidence": "Response includes 'Summary of Open Questions' section with six questions including: 'Is a product coupon discount per unit or flat per line?' and 'Should a non-applicable product coupon surface a warning?' Plus inline: 'When a product-specific coupon is active but that product isn't in the cart, should the UI surface any message' — directly addresses underspecified coupon/cart interactions."
+    },
+    {
+      "id": "4.11-correctness-cart-totals",
+      "text": "Cart totals are arithmetically correct: sum(quantity × price) − coupon = total, for every row in the total calculation table.",
+      "passed": true,
+      "evidence": "Verifying Cart Total rows: row 1: 2×5+1×10=20, coupon 0, total 20 ✓; row 2: 20 − 10%=18 ✓; row 3: 20−5=15 ✓; row 4: 20−(2×2)=16 ✓; row 5: 10−0=10 ✓; row 6: 5−50=0 (floored) ✓; row 7: 5−100%=0 ✓. All correct."
+    },
+    {
+      "id": "4.12-coupon-expiry-column",
+      "text": "Coupon table uses a column to signal expiry status — either an 'Expired?' yes/no column, an expiry date column, or equivalent. Expiry is visible per row, not just implied by the scenario name.",
+      "passed": true,
+      "evidence": "Coupon Application table includes 'Code status' column with explicit values: 'valid', 'expired', 'not found'. For example, row 5 has Code status 'expired' and row 7 also shows 'expired' — visible per row, not inferred from scenario names alone."
+    },
+    {
+      "id": "4.13-coupon-cart-contents-column",
+      "text": "Coupon table includes a cart contents column (or 'Applies to' / 'Product in cart?' column) so the reader can see whether a product-specific coupon's target is actually in the cart. The product discount applied/not-applied distinction is driven by visible data, not just the scenario name.",
+      "passed": false,
+      "evidence": "Coupon Application table columns are: Scenario, Existing coupon, Code entered, Code status, Coupon type, Message?, Active coupon after? — it lacks a cart contents or 'Product in cart?' column. While Cart Total table rows 4-5 do show this distinction with visible items, the Coupon Application table itself does not include the necessary column to determine whether a product-specific coupon applies based on cart contents."
+    },
+    {
+      "id": "4.14-coupon-before-after-columns",
+      "text": "Coupon entry scenarios use before/after columns (e.g. 'Coupon before' / 'Coupon after?' or 'Active coupon' / 'Active coupon after?') to specify the state change when entering, replacing, or entering invalid coupon codes.",
+      "passed": true,
+      "evidence": "Coupon Application table uses 'Existing coupon' (before) and 'Active coupon after?' (after) columns. Row 4: 'SAVE10' → 'SAVE15' shows replacement. Row 7: 'SAVE10' → 'SAVE10' shows failed entry leaves existing coupon intact. State changes are explicit per row."
+    }
+  ],
+  "assertions_passed": 12,
+  "assertions_total": 13,
+  "pass_rate": 0.9230769230769231
+}

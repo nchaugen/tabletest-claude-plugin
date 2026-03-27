@@ -1,0 +1,43 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "| Scenario | Shipping Method | Destination | Order Value | Cost? |\n|---|---|---|---|---|\n| Standard — always flat rate | Standard | {UK, Ireland, France} | {£25, £75} | £3.99 |"
+    },
+    {
+      "id": "express-split-by-uk-free-tier",
+      "text": "Express shipping is split into at least two cases distinguishing the UK free tier (UK, order £50+, free) from the paid tier. The split is driven by the UK-only free threshold rule.",
+      "passed": true,
+      "evidence": "| Express at threshold — UK | Express | UK | £50.00 | £0.00 | and | Express at or over threshold — non-UK | Express | {Ireland, France} | {£50, £75} | £9.99 |"
+    },
+    {
+      "id": "express-uses-value-sets",
+      "text": "Express rows use value sets to consolidate cases with the same outcome — e.g. non-UK destinations at/above threshold in one row (such as {Ireland, Other} or {Ireland, International}), or UK at/above threshold in one row ({£50, £75}). Not enumerated as separate rows per destination or per order value when the result is identical. Any reasonable label for non-UK/Ireland destinations is acceptable (International, Other, Rest of World, etc.).",
+      "passed": true,
+      "evidence": "| Express at or over threshold — non-UK | Express | {Ireland, France} | {£50, £75} | £9.99 | — non-UK destinations at/above threshold consolidated into one row with value sets for both destination and order value."
+    },
+    {
+      "id": "overnight-grouped",
+      "text": "Overnight UK and Ireland are in one row using a value set ({UK, Ireland}) — not separate rows, since both have the same cost and availability.",
+      "passed": false,
+      "evidence": "| Overnight — UK | Overnight | UK | {£25, £75} | £14.99 | and | Overnight — Ireland | Overnight | Ireland | {£25, £75} | £14.99 | — these are two separate rows rather than a single row with {UK, Ireland}."
+    },
+    {
+      "id": "standard-destination-value-set-or-blank",
+      "text": "Standard shipping destination uses a value set covering all options (e.g. {UK, Ireland, International} or {UK, Ireland, Other}) or is blank/absent — either approach is valid since destination is irrelevant to the cost. Any reasonable label for non-UK/Ireland destinations is acceptable.",
+      "passed": true,
+      "evidence": "| Standard — always flat rate | Standard | {UK, Ireland, France} | {£25, £75} | £3.99 | — uses a value set {UK, Ireland, France} covering all destination options in one row."
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "| Scenario | Shipping Method | Destination | Order Value | Cost? | — the 'Cost?' column header ends with a question mark."
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 6,
+  "pass_rate": 0.8333333333333334
+}

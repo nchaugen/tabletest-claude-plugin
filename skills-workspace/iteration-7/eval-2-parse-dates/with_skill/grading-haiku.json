@@ -1,0 +1,61 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\" ... \"\"\")"
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell (not the string 'null') in the table",
+      "passed": true,
+      "evidence": "Null input    |             | (blank cell for null input, not the string 'null')"
+    },
+    {
+      "id": "exception-handled-cleanly",
+      "text": "The empty string / exception case is handled — either via a Throws? column, assertThrows inside the method, or a separate @TableTest — rather than being silently omitted",
+      "passed": true,
+      "evidence": "assertThrows(IllegalArgumentException.class, () -> dateParser.parseDate(input)); in a separate @TableTest for the empty string case"
+    },
+    {
+      "id": "localdate-result-column",
+      "text": "There is a result column typed as LocalDate (or using a string representation that maps to LocalDate)",
+      "passed": true,
+      "evidence": "void parsesValidInputs(String input, LocalDate expected) with Result? column containing ISO date strings like 2024-01-15"
+    },
+    {
+      "id": "type-conversion-addressed",
+      "text": "The response addresses type conversion for non-standard date formats (slash format, short year) — mentions @TypeConverter or a converter method",
+      "passed": false,
+      "evidence": "No `@TypeConverter` needed: The `Input` column is `String` (no conversion needed)...The response explicitly states @TypeConverter is not needed but does not mention @TypeConverter or any converter method that handles the slash format (15/01/2024) and short year (24-01-15) conversions."
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'dateParsing' → 'Date Parsing'). Not a generic name like 'test1' or 'testMethod'.",
+      "passed": true,
+      "evidence": "void parsesValidInputs(...) and void throwsOnEmptyInput(...) are descriptive method names that read as 'Parses Valid Inputs' and 'Throws On Empty Input'"
+    },
+    {
+      "id": "description-adds-information",
+      "text": "@Description is present and provides context beyond what the table rows already express — such as supported date formats, where/when the rule applies, or open questions. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": true,
+      "evidence": "@Description(\"Parses multiple date string formats; null input returns null\") and @Description(\"Empty string is rejected as malformed input — distinct from null, which means 'not provided'\") both provide context about intent and the distinction between null and empty string"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": false,
+      "evidence": "@TableTest(\"\"\"...\"\"\")\n@Description(\"Parses multiple...\")\nvoid parsesValidInputs(...) — @TableTest appears before @Description, but the assertion requires @Description before @TableTest"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +.",
+      "passed": true,
+      "evidence": "@Description(\"Parses multiple date string formats; null input returns null\") and @Description(\"Empty string is rejected as malformed input — distinct from null, which means 'not provided'\") use plain string literals without + concatenation, and the descriptions are concise enough not to require text blocks"
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 9,
+  "pass_rate": 0.7777777777777778
+}

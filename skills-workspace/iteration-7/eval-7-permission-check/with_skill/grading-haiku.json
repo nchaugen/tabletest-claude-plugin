@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"..."
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "Table uses value-set syntax (curly braces like {READ, WRITE} or {READ, WRITE, DELETE}) to express rules that hold across multiple actions — rather than one row per role/action combination",
+      "passed": true,
+      "evidence": "ADMIN | {READ, WRITE, DELETE} | true and GUEST | {WRITE, DELETE} | false"
+    },
+    {
+      "id": "fewer-than-nine-rows",
+      "text": "Table has fewer than 9 data rows (i.e. does not enumerate every role/action combination individually)",
+      "passed": true,
+      "evidence": "Table contains 6 data rows: ADMIN, USER READ, USER WRITE, USER DELETE, GUEST READ, GUEST WRITE/DELETE"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "assertEquals(canPerform, permissions.canPerform(role, action));"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Scenario | Role | Action | Can perform?"
+    },
+    {
+      "id": "no-duplicate-role-output",
+      "text": "No two rows share both the same Role value and the same boolean output — forces value set consolidation (e.g. USER can READ and USER can WRITE, both true, should be one row with {READ, WRITE}).",
+      "passed": false,
+      "evidence": "USER can read | USER | READ | true and USER can write | USER | WRITE | true both have Role=USER and output=true"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'permissionsByRoleAndAction' → 'Permissions By Role And Action'). Not a generic name like 'test1' or 'canPerform'.",
+      "passed": true,
+      "evidence": "void permissionCheck(Role role, Action action, boolean canPerform)"
+    },
+    {
+      "id": "description-adds-information",
+      "text": "@Description is present and provides context beyond what the table rows already express — such as where permissions are checked in the request lifecycle, or open questions. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": false,
+      "evidence": "No @Description annotation is present in the code; only @TableTest is present"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "@TableTest is the only annotation present; no ordering violations"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +.",
+      "passed": false,
+      "evidence": "No @Description annotation is present in the code"
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 10,
+  "pass_rate": 0.7
+}

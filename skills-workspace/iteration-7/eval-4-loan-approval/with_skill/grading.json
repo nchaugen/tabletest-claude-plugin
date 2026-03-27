@@ -1,0 +1,49 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table (using | column | syntax)",
+      "passed": true,
+      "evidence": "| Scenario | Applicant Age | Credit Score | Income Status | Min Score (Policy) | Approved? | Rejection Reason? |"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column name ends with '?' (e.g. 'Eligible?' or 'Approved?')",
+      "passed": true,
+      "evidence": "| Scenario | Applicant Age | Credit Score | Income Status | Min Score (Policy) | Approved? | Rejection Reason? |"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language — no implementation terms like 'creditScore', 'isEligible', 'boolean', 'int'",
+      "passed": true,
+      "evidence": "| Scenario | Applicant Age | Credit Score | Income Status | Min Score (Policy) | Approved? | Rejection Reason? | — all column names use plain business/domain language with no camelCase or type terms"
+    },
+    {
+      "id": "senior-threshold-row",
+      "text": "Table includes at least one row specifically for the senior applicant (65+) threshold scenario",
+      "passed": true,
+      "evidence": "| Senior: score at senior threshold | 65 | 600 | Stable | 600 | **?** | Same ambiguity — ≥600 or >600? |"
+    },
+    {
+      "id": "missing-income-marked-open",
+      "text": "The missing income scenario is represented — either as a row with an open/uncertain expected value (?, TBD, or blank) or as an explicit open question note",
+      "passed": true,
+      "evidence": "| Missing income information | 40 | 700 | Unknown | 650 | **?** | Open — see below |"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('Senior applicant at threshold') not outcomes ('Approved')",
+      "passed": true,
+      "evidence": "Scenario names such as 'Credit score just above standard threshold', 'Senior: score that would fail standard rule', 'Just below senior age, mid-range score', and 'Missing income information' all describe conditions rather than outcomes."
+    },
+    {
+      "id": "threshold-values-visible",
+      "text": "The policy thresholds (650 for standard, 600 for senior) appear as concrete values in the Credit Score column — not just described in prose. The reader can see the boundary values in the table rows.",
+      "passed": true,
+      "evidence": "| Credit score at standard threshold | 40 | 650 | Stable | 650 | **?** | ... | and | Senior: score at senior threshold | 65 | 600 | Stable | 600 | **?** | ..."
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 7,
+  "pass_rate": 1
+}

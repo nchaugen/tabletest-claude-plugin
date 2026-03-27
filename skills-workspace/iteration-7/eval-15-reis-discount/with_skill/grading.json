@@ -1,0 +1,85 @@
+{
+  "assertions": [
+    {
+      "id": "2.1-decomposition-concern-separation",
+      "text": "Discount ladder, and traveller eligibility are in separate tables. Rolling window counting as a third table is desirable.",
+      "passed": false,
+      "evidence": "The response produces two tables: one for children's flat discount and one for the adult/senior tier ladder. There is no eligibility table separating who qualifies for what (children vs adults/seniors vs seniors). Eligibility is implicitly embedded in the table structure by having separate tables per type, not as a dedicated concern. No rolling window table is present."
+    },
+    {
+      "id": "2.2-children-flat-discount",
+      "text": "Children's flat 20% discount is represented — either as a row in the eligibility table or a separate note. It does not follow the ladder.",
+      "passed": true,
+      "evidence": "A dedicated table `childDiscountIsAlwaysFlat20Percent` shows `Child, flat rate regardless | {0, 5, 20, 40} | 20`, clearly representing the flat 20% and noting it is 'regardless' of trip count. The @Description states 'Children always receive a flat 20% discount on single tickets, regardless of how many tickets they have purchased recently.'"
+    },
+    {
+      "id": "2.3-depth-tier-boundaries",
+      "text": "The discount ladder has multiple tiers derived from the 'every fifth trip' rule, with boundary values or value sets showing which ticket counts produce which discount. The maximum 40% discount is represented.",
+      "passed": true,
+      "evidence": "The ladder table includes rows at 0, 4, 5, 9, 10, 15, 20, 39, 40, 50 mapping to 0%, 0%, 5%, 5%, 10%, 15%, 20%, 35%, 40%, 40% respectively, covering multiple tiers and the maximum 40% cap."
+    },
+    {
+      "id": "2.4-depth-rolling-window-boundary",
+      "text": "The 30-day rolling window boundary is tested: a ticket at exactly 30 days is included, at 31 days is excluded.",
+      "passed": false,
+      "evidence": "The response does not include any table or test rows for the 30-day rolling window boundary. The spec ambiguity note only discusses whether the current ticket is included in the count, not the 30-day cutoff boundary."
+    },
+    {
+      "id": "2.6-readability-human-readable-values",
+      "text": "Eligibility uses human-readable values (yes/no or equivalent) rather than raw true/false. TypeConverter or similar mechanism mentioned.",
+      "passed": false,
+      "evidence": "No eligibility table with yes/no values is present. The tables use numeric discount percentages and CustomerType enum values. No TypeConverter or human-readable eligibility conversion is mentioned."
+    },
+    {
+      "id": "2.9-correctness-value-set-tier-semantics",
+      "text": "Value sets in the tier table contain exactly the values that produce the same discount. No cross-tier contamination.",
+      "passed": true,
+      "evidence": "In the child table, `{0, 5, 20, 40}` all map to 20% which is correct. In the adult/senior table, `{ADULT, SENIOR}` is used for customer type (not ticket count), and individual ticket count rows are separate — no value set spans multiple discount tiers."
+    },
+    {
+      "id": "2.15-ticket-count-uses-value-sets",
+      "text": "The discount ladder table uses value sets for the ticket count column to group counts within the same tier (e.g. {5, 6, 7, 8, 9} or {5, 9} for min/max → 5%) — not one row per boundary value. The 'every fifth trip' rule creates tiers; the table should express tiers, not enumerate boundaries.",
+      "passed": false,
+      "evidence": "The adult/senior table uses individual boundary rows (4, 5, 9, 10, 15, 20, 39, 40, 50) rather than value sets grouping each tier. For example, tier 1 (5%) is represented by two separate rows `| 5 | 5` and `| 9 | 5` instead of `| {5, 9} | 5`."
+    },
+    {
+      "id": "2.16-no-duplicate-tier-mapping",
+      "text": "The tier-to-discount mapping is expressed once — not repeated across multiple tables. A price application table (if present) should test the arithmetic (base price × discount → final price) without re-enumerating which ticket counts map to which tier.",
+      "passed": true,
+      "evidence": "The tier-to-discount mapping appears in only one table (`adultAndSeniorAccumulateReisDiscountByTripFrequency`). There is no second table that re-enumerates the same tier mappings, and no price application table is present."
+    },
+    {
+      "id": "2.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "`@DisplayName(\"Reis single-ticket discount\")` is present on the class. Method names `childDiscountIsAlwaysFlat20Percent` and `adultAndSeniorAccumulateReisDiscountByTripFrequency` read as clear descriptive titles in camelCase."
+    },
+    {
+      "id": "2.11-format-description",
+      "text": "@Description is present on at least the class or the tier method and provides context beyond what the table rows already express — such as the discount ladder structure, eligibility rules, or application context. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": true,
+      "evidence": "Both methods have @Description. The tier method's description explains the business rule: 'Every 5 trips moves one step up the discount ladder (+5%). The first discount applies at the 5th trip; the maximum of 40% is reached at 40 trips and is never exceeded.' This contextualizes the ladder structure beyond what the rows express."
+    },
+    {
+      "id": "2.12-format-typeconverter",
+      "text": "TypeConverterSources is used for at least one human-readable conversion (yes/no, or rolling window notation).",
+      "passed": false,
+      "evidence": "No TypeConverterSources annotation or TypeConverter is present anywhere in the response. All values use numeric and enum types directly."
+    },
+    {
+      "id": "2.13-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "On the class: `@DisplayName` appears before the class declaration. On each method: `@Description` appears before `@TableTest`. The order `@Description` then `@TableTest` is followed consistently for both test methods."
+    },
+    {
+      "id": "2.14-format-description-textblock",
+      "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +.",
+      "passed": false,
+      "evidence": "Both @Description annotations use string concatenation with `+`: `@Description(\"Children always receive...\" + \"regardless of how many...\")` and the tier method similarly uses `+ \"in the last 30 days...\"` etc. — not triple-quoted text blocks."
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 13,
+  "pass_rate": 0.5384615384615384
+}
