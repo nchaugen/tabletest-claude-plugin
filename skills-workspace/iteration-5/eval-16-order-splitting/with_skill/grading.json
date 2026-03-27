@@ -1,0 +1,85 @@
+{
+  "assertions": [
+    {
+      "id": "3.1-decomposition-concern-separation",
+      "text": "Trigger detection, shipment optimisation, and companion constraint are in separate tables. Not one monolithic table.",
+      "passed": true,
+      "evidence": "Three distinct tables are present: 'Order Split Triggers', 'Warehouse Selection (Minimising Shipments)', and 'Companion Product Constraint'."
+    },
+    {
+      "id": "3.2-decomposition-trigger-interactions",
+      "text": "At least one row where multiple triggers fire simultaneously (e.g. mixed fulfilment AND mixed stock status).",
+      "passed": true,
+      "evidence": "Row: 'Pickup + pre-order alongside in-stock delivery | pickup + delivery | in-stock + pre-order | 1 | ? | Open — does pickup+preorder compound the split count?'"
+    },
+    {
+      "id": "3.3-depth-all-four-triggers",
+      "text": "All four split triggers are covered: mixed fulfilment, mixed stock status, no single warehouse has all items, different addresses.",
+      "passed": true,
+      "evidence": "Mixed fulfilment: 'Store pickup mixed with home delivery'; mixed stock status: 'In-stock and pre-order, same fulfillment'; no single warehouse: covered in Warehouse Selection table with rows like 'No single warehouse sufficient, two are'; different addresses: 'Two delivery addresses' and 'Three delivery addresses'."
+    },
+    {
+      "id": "3.4-depth-companion-ambiguity-surfaced",
+      "text": "The 'no warehouse has both companions' case is flagged as an open question or product decision, not silently resolved as either 'error' or 'ship separately'. The requirement does NOT hint at this — the agent must recognise the ambiguity unprompted.",
+      "passed": true,
+      "evidence": "Row: 'Companions split across warehouses — no single location has both | Camera body + Kit lens | companions | body only | lens only | ? | Open — backorder until co-located? Block order? Surface to customer?' and item 5 in the open questions list: 'Companions with no shared location — this is the most consequential open question.'"
+    },
+    {
+      "id": "3.5-depth-companion-edge-cases",
+      "text": "Companion constraint covers at least: companions at same location, companions split from non-companion items, and the ambiguous case (no location has both).",
+      "passed": true,
+      "evidence": "Same location: 'Companions at same warehouse'; split from non-companion: 'Companion + standalone, companion at A, standalone at B'; ambiguous case: 'Companions split across warehouses — no single location has both'."
+    },
+    {
+      "id": "3.6-readability-scenario-names",
+      "text": "Optimisation scenarios describe the business situation (e.g. 'Consolidate: two beats three', 'Everything at one warehouse') — not 'Test case 2'.",
+      "passed": true,
+      "evidence": "Scenario names include: 'One warehouse has all stock', 'No single warehouse sufficient, two are', 'Three-warehouse combo avoidable by two', 'Total stock insufficient' — all descriptive business situations."
+    },
+    {
+      "id": "3.7-readability-set-notation",
+      "text": "Trigger table uses set notation ({delivery, pickup}) for closed enumerations rather than prose or lists.",
+      "passed": false,
+      "evidence": "The trigger table uses prose like 'all delivery', 'all store pickup', 'store pickup + delivery' rather than set notation such as {delivery} or {delivery, pickup}."
+    },
+    {
+      "id": "3.8-readability-scalar-column",
+      "text": "Optimisation table uses a scalar count column (e.g. 'Shirts ordered') not item lists, when product identity doesn't matter for the logic.",
+      "passed": true,
+      "evidence": "The Warehouse Selection table uses 'Qty needed' as a scalar count column (values: 6) alongside numeric stock columns 'Warehouse A stock', 'Warehouse B stock', 'Warehouse C stock'."
+    },
+    {
+      "id": "3.9-correctness-valid-assignments",
+      "text": "Inventory assignments are physically valid: items are only assigned to locations that have them. Shipment counts match the assignments shown.",
+      "passed": true,
+      "evidence": "Row 'No single warehouse sufficient, two are': Qty 6, A=4, B=3, C=2, ships A(4)+B(2)=6, shipments=2. Row 'Three warehouses required': Qty 6, A=2, B=2, C=2, ships A(2)+B(2)+C(2)=6, shipments=3. All assignments respect stated stock levels."
+    },
+    {
+      "id": "3.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": false,
+      "evidence": "The response contains no Java/Kotlin code at all — no test methods, no annotations, no @DisplayName. The response is entirely in table/prose format."
+    },
+    {
+      "id": "3.11-format-description",
+      "text": "@Description is present on at least the class and provides context beyond what the table rows already express — such as the splitting rules, constraints, or application context. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": false,
+      "evidence": "The response contains no Java/Kotlin code at all — no @Description annotation is present anywhere in the response."
+    },
+    {
+      "id": "3.12-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": false,
+      "evidence": "The response contains no Java/Kotlin code and no annotations of any kind."
+    },
+    {
+      "id": "3.13-format-description-textblock",
+      "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +.",
+      "passed": false,
+      "evidence": "The response contains no Java/Kotlin code and no @Description annotation, so no text block usage can be assessed."
+    }
+  ],
+  "assertions_passed": 8,
+  "assertions_total": 13,
+  "pass_rate": 0.6153846153846154
+}

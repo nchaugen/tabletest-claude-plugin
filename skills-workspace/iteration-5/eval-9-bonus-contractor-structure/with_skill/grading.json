@@ -1,0 +1,55 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\")"
+    },
+    {
+      "id": "contractor-uses-value-set",
+      "text": "CONTRACTOR row uses a value set for Department (e.g. {SALES, ENGINEERING}) to express 'regardless of department' — not a dummy placeholder like 'ANY' or 'N/A', and not enumerated as separate rows.",
+      "passed": true,
+      "evidence": "Contractor regardless of dept | CONTRACTOR | {SALES, ENGINEERING} | 100000.00 | 0.00"
+    },
+    {
+      "id": "four-core-rules-covered",
+      "text": "The four level×department combinations (SENIOR+SALES, SENIOR+ENGINEERING, JUNIOR+SALES, JUNIOR+ENGINEERING) are all present in the table(s)",
+      "passed": true,
+      "evidence": "Senior in Sales | SENIOR | SALES ...; Senior in Engineering | SENIOR | ENGINEERING ...; Junior in Sales | JUNIOR | SALES ...; Junior in Engineering | JUNIOR | ENGINEERING ..."
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "void shouldCalculateBonus(Level level, Department department, double salary, double expectedBonus) { Employee employee = new Employee(level, department, salary); assertThat(calculator.calculateBonus(employee)).isEqualTo(expectedBonus); } — no if or switch present"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case",
+      "passed": true,
+      "evidence": "void shouldCalculateBonus(...) — reads as 'Should Calculate Bonus', which is a clear, descriptive title"
+    },
+    {
+      "id": "description-adds-information",
+      "text": "@Description is present and provides context beyond what the table rows already express — such as how bonus rates are applied (e.g. as percentage of base salary), or open questions.",
+      "passed": true,
+      "evidence": "@Description(\"Bonus rates: SENIOR 15% Sales / 12% Engineering; JUNIOR 8% Sales / 5% Engineering; CONTRACTOR always 0% regardless of department\") — adds percentage rate context not present in the table rows"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": false,
+      "evidence": "@TableTest appears before @Description in the code: '@TableTest(\"\"\"...\"\"\") @Description(\"...\")' — @Description should come before @TableTest"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +.",
+      "passed": false,
+      "evidence": "@Description(\"Bonus rates: SENIOR 15% Sales / 12% Engineering; JUNIOR 8% Sales / 5% Engineering; CONTRACTOR always 0% regardless of department\") — uses a regular single-quoted string, not a text block"
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 8,
+  "pass_rate": 0.75
+}

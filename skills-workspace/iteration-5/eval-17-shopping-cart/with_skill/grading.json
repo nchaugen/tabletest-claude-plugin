@@ -1,0 +1,91 @@
+{
+  "assertions": [
+    {
+      "id": "4.1-decomposition-items-separate-from-coupons",
+      "text": "Item operations (add/remove) are in a separate table from coupon validation. Not interleaved in one table.",
+      "passed": true,
+      "evidence": "Table 1 is 'Cart Item Mutations' covering add/remove actions; Table 2 is 'Coupon Application' covering coupon validation. They are entirely separate tables with no interleaving."
+    },
+    {
+      "id": "4.3-rows-independently-executable",
+      "text": "Each table row is independently executable — no row depends on a prior row's result. The table expresses rules, not a sequential test script.",
+      "passed": true,
+      "evidence": "Each row in Table 1 has its own explicit 'Cart before' state (e.g., '[]', '[Widget x1]', '[Widget x1, Gadget x2]'), so no row relies on a prior row's outcome. Rows express independent rules."
+    },
+    {
+      "id": "4.4-depth-item-operations",
+      "text": "Item operations covered: add to empty cart, add different product, add more of same, remove product, remove unknown product, remove last item.",
+      "passed": true,
+      "evidence": "Row 1: 'Add first item to empty cart'; Row 2: 'Add distinct second item'; Row 6: 'Add item already in cart' (add more of same); Row 3: 'Remove one of several items'; Row 5: 'Remove item not in cart'; Row 4: 'Remove last item in cart'."
+    },
+    {
+      "id": "4.5-depth-coupon-variations",
+      "text": "Coupon variations covered: valid percentage, valid fixed amount, product-specific, expired, unknown code, replace existing coupon.",
+      "passed": true,
+      "evidence": "Table 2 rows: 'Percentage off whole cart' (valid %), 'Fixed amount off whole cart' (valid fixed), 'Product discount, product in cart' (product-specific), 'Expired coupon code', 'Non-existent coupon code', 'New coupon replaces existing one'."
+    },
+    {
+      "id": "4.6-depth-coupon-exceeds-total",
+      "text": "A scenario where the coupon discount exceeds the cart total — total floors at zero.",
+      "passed": true,
+      "evidence": "Table 3 row: 'Discount exceeds subtotal | £30 | £50 | £0' — explicitly shows £50 discount on £30 subtotal floors to £0."
+    },
+    {
+      "id": "4.7-depth-checkout-edge-cases",
+      "text": "Checkout covers: sufficient stock, insufficient stock, and empty cart.",
+      "passed": true,
+      "evidence": "Table 4: Row 1 'Empty cart → no'; Row 2 'All items within stock → yes'; Row 4 'One item short → no'; Row 5 'Item with zero stock → no'."
+    },
+    {
+      "id": "4.8-readability-business-language",
+      "text": "Column names use business/user-perspective language (e.g. 'Message?' not 'Result?', 'Coupon code' not 'input'). The table reads as a specification a product person could review.",
+      "passed": true,
+      "evidence": "Column names used: 'Message?', 'Cart before', 'Cart after?', 'Allowed?', 'Coupon type', 'Applies to', 'Discount?', 'Stock levels' — all business-friendly, no technical/input-output jargon."
+    },
+    {
+      "id": "4.9-readability-test-data-visible",
+      "text": "Test data that affects the outcome — product prices, coupon rules (type, amount, expiry) — is visible in the table via columns, @Description, or explicit setup, not silently hardcoded. The reader can trace how inputs lead to outputs.",
+      "passed": true,
+      "evidence": "Table 2 exposes 'Cart subtotal', 'Coupon value', 'Applies to', and 'Discount?' as explicit columns. Table 3 shows subtotals and discounts as data. All data needed to trace input-to-output is visible in the columns."
+    },
+    {
+      "id": "4.10-depth-open-questions-surfaced",
+      "text": "At least one genuinely underspecified interaction is surfaced as an open question — such as: what happens to a product-specific coupon when that product is removed from the cart, or how does a percentage coupon interact with a product-specific discount. These are NOT stated in the requirements.",
+      "passed": true,
+      "evidence": "Open question row 4 (Table 2): 'When a product-specific coupon is entered but that product isn't in the cart, do you apply no discount silently, or show an error?' This directly matches the example of a product-specific coupon interaction not stated in requirements."
+    },
+    {
+      "id": "4.11-correctness-cart-totals",
+      "text": "Cart totals are arithmetically correct: sum(quantity × price) − coupon = total, for every row in the total calculation table.",
+      "passed": true,
+      "evidence": "Table 3: £100−£30=£70 ✓; £50−£50=£0 ✓; £30−£50→£0 (floor rule) ✓; £75−£0=£75 ✓. Table 2 discounts: 10% of £100=£10 ✓; £15 off £80=£15 ✓; £20 off product ✓."
+    },
+    {
+      "id": "4.13-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": false,
+      "evidence": "The response contains no Java or Kotlin test code at all — only markdown specification tables. There are no test methods, no @DisplayName annotations, and no method names."
+    },
+    {
+      "id": "4.14-format-description",
+      "text": "@Description is present on at least the class and provides context beyond what the table rows already express — such as the cart model, state management approach, or application context. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": false,
+      "evidence": "No Java or Kotlin code was produced. There is no @Description annotation anywhere in the response."
+    },
+    {
+      "id": "4.15-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": false,
+      "evidence": "No code was produced in the response; no annotations of any kind appear."
+    },
+    {
+      "id": "4.16-format-description-textblock",
+      "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +.",
+      "passed": false,
+      "evidence": "No code was produced in the response; no @Description annotation or text block appears."
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 14,
+  "pass_rate": 0.7142857142857143
+}

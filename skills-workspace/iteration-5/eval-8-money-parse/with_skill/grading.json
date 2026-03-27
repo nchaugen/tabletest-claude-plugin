@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\""
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell in the valid inputs @TableTest table (not the string 'null', and not as a separate @Test method). The blank cell maps to a null parameter.",
+      "passed": true,
+      "evidence": "Null input     |       |  — blank Input and Money? cells, confirmed by note: 'Null input goes in the valid table with a blank Input cell and a blank Money? cell — both map to null'"
+    },
+    {
+      "id": "exception-has-expected-column",
+      "text": "The exception/invalid-input table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row — rather than hardcoding the exception type in @Description or the method name.",
+      "passed": true,
+      "evidence": "Scenario        | Input  | Exception? — column 'Exception?' present with per-row values 'java.lang.IllegalArgumentException'"
+    },
+    {
+      "id": "exception-cases-handled",
+      "text": "The exception cases (empty string, letters-only, negative) are handled — via a Throws? column, assertThrows in the method body, or a separate @TableTest — not silently omitted",
+      "passed": true,
+      "evidence": "Empty string | '' | java.lang.IllegalArgumentException; Letters only | abc | java.lang.IllegalArgumentException; Negative value | -5.00 | java.lang.IllegalArgumentException — all three cases present, assertThrows in method body"
+    },
+    {
+      "id": "result-column-with-question-mark",
+      "text": "Valid inputs have a result column name ending with '?' (e.g. 'Money?' or 'Result?')",
+      "passed": true,
+      "evidence": "Scenario       | Input | Money? — column header 'Money?' in the valid-inputs table"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "parse_valid_and_null body: assertEquals(expected, parse(input)); parse_invalid_inputs_throw body: assertThrows(expectedException, () -> parse(input)); — neither contains if or switch"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'moneyParsing' → 'Money Parsing'). Not a generic name like 'test1' or 'testMethod'.",
+      "passed": true,
+      "evidence": "Method names 'parse_valid_and_null' and 'parse_invalid_inputs_throw' are clearly descriptive"
+    },
+    {
+      "id": "description-adds-information",
+      "text": "@Description is present and provides context beyond what the table rows already express — such as the expected currency format, or open questions. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": false,
+      "evidence": "@Description(\"Valid string inputs produce a Money with the same value; null input returns null\") and @Description(\"Empty string, non-numeric input, and negative values are rejected\") — both merely summarise what the rows already show; no currency format details, no open questions, no context beyond the row data"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "@Description(...) appears immediately before @TableTest(...) in both methods; no @DisplayName present — correct order"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +.",
+      "passed": true,
+      "evidence": "Both @Description values are short single sentences ('Valid string inputs produce a Money with the same value; null input returns null' and 'Empty string, non-numeric input, and negative values are rejected') — neither is long, so the text-block requirement does not apply; no string concatenation with + is used"
+    }
+  ],
+  "assertions_passed": 9,
+  "assertions_total": 10,
+  "pass_rate": 0.9
+}

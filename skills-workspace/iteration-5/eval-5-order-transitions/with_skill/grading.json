@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains at least one markdown table",
+      "passed": true,
+      "evidence": "| Scenario | Current Status | Requested Status | Allowed? | Reason? |\n|---|---|---|---|---|\n| Standard order confirmation | PENDING | CONFIRMED | yes | |"
+    },
+    {
+      "id": "cancellation-coverage",
+      "text": "Table covers cancellation rules — includes rows for states where cancellation is allowed and where it is not",
+      "passed": true,
+      "evidence": "| Customer cancels before confirmation | PENDING | CANCELLED | yes | | ... | Customer cancels after confirmation | CONFIRMED | CANCELLED | yes | | ... | Cancellation attempt after dispatch | SHIPPED | CANCELLED | no | Already dispatched |"
+    },
+    {
+      "id": "return-window-addressed",
+      "text": "The 30-day return window rule is addressed — either as a threshold column, a separate table, or flagged as an open question",
+      "passed": true,
+      "evidence": "Table 2: Return Request Eligibility contains a 'Return Window (Policy)' column showing '30 days' for all rows, and rows such as '| Return on last day | DELIVERED | 30 | 30 days | yes |' and '| Return one day late | DELIVERED | 31 | 30 days | no | Return window expired |'"
+    },
+    {
+      "id": "value-set-or-multiple-states",
+      "text": "Uses value sets {PENDING, CONFIRMED} or equivalent to express 'regardless of which starting state' for cases where a rule holds across states",
+      "passed": true,
+      "evidence": "| Return attempted on non-delivered order | {PENDING, CONFIRMED, SHIPPED} | | 30 days | no | Order not yet delivered |"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Column headers include 'Allowed?' and 'Return Eligible?' and 'Reason?' — e.g., '| Scenario | Current Status | Requested Status | Allowed? | Reason? |'"
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1
+}

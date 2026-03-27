@@ -1,0 +1,73 @@
+{
+  "assertions": [
+    {
+      "id": "2.1-decomposition-concern-separation",
+      "text": "Discount ladder, and traveller eligibility are in separate tables. Rolling window counting as a third table is desirable.",
+      "passed": true,
+      "evidence": "Table 1: 'Discount Type by Passenger Category', Table 2: 'Reis Discount Ladder', Table 4: 'Discount Dynamics (Rolling 30-Day Window)' — three separate tables covering each concern."
+    },
+    {
+      "id": "2.2-children-flat-discount",
+      "text": "Children's flat 20% discount is represented — either as a row in the eligibility table or a separate note. It does not follow the ladder.",
+      "passed": true,
+      "evidence": "Table 1 row: 'Child single ticket | Child | Single | Flat 20%' and Table 3 row: 'Child flat discount | Child | 50 | 20% | 40'. The discount type 'Flat 20%' is explicitly distinguished from 'Reis (variable)'."
+    },
+    {
+      "id": "2.3-depth-tier-boundaries",
+      "text": "The discount ladder has multiple tiers derived from the 'every fifth trip' rule, with boundary values or value sets showing which ticket counts produce which discount. The maximum 40% discount is represented.",
+      "passed": true,
+      "evidence": "Table 2 shows tiers at trips 5, 10, 15, 20 with value sets '{1, 2, 3, 4}' and '{6, 7, 8, 9}', and '20 | 40%' with 'Maximum discount threshold'. The note states 'every fifth trip moves you one step higher' and '4 tiers (at 5, 10, 15, 20 trips)'."
+    },
+    {
+      "id": "2.4-depth-rolling-window-boundary",
+      "text": "The 30-day rolling window boundary is tested: a ticket at exactly 30 days is included, at 31 days is excluded.",
+      "passed": false,
+      "evidence": "Table 4 uses 'Days Active > 30' for all rows and discusses travel pattern changes over the window, but there is no row testing a ticket at exactly 30 days (included) versus 31 days (excluded). The boundary between day 30 and day 31 is never tested."
+    },
+    {
+      "id": "2.6-readability-human-readable-values",
+      "text": "Eligibility uses human-readable values (yes/no or equivalent) rather than raw true/false. TypeConverter or similar mechanism mentioned.",
+      "passed": false,
+      "evidence": "TypeConverter is not mentioned anywhere in the response. The response contains no reference to TypeConverter, TypeConverterSources, or any similar conversion mechanism."
+    },
+    {
+      "id": "2.9-correctness-value-set-tier-semantics",
+      "text": "Value sets in the tier table contain exactly the values that produce the same discount. No cross-tier contamination.",
+      "passed": true,
+      "evidence": "Table 2 uses '{1, 2, 3, 4}' for 0% discount and '{6, 7, 8, 9}' for the tier-1 range. Each value set groups only trip counts that produce the same discount level; no set spans a tier boundary."
+    },
+    {
+      "id": "2.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": false,
+      "evidence": "The response contains only markdown tables and prose — there is no Java/Kotlin code, no @DisplayName annotations, and no method names anywhere in the output."
+    },
+    {
+      "id": "2.11-format-description",
+      "text": "@Description is present on at least the class or the tier method and provides context beyond what the table rows already express — such as the discount ladder structure, eligibility rules, or application context. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": false,
+      "evidence": "The response contains no Java/Kotlin code and no @Description annotation anywhere. It is entirely markdown tables and prose commentary."
+    },
+    {
+      "id": "2.12-format-typeconverter",
+      "text": "TypeConverterSources is used for at least one human-readable conversion (yes/no, or rolling window notation).",
+      "passed": false,
+      "evidence": "Neither 'TypeConverterSources' nor 'TypeConverter' appears anywhere in the response."
+    },
+    {
+      "id": "2.13-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": false,
+      "evidence": "The response contains no Java/Kotlin annotations of any kind — no @DisplayName, @Description, or @TableTest appear anywhere in the output."
+    },
+    {
+      "id": "2.14-format-description-textblock",
+      "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +.",
+      "passed": false,
+      "evidence": "The response contains no @Description annotation and no Java/Kotlin code whatsoever, so no text block or string concatenation is present."
+    }
+  ],
+  "assertions_passed": 4,
+  "assertions_total": 11,
+  "pass_rate": 0.36363636363636365
+}

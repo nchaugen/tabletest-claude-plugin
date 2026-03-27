@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "| Scenario | Order Total | Bulk Discount | Loyalty Discount | Discount Applied? | Final Price? |\n|---|---|---|---|---|---|"
+    },
+    {
+      "id": "does-not-invent-resolution",
+      "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved",
+      "passed": true,
+      "evidence": "| Both apply — lower rates | £200 | 10% | 15% | ? | ? |\n| Both apply — higher rates | £500 | 20% | 15% | ? | ? |\n| Both apply — rates would exceed any likely cap | £200 | 30% | 25% | ? | ? |"
+    },
+    {
+      "id": "covers-both-discounts-applying",
+      "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)",
+      "passed": true,
+      "evidence": "| Both apply — lower rates | £200 | 10% | 15% | ? | ? |"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note",
+      "passed": true,
+      "evidence": "**Open questions to resolve:** 1. **Stacking rule** — when both apply, which of these? - *Additive*: 10% + 15% = 25% → £150.00 - *Sequential*: 15% then 10% on remainder = 23.5% → £153.00 - *Higher only*: max(10%, 15%) = 15% → £170.00"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "| Scenario | Order Total | Bulk Discount | Loyalty Discount | Discount Applied? | Final Price? |"
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1
+}

@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-multiple-tables",
+      "text": "Output contains at least 2 separate markdown tables",
+      "passed": true,
+      "evidence": "The response contains Table 1 (Subscription Cost), Table 2 (Trial Availability), Table 3 (Cancellation Refund), and Table 4 (Open Questions: Loyalty + Trial Interaction) — at least 4 separate markdown tables."
+    },
+    {
+      "id": "annual-no-trial-rule-represented",
+      "text": "A table or note explicitly captures that the free trial is not available on annual plans (not just implied)",
+      "passed": true,
+      "evidence": "Table 2 row: '| New annual subscriber | Annual | yes | no | |' and '**Note:** The last row makes explicit that loyalty membership does not unlock a trial on annual plans.' Also: '| Loyalty member wants both trial and discount | Annual | yes | yes | no trial available | Clear — no trial on annual.'"
+    },
+    {
+      "id": "loyalty-discount-row-present",
+      "text": "At least one table row demonstrates the loyalty programme discount scenario for annual plan subscribers",
+      "passed": true,
+      "evidence": "'| Annual subscriber in loyalty programme | Annual | yes | £86.29/year |' in Table 1 (Subscription Cost)."
+    },
+    {
+      "id": "surfaces-genuine-open-questions",
+      "text": "The response identifies at least one genuinely underspecified interaction — such as: what happens when a trial subscriber upgrades to annual mid-trial, when a subscriber joins the loyalty programme mid-billing-cycle, or whether a cancellation refund is based on the discounted or full price. These are NOT stated in the rules and require a product decision.",
+      "passed": true,
+      "evidence": "'| Loyalty member signs up for monthly to get trial, then upgrades to annual | Monthly → Annual | yes | yes | ? | Does switching to annual during trial forfeit the remaining trial days? When does the loyalty discount start — immediately on switch, or at next renewal? |' and '| Loyalty member on annual plan leaves loyalty programme mid-year | Annual | loses membership | — | ? | Does the discount disappear immediately, at next renewal, or is it locked for the current annual period? |'"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The annual/loyalty/trial interaction is explicitly surfaced as an open question — via '?', 'TBD', blank expected value, or a written open question — rather than silently resolved",
+      "passed": true,
+      "evidence": "The section heading 'Open Questions: Loyalty + Trial Interaction' combined with multiple '?' values in the Expected Outcome? column and explicit open question text such as 'Does switching to annual during trial forfeit the remaining trial days?' demonstrates the interaction is surfaced rather than silently resolved."
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1
+}

@@ -1,0 +1,43 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table (using | column | syntax)",
+      "passed": true,
+      "evidence": "| Scenario | Age | Credit Score | Min Score (Policy) | Income Status | Approved? | Rejection Reason? |\n|---|---|---|---|---|---|---|"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column name ends with '?' (e.g. 'Eligible?' or 'Approved?')",
+      "passed": true,
+      "evidence": "Column headers include 'Approved?' and 'Rejection Reason?' — both end with '?'"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language — no implementation terms like 'creditScore', 'isEligible', 'boolean', 'int'",
+      "passed": true,
+      "evidence": "Column names used: 'Scenario', 'Age', 'Credit Score', 'Min Score (Policy)', 'Income Status', 'Approved?', 'Rejection Reason?' — all domain/business language, no camelCase or type terms"
+    },
+    {
+      "id": "senior-threshold-row",
+      "text": "Table includes at least one row specifically for the senior applicant (65+) threshold scenario",
+      "passed": true,
+      "evidence": "'Just at senior age boundary | 65 | 630 | 600 | Stable | yes |' and '**At the senior threshold** | 68 | **600** | 600 | Stable | **?** |'"
+    },
+    {
+      "id": "missing-income-marked-open",
+      "text": "The missing income scenario is represented — either as a row with an open/uncertain expected value (?, TBD, or blank) or as an explicit open question note",
+      "passed": true,
+      "evidence": "'**Missing income — standard applicant** | 35 | 720 | 650 | | **?** | Reject? Pend?' — Income Status cell is blank and Approved? is marked **?**"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('Senior applicant at threshold') not outcomes ('Approved')",
+      "passed": true,
+      "evidence": "Scenario names include 'Score too low, standard applicant', 'Senior, above lower threshold', 'Just below senior age, score between thresholds', 'At the senior threshold' — these describe input conditions rather than just naming outcomes"
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 6,
+  "pass_rate": 1
+}

@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-multiple-tables",
+      "text": "Output contains at least 2 separate markdown tables (not everything crammed into one table)",
+      "passed": true,
+      "evidence": "The response contains three separate markdown tables: 'Table 1: Trial Lifecycle', 'Table 2: Cancellation Refund', and an 'Open Questions' table — clearly not crammed into one."
+    },
+    {
+      "id": "tables-have-distinct-concerns",
+      "text": "The tables cover distinct concerns — e.g. pricing/plans is separate from cancellation/refund rules",
+      "passed": true,
+      "evidence": "'I've split into two tables because the trial lifecycle and the refund calculation are distinct decisions.' Table 1 is titled 'Trial Lifecycle' and Table 2 is titled 'Cancellation Refund'."
+    },
+    {
+      "id": "output-columns-have-question-marks",
+      "text": "At least one output column in each table ends with '?'",
+      "passed": true,
+      "evidence": "Table 1 has 'Status after?' and 'Charge?' as output columns. Table 2 has 'Refund?' as an output column. All end with '?'."
+    },
+    {
+      "id": "refund-exception-covered",
+      "text": "The 24-hour no-refund exception is included as a distinct scenario row",
+      "passed": true,
+      "evidence": "Table 2 row: 'Cancel immediately after monthly renewal | Monthly | 0 | yes | £0' with column 'Within 24h of charge?' = yes, and similarly 'Cancel immediately after annual renewal | Annual | 0 | yes | £0' — both are distinct scenario rows covering the 24h no-refund exception."
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language — no implementation terms like 'boolean', 'int', 'isProrated', camelCase identifiers",
+      "passed": true,
+      "evidence": "Table 1 columns: 'Scenario', 'Days since signup', 'Plan chosen', 'Event', 'Status after?', 'Charge?'. Table 2 columns: 'Scenario', 'Plan', 'Days elapsed since last charge', 'Within 24h of charge?', 'Refund?'. No camelCase, boolean, int, or implementation terms present."
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1
+}
