@@ -34,6 +34,8 @@ function parseArgs(argv) {
     evals: null,       // null = all, or array of ids
     baseline: false,
     model: "sonnet",
+    gradingModel: "haiku",
+    gradingSuffix: null,
     parallel: 4,
     gradeOnly: false,
   };
@@ -51,6 +53,12 @@ function parseArgs(argv) {
         break;
       case "--model":
         args.model = argv[++i];
+        break;
+      case "--grading-model":
+        args.gradingModel = argv[++i];
+        break;
+      case "--grading-suffix":
+        args.gradingSuffix = argv[++i];
         break;
       case "--parallel":
         args.parallel = parseInt(argv[++i], 10);
@@ -70,7 +78,9 @@ function parseArgs(argv) {
     console.error("  --evals 1,2,3       Run specific evals only");
     console.error("  --baseline          Also run without skill");
     console.error("  --model MODEL       Model to use (default: sonnet)");
-    console.error("  --parallel N        Max parallel evals (default: 4)");
+    console.error("  --grading-model M   Model for grading (default: haiku)");
+  console.error("  --grading-suffix S  Write grading to grading-S.json instead of grading.json");
+  console.error("  --parallel N        Max parallel evals (default: 4)");
     console.error("  --grade-only        Re-grade existing outputs");
     process.exit(1);
   }
@@ -162,6 +172,13 @@ function cleanupWorktree(worktreePath) {
 
 function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 300000 }) {
   return new Promise((resolve, reject) => {
+    let settled = false;
+    const settle = (fn, value) => {
+      if (settled) return;
+      settled = true;
+      fn(value);
+    };
+
     const args = [
       "--print", "--output-format", "json", "--model", model,
       "--no-session-persistence",
@@ -186,7 +203,7 @@ function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 30
 
     const timer = setTimeout(() => {
       proc.kill("SIGTERM");
-      reject(new Error(`Timed out after ${timeoutMs}ms`));
+      settle(reject, new Error(`Timed out after ${timeoutMs}ms`));
     }, timeoutMs);
 
     proc.stdout.on("data", (data) => { stdout += data; });
@@ -195,19 +212,19 @@ function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 30
     proc.on("close", (code) => {
       clearTimeout(timer);
       if (code !== 0) {
-        reject(new Error(`claude exited with code ${code}: ${stderr}`));
+        settle(reject, new Error(`claude exited with code ${code}:\n  stderr: ${stderr.slice(0, 500)}`));
         return;
       }
       try {
-        resolve(JSON.parse(stdout));
+        settle(resolve, JSON.parse(stdout));
       } catch {
-        reject(new Error(`Failed to parse claude output: ${stdout.slice(0, 200)}`));
+        settle(reject, new Error(`Failed to parse claude output: ${stdout.slice(0, 500)}`));
       }
     });
 
     proc.on("error", (err) => {
       clearTimeout(timer);
-      reject(err);
+      settle(reject, err);
     });
   });
 }
@@ -227,13 +244,23 @@ async function generateResponses(evals, worktreePath, iterationDir, args) {
     }
   }
 
+  const totalJobs = jobs.length;
+  let completedJobs = 0;
+  const startTime = Date.now();
+
   for (let i = 0; i < jobs.length; i += args.parallel) {
     const batch = jobs.slice(i, i + args.parallel);
+    const batchNum = Math.floor(i / args.parallel) + 1;
+    const totalBatches = Math.ceil(jobs.length / args.parallel);
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(0);
+    console.log(`  [batch ${batchNum}/${totalBatches}, ${completedJobs}/${totalJobs} done, ${elapsed}s elapsed]`);
+
     await Promise.all(
       batch.map(({ evalDef, config }) =>
         generateOne(evalDef, config, worktreePath, iterationDir, args.model)
       )
     );
+    completedJobs += batch.length;
   }
 }
 
@@ -244,6 +271,18 @@ async function generateOne(evalDef, config, worktreePath, iterationDir, model) {
     config
   );
   fs.mkdirSync(path.join(evalDir, "outputs"), { recursive: true });
+
+  // Skip if already completed (enables resuming interrupted runs)
+  const timingPath = path.join(evalDir, "timing.json");
+  if (fs.existsSync(timingPath)) {
+    try {
+      const existing = JSON.parse(fs.readFileSync(timingPath, "utf-8"));
+      if (existing.duration_ms != null && !existing.error) {
+        console.log(`  ⏭ Eval ${evalDef.id} [${config}] — already completed, skipping`);
+        return;
+      }
+    } catch { /* re-run if timing.json is corrupt */ }
+  }
 
   console.log(`  Running eval ${evalDef.id} (${evalDef.slug}) [${config}]...`);
 
@@ -318,7 +357,7 @@ ${evalDef.expected_output}
 ${response}`;
 }
 
-async function gradeOne(evalDef, config, iterationDir, model) {
+async function gradeOne(evalDef, config, iterationDir, model, gradingSuffix = null) {
   const evalDir = path.join(
     iterationDir,
     `eval-${evalDef.id}-${evalDef.slug}`,
@@ -355,13 +394,20 @@ async function gradeOne(evalDef, config, iterationDir, model) {
     grading = JSON.parse(gradingText);
   } catch {
     // Try extracting JSON from markdown code fences
-    const match = gradingText.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (match) {
-      grading = JSON.parse(match[1]);
+    const fenceMatch = gradingText.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (fenceMatch) {
+      grading = JSON.parse(fenceMatch[1]);
     } else {
-      throw new Error(
-        `Failed to parse grading JSON for eval ${evalDef.id}: ${gradingText.slice(0, 200)}`
-      );
+      // Try extracting the outermost JSON object (handles prose before/after)
+      const start = gradingText.indexOf("{");
+      const end = gradingText.lastIndexOf("}");
+      if (start !== -1 && end > start) {
+        grading = JSON.parse(gradingText.slice(start, end + 1));
+      } else {
+        throw new Error(
+          `Failed to parse grading JSON for eval ${evalDef.id}: ${gradingText.slice(0, 200)}`
+        );
+      }
     }
   }
 
@@ -373,8 +419,9 @@ async function gradeOne(evalDef, config, iterationDir, model) {
       ? grading.assertions_passed / grading.assertions_total
       : 0;
 
+  const gradingFile = gradingSuffix ? `grading-${gradingSuffix}.json` : "grading.json";
   fs.writeFileSync(
-    path.join(evalDir, "grading.json"),
+    path.join(evalDir, gradingFile),
     JSON.stringify(grading, null, 2),
     "utf-8"
   );
@@ -389,17 +436,24 @@ async function gradeResponses(evals, iterationDir, args) {
   const configs = ["with_skill"];
   if (args.baseline) configs.push("no_skill");
 
-  console.log(`\nGrading responses...`);
+  console.log(`\nGrading responses (model=${args.gradingModel}, parallel=${args.parallel})...`);
 
-  // Grade sequentially — grading is cheap, no need for parallelism
+  const jobs = [];
   for (const evalDef of evals) {
     for (const config of configs) {
-      try {
-        await gradeOne(evalDef, config, iterationDir, args.model);
-      } catch (err) {
-        console.error(`  ✗ Eval ${evalDef.id} [${config}] — GRADING FAILED: ${err.message}`);
-      }
+      jobs.push({ evalDef, config });
     }
+  }
+
+  for (let i = 0; i < jobs.length; i += args.parallel) {
+    const batch = jobs.slice(i, i + args.parallel);
+    await Promise.all(
+      batch.map(({ evalDef, config }) =>
+        gradeOne(evalDef, config, iterationDir, args.gradingModel, args.gradingSuffix).catch((err) => {
+          console.error(`  ✗ Eval ${evalDef.id} [${config}] — GRADING FAILED: ${err.message}`);
+        })
+      )
+    );
   }
 }
 function aggregateResults(evals, iterationDir, args) {
@@ -638,7 +692,17 @@ function generateReport(benchmark, previousBenchmark, iterationDir, args) {
   console.log("Report saved:", reportPath);
 }
 
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled rejection:", reason);
+});
+
+process.on("SIGINT", () => {
+  console.error("\nInterrupted — partial results may be in the iteration directory.");
+  process.exit(130);
+});
+
 main().catch((err) => {
   console.error("Fatal error:", err.message);
+  if (err.stack) console.error(err.stack);
   process.exit(1);
 });
