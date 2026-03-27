@@ -1,0 +1,85 @@
+{
+  "assertions": [
+    {
+      "id": "1.1-traceability-columns",
+      "text": "The pay table includes intermediate expected columns (e.g. Regular pay?, Overtime pay?, Premium pay?) so the reader can trace which rule contributes what — not just a single total Weekly pay? column.",
+      "passed": false,
+      "evidence": "The table header is: `Scenario | Weekday hours | Sunday hours | Holiday hours | Rate | Weekly pay?` — there is only a single `Weekly pay?` output column; no intermediate columns like `Regular pay?`, `Overtime pay?`, or `Premium pay?` are present."
+    },
+    {
+      "id": "1.2-error-has-expected-column",
+      "text": "The error/rejection table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row — rather than hardcoding the exception type in @Description or the method name.",
+      "passed": false,
+      "evidence": "The error table header is `Scenario | Rate` with no expected exception column. The exception type is hardcoded in the method body: `assertThrows(IllegalArgumentException.class, () -> calculator.calculate(0, 0, 0, rate));`"
+    },
+    {
+      "id": "1.3-depth-overtime-boundary",
+      "text": "Overtime threshold boundary is covered: at least a value at the threshold (40) and just above (41 or similar). Not just values well below and well above.",
+      "passed": true,
+      "evidence": "The table contains `Standard 40-hour week | 40 | 0 | 0 | 10.00 | 400.00` and `One overtime hour | 41 | 0 | 0 | 10.00 | 415.00`, covering exactly the threshold and one step above."
+    },
+    {
+      "id": "1.4-depth-combined-scenario",
+      "text": "A combined scenario is present: a row with weekday + Sunday + holiday hours, testing the composition of all hour types.",
+      "passed": true,
+      "evidence": "`Overtime with Sunday and holiday | 48 | 4 | 2 | 10.00 | 640.00` — this row has all three hour types: 48 weekday, 4 Sunday, 2 holiday."
+    },
+    {
+      "id": "1.5-depth-error-edge-cases",
+      "text": "Error/edge cases covered: at least negative hours (floored at zero) and negative or missing rate (rejected).",
+      "passed": false,
+      "evidence": "Only negative rate is tested (`Negative rate | {-10.00, -1.00, -0.01}`). There is no test for negative hours. The design notes explicitly explain this omission: 'The zero floor is covered by @Description rather than a dedicated row, since valid non-negative inputs can never produce negative pay under these rules — no dedicated test scenario is possible without introducing negative hours, which the spec doesn't define.'"
+    },
+    {
+      "id": "1.6-readability-empty-cells",
+      "text": "Sunday and Holiday hour columns use empty cells (not 0) when those inputs are not relevant to a scenario — making it easier to spot which rows involve weekend/holiday hours.",
+      "passed": false,
+      "evidence": "Rows like `Standard 40-hour week | 40 | 0 | 0 | 10.00 | 400.00` and `One overtime hour | 41 | 0 | 0 | 10.00 | 415.00` use `0` (not blank) in the Sunday and Holiday columns when those hour types are not relevant to the scenario."
+    },
+    {
+      "id": "1.7-readability-scenario-names",
+      "text": "Scenario names describe work patterns (e.g. 'Part-time', 'Five hours overtime', 'Full Sunday shift') — not 'Test case 1' or expected outcomes.",
+      "passed": true,
+      "evidence": "Scenario names include: 'No hours worked', 'Zero rate', 'Standard 40-hour week', 'One overtime hour', 'Eight overtime hours', 'Sunday hours only', 'Holiday hours only', 'Full week with Sunday', 'Overtime with Sunday and holiday' — all describe work patterns."
+    },
+    {
+      "id": "1.8-correctness-expected-values",
+      "text": "Expected values in intermediate and total columns are arithmetically correct for every row, consistent with the formulas in @Description.",
+      "passed": true,
+      "evidence": "Verified against formulas: `Standard 40-hour week`: 40×10=400.00 ✓; `One overtime hour`: 40×10+1×1.5×10=415.00 ✓; `Eight overtime hours`: 40×10+8×1.5×10=520.00 ✓; `Sunday hours only`: 8×2×10=160.00 ✓; `Full week with Sunday`: 400+160=560.00 ✓; `Overtime with Sunday and holiday`: 400+120+80+40=640.00 ✓. No intermediate columns exist to verify."
+    },
+    {
+      "id": "1.9-correctness-value-set-semantics",
+      "text": "Value sets are only used where all values in the set produce the same expected result (e.g. any rate × 0 = 0). Not used where results would differ.",
+      "passed": true,
+      "evidence": "The only value set is `{-10.00, -1.00, -0.01}` used in the rejection table — all three values are negative rates that violate the same rule and all produce the same outcome (IllegalArgumentException). The design notes confirm: 'all three must throw because they all violate the same rule.'"
+    },
+    {
+      "id": "1.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "No @DisplayName on individual test methods, but the method names `calculatesWeeklyPay` and `rejectsNegativeHourlyRate` read as clear descriptive titles when converted from camelCase: 'calculates weekly pay' and 'rejects negative hourly rate'."
+    },
+    {
+      "id": "1.11-format-description",
+      "text": "@Description is present on at least the payable hours method and provides context beyond what the table rows already express — such as the conversion rules, fixed values, or application context. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": true,
+      "evidence": "@Description on `calculatesWeeklyPay` states: `\"Weekly pay = (weekday hours up to 40) × rate + (weekday hours beyond 40) × 1.5 × rate [overtime] + sunday hours × 2 × rate [double time] + holiday hours × 2 × rate [double time]. Total pay is floored at zero.\"` — this explains the conversion formulas and multipliers, which go beyond restating column names."
+    },
+    {
+      "id": "1.12-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "For both test methods the order is `@Description` then `@TableTest` (no `@DisplayName` on methods), which matches the required order when @DisplayName is absent: `@Description(\"...\") @TableTest(\"\"\"...\"\"\") void calculatesWeeklyPay(...)` and `@Description(\"...\") @TableTest(\"\"\"...\"\"\") void rejectsNegativeHourlyRate(...)`."
+    },
+    {
+      "id": "1.13-format-description-textblock",
+      "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +.",
+      "passed": false,
+      "evidence": "The @Description on `calculatesWeeklyPay` uses string concatenation: `\"Weekly pay = (weekday hours up to 40) × rate\" + \" + (weekday hours beyond 40) × 1.5 × rate  [overtime]\" + \" + sunday hours × 2 × rate                  [double time]\" + \" + holiday hours × 2 × rate                 [double time].\" + \" Total pay is floored at zero.\"` — this is multiple strings joined with `+`, not a triple-quoted text block."
+    }
+  ],
+  "assertions_passed": 8,
+  "assertions_total": 13,
+  "pass_rate": 0.6153846153846154
+}

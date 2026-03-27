@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains at least one markdown table",
+      "passed": true,
+      "evidence": "| Scenario | Current Status | Target Status | Allowed? | Reason? |\n|---|---|---|---|---|\n| Confirm a new order | PENDING | CONFIRMED | yes | |"
+    },
+    {
+      "id": "cancellation-coverage",
+      "text": "Table covers cancellation rules — includes rows for states where cancellation is allowed and where it is not",
+      "passed": true,
+      "evidence": "| Cancel before processing | PENDING | CANCELLED | yes | |\n| Cancel after confirmation, before dispatch | CONFIRMED | CANCELLED | yes | |\n| Cancel after dispatch | SHIPPED | CANCELLED | no | Already dispatched |\n| Cancel a delivered order | DELIVERED | CANCELLED | no | Already received |"
+    },
+    {
+      "id": "return-window-addressed",
+      "text": "The 30-day return window rule is addressed — either as a threshold column, a separate table, or flagged as an open question",
+      "passed": true,
+      "evidence": "Table 2: Return Flag Eligibility includes a 'Days Since Delivery' column and a 'Return Window (Policy)' column explicitly set to '30 days', with rows at day 0, 15, 30, 31, and 60."
+    },
+    {
+      "id": "value-set-or-multiple-states",
+      "text": "Uses value sets {PENDING, CONFIRMED} or equivalent to express 'regardless of which starting state' for cases where a rule holds across states",
+      "passed": true,
+      "evidence": "| Flag return on non-delivered order | {PENDING, CONFIRMED, SHIPPED, CANCELLED} | | 30 days | no | Order not yet delivered |"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Column headers include 'Allowed?' in Table 1 and 'Eligible for Return?' and 'Reason?' in Table 2."
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1
+}

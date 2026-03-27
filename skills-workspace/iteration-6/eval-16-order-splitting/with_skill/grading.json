@@ -1,0 +1,85 @@
+{
+  "assertions": [
+    {
+      "id": "3.1-decomposition-concern-separation",
+      "text": "Trigger detection, shipment optimisation, and companion constraint are in separate tables. Not one monolithic table.",
+      "passed": true,
+      "evidence": "The response contains three distinct tables: 'Table 1: Order Shipment Grouping', 'Table 2: Warehouse Selection — Minimise Shipments', and 'Table 3: Companion Product Co-location'."
+    },
+    {
+      "id": "3.2-decomposition-trigger-interactions",
+      "text": "At least one row where multiple triggers fire simultaneously (e.g. mixed fulfilment AND mixed stock status).",
+      "passed": true,
+      "evidence": "Row 'Backorder + address split': items have mixed stock status '{In stock, Backorder, In stock}' AND different delivery addresses '{123 Main, 123 Main, 456 Oak Ave}', firing two triggers simultaneously."
+    },
+    {
+      "id": "3.3-depth-all-four-triggers",
+      "text": "All four split triggers are covered: mixed fulfilment, mixed stock status, no single warehouse has all items, different addresses.",
+      "passed": true,
+      "evidence": "Mixed fulfilment: 'Pickup alongside home delivery' row. Mixed stock status: 'In-stock item with backorder item' row. No single warehouse: Table 2 'Fewer warehouses available via a different combination'. Different addresses: 'Items to different delivery addresses' row."
+    },
+    {
+      "id": "3.4-depth-companion-ambiguity-surfaced",
+      "text": "The 'no warehouse has both companions' case is flagged as an open question or product decision, not silently resolved as either 'error' or 'ship separately'. The requirement does NOT hint at this — the agent must recognise the ambiguity unprompted.",
+      "passed": false,
+      "evidence": "The 'No warehouse stocks both companions' row resolves the case definitively: 'no — unavoidable | 2 | Chicago (body) + LA (lens)', treating it as a settled outcome (ship separately) rather than flagging it as an open question or product decision."
+    },
+    {
+      "id": "3.5-depth-companion-edge-cases",
+      "text": "Companion constraint covers at least: companions at same location, companions split from non-companion items, and the ambiguous case (no location has both).",
+      "passed": false,
+      "evidence": "Table 3 covers 'Both companions at same warehouse' (same location) and 'No warehouse stocks both companions' (ambiguous case), but no row shows companions split from non-companion items — every row in Table 3 contains only the two companion items with no additional non-companion items in the order."
+    },
+    {
+      "id": "3.6-readability-scenario-names",
+      "text": "Optimisation scenarios describe the business situation (e.g. 'Consolidate: two beats three', 'Everything at one warehouse') — not 'Test case 2'.",
+      "passed": true,
+      "evidence": "Table 2 scenario names include: 'One warehouse covers the full order', 'Fewer warehouses available via a different combination', 'Two-way split is unavoidable', 'Total stock is insufficient across all warehouses', 'Two equally-minimal combinations exist'."
+    },
+    {
+      "id": "3.7-readability-set-notation",
+      "text": "Trigger table uses set notation ({delivery, pickup}) for closed enumerations rather than prose or lists.",
+      "passed": true,
+      "evidence": "Table 1 uses set notation throughout: '{Home delivery, Home delivery}', '{Home delivery, Pickup}', '{In stock, Backorder}', '{123 Main St, 456 Oak Ave}'."
+    },
+    {
+      "id": "3.8-readability-scalar-column",
+      "text": "Optimisation table uses a scalar count column (e.g. 'Shirts ordered') not item lists, when product identity doesn't matter for the logic.",
+      "passed": true,
+      "evidence": "Table 2 uses a 'Qty needed' column with scalar values such as '6 shirts', '3 shirts', '4 shirts', rather than enumerating individual items."
+    },
+    {
+      "id": "3.9-correctness-valid-assignments",
+      "text": "Inventory assignments are physically valid: items are only assigned to locations that have them. Shipment counts match the assignments shown.",
+      "passed": true,
+      "evidence": "'Philadelphia + Washington' selected for 6 shirts where Philadelphia:3, Washington:3 (3+3=6 ✓); 'Chicago + LA' for 4 shirts where Chicago:2, LA:2 (2+2=4 ✓); unfulfillable flagged where Chicago:3+LA:2=5 < 6 needed ✓. No warehouse is assigned items it doesn't stock."
+    },
+    {
+      "id": "3.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": false,
+      "evidence": "The response contains no Java/Kotlin code, no test methods, and no annotations of any kind — it is purely tables and prose with no @DisplayName or method names to evaluate."
+    },
+    {
+      "id": "3.11-format-description",
+      "text": "@Description is present on at least the class and provides context beyond what the table rows already express — such as the splitting rules, constraints, or application context. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": false,
+      "evidence": "The response contains no Java/Kotlin code and no @Description annotation. No class-level annotation or code structure is present anywhere in the response."
+    },
+    {
+      "id": "3.12-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": false,
+      "evidence": "No annotations of any kind are present in the response. The response contains only Markdown tables and prose, with no Java/Kotlin code."
+    },
+    {
+      "id": "3.13-format-description-textblock",
+      "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +.",
+      "passed": false,
+      "evidence": "No @Description annotation or any Java/Kotlin code is present in the response. There is no text block or string concatenation to evaluate."
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 13,
+  "pass_rate": 0.5384615384615384
+}

@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-multiple-tables",
+      "text": "Output contains at least 2 separate markdown tables",
+      "passed": true,
+      "evidence": "The response contains Table 1 (Plan Setup & Pricing), Table 2 (Cancellation Refund), and a third table (Other Open Questions to Resolve) — three distinct markdown tables with pipe-delimited formatting."
+    },
+    {
+      "id": "annual-no-trial-rule-represented",
+      "text": "A table or note explicitly captures that the free trial is not available on annual plans (not just implied)",
+      "passed": true,
+      "evidence": "Table 1 shows 'no' in the Trial? column for both Annual plan rows, and the closing paragraph states explicitly: 'trial → monthly only; loyalty discount → annual only'"
+    },
+    {
+      "id": "loyalty-discount-row-present",
+      "text": "At least one table row demonstrates the loyalty programme discount scenario for annual plan subscribers",
+      "passed": true,
+      "evidence": "Table 1 row: '| New annual subscriber, loyalty member | New | Annual | yes | no | | £86.29/year |'"
+    },
+    {
+      "id": "surfaces-genuine-open-questions",
+      "text": "The response identifies at least one genuinely underspecified interaction — such as: what happens when a trial subscriber upgrades to annual mid-trial, when a subscriber joins the loyalty programme mid-billing-cycle, or whether a cancellation refund is based on the discounted or full price. These are NOT stated in the rules and require a product decision.",
+      "passed": true,
+      "evidence": "Question 2: 'Can a subscriber switch from monthly trial to annual? If yes: does trial end immediately? Is loyalty discount applied?'; Question 3: 'Does loyalty discount apply at next renewal or immediately when loyalty membership is confirmed? A subscriber might join a loyalty programme mid-cycle'; Question 1: 'Loyalty annual refund: actual-paid or list price? ... directly affects refund amount'"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The annual/loyalty/trial interaction is explicitly surfaced as an open question — via '?', 'TBD', blank expected value, or a written open question — rather than silently resolved",
+      "passed": true,
+      "evidence": "The response contains an explicit section headed '**Open question — loyalty + trial interaction:**' with a written question about mid-subscription plan switching, and Table 2 row 4 contains a literal '?' for the loyalty annual cancellation refund."
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1
+}

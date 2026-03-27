@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"\n    Scenario         | Tier   | Discount?\n    Gold customer    | GOLD   | 20\n    Silver customer  | SILVER | 10\n    Bronze customer  | BRONZE | 0\n    \"\"\")"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Discount?' or 'Expected?')",
+      "passed": true,
+      "evidence": "Scenario         | Tier   | Discount?"
+    },
+    {
+      "id": "has-three-data-rows",
+      "text": "Table has exactly 3 data rows (GOLD, SILVER, BRONZE)",
+      "passed": true,
+      "evidence": "Gold customer    | GOLD   | 20\n    Silver customer  | SILVER | 10\n    Bronze customer  | BRONZE | 0"
+    },
+    {
+      "id": "single-assertion-in-method",
+      "text": "Test method body contains only one assertEquals (or equivalent assertion) — not three",
+      "passed": true,
+      "evidence": "assertEquals(expectedDiscount, discountService.calculate(tier, 100));"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "The method body contains only: assertEquals(expectedDiscount, discountService.calculate(tier, 100)); — no if or switch statements are present anywhere in the method."
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Scenario         | Tier   | Discount?"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'discountByCustomerTier' → 'Discount By Customer Tier'). Not a generic name like 'test1' or 'testMethod'.",
+      "passed": true,
+      "evidence": "void calculateDiscount(String tier, int expectedDiscount)"
+    },
+    {
+      "id": "description-adds-information",
+      "text": "@Description is present and provides context beyond what the table rows already express — such as fixed values shared by all rows, where/when the rule applies, or open questions. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": false,
+      "evidence": "No @Description annotation appears anywhere in the response. The note about the constant order value appears only in prose outside the code block: \"The order value `100` is constant across all three original tests, so it's inlined in the method body rather than added as a column.\""
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Only @TableTest is present in the response; neither @DisplayName nor @Description annotations appear, so there is no ordering violation."
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +.",
+      "passed": false,
+      "evidence": "No @Description annotation is present in the response at all, so the requirement for a text block cannot be satisfied."
+    }
+  ],
+  "assertions_passed": 8,
+  "assertions_total": 10,
+  "pass_rate": 0.8
+}

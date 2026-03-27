@@ -1,0 +1,43 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table (using | column | syntax)",
+      "passed": true,
+      "evidence": "| Scenario | Age | Credit Score | Income Status | Approved? | Rejection Reason? |"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column name ends with '?' (e.g. 'Eligible?' or 'Approved?')",
+      "passed": true,
+      "evidence": "| Approved? | Rejection Reason? |"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language — no implementation terms like 'creditScore', 'isEligible', 'boolean', 'int'",
+      "passed": true,
+      "evidence": "| Scenario | Age | Credit Score | Income Status | Approved? | Rejection Reason? | — all column names use plain business language with no camelCase identifiers or type names"
+    },
+    {
+      "id": "senior-threshold-row",
+      "text": "Table includes at least one row specifically for the senior applicant (65+) threshold scenario",
+      "passed": true,
+      "evidence": "| Age boundary — exactly 65 | 65 | 620 | stable | **?** | Does 65 count as senior? |"
+    },
+    {
+      "id": "missing-income-marked-open",
+      "text": "The missing income scenario is represented — either as a row with an open/uncertain expected value (?, TBD, or blank) or as an explicit open question note",
+      "passed": true,
+      "evidence": "| Missing income — standard applicant | 40 | 700 | missing | **?** | Treat as unstable? Reject? Require field? |"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('Senior applicant at threshold') not outcomes ('Approved')",
+      "passed": true,
+      "evidence": "Scenario names include 'Standard approved customer', 'Credit score below standard threshold', 'Unstable income', 'Senior approved at lower threshold', 'Age boundary — exactly 65', 'Missing income — standard applicant' — all describe conditions or contexts, not outcomes"
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 6,
+  "pass_rate": 1
+}

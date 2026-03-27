@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"\n    Scenario      | Input | Amount?\n    Standard      | 10.00 | 10.00\n    Minimum value | 0.01  | 0.01\n    \"\"\")"
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell in the valid inputs @TableTest table (not the string 'null', and not as a separate @Test method). The blank cell maps to a null parameter.",
+      "passed": false,
+      "evidence": "@Test\nvoid parse_returns_null_for_null_input() {\n    assertNull(parse(null));\n}"
+    },
+    {
+      "id": "exception-has-expected-column",
+      "text": "The exception/invalid-input table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row — rather than hardcoding the exception type in @Description or the method name.",
+      "passed": false,
+      "evidence": "@TableTest(\"\"\"\n    Scenario       | Input\n    Empty string   | ''\n    Letters only   | abc\n    Negative value | -5.00\n    \"\"\")"
+    },
+    {
+      "id": "exception-cases-handled",
+      "text": "The exception cases (empty string, letters-only, negative) are handled — via a Throws? column, assertThrows in the method body, or a separate @TableTest — not silently omitted",
+      "passed": true,
+      "evidence": "assertThrows(IllegalArgumentException.class, () -> parse(input));"
+    },
+    {
+      "id": "result-column-with-question-mark",
+      "text": "Valid inputs have a result column name ending with '?' (e.g. 'Money?' or 'Result?')",
+      "passed": true,
+      "evidence": "Scenario      | Input | Amount?"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "All three method bodies contain only assertions and method calls with no if or switch statements."
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'moneyParsing' → 'Money Parsing'). Not a generic name like 'test1' or 'testMethod'.",
+      "passed": true,
+      "evidence": "void parse_returns_money_for_valid_input(...)\nvoid parse_returns_null_for_null_input()\nvoid parse_throws_for_invalid_input(...)"
+    },
+    {
+      "id": "description-adds-information",
+      "text": "@Description is present and provides context beyond what the table rows already express — such as the expected currency format, or open questions. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": false,
+      "evidence": "@Description(\"Valid decimal strings are parsed into Money with the exact amount\") ... @Description(\"Inputs that are empty, non-numeric, or negative are rejected with IllegalArgumentException\")"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": false,
+      "evidence": "@TableTest(\"\"\"\n    ...\n    \"\"\")\n@Description(\"Valid decimal strings are parsed into Money with the exact amount\")\nvoid parse_returns_money_for_valid_input"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +.",
+      "passed": true,
+      "evidence": "@Description(\"Valid decimal strings are parsed into Money with the exact amount\") — text is short enough to fit on one line as a regular string; no concatenation used."
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 10,
+  "pass_rate": 0.6
+}

@@ -1,0 +1,73 @@
+{
+  "assertions": [
+    {
+      "id": "2.1-decomposition-concern-separation",
+      "text": "Discount ladder, and traveller eligibility are in separate tables. Rolling window counting as a third table is desirable.",
+      "passed": false,
+      "evidence": "The response has three tables: `reisDiscountLadderForAdultsAndSeniors` (discount ladder), `adultTicketPriceReflectsReisDiscount` (price calculation), and `childrenAlwaysReceiveFlatTwentyPercentDiscount` (children's flat discount). There is no dedicated traveller eligibility table comparing which passenger types get which discount type. There is also no rolling window counting table with boundary testing — the 30-day window appears only as a column header in the ladder tables."
+    },
+    {
+      "id": "2.2-children-flat-discount",
+      "text": "Children's flat 20% discount is represented — either as a row in the eligibility table or a separate note. It does not follow the ladder.",
+      "passed": true,
+      "evidence": "The method `childrenAlwaysReceiveFlatTwentyPercentDiscount` with @Description: \"Children always receive a flat 20% discount on single tickets, regardless of how many tickets have been purchased in the last 30 days.\" The value set `{0, 4, 10, 40}` on the tickets column explicitly demonstrates it does not follow the ladder."
+    },
+    {
+      "id": "2.3-depth-tier-boundaries",
+      "text": "The discount ladder has multiple tiers derived from the 'every fifth trip' rule, with boundary values or value sets showing which ticket counts produce which discount. The maximum 40% discount is represented.",
+      "passed": true,
+      "evidence": "The table `reisDiscountLadderForAdultsAndSeniors` shows rows at ticket counts 0, 4, 5, 9, 10, 15, 20, 25, 30, 35, 40, 55 with corresponding discounts 0,0,5,5,10,15,20,25,30,35,40,40 — multiple tiers with boundary values. The row \"Maximum discount reached | {ADULT, SENIOR} | 40 | 40\" and \"Above maximum, still capped | {ADULT, SENIOR} | 55 | 40\" represent the 40% cap."
+    },
+    {
+      "id": "2.4-depth-rolling-window-boundary",
+      "text": "The 30-day rolling window boundary is tested: a ticket at exactly 30 days is included, at 31 days is excluded.",
+      "passed": false,
+      "evidence": "No table tests the rolling window boundary. The phrase \"Tickets in last 30 days\" appears as a column header, but there is no test case that distinguishes a ticket at exactly 30 days (included) vs. 31 days (excluded). The rolling window semantics are not tested anywhere in the response."
+    },
+    {
+      "id": "2.6-readability-human-readable-values",
+      "text": "Eligibility uses human-readable values (yes/no or equivalent) rather than raw true/false. TypeConverter or similar mechanism mentioned.",
+      "passed": false,
+      "evidence": "There is no eligibility table using yes/no values. Passenger types use enum values (ADULT, SENIOR, CHILD). No TypeConverter or TypeConverterSources is mentioned anywhere in the response."
+    },
+    {
+      "id": "2.9-correctness-value-set-tier-semantics",
+      "text": "Value sets in the tier table contain exactly the values that produce the same discount. No cross-tier contamination.",
+      "passed": true,
+      "evidence": "In `childrenAlwaysReceiveFlatTwentyPercentDiscount`, the value set `{0, 4, 10, 40}` all produce the same 20% flat discount for children. In `reisDiscountLadderForAdultsAndSeniors`, the value set `{ADULT, SENIOR}` on the passenger type column groups the two types that share the same ladder — both produce identical discounts for each ticket count. No values from different discount outcomes are mixed in the same value set."
+    },
+    {
+      "id": "2.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "No @DisplayName annotations are present, but method names read as clear descriptive titles: `reisDiscountLadderForAdultsAndSeniors`, `adultTicketPriceReflectsReisDiscount`, `childrenAlwaysReceiveFlatTwentyPercentDiscount`."
+    },
+    {
+      "id": "2.11-format-description",
+      "text": "@Description is present on at least the class or the tier method and provides context beyond what the table rows already express — such as the discount ladder structure, eligibility rules, or application context. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": true,
+      "evidence": "@Description on the tier method: \"Adults and seniors accumulate a personal Reis discount based on how many single tickets they have purchased in the last 30 days, measured at the time of purchase. The discount starts at 5% from the fifth ticket onwards, increases by 5% per additional five tickets, and is capped at a maximum of 40%.\" This explains the business rule structure, not just the column names."
+    },
+    {
+      "id": "2.12-format-typeconverter",
+      "text": "TypeConverterSources is used for at least one human-readable conversion (yes/no, or rolling window notation).",
+      "passed": false,
+      "evidence": "No @TypeConverterSources annotation appears anywhere in the response. No TypeConverter class is referenced or imported in the code."
+    },
+    {
+      "id": "2.13-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": false,
+      "evidence": "The annotations appear in the wrong order: `@TableTest(\"\"\"..\"\"\")` is placed BEFORE `@Description(\"\"\"..\"\"\")` on all three methods, e.g., `@TableTest(\"\"\"...\"\"\")\n    @Description(\"\"\"...\"\"\")\n    void reisDiscountLadderForAdultsAndSeniors`. The required order is @Description then @TableTest."
+    },
+    {
+      "id": "2.14-format-description-textblock",
+      "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +.",
+      "passed": true,
+      "evidence": "All @Description annotations use triple-quoted text blocks, e.g., `@Description(\"\"\"\n            Adults and seniors accumulate a personal Reis discount based on how many single \\\n            tickets they have purchased in the last 30 days...\\\n            \"\"\")`. No string concatenation with + is used."
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 11,
+  "pass_rate": 0.5454545454545454
+}

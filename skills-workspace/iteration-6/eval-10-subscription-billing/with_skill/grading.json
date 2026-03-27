@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-multiple-tables",
+      "text": "Output contains at least 2 separate markdown tables (not everything crammed into one table)",
+      "passed": true,
+      "evidence": "The response contains two clearly separate markdown tables: '## Cancellation Refund Eligibility' and '## Refund Amount', each with their own headers and rows."
+    },
+    {
+      "id": "tables-have-distinct-concerns",
+      "text": "The tables cover distinct concerns — e.g. pricing/plans is separate from cancellation/refund rules",
+      "passed": true,
+      "evidence": "First table is titled 'Cancellation Refund Eligibility' (covers whether a refund applies), second table is titled 'Refund Amount' (covers how much the refund is). The response explicitly states: 'two tables covering the two distinct concerns in this feature: whether a refund applies, and how much it is.'"
+    },
+    {
+      "id": "output-columns-have-question-marks",
+      "text": "At least one output column in each table ends with '?'",
+      "passed": true,
+      "evidence": "First table has 'Refund Eligible?' and 'Reason?' columns ending with '?'. Second table has 'Refund Amount?' column ending with '?'."
+    },
+    {
+      "id": "refund-exception-covered",
+      "text": "The 24-hour no-refund exception is included as a distinct scenario row",
+      "passed": true,
+      "evidence": "'Cancel shortly after monthly renewal | Monthly | Active | 6 | no | Within 24h of renewal' and 'Cancel just before 24h window closes | Monthly | Active | 23 | no | Within 24h of renewal' are distinct scenario rows covering the 24h no-refund exception."
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language — no implementation terms like 'boolean', 'int', 'isProrated', camelCase identifiers",
+      "passed": true,
+      "evidence": "Column names used are: 'Scenario', 'Plan', 'Phase', 'Hours Since Renewal Charge', 'Refund Eligible?', 'Reason?', 'Days in Cycle', 'Days Remaining', 'Daily Rate', 'Refund Amount?' — all natural business language with no camelCase, boolean, int, or implementation terms."
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1
+}

@@ -1,0 +1,61 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\")"
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell (not the string 'null') in the table",
+      "passed": true,
+      "evidence": "Null input    |            |"
+    },
+    {
+      "id": "exception-handled-cleanly",
+      "text": "The empty string / exception case is handled — either via a Throws? column, assertThrows inside the method, or a separate @TableTest — rather than being silently omitted",
+      "passed": true,
+      "evidence": "void shouldThrowForEmptyString() { assertThrows(IllegalArgumentException.class, () -> parser.parseDate(\"\"));"
+    },
+    {
+      "id": "localdate-result-column",
+      "text": "There is a result column typed as LocalDate (or using a string representation that maps to LocalDate)",
+      "passed": true,
+      "evidence": "void shouldParseDate(String input, LocalDate expected)"
+    },
+    {
+      "id": "type-conversion-addressed",
+      "text": "The response addresses type conversion for non-standard date formats (slash format, short year) — mentions @TypeConverter or a converter method",
+      "passed": true,
+      "evidence": "No `@TypeConverter` needed. The slash and short-year strings are just raw `String` inputs passed to your method — the table doesn't need to parse them."
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'dateParsing' → 'Date Parsing'). Not a generic name like 'test1' or 'testMethod'.",
+      "passed": true,
+      "evidence": "void shouldParseDate(String input, LocalDate expected)"
+    },
+    {
+      "id": "description-adds-information",
+      "text": "@Description is present and provides context beyond what the table rows already express — such as supported date formats, where/when the rule applies, or open questions. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": false,
+      "evidence": "No @Description annotation is present anywhere in the response."
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Only @TableTest is present; no @DisplayName or @Description annotations, so ordering constraint is vacuously satisfied."
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +.",
+      "passed": false,
+      "evidence": "No @Description annotation is present in the response, so this assertion cannot be satisfied."
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 9,
+  "pass_rate": 0.7777777777777778
+}

@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "| Scenario | Order Value | Bulk Discount | Loyalty Discount | Discount Applied? | Notes / Open Question |\n|---|---|---|---|---|---|"
+    },
+    {
+      "id": "does-not-invent-resolution",
+      "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved",
+      "passed": true,
+      "evidence": "**Open decisions this table forces:** 1. **Stacking rule** — three candidates: - Additive: `bulk% + loyalty%` - Higher only: `max(bulk%, loyalty%)` - Stacked with cap: `min(bulk% + loyalty%, cap%)`"
+    },
+    {
+      "id": "covers-both-discounts-applying",
+      "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)",
+      "passed": true,
+      "evidence": "| Both qualify — stacked | £500 | 10% | 15% | **25%?** | Open: do they stack? |"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note",
+      "passed": true,
+      "evidence": "| Both qualify — stacked | £500 | 10% | 15% | **25%?** | Open: do they stack? | | Both qualify — higher only | £500 | 10% | 15% | **15%?** | Open: or take the higher? | | Both qualify — stacked but capped | £500 | 10% | 15% | **20%?** | Open: or stack with a cap? |"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "| Scenario | Order Value | Bulk Discount | Loyalty Discount | Discount Applied? | Notes / Open Question | — the column header 'Discount Applied?' ends with '?'"
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1
+}
