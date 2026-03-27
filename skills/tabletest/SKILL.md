@@ -208,18 +208,83 @@ Examples: `Valid?`, `Formatted?`, `Result?`, `Throws?`, `Expected?`
 Source?        ← CORRECT
 ```
 
-### Use @Description for Spec Context
+### Use @Description When It Adds Information
 
-Add `@Description` to test methods or classes to provide context that the table alone cannot convey — the "why" behind the rules, the domain context, or the relationship between tables.
+Add `@Description` when there is context the table alone cannot convey. Omit it when the table already says everything — a vacuous description adds noise.
+
+Good reasons to add `@Description`:
+- **Fixed values** shared by all rows that are not columns (e.g., "order value is always 100")
+- **Domain context** — where/when the rule applies, who is affected, which market
+- **Open questions** — decisions not yet resolved
+- **Relationship between tables** — how this table connects to others in the class
+
+Do not restate what the table already shows. If the description merely summarises the column names or row outcomes, delete it.
 
 ```java
-@DisplayName("Tax bracket determination")
-@Description("Income is taxed at progressive rates: 0% up to 12,570, "
-    + "20% from 12,571 to 50,270, 40% above 50,270")
-void shouldDetermineTaxBracket(...) { ... }
+// GOOD — adds context not visible in the table
+@Description("""
+    Applies to UK market only. Base salary is annual; bonus is percentage
+    of base. Open: should contractors in their notice period receive
+    a pro-rated bonus?
+    """)
+
+// BAD — restates what the table shows
+@Description("Bonus percentage is determined by employee level and department")
 ```
 
 `@DisplayName` serves as a section header in reports. `@Description` provides the explanatory text underneath. Together they make the published test report readable as documentation without the table needing to be self-explanatory on every detail.
+
+### Annotation Order
+
+Annotations on a `@TableTest` method must appear in this order:
+
+1. `@DisplayName` (if present)
+2. `@Description` (if present)
+3. `@TableTest`
+
+```java
+@DisplayName("Weekly pay calculation")
+@Description("""
+    Regular pay: hours × rate (up to 40 hours).
+    Overtime: 1.5× rate for hours above 40.
+    Sunday premium: 2× rate. Holiday premium: 2.5× rate.
+    """)
+@TableTest("""
+    Scenario        | Weekday hrs | Sunday hrs | Rate  | Regular pay? | Overtime pay? | Weekly pay?
+    Standard week   | 40          |            | 20.00 | 800.00       |               | 800.00
+    Five hours OT   | 45          |            | 20.00 | 800.00       | 150.00        | 950.00
+    """)
+void shouldCalculateWeeklyPay(...) { ... }
+```
+
+### Model Exceptions as Expected Columns
+
+When a table covers error/rejection cases, include the exception type as an expected column (`Throws?` or `Exception?`) — don't hardcode the exception class in the method body. This makes each row's expected outcome visible in the table.
+
+```java
+@TableTest("""
+    Scenario        | Input    | Throws?
+    Empty string    | ''       | IllegalArgumentException
+    Letters only    | abc      | NumberFormatException
+    Negative amount | -10.00   | IllegalArgumentException
+    """)
+void shouldRejectInvalidInput(String input, Class<? extends Exception> throws_) {
+    assertThrows(throws_, () -> parse(input));
+}
+```
+
+Keep null cases as blank-cell rows in the main table rather than extracting them to separate `@Test` methods:
+
+```java
+@TableTest("""
+    Scenario     | Input | Result?
+    Valid number | 42.50 | 42.50
+    Null input   |       |
+    """)
+void shouldParseAmount(String input, BigDecimal result) {
+    assertEquals(result, parse(input));
+}
+```
 
 ### Include Traceability Columns
 
@@ -426,7 +491,10 @@ After writing, verify:
 - [ ] **Value set semantics**: value sets only used where every value produces the same result; not used as shorthand for "test multiple values"
 - [ ] **Optional inputs blank**: columns not relevant to a scenario use blank cells (not 0 or defaults); parameter types support null
 - [ ] **Traceability columns**: intermediate expected values included where they help trace multi-step logic
-- [ ] **@Description present**: test methods or class have descriptions providing spec context beyond what the table shows
+- [ ] **@Description adds information**: if present, `@Description` provides context beyond what the table shows (fixed values, domain context, open questions) — not a restatement of columns or rows. Omit `@Description` if there is nothing to add.
+- [ ] **@Description uses text block**: `@Description` uses `"""` text blocks, not string concatenation with `+`
+- [ ] **Annotation order**: `@DisplayName` → `@Description` → `@TableTest` (no other order)
+- [ ] **Exception column**: error/rejection tables have a `Throws?` or `Exception?` column, not hardcoded exception classes in the method body
 - [ ] **Complete outputs**: all observable outputs of the same behavioral concern are in one table, not split across separate tests
 - [ ] **Row coherence**: rows match the type of logic being tested (decision points for priority logic, input variations for parsing logic); out-of-place rows may signal mixed responsibilities in the code under test
 - [ ] **Column consolidation**: if multiple columns are mutually exclusive (both identity and status vary together), consider consolidating into single column with composite values (e.g., `Primary OK`, `Secondary ERROR`)

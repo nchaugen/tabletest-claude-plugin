@@ -38,8 +38,8 @@
           "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'discountByCustomerTier' → 'Discount By Customer Tier'). Not a generic name like 'test1' or 'testMethod'."
         },
         {
-          "id": "description-adds-information",
-          "text": "@Description is present and provides context beyond what the table rows already express — such as fixed values shared by all rows, where/when the rule applies, or open questions. Does NOT merely restate the column names or summarise what the rows show."
+          "id": "description-if-present-adds-information",
+          "text": "If @Description is present, it provides context beyond what the table rows already express — such as fixed values shared by all rows, where/when the rule applies, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context (e.g. fixed values are included as a column rather than hardcoded in the method body)."
         },
         {
           "id": "annotation-order",
@@ -47,7 +47,7 @@
         },
         {
           "id": "description-uses-textblock",
-          "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +."
+          "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
         }
       ]
     },
@@ -84,8 +84,8 @@
           "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'dateParsing' → 'Date Parsing'). Not a generic name like 'test1' or 'testMethod'."
         },
         {
-          "id": "description-adds-information",
-          "text": "@Description is present and provides context beyond what the table rows already express — such as supported date formats, where/when the rule applies, or open questions. Does NOT merely restate the column names or summarise what the rows show."
+          "id": "description-if-present-adds-information",
+          "text": "If @Description is present, it provides context beyond what the table rows already express — such as where/when the rule applies, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context (e.g. supported date formats are visible as table rows)."
         },
         {
           "id": "annotation-order",
@@ -93,7 +93,7 @@
         },
         {
           "id": "description-uses-textblock",
-          "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +."
+          "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
         }
       ]
     },
@@ -262,8 +262,8 @@
           "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'permissionsByRoleAndAction' → 'Permissions By Role And Action'). Not a generic name like 'test1' or 'canPerform'."
         },
         {
-          "id": "description-adds-information",
-          "text": "@Description is present and provides context beyond what the table rows already express — such as where permissions are checked in the request lifecycle, or open questions. Does NOT merely restate the column names or summarise what the rows show."
+          "id": "description-if-present-adds-information",
+          "text": "If @Description is present, it provides context beyond what the table rows already express — such as where permissions are checked in the request lifecycle, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context."
         },
         {
           "id": "annotation-order",
@@ -271,7 +271,7 @@
         },
         {
           "id": "description-uses-textblock",
-          "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +."
+          "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
         }
       ]
     },
@@ -312,8 +312,8 @@
           "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'moneyParsing' → 'Money Parsing'). Not a generic name like 'test1' or 'testMethod'."
         },
         {
-          "id": "description-adds-information",
-          "text": "@Description is present and provides context beyond what the table rows already express — such as the expected currency format, or open questions. Does NOT merely restate the column names or summarise what the rows show."
+          "id": "description-if-present-adds-information",
+          "text": "If @Description is present, it provides context beyond what the table rows already express — such as the expected currency format, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context."
         },
         {
           "id": "annotation-order",
@@ -321,7 +321,7 @@
         },
         {
           "id": "description-uses-textblock",
-          "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +."
+          "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
         }
       ]
     },
@@ -358,8 +358,8 @@
           "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'bonusByLevelAndDepartment' → 'Bonus By Level And Department'). Not a generic name like 'test1' or 'testMethod'."
         },
         {
-          "id": "description-adds-information",
-          "text": "@Description is present and provides context beyond what the table rows already express — such as how bonus rates are applied (e.g. as percentage of base salary), or open questions. Does NOT merely restate the column names or summarise what the rows show."
+          "id": "description-if-present-adds-information",
+          "text": "If @Description is present, it provides context beyond what the table rows already express — such as how bonus rates are applied (e.g. as percentage of base salary), or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context."
         },
         {
           "id": "annotation-order",
@@ -367,7 +367,7 @@
         },
         {
           "id": "description-uses-textblock",
-          "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +."
+          "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
         }
       ]
     },
@@ -555,7 +555,7 @@
         },
         {
           "id": "1.11-format-description",
-          "text": "@Description is present on at least the payable hours method and provides context beyond what the table rows already express — such as the conversion rules, fixed values, or application context. Does NOT merely restate the column names or summarise what the rows show."
+          "text": "@Description is present on at least the pay calculation method and provides context beyond what the table rows already express — such as the overtime threshold (40 hours), premium multipliers (Sunday 2×, Holiday 2.5×), or other fixed assumptions not visible in the table. Does NOT merely restate the column names or summarise what the rows show."
         },
         {
           "id": "1.12-format-annotation-order",
@@ -563,7 +563,7 @@
         },
         {
           "id": "1.13-format-description-textblock",
-          "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +."
+          "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
         }
       ]
     },
@@ -625,7 +625,7 @@
         },
         {
           "id": "2.14-format-description-textblock",
-          "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +."
+          "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
         }
       ]
     },
@@ -687,7 +687,7 @@
         },
         {
           "id": "3.13-format-description-textblock",
-          "text": "@Description text uses a text block (triple-quoted string \"\"\") when the text is long, not string concatenation with +."
+          "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
         }
       ]
     },

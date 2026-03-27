@@ -100,6 +100,17 @@ it as more examples arrive.
 - Ask: "What do we verify to know the behaviour is correct?"
 - Suffix output column names with `?` (`Eligible?`, `Discount?`, `Error Message?`).
 
+**The `?` suffix is reserved for output columns only.** Do not use `?` on input columns,
+even when the input is a yes/no condition. Input columns describe the given state; output
+columns describe what the system decides or produces.
+
+| Good (Input)         | Bad (Input)           | Why bad                        |
+|----------------------|-----------------------|--------------------------------|
+| `Loyalty Member`     | `Loyalty Member?`     | `?` implies this is an output  |
+| `Within 24h`         | `Within 24h?`         | This is a given condition      |
+| `Trial Active`       | `Trial?`              | This is an input state         |
+| `Has Licence`        | `Has Licence?`        | This is a given fact           |
+
 ### 4. Add More Examples
 
 Work through variations systematically:
