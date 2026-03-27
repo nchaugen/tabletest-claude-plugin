@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "| Scenario | Order Value | Bulk Threshold | Bulk Discount | Loyalty Tier | Loyalty Discount | Discount Cap | Final Discount? | Final Price? |"
+    },
+    {
+      "id": "does-not-invent-resolution",
+      "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved",
+      "passed": true,
+      "evidence": "The `?` cells are intentionally unresolved — those are the questions your team needs to answer. ... | Both apply — stacked? | £150 | £100 | 10% | silver | 5% | — | **?** | **?** |"
+    },
+    {
+      "id": "covers-both-discounts-applying",
+      "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)",
+      "passed": true,
+      "evidence": "| Both apply — stacked? | £150 | £100 | 10% | silver | 5% | — | **?** | **?** |"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note",
+      "passed": true,
+      "evidence": "**The open questions this table surfaces:** 1. **Stacking vs. higher-only** — rows 4 and 5 are the same inputs; the `?` cells force a decision."
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "| Final Discount? | Final Price? |"
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1
+}

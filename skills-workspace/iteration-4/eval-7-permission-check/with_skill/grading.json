@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"\n    Scenario                        | Role  | Action              | Can perform?"
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "Table uses value-set syntax (curly braces like {READ, WRITE} or {READ, WRITE, DELETE}) to express rules that hold across multiple actions — rather than one row per role/action combination",
+      "passed": true,
+      "evidence": "ADMIN | {READ, WRITE, DELETE} | true ... GUEST | {WRITE, DELETE}     | false"
+    },
+    {
+      "id": "fewer-than-nine-rows",
+      "text": "Table has fewer than 9 data rows (i.e. does not enumerate every role/action combination individually)",
+      "passed": true,
+      "evidence": "Six data rows present: 'ADMIN can do anything', 'USER can read', 'USER can write', 'USER cannot delete', 'GUEST can only read', 'GUEST cannot write or delete'"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "void canPerform(Role role, Action action, boolean canPerform) {\n    assertEquals(canPerform, permissions.canPerform(role, action));\n}"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Scenario                        | Role  | Action              | Can perform?"
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1
+}

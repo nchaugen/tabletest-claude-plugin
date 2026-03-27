@@ -1,0 +1,43 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table (using | column | syntax)",
+      "passed": true,
+      "evidence": "| Scenario | Age | Credit Score | Min Score (Policy) | Income Status | Approved? | Rejection Reason? |"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column name ends with '?' (e.g. 'Eligible?' or 'Approved?')",
+      "passed": true,
+      "evidence": "Column headers include 'Approved?' and 'Rejection Reason?'"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language — no implementation terms like 'creditScore', 'isEligible', 'boolean', 'int'",
+      "passed": true,
+      "evidence": "Columns are: Scenario, Age, Credit Score, Min Score (Policy), Income Status, Approved?, Rejection Reason? — all plain business language"
+    },
+    {
+      "id": "senior-threshold-row",
+      "text": "Table includes at least one row specifically for the senior applicant (65+) threshold scenario",
+      "passed": true,
+      "evidence": "Rows include 'At senior threshold' (age 65, score 600) and 'Just above senior threshold' (age 65, score 601)"
+    },
+    {
+      "id": "missing-income-marked-open",
+      "text": "The missing income scenario is represented — either as a row with an open/uncertain expected value (?, TBD, or blank) or as an explicit open question note",
+      "passed": true,
+      "evidence": "Rows 'Missing income, good score' and 'Senior, missing income, above threshold' both have '?' in the Approved? column, and point 3 explicitly calls this 'the key open question'"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('Senior applicant at threshold') not outcomes ('Approved')",
+      "passed": true,
+      "evidence": "Scenario names such as 'Just above standard threshold', 'Unstable income, good score', 'One year below senior age', 'Missing income, good score' all describe input conditions, not outcomes"
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 6,
+  "pass_rate": 1
+}

@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "| Scenario | Shipping Method | Order Value | Destination | Cost? |\n|---|---|---|---|---|"
+    },
+    {
+      "id": "express-split-into-two-cases",
+      "text": "Express shipping is represented as at least two distinct rows or cases: one where destination is irrelevant (paid tier, order under £50) and one where UK is specified (free tier, order £50+)",
+      "passed": true,
+      "evidence": "| Express — below free threshold | Express | £49.99 | {UK, Ireland, International} | £9.99 | and | Express — at threshold, UK | Express | £50.00 | UK | £0.00 |"
+    },
+    {
+      "id": "standard-destination-blank",
+      "text": "Standard shipping destination is blank or absent from the table — it is genuinely irrelevant and should not be filled with a dummy value",
+      "passed": false,
+      "evidence": "| Standard — flat rate always | Standard | {£10.00, £50.00, £100.00} | {UK, Ireland, International} | £3.99 | — the Destination column is filled with {UK, Ireland, International}, not blank or absent"
+    },
+    {
+      "id": "overnight-destinations-specified",
+      "text": "Overnight shipping rows specify UK and/or Ireland as destinations — not left blank, since availability depends on it",
+      "passed": true,
+      "evidence": "| Overnight — UK | Overnight | {£10.00, £100.00} | UK | £14.99 | and | Overnight — Ireland | Overnight | {£10.00, £100.00} | Ireland | £14.99 |"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "The column header is \"Cost?\" — it ends with a question mark."
+    }
+  ],
+  "assertions_passed": 4,
+  "assertions_total": 5,
+  "pass_rate": 0.8
+}

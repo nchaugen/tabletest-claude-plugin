@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-multiple-tables",
+      "text": "Output contains at least 2 separate markdown tables",
+      "passed": true,
+      "evidence": "The response contains three separate markdown tables: 'Table 1: Subscription Sign-up Billing', 'Table 2: Cancellation Refund', and a third 'Open Questions' table with scenario/what-happens/open-question columns."
+    },
+    {
+      "id": "annual-no-trial-rule-represented",
+      "text": "A table or note explicitly captures that the free trial is not available on annual plans (not just implied)",
+      "passed": true,
+      "evidence": "Table 1 includes a 'Trial available?' column where both annual rows explicitly show 'no' (e.g., 'New annual subscriber | Annual | no | no | £95.88 | £95.88/year'). The note also states: 'A loyalty member starting a trial gets the trial, then £9.99/month, no discount.' confirming trial and annual are separate."
+    },
+    {
+      "id": "loyalty-discount-row-present",
+      "text": "At least one table row demonstrates the loyalty programme discount scenario for annual plan subscribers",
+      "passed": true,
+      "evidence": "Table 1 row: 'Loyalty member, annual plan | Annual | yes | no | £86.29 | £86.29/year' and Table 2 row: 'Annual loyalty, mid-year | Annual | £86.29 | 180 | no | £43.74 (185 unused × £0.236/day)' both demonstrate the loyalty discount on annual plans."
+    },
+    {
+      "id": "does-not-invent-loyalty-trial-resolution",
+      "text": "The response does NOT state a definitive invented answer about how the loyalty discount interacts with the free trial (e.g. does not silently assign a specific discount amount for a trial+loyalty combo without flagging it as unresolved)",
+      "passed": false,
+      "evidence": "The model states definitively: 'The loyalty/trial interaction at sign-up is actually clean (they can't both apply: loyalty discount is annual-only, trial is monthly-only).' and 'A loyalty member starting a trial gets the trial, then £9.99/month, no discount.' This is a definitive invented resolution of the loyalty+trial interaction at sign-up, presented as settled fact rather than an open question."
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The annual/loyalty/trial interaction is explicitly surfaced as an open question — via '?', 'TBD', blank expected value, or a written open question — rather than silently resolved",
+      "passed": true,
+      "evidence": "The Open Questions table contains the row 'Loyalty member on trial, upgrades to annual | Trial ends early? | Does the remaining trial carry over, or does the annual charge start immediately?' with explicit '?' markers and written open questions for the loyalty/trial/annual interaction."
+    }
+  ],
+  "assertions_passed": 4,
+  "assertions_total": 5,
+  "pass_rate": 0.8
+}

@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"\n    Scenario               | Level      | Department           | Bonus rate?"
+    },
+    {
+      "id": "contractor-handled-separately-or-noted",
+      "text": "CONTRACTOR is either placed in a separate @TableTest (not mixed with the level×department grid) OR the response explicitly notes the structural asymmetry and explains the design choice",
+      "passed": true,
+      "evidence": "The CONTRACTOR rule is a natural fit for a value set since it holds regardless of department ... **Value set on CONTRACTOR**: `{SALES, ENGINEERING}` generates two rows, both asserting `0.00` — directly expressing \"regardless of department\" without listing every combination manually."
+    },
+    {
+      "id": "no-dummy-department-for-contractor",
+      "text": "If CONTRACTOR appears in the same table as SENIOR/JUNIOR rows, the department value is not a dummy or placeholder (e.g. 'ANY', 'N/A') just to fill the grid",
+      "passed": true,
+      "evidence": "Contractor             | CONTRACTOR | {SALES, ENGINEERING} | 0.00"
+    },
+    {
+      "id": "four-core-rules-covered",
+      "text": "The four level×department combinations (SENIOR+SALES, SENIOR+ENGINEERING, JUNIOR+SALES, JUNIOR+ENGINEERING) are all present in the table(s)",
+      "passed": true,
+      "evidence": "Senior in Sales        | SENIOR     | SALES                | 0.15\n    Senior in Engineering  | SENIOR     | ENGINEERING          | 0.12\n    Junior in Sales        | JUNIOR     | SALES                | 0.08\n    Junior in Engineering  | JUNIOR     | ENGINEERING          | 0.05"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "void shouldCalculateBonus(Level level, Department department, double expectedRate) {\n    Employee employee = new Employee(level, department);\n    assertEquals(expectedRate, calculateBonus(employee), 0.001);\n}"
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1
+}

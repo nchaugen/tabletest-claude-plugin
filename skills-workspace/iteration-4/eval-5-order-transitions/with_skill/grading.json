@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains at least one markdown table",
+      "passed": true,
+      "evidence": "| Scenario | Current Status | Requested Status | Allowed? | Reason? |"
+    },
+    {
+      "id": "cancellation-coverage",
+      "text": "Table covers cancellation rules — includes rows for states where cancellation is allowed and where it is not",
+      "passed": true,
+      "evidence": "Rows for allowed cancellation: 'Cancel before confirmation' (PENDING→CANCELLED, yes), 'Cancel after confirmation' (CONFIRMED→CANCELLED, yes), 'Cancellation from any pre-shipment state' ({PENDING, CONFIRMED}→CANCELLED, yes). Rows for disallowed: 'Cancel after shipment' (SHIPPED→CANCELLED, no), 'Cancel after delivery' (DELIVERED→CANCELLED, no)."
+    },
+    {
+      "id": "return-window-addressed",
+      "text": "The 30-day return window rule is addressed — either as a threshold column, a separate table, or flagged as an open question",
+      "passed": true,
+      "evidence": "Table 2 'Return Flag Eligibility' includes a 'Days Since Delivery' column and a 'Return Window (Policy)' column showing 30 days, with rows at day 10, 29, 30, and 31."
+    },
+    {
+      "id": "value-set-or-multiple-states",
+      "text": "Uses value sets {PENDING, CONFIRMED} or equivalent to express 'regardless of which starting state' for cases where a rule holds across states",
+      "passed": true,
+      "evidence": "'Cancellation from any pre-shipment state | {PENDING, CONFIRMED} | CANCELLED | yes' and 'Return on non-delivered order | {PENDING, CONFIRMED, SHIPPED, CANCELLED} | | 30 days | no'"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Column headers 'Allowed?' and 'Reason?' appear in both tables; additionally the boundary row has value '?' in the Allowed? column: 'Return requested at the boundary | DELIVERED | 30 | 30 days | ? | **Open: is day 30 included?**'"
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1
+}

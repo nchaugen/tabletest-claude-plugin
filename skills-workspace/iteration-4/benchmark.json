@@ -1,0 +1,302 @@
+{
+  "skill_name": "tabletest + spec-by-example",
+  "iteration": 4,
+  "model": "sonnet",
+  "timestamp": "2026-03-22T23:12:58.955Z",
+  "evals": [
+    {
+      "id": "eval-1-convert-repetitive-tests",
+      "name": "convert repetitive tests",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 6,
+          "assertions_total": 6,
+          "pass_rate": 1,
+          "failed_assertions": [],
+          "total_tokens": 41747,
+          "duration_ms": 12630,
+          "cost_usd": 0.08231580000000002
+        }
+      }
+    },
+    {
+      "id": "eval-2-parse-dates",
+      "name": "parse dates",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1,
+          "failed_assertions": [],
+          "total_tokens": 74250,
+          "duration_ms": 60261,
+          "cost_usd": 0.14794829999999998
+        }
+      }
+    },
+    {
+      "id": "eval-3-dependency-setup",
+      "name": "dependency setup",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 4,
+          "assertions_total": 4,
+          "pass_rate": 1,
+          "failed_assertions": [],
+          "total_tokens": 66152,
+          "duration_ms": 11886,
+          "cost_usd": 0.0909642
+        }
+      }
+    },
+    {
+      "id": "eval-4-loan-approval",
+      "name": "loan approval",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 6,
+          "assertions_total": 6,
+          "pass_rate": 1,
+          "failed_assertions": [],
+          "total_tokens": 42576,
+          "duration_ms": 38329,
+          "cost_usd": 0.1041852
+        }
+      }
+    },
+    {
+      "id": "eval-5-order-transitions",
+      "name": "order transitions",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1,
+          "failed_assertions": [],
+          "total_tokens": 42819,
+          "duration_ms": 43936,
+          "cost_usd": 0.07834920000000001
+        }
+      }
+    },
+    {
+      "id": "eval-6-discount-interaction",
+      "name": "discount interaction",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1,
+          "failed_assertions": [],
+          "total_tokens": 41306,
+          "duration_ms": 22790,
+          "cost_usd": 0.05596559999999999
+        }
+      }
+    },
+    {
+      "id": "eval-7-permission-check",
+      "name": "permission check",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1,
+          "failed_assertions": [],
+          "total_tokens": 41668,
+          "duration_ms": 15610,
+          "cost_usd": 0.05421885
+        }
+      }
+    },
+    {
+      "id": "eval-8-money-parse",
+      "name": "money parse",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 4,
+          "assertions_total": 5,
+          "pass_rate": 0.8,
+          "failed_assertions": [
+            "null-as-blank-cell"
+          ],
+          "total_tokens": 69102,
+          "duration_ms": 47010,
+          "cost_usd": 0.09381075
+        }
+      }
+    },
+    {
+      "id": "eval-9-bonus-contractor-structure",
+      "name": "bonus contractor structure",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1,
+          "failed_assertions": [],
+          "total_tokens": 42154,
+          "duration_ms": 24021,
+          "cost_usd": 0.06062655
+        }
+      }
+    },
+    {
+      "id": "eval-10-subscription-billing",
+      "name": "subscription billing",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 5,
+          "assertions_total": 5,
+          "pass_rate": 1,
+          "failed_assertions": [],
+          "total_tokens": 43160,
+          "duration_ms": 49687,
+          "cost_usd": 0.09186045
+        }
+      }
+    },
+    {
+      "id": "eval-11-shipping-cost",
+      "name": "shipping cost",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 4,
+          "assertions_total": 5,
+          "pass_rate": 0.8,
+          "failed_assertions": [
+            "blank-for-inapplicable-fields"
+          ],
+          "total_tokens": 44440,
+          "duration_ms": 65950,
+          "cost_usd": 0.11162295
+        }
+      }
+    },
+    {
+      "id": "eval-12-subscription-loyalty-trial",
+      "name": "subscription loyalty trial",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 4,
+          "assertions_total": 5,
+          "pass_rate": 0.8,
+          "failed_assertions": [
+            "does-not-invent-loyalty-trial-resolution"
+          ],
+          "total_tokens": 43823,
+          "duration_ms": 55480,
+          "cost_usd": 0.09076229999999999
+        }
+      }
+    },
+    {
+      "id": "eval-13-shipping-partial-applicability",
+      "name": "shipping partial applicability",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 4,
+          "assertions_total": 5,
+          "pass_rate": 0.8,
+          "failed_assertions": [
+            "standard-destination-blank"
+          ],
+          "total_tokens": 43257,
+          "duration_ms": 51077,
+          "cost_usd": 0.0848154
+        }
+      }
+    },
+    {
+      "id": "eval-14-weekly-pay",
+      "name": "weekly pay",
+      "skill": "tabletest + spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 6,
+          "assertions_total": 11,
+          "pass_rate": 0.5454545454545454,
+          "failed_assertions": [
+            "1.1-decomposition-concern-separation",
+            "1.2-decomposition-rules-not-arithmetic",
+            "1.5-depth-error-edge-cases",
+            "1.6-readability-empty-cells",
+            "1.8-correctness-payable-hours"
+          ],
+          "total_tokens": 171006,
+          "duration_ms": 163434,
+          "cost_usd": 0.2863179
+        }
+      }
+    },
+    {
+      "id": "eval-15-reis-discount",
+      "name": "reis discount",
+      "skill": "tabletest + spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 10,
+          "assertions_total": 12,
+          "pass_rate": 0.8333333333333334,
+          "failed_assertions": [
+            "2.6-readability-human-readable-values",
+            "2.12-format-typeconverter"
+          ],
+          "total_tokens": 105424,
+          "duration_ms": 189728,
+          "cost_usd": 0.28038855
+        }
+      }
+    },
+    {
+      "id": "eval-16-order-splitting",
+      "name": "order splitting",
+      "skill": "tabletest + spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 7,
+          "assertions_total": 11,
+          "pass_rate": 0.6363636363636364,
+          "failed_assertions": [
+            "3.2-decomposition-trigger-interactions",
+            "3.4-depth-companion-ambiguity-surfaced",
+            "3.7-readability-set-notation",
+            "3.8-readability-scalar-column"
+          ],
+          "total_tokens": 137817,
+          "duration_ms": 245338,
+          "cost_usd": 0.37686615
+        }
+      }
+    },
+    {
+      "id": "eval-17-shopping-cart",
+      "name": "shopping cart",
+      "skill": "tabletest + spec-by-example",
+      "results": {}
+    }
+  ],
+  "summary": {
+    "with_skill": {
+      "assertions_passed": 85,
+      "assertions_total": 100,
+      "pass_rate": 0.85,
+      "total_tokens": 1050701,
+      "total_duration_ms": 1097167,
+      "total_cost_usd": 2.0910181500000005
+    }
+  }
+}

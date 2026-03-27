@@ -1,0 +1,73 @@
+{
+  "assertions": [
+    {
+      "id": "3.1-decomposition-concern-separation",
+      "text": "Trigger detection, shipment optimisation, and companion constraint are in separate tables. Not one monolithic table.",
+      "passed": true,
+      "evidence": "Three separate @TableTest methods: 'splittingTriggers', 'minimisesShipmentCount', and 'companionProductsShipTogether', each with their own table."
+    },
+    {
+      "id": "3.2-decomposition-trigger-interactions",
+      "text": "At least one row where multiple triggers fire simultaneously (e.g. mixed fulfilment AND mixed stock status).",
+      "passed": false,
+      "evidence": "Each row in 'splittingTriggers' isolates exactly one trigger: 'Mixed fulfilment methods', 'Mixed stock status', 'No single warehouse covers all', 'Different delivery addresses'. No row combines multiple triggers simultaneously."
+    },
+    {
+      "id": "3.3-depth-all-four-triggers",
+      "text": "All four split triggers are covered: mixed fulfilment, mixed stock status, no single warehouse has all items, different addresses.",
+      "passed": true,
+      "evidence": "splittingTriggers table rows: 'Mixed fulfilment methods', 'Mixed stock status', 'No single warehouse covers all', 'Different delivery addresses'."
+    },
+    {
+      "id": "3.4-depth-companion-ambiguity-surfaced",
+      "text": "The 'no warehouse has both companions' case is flagged as an open question or product decision, not silently resolved as either 'error' or 'ship separately'. The requirement does NOT hint at this — the agent must recognise the ambiguity unprompted.",
+      "passed": false,
+      "evidence": "The response resolves the ambiguity as throwing 'UnfulfillableOrderException' without acknowledging this as an open question or product decision: 'assertThatThrownBy(() -> splitter.split(order)).isInstanceOf(UnfulfillableOrderException.class)'. No open question is raised."
+    },
+    {
+      "id": "3.5-depth-companion-edge-cases",
+      "text": "Companion constraint covers at least: companions at same location, companions split from non-companion items, and the ambiguous case (no location has both).",
+      "passed": true,
+      "evidence": "'Companions at same warehouse', 'Companion group separated from other items', and 'Companions with no shared warehouse cannot be fulfilled' (as @Test) are all present."
+    },
+    {
+      "id": "3.6-readability-scenario-names",
+      "text": "Optimisation scenarios describe the business situation (e.g. 'Consolidate: two beats three', 'Everything at one warehouse') — not 'Test case 2'.",
+      "passed": true,
+      "evidence": "Optimisation scenario names: 'Two items at WH1, one at WH2', 'Three items across three locations', 'All items at same warehouse' — all descriptive business situations."
+    },
+    {
+      "id": "3.7-readability-set-notation",
+      "text": "Trigger table uses set notation ({delivery, pickup}) for closed enumerations rather than prose or lists.",
+      "passed": false,
+      "evidence": "The trigger table uses full item descriptors like '[shirt:DELIVERY:IN_STOCK:WH1:home, gift:PICKUP:IN_STOCK:WH1:home]' rather than set notation such as '{DELIVERY, PICKUP}' for enumerations."
+    },
+    {
+      "id": "3.8-readability-scalar-column",
+      "text": "Optimisation table uses a scalar count column (e.g. 'Shirts ordered') not item lists, when product identity doesn't matter for the logic.",
+      "passed": false,
+      "evidence": "The optimisation table ('minimisesShipmentCount') uses full item descriptor lists: '[shirt:DELIVERY:IN_STOCK:WH1:home, trousers:DELIVERY:IN_STOCK:WH1:home, shoes:DELIVERY:IN_STOCK:WH2:home]' instead of a scalar count column."
+    },
+    {
+      "id": "3.9-correctness-valid-assignments",
+      "text": "Inventory assignments are physically valid: items are only assigned to locations that have them. Shipment counts match the assignments shown.",
+      "passed": true,
+      "evidence": "All scenarios show consistent warehouse assignments and matching shipment counts, e.g. 'Two items at WH1, one at WH2' yields shipment count 2 with groups [shirt+trousers, shoes]."
+    },
+    {
+      "id": "3.10-format-displayname",
+      "text": "@DisplayName is present on test methods.",
+      "passed": true,
+      "evidence": "@DisplayName annotations present on all test methods: 'Splitting triggers', 'Minimise shipment count', 'Companion products ship together', 'Companions with no shared warehouse cannot be fulfilled'."
+    },
+    {
+      "id": "3.11-format-description",
+      "text": "@Description is present on at least the class, explaining the splitting rules and constraints.",
+      "passed": true,
+      "evidence": "Class-level @Description: 'An order is split into the fewest shipments that satisfy all fulfilment constraints. Splitting is required when items differ in fulfilment method, stock status, delivery address, or when no single warehouse has all items in stock...'"
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 11,
+  "pass_rate": 0.6363636363636364
+}

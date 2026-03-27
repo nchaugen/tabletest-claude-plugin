@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "| Scenario | Shipping Method | Destination | Available? |\n|---|---|---|---|"
+    },
+    {
+      "id": "blank-for-inapplicable-fields",
+      "text": "Destination/country is blank (or absent from the table) for standard and express shipping rows — not filled with a dummy value or 'ANY'",
+      "passed": false,
+      "evidence": "Table 1 shows Standard and Express rows with '| {UK, International} |' in the Destination column, and Table 2 (the cost table) has no Destination column at all. The availability table explicitly fills Destination with '{UK, International}' for Standard and Express rows rather than leaving it blank."
+    },
+    {
+      "id": "overnight-country-specified",
+      "text": "Overnight rows include an explicit UK destination value (not blank), since availability depends on it",
+      "passed": true,
+      "evidence": "| Overnight available for UK | Overnight | UK | yes | and | Overnight unavailable internationally | Overnight | International | no |"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "| Scenario | Shipping Method | Destination | Available? |"
+    },
+    {
+      "id": "all-three-shipping-types-present",
+      "text": "Table includes rows for all three shipping types: standard, express, and overnight",
+      "passed": true,
+      "evidence": "| Standard available everywhere | Standard | ... | and | Express available everywhere | Express | ... | and | Overnight available for UK | Overnight | ..."
+    }
+  ],
+  "assertions_passed": 4,
+  "assertions_total": 5,
+  "pass_rate": 0.8
+}

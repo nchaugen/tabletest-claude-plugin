@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"\n        Scenario       | Input | Amount?\n        Whole dollars  | 10.00 | 10.00\n        Minimum value  | 0.01  | 0.01\n        Zero           | 0.00  | 0.00\n        \"\"\")"
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell (not the string 'null') in the table",
+      "passed": false,
+      "evidence": "The null case is handled entirely outside any table: \"@Test\nvoid nullInput_returnsNull() {\n    assertThat(Money.parse(null)).isNull();\n}\" — null does not appear as a blank cell (or any cell) in a @TableTest table."
+    },
+    {
+      "id": "exception-cases-handled",
+      "text": "The exception cases (empty string, letters-only, negative) are handled — via a Throws? column, assertThrows in the method body, or a separate @TableTest — not silently omitted",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"\n        Scenario       | Input\n        Empty string   | ''\n        Letters only   | abc\n        Negative value | -5.00\n        \"\"\") ... void invalidInput_throwsIllegalArgumentException(String input) {\n        assertThatThrownBy(() -> Money.parse(input))\n            .isInstanceOf(IllegalArgumentException.class);\n    }"
+    },
+    {
+      "id": "result-column-with-question-mark",
+      "text": "Valid inputs have a result column name ending with '?' (e.g. 'Money?' or 'Result?')",
+      "passed": true,
+      "evidence": "Scenario       | Input | Amount?"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "No if or switch keywords appear in any of the three method bodies (validInput_returnsMoneyWithAmount, nullInput_returnsNull, invalidInput_throwsIllegalArgumentException). All method bodies contain only direct assertions and lambda expressions."
+    }
+  ],
+  "assertions_passed": 4,
+  "assertions_total": 5,
+  "pass_rate": 0.8
+}

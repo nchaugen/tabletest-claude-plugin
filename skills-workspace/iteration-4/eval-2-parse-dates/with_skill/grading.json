@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"\n        Scenario     | Input       | Date?\n        ISO format   | 2024-01-15  | 2024-01-15\n        Slash format | 15/01/2024  | 2024-01-15\n        Short year   | 24-01-15    | 2024-01-15\n        Null input   |             |\n        \"\"\")"
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell (not the string 'null') in the table",
+      "passed": true,
+      "evidence": "Null input   |             |\n        — and in the notes: \"The blank cell for `Null input` becomes `null`\""
+    },
+    {
+      "id": "exception-handled-cleanly",
+      "text": "The empty string / exception case is handled — either via a Throws? column, assertThrows inside the method, or a separate @TableTest — rather than being silently omitted",
+      "passed": true,
+      "evidence": "@Test\n    void throwsOnEmptyString() {\n        assertThrows(IllegalArgumentException.class, () -> parser.parseDate(\"\"));\n    }"
+    },
+    {
+      "id": "localdate-result-column",
+      "text": "There is a result column typed as LocalDate (or using a string representation that maps to LocalDate)",
+      "passed": true,
+      "evidence": "void parsesDateStrings(String input, LocalDate expectedDate) — and noted: \"`Date?` column — ISO values (`2024-01-15`) are auto-converted to `LocalDate` by JUnit\""
+    },
+    {
+      "id": "type-conversion-addressed",
+      "text": "The response addresses type conversion for non-standard date formats (slash format, short year) — mentions @TypeConverter or a converter method",
+      "passed": true,
+      "evidence": "\"No `@TypeConverter` needed here\" and \"The non-ISO values (`15/01/2024`, `24-01-15`) are in the **input** column, which is typed `String` — JUnit passes them as-is. No `@TypeConverter` needed here.\""
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 5,
+  "pass_rate": 1
+}

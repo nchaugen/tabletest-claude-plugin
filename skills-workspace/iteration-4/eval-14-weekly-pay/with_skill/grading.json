@@ -1,0 +1,73 @@
+{
+  "assertions": [
+    {
+      "id": "1.1-decomposition-concern-separation",
+      "text": "Hour classification (how hours convert to payable hours) is in a separate table from pay calculation (payable hours × rate). Not one big table with all inputs and final pay.",
+      "passed": false,
+      "evidence": "There is only one table (`shouldCalculateWeeklyPay`) that combines all inputs (weekday hrs, Sunday hrs, holiday hrs, rate) with all outputs (regular pay, overtime pay, premium pay, weekly pay) in a single table. There is no separate table for hour classification vs pay calculation."
+    },
+    {
+      "id": "1.2-decomposition-rules-not-arithmetic",
+      "text": "Tables focus on the conversion rules (regular, overtime, Sunday, holiday → payable hours). Pay = payable hours × rate is treated as arithmetic, not a rule worthy of exhaustive testing.",
+      "passed": false,
+      "evidence": "The single table includes rate as an input column and pay amounts as outputs, directly testing pay = hours × rate arithmetic across all rows. The multiplication arithmetic is itself being exhaustively tested rather than treated as trivial."
+    },
+    {
+      "id": "1.3-depth-overtime-boundary",
+      "text": "Overtime threshold boundary is covered: at least a value at the threshold (40) and just above (41 or similar). Not just values well below and well above.",
+      "passed": true,
+      "evidence": "\"Exactly at 40-hour threshold | 40 | 0 | 0 | 20.00 | 800.00 | 0.00 | 0.00 | 800.00\" and \"First hour of overtime | 41 | 0 | 0 | 20.00 | 800.00 | 30.00 | 0.00 | 830.00\""
+    },
+    {
+      "id": "1.4-depth-combined-scenario",
+      "text": "A combined scenario is present: a row with weekday + Sunday + holiday hours, testing the composition of all hour types.",
+      "passed": true,
+      "evidence": "\"Overtime weekday with Sunday and holiday | 45 | 6 | 3 | 20.00 | 800.00 | 150.00 | 360.00 | 1310.00\""
+    },
+    {
+      "id": "1.5-depth-error-edge-cases",
+      "text": "Error/edge cases covered: at least negative hours (floored at zero) and negative or missing rate (rejected).",
+      "passed": false,
+      "evidence": "The response covers negative rate rejection in `shouldRejectNegativeHourlyRate`, but there is no test row covering negative hours (floored at zero). All hour inputs in the main table are non-negative integers."
+    },
+    {
+      "id": "1.6-readability-empty-cells",
+      "text": "Sunday and Holiday hour columns use empty cells (not 0) when those inputs are not relevant to a scenario. Parameter types are Integer (not int) to support null from blank cells.",
+      "passed": false,
+      "evidence": "The table uses explicit 0 values: \"Under-40 weekday hours only | 32 | 0 | 0 | 20.00\". Parameter types are declared as primitive `int`: \"void shouldCalculateWeeklyPay(int weekdayHours, int sundayHours, int holidayHours, double rate,\""
+    },
+    {
+      "id": "1.7-readability-scenario-names",
+      "text": "Scenario names describe work patterns (e.g. 'Part-time', 'Five hours overtime', 'Full Sunday shift') — not 'Test case 1' or expected outcomes.",
+      "passed": true,
+      "evidence": "\"No hours worked\", \"Under-40 weekday hours only\", \"Exactly at 40-hour threshold\", \"First hour of overtime\", \"Ten hours of overtime\", \"Sunday hours only\", \"Holiday hours only\", \"Weekday under 40 with Sunday and holiday\", \"Overtime weekday with Sunday and holiday\""
+    },
+    {
+      "id": "1.8-correctness-payable-hours",
+      "text": "Expected payable hours are arithmetically correct for every row: regular + overtime×1.5 + sunday×2 + holiday×2.",
+      "passed": false,
+      "evidence": "The table does not use payable hours as a column. Instead it uses pay amounts (regular pay, overtime pay, premium pay). The assertion requires correctness in terms of payable hours columns, which are absent. The response uses pay = hours × rate rather than isolating payable hours as an intermediate value."
+    },
+    {
+      "id": "1.9-correctness-value-set-semantics",
+      "text": "Value sets are only used where all values in the set produce the same expected result (e.g. any rate × 0 = 0). Not used where results would differ.",
+      "passed": true,
+      "evidence": "Value sets are used only in `shouldRejectNegativeHourlyRate`: \"{-0.01, -1.00, -25.00}\" — all values produce the same result (IllegalArgumentException thrown), which is semantically correct."
+    },
+    {
+      "id": "1.10-format-displayname",
+      "text": "@DisplayName is present on test methods.",
+      "passed": true,
+      "evidence": "\"@DisplayName(\\\"Weekly pay breakdown\\\")\" on `shouldCalculateWeeklyPay` and \"@DisplayName(\\\"Negative hourly rate is rejected\\\")\" on `shouldRejectNegativeHourlyRate`."
+    },
+    {
+      "id": "1.11-format-description",
+      "text": "@Description is present on at least the payable hours method, explaining the conversion rules.",
+      "passed": true,
+      "evidence": "\"@Description(\\\"Regular pay = weekday hours (capped at 40) × rate. Overtime pay = weekday hours beyond 40 × 1.5 × rate. Premium pay = (Sunday hours + holiday hours) × 2 × rate. Weekly pay = regular + overtime + premium.\\\")\" is present on `shouldCalculateWeeklyPay`."
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 11,
+  "pass_rate": 0.5454545454545454
+}
