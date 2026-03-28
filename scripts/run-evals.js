@@ -38,6 +38,7 @@ function parseArgs(argv) {
     gradingSuffix: null,
     parallel: 4,
     gradeOnly: false,
+    verbose: false,
   };
 
   for (let i = 2; i < argv.length; i++) {
@@ -66,6 +67,9 @@ function parseArgs(argv) {
       case "--grade-only":
         args.gradeOnly = true;
         break;
+      case "--verbose":
+        args.verbose = true;
+        break;
       default:
         console.error(`Unknown argument: ${argv[i]}`);
         process.exit(1);
@@ -82,6 +86,7 @@ function parseArgs(argv) {
   console.error("  --grading-suffix S  Write grading to grading-S.json instead of grading.json");
   console.error("  --parallel N        Max parallel evals (default: 4)");
     console.error("  --grade-only        Re-grade existing outputs");
+    console.error("  --verbose           Capture full conversation trace (conversation.jsonl)");
     process.exit(1);
   }
 
@@ -156,6 +161,18 @@ function setupWorktree(repoRoot) {
     console.log("Removed experiment documents for contamination isolation");
   }
 
+  // Remove prior iteration outputs to prevent contamination
+  // (response.md files contain model answers to the same eval prompts)
+  const workspaceDir = path.join(worktreePath, "skills-workspace");
+  if (fs.existsSync(workspaceDir)) {
+    for (const entry of fs.readdirSync(workspaceDir)) {
+      if (entry.startsWith("iteration-")) {
+        fs.rmSync(path.join(workspaceDir, entry), { recursive: true });
+      }
+    }
+    console.log("Removed prior iteration outputs for contamination isolation");
+  }
+
   return worktreePath;
 }
 
@@ -170,7 +187,7 @@ function cleanupWorktree(worktreePath) {
   }
 }
 
-function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 300000 }) {
+function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 300000, verbose = false }) {
   return new Promise((resolve, reject) => {
     let settled = false;
     const settle = (fn, value) => {
@@ -179,11 +196,11 @@ function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 30
       fn(value);
     };
 
-    const args = [
-      "--print", "--output-format", "json", "--model", model,
-      "--no-session-persistence",
-      "--setting-sources", "",
-    ];
+    const args = verbose
+      ? ["--print", "--output-format", "stream-json", "--verbose", "--model", model]
+      : ["--print", "--output-format", "json", "--model", model];
+
+    args.push("--no-session-persistence", "--setting-sources", "");
 
     if (pluginDir) {
       args.push("--plugin-dir", pluginDir);
@@ -216,9 +233,18 @@ function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 30
         return;
       }
       try {
-        settle(resolve, JSON.parse(stdout));
-      } catch {
-        settle(reject, new Error(`Failed to parse claude output: ${stdout.slice(0, 500)}`));
+        if (verbose) {
+          const lines = stdout.split("\n").filter(l => l.trim());
+          const parsed = lines.map(l => JSON.parse(l));
+          const resultLine = parsed.filter(o => o.type === "result").pop();
+          if (!resultLine) throw new Error("No result line found in stream-json output");
+          resultLine._conversationJsonl = stdout;
+          settle(resolve, resultLine);
+        } else {
+          settle(resolve, JSON.parse(stdout));
+        }
+      } catch (e) {
+        settle(reject, new Error(`Failed to parse claude output: ${e.message}\n${stdout.slice(0, 500)}`));
       }
     });
 
@@ -257,14 +283,14 @@ async function generateResponses(evals, worktreePath, iterationDir, args) {
 
     await Promise.all(
       batch.map(({ evalDef, config }) =>
-        generateOne(evalDef, config, worktreePath, iterationDir, args.model)
+        generateOne(evalDef, config, worktreePath, iterationDir, args.model, args.verbose)
       )
     );
     completedJobs += batch.length;
   }
 }
 
-async function generateOne(evalDef, config, worktreePath, iterationDir, model) {
+async function generateOne(evalDef, config, worktreePath, iterationDir, model, verbose) {
   const evalDir = path.join(
     iterationDir,
     `eval-${evalDef.id}-${evalDef.slug}`,
@@ -293,6 +319,7 @@ async function generateOne(evalDef, config, worktreePath, iterationDir, model) {
       cwd: worktreePath,
       pluginDir: config === "with_skill" ? worktreePath : undefined,
       timeoutMs: evalDef.timeout_ms,
+      verbose,
     });
 
     fs.writeFileSync(
@@ -320,6 +347,14 @@ async function generateOne(evalDef, config, worktreePath, iterationDir, model) {
       JSON.stringify(timing, null, 2),
       "utf-8"
     );
+
+    if (result._conversationJsonl) {
+      fs.writeFileSync(
+        path.join(evalDir, "conversation.jsonl"),
+        result._conversationJsonl,
+        "utf-8"
+      );
+    }
 
     console.log(
       `  ✓ Eval ${evalDef.id} [${config}] — ${timing.total_tokens} tokens, ${timing.duration_ms}ms`

@@ -1,6 +1,6 @@
 ---
 name: tabletest
-description: Use when writing or converting JUnit tests in Java or Kotlin with the TableTest library. Trigger whenever the user wants to test multiple scenarios with the same assertion logic, convert repetitive @Test methods into a table, or start a new @TableTest. Also use when the user asks about TableTest syntax, column design, type converters, or value sets — even if they don't say "TableTest" explicitly.
+description: Use when writing or converting JUnit tests in Java or Kotlin with the TableTest library. Trigger whenever the user wants to test multiple scenarios with the same assertion logic, convert repetitive @Test methods into a table, or start a new @TableTest. Also trigger when the user asks to write tests for a feature — even without mentioning TableTest. Also use when the user asks about TableTest syntax, column design, type converters, or value sets — even if they don't say "TableTest" explicitly.
 ---
 
 # TableTest Skill
@@ -431,6 +431,8 @@ Use `Integer` (not `int`) for parameters that may be blank — primitive `int` c
 ---
 
 ## Workflow
+
+**Start fresh from this workflow.** If you have already explored the codebase, read existing tests, or sketched a table structure before loading this skill — set that aside. Follow the Design Phase below to derive table structure from the logic. Pre-formed designs tend to miss value sets, traceability columns, and concern separation that this workflow surfaces.
 
 ### Pair Programming Flow
 

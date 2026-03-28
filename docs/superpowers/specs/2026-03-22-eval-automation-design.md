@@ -210,6 +210,7 @@ node scripts/run-evals.js --iteration 4 --grade-only
 
 **What is removed:**
 - `docs/superpowers/experiments/` — contains ideal answer tables for eval features
+- `skills-workspace/iteration-*/` — contains prior model responses (`response.md`) that an agent could anchor on
 
 **Why a worktree:** The `--bare` flag prevents CLAUDE.md auto-discovery and hooks, but the agent can still use Glob/Grep/Read to explore files in the working directory. A worktree with experiment docs removed is the only reliable way to prevent contamination.
 

@@ -1,6 +1,6 @@
 ---
 name: spec-by-example
-description: Use to pin down behaviour through concrete examples before or during implementation. Trigger when requirements use vague terms ("eligible customers", "valid input", "appropriate discount"), when behaviour depends on multiple conditions whose combinations aren't fully worked out, or when an edge case surfaces mid-implementation that calls the assumed behaviour into question. Use this even when the user doesn't say "spec" or "example" — if they're describing conditional logic that needs examples to clarify, this skill applies.
+description: Use to pin down behaviour through concrete examples before or during implementation. Trigger when requirements use vague terms ("eligible customers", "valid input", "appropriate discount"), when behaviour depends on multiple conditions whose combinations aren't fully worked out, or when an edge case surfaces mid-implementation that calls the assumed behaviour into question. Use this even when the user doesn't say "spec" or "example" — if they're describing conditional logic that needs examples to clarify, this skill applies. Do NOT use when the user asks to write tests, convert tests, or create a @TableTest — use the tabletest skill instead.
 ---
 
 # Spec by Example
