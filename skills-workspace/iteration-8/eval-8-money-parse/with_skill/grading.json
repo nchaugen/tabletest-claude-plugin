@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\" ... \"\"\") appears twice in the code, decorating both test methods"
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell in the valid inputs @TableTest table (not the string 'null', and not as a separate @Test method). The blank cell maps to a null parameter.",
+      "passed": true,
+      "evidence": "In the first table: 'Null input   |       |' shows a blank Input cell, and the @TypeConverter handles it: 'if (value == null) return null;'"
+    },
+    {
+      "id": "exception-has-expected-column",
+      "text": "The exception/invalid-input table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row",
+      "passed": true,
+      "evidence": "Second table header: 'Scenario | Input | Throws?' with rows showing: '| java.lang.IllegalArgumentException' for each exception case"
+    },
+    {
+      "id": "exception-cases-handled",
+      "text": "The exception cases (empty string, letters-only, negative) are handled — via a Throws? column, assertThrows in the method body, or a separate @TableTest",
+      "passed": true,
+      "evidence": "Second table contains all three cases: 'Empty string | '' | java.lang.IllegalArgumentException', 'Letters only | abc | java.lang.IllegalArgumentException', 'Negative value | -5.00 | java.lang.IllegalArgumentException'"
+    },
+    {
+      "id": "result-column-with-question-mark",
+      "text": "Valid inputs have a result column name ending with '?'",
+      "passed": true,
+      "evidence": "First table column header: 'Result?'"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "First method body: 'assertEquals(result, parse(input));' and second method body: 'assertThrows(throws_, () -> parse(input));' — both contain only single assertions with no conditionals"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case",
+      "passed": true,
+      "evidence": "Method names: 'shouldParseOrReturnNull' and 'shouldThrowForInvalidInput' both clearly describe their purpose when converted from camelCase"
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description is present, it provides context beyond what the table rows already express. It is acceptable to omit @Description if the table already conveys all relevant context.",
+      "passed": true,
+      "evidence": "No @Description annotations are present in the code; the table rows clearly express all relevant context"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Each method has only @TableTest annotation; the order constraint is satisfied as no other annotations are present"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "No @Description annotation is present; criterion is satisfied by absence"
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 10,
+  "pass_rate": 1
+}

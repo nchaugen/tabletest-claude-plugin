@@ -1,0 +1,43 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "| Scenario | Method | Destination | Order Value | Free Threshold | Cost? | (markdown table with pipe delimiters and headers present)"
+    },
+    {
+      "id": "express-split-by-uk-free-tier",
+      "text": "Express shipping is split into at least two cases distinguishing the UK free tier (UK, order £50+, free) from the paid tier",
+      "passed": true,
+      "evidence": "Express rows include: 'Express, UK, at threshold — free tier applies' with £0.00 cost, and 'Express, non-UK, at or above threshold — free tier does not apply' with £9.99 cost, clearly distinguishing UK free tier from non-UK paid tier"
+    },
+    {
+      "id": "express-uses-value-sets",
+      "text": "Express rows use value sets to consolidate cases with the same outcome — UK at/above threshold in one row ({£50, £75}), not separate rows",
+      "passed": false,
+      "evidence": "Two separate rows for UK at/above threshold: '| Express, UK, at threshold — free tier applies | Express | UK | £50.00 | £50.00 | £0.00 |' and '| Express, UK, above threshold | Express | UK | £75.00 | £50.00 | £0.00 |' both cost £0.00 but are not consolidated with value set {£50.00, £75.00}"
+    },
+    {
+      "id": "overnight-grouped",
+      "text": "Overnight UK and Ireland are in one row using a value set ({UK, Ireland}) — not separate rows",
+      "passed": true,
+      "evidence": "| Overnight, UK or Ireland — always £14.99 | Overnight | {UK, Ireland} | {£10.00, £100.00} | | £14.99 |"
+    },
+    {
+      "id": "standard-destination-value-set-or-blank",
+      "text": "Standard shipping destination uses a value set covering all options or is blank/absent",
+      "passed": true,
+      "evidence": "| Standard — always flat rate | Standard | {UK, Ireland, International} | {£10.00, £100.00} | | £3.99 |"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Column header 'Cost?' ends with a question mark"
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 6,
+  "pass_rate": 0.8333333333333334
+}

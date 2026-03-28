@@ -1,0 +1,63 @@
+{
+  "skill_name": "tabletest + spec-by-example",
+  "iteration": 8,
+  "model": "sonnet",
+  "timestamp": "2026-03-28T21:42:11.578Z",
+  "evals": [
+    {
+      "id": "eval-14-weekly-pay",
+      "name": "weekly pay",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 8,
+          "assertions_total": 13,
+          "pass_rate": 0.6153846153846154,
+          "failed_assertions": [
+            "1.1-traceability-columns",
+            "1.5-depth-error-edge-cases",
+            "1.10-format-displayname",
+            "1.11-format-description",
+            "1.12-format-annotation-order"
+          ],
+          "total_tokens": 41927,
+          "duration_ms": 56303,
+          "cost_usd": 0.1106307
+        }
+      }
+    },
+    {
+      "id": "eval-15-reis-discount",
+      "name": "reis discount",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 7,
+          "assertions_total": 13,
+          "pass_rate": 0.5384615384615384,
+          "failed_assertions": [
+            "2.1-decomposition-concern-separation",
+            "2.4-depth-rolling-window-boundary",
+            "2.6-readability-human-readable-values",
+            "2.9-correctness-value-set-tier-semantics",
+            "2.12-format-typeconverter",
+            "2.15-ticket-count-uses-value-sets"
+          ],
+          "total_tokens": 342633,
+          "duration_ms": 213407,
+          "cost_usd": 0.4717348500000001
+        }
+      }
+    }
+  ],
+  "summary": {
+    "with_skill": {
+      "assertions_passed": 15,
+      "assertions_total": 26,
+      "pass_rate": 0.5769230769230769,
+      "total_tokens": 384560,
+      "total_duration_ms": 269710,
+      "total_cost_usd": 0.5823655500000001
+    }
+  }
+}
