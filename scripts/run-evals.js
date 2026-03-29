@@ -28,6 +28,21 @@ Rules:
 - If the assertion is about absence (e.g. "does NOT invent..."), evidence should explain what you checked and why it passes/fails.
 - Return valid JSON only. No markdown code fences. No text before or after the JSON.`;
 
+function parseEvalIds(str) {
+  const ids = [];
+  for (const part of str.split(",")) {
+    const range = part.match(/^(\d+)-(\d+)$/);
+    if (range) {
+      const start = parseInt(range[1], 10);
+      const end = parseInt(range[2], 10);
+      for (let i = start; i <= end; i++) ids.push(i);
+    } else {
+      ids.push(Number(part));
+    }
+  }
+  return ids;
+}
+
 function parseArgs(argv) {
   const args = {
     iteration: null,
@@ -47,7 +62,7 @@ function parseArgs(argv) {
         args.iteration = parseInt(argv[++i], 10);
         break;
       case "--evals":
-        args.evals = argv[++i].split(",").map(Number);
+        args.evals = parseEvalIds(argv[++i]);
         break;
       case "--baseline":
         args.baseline = true;
@@ -79,7 +94,7 @@ function parseArgs(argv) {
   if (!args.iteration) {
     console.error("Usage: node scripts/run-evals.js --iteration N [options]");
     console.error("Options:");
-    console.error("  --evals 1,2,3       Run specific evals only");
+    console.error("  --evals 1,2,3       Run specific evals (supports ranges: 1-13)");
     console.error("  --baseline          Also run without skill");
     console.error("  --model MODEL       Model to use (default: sonnet)");
     console.error("  --grading-model M   Model for grading (default: haiku)");
