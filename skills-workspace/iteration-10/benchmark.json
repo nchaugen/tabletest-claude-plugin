@@ -1,0 +1,221 @@
+{
+  "skill_name": "tabletest + spec-by-example",
+  "iteration": 10,
+  "model": "sonnet",
+  "timestamp": "2026-03-29T12:01:45.724Z",
+  "evals": [
+    {
+      "id": "eval-1-convert-repetitive-tests",
+      "name": "convert repetitive tests",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 10,
+          "assertions_total": 10,
+          "pass_rate": 1,
+          "failed_assertions": [],
+          "total_tokens": 66303,
+          "duration_ms": 17147,
+          "cost_usd": 0.1334235
+        }
+      }
+    },
+    {
+      "id": "eval-2-parse-dates",
+      "name": "parse dates",
+      "skill": "tabletest",
+      "results": {}
+    },
+    {
+      "id": "eval-3-dependency-setup",
+      "name": "dependency setup",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 4,
+          "assertions_total": 4,
+          "pass_rate": 1,
+          "failed_assertions": [],
+          "total_tokens": 102956,
+          "duration_ms": 12905,
+          "cost_usd": 0.14142195
+        }
+      }
+    },
+    {
+      "id": "eval-4-loan-approval",
+      "name": "loan approval",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 7,
+          "assertions_total": 7,
+          "pass_rate": 1,
+          "failed_assertions": [],
+          "total_tokens": 66154,
+          "duration_ms": 35535,
+          "cost_usd": 0.14768715
+        }
+      }
+    },
+    {
+      "id": "eval-5-order-transitions",
+      "name": "order transitions",
+      "skill": "spec-by-example",
+      "results": {}
+    },
+    {
+      "id": "eval-6-discount-interaction",
+      "name": "discount interaction",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 6,
+          "assertions_total": 6,
+          "pass_rate": 1,
+          "failed_assertions": [],
+          "total_tokens": 66623,
+          "duration_ms": 44433,
+          "cost_usd": 0.0839811
+        }
+      }
+    },
+    {
+      "id": "eval-7-permission-check",
+      "name": "permission check",
+      "skill": "tabletest",
+      "results": {}
+    },
+    {
+      "id": "eval-8-money-parse",
+      "name": "money parse",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 10,
+          "assertions_total": 10,
+          "pass_rate": 1,
+          "failed_assertions": [],
+          "total_tokens": 189794,
+          "duration_ms": 277563,
+          "cost_usd": 0.18974654999999996
+        }
+      }
+    },
+    {
+      "id": "eval-9-bonus-contractor-structure",
+      "name": "bonus contractor structure",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 9,
+          "assertions_total": 9,
+          "pass_rate": 1,
+          "failed_assertions": [],
+          "total_tokens": 179048,
+          "duration_ms": 291716,
+          "cost_usd": 0.1205841
+        }
+      }
+    },
+    {
+      "id": "eval-10-subscription-billing",
+      "name": "subscription billing",
+      "skill": "spec-by-example",
+      "results": {}
+    },
+    {
+      "id": "eval-12-subscription-loyalty-trial",
+      "name": "subscription loyalty trial",
+      "skill": "spec-by-example",
+      "results": {}
+    },
+    {
+      "id": "eval-13-shipping-partial-applicability",
+      "name": "shipping partial applicability",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 4,
+          "assertions_total": 6,
+          "pass_rate": 0.6666666666666666,
+          "failed_assertions": [
+            "express-uses-value-sets",
+            "overnight-grouped"
+          ],
+          "total_tokens": 70139,
+          "duration_ms": 279424,
+          "cost_usd": 0.1355409
+        }
+      }
+    },
+    {
+      "id": "eval-14-weekly-pay",
+      "name": "weekly pay",
+      "skill": "tabletest",
+      "results": {}
+    },
+    {
+      "id": "eval-15-reis-discount",
+      "name": "reis discount",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 3,
+          "assertions_total": 13,
+          "pass_rate": 0.23076923076923078,
+          "failed_assertions": [
+            "2.1-decomposition-concern-separation",
+            "2.4-depth-rolling-window-boundary",
+            "2.6-readability-human-readable-values",
+            "2.9-correctness-value-set-tier-semantics",
+            "2.15-ticket-count-uses-value-sets",
+            "2.16-no-duplicate-tier-mapping",
+            "2.10-format-displayname",
+            "2.11-format-description",
+            "2.12-format-typeconverter",
+            "2.13-format-annotation-order"
+          ],
+          "total_tokens": 72103,
+          "duration_ms": 160540,
+          "cost_usd": 0.15108015
+        }
+      }
+    },
+    {
+      "id": "eval-16-order-splitting",
+      "name": "order splitting",
+      "skill": "tabletest",
+      "results": {}
+    },
+    {
+      "id": "eval-17-shopping-cart",
+      "name": "shopping cart",
+      "skill": "tabletest + spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 11,
+          "assertions_total": 13,
+          "pass_rate": 0.8461538461538461,
+          "failed_assertions": [
+            "4.4-depth-item-operations",
+            "4.13-coupon-cart-contents-column"
+          ],
+          "total_tokens": 68473,
+          "duration_ms": 167544,
+          "cost_usd": 0.1066911
+        }
+      }
+    }
+  ],
+  "summary": {
+    "with_skill": {
+      "assertions_passed": 64,
+      "assertions_total": 78,
+      "pass_rate": 0.8205128205128205,
+      "total_tokens": 881593,
+      "total_duration_ms": 1286807,
+      "total_cost_usd": 1.2101564999999999
+    }
+  }
+}

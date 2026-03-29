@@ -1,0 +1,49 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table (using | column | syntax)",
+      "passed": true,
+      "evidence": "| Scenario | Applicant Age | Credit Score | Income Status | Min Score (Policy) | Approved? | Rejection Reason? |"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column name ends with '?'",
+      "passed": true,
+      "evidence": "\"Approved?\" and \"Rejection Reason?\" are output column headers that end with '?'"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language — no implementation terms",
+      "passed": true,
+      "evidence": "Column headers: 'Scenario', 'Applicant Age', 'Credit Score', 'Income Status', 'Min Score (Policy)', 'Approved?', 'Rejection Reason?' — all use business domain language, no camelCase terms like 'creditScore' or 'isEligible'"
+    },
+    {
+      "id": "senior-threshold-row",
+      "text": "Table includes at least one row specifically for the senior applicant (65+) threshold scenario",
+      "passed": true,
+      "evidence": "Multiple senior threshold rows present: 'Just at senior age | 65 | 620 | stable | 600 | yes' and 'Senior, at senior threshold — not above | 70 | 600 | stable | 600 | no'"
+    },
+    {
+      "id": "missing-income-marked-open",
+      "text": "The missing income scenario is represented with open/uncertain expected value and/or explicit open question note",
+      "passed": true,
+      "evidence": "'Standard adult, income not provided' and 'Senior, income not provided' rows both show **?** in the Approved? column with 'Open: reject (missing = unstable) or block (require info)?' note"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions not outcomes",
+      "passed": true,
+      "evidence": "All scenario names describe conditions: 'Standard adult, at threshold — not above', 'Senior, score meets senior threshold', 'Senior, unstable income' — none are named after outcomes like 'Approved' or 'Rejected'"
+    },
+    {
+      "id": "threshold-values-visible",
+      "text": "Policy thresholds (650 for standard, 600 for senior) appear as concrete values in Credit Score column",
+      "passed": true,
+      "evidence": "Credit Score column contains boundary values: 650 appears in 'Standard adult, at threshold — not above' row and 600 appears in 'Senior, at senior threshold — not above' row"
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 7,
+  "pass_rate": 1
+}

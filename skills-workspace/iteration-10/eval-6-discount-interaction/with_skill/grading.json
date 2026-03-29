@@ -1,0 +1,43 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "| Scenario | Order Value | Bulk Discount | Loyalty Discount | Discount Applied? | Final Price? | ... (table with multiple rows and pipe-delimited columns)"
+    },
+    {
+      "id": "does-not-invent-resolution",
+      "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved",
+      "passed": true,
+      "evidence": "Rows 4-7 contain **?** marks in Discount Applied? and Final Price? columns. Explicit statement: 'For \"Both — bulk is higher\" (row 4): If stack → 25% applied → £150 / If higher-only → 15% applied → £170' shows multiple unresolved possibilities."
+    },
+    {
+      "id": "covers-both-discounts-applying",
+      "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)",
+      "passed": true,
+      "evidence": "Row 4: 'Both — bulk is higher | £200 | 15% | 10%' and rows 5, 6, 7 all show non-'—' values in both Bulk Discount and Loyalty Discount columns"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note",
+      "passed": true,
+      "evidence": "**The two open questions, with the concrete stakes:** followed by explicit questions: 'Q1 — Stack or higher-only?' and 'Q2 — Is there a cap?'"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Column headers 'Discount Applied?' and 'Final Price?' both end with '?'"
+    },
+    {
+      "id": "extreme-discount-row",
+      "text": "Table includes at least one row with a high combined discount (e.g. large order + top loyalty tier) that would force a decision about whether a cap applies — making the cap question concrete, not theoretical.",
+      "passed": true,
+      "evidence": "Row 7: 'Both — stacking would exceed cap | £200 | 20% | 15%' with Q2 explaining 'For \"Both — stacking would exceed cap\" (row 7, 20% + 15% = 35%): If no cap → 35% applied → £130 / If cap at 25% → 25% applied → £150 / If cap at 30% → 30% applied → £140'"
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 6,
+  "pass_rate": 1
+}
