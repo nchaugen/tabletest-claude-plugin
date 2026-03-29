@@ -1,6 +1,6 @@
 ---
 name: spec-by-example
-description: Use to pin down behaviour through concrete examples before or during implementation. Trigger when requirements use vague terms ("eligible customers", "valid input", "appropriate discount"), when behaviour depends on multiple conditions whose combinations aren't fully worked out, or when an edge case surfaces mid-implementation that calls the assumed behaviour into question. Use this even when the user doesn't say "spec" or "example" — if they're describing conditional logic that needs examples to clarify, this skill applies. Also useful as a design step before writing @TableTest — the example tables become the test structure. The tabletest skill will invoke this skill when requirements need decomposition.
+description: Use to pin down behaviour through concrete examples before or during implementation. Trigger when requirements use vague terms ("eligible customers", "valid input", "appropriate discount"), when behaviour depends on multiple conditions whose combinations aren't fully worked out, or when an edge case surfaces mid-implementation that calls the assumed behaviour into question. Use this even when the user doesn't say "spec" or "example" — if they're describing conditional logic that needs examples to clarify, this skill applies. Do NOT use when the user asks to write tests, convert tests, or create a @TableTest — use the tabletest skill instead, which has its own requirements decomposition workflow.
 ---
 
 # Spec by Example
@@ -32,9 +32,9 @@ This skill is useful at any point — before implementation begins, mid-way thro
 or when revisiting a feature. The trigger is encountering conditional logic or
 variation that needs examples to pin down, not the phase of development.
 
-When you already have working tests to consolidate or refine, use `/tabletest`
-instead. When the `/tabletest` skill invokes this skill to decompose requirements,
-focus on producing example tables — `/tabletest` will handle the implementation.
+When you already have working tests to consolidate or refine, or when the user
+asks to write tests for a feature, use `/tabletest` instead — it has its own
+requirements decomposition workflow and will produce executable `@TableTest` code.
 
 ---
 
