@@ -1,7 +1,7 @@
 # Eval Automation — Design
 
 **Date:** 2026-03-22
-**Status:** Draft
+**Status:** Implemented — `scripts/run-evals.js` (743 lines), 8 full iterations completed
 
 ## Context
 
