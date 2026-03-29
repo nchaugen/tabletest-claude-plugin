@@ -1,0 +1,43 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "The response contains a clearly formatted markdown table starting with '| Scenario | Shipping Method | Destination | Order Value | Cost? |' with multiple rows of shipping scenarios."
+    },
+    {
+      "id": "express-split-by-uk-free-tier",
+      "text": "Express shipping is split into at least two cases distinguishing the UK free tier (UK, order £50+, free) from the paid tier",
+      "passed": true,
+      "evidence": "The table distinguishes Express UK at threshold (£0.00) from Express non-UK at threshold (£9.99): 'Express, at threshold — UK | Express | UK | £50.00 | £0.00' versus 'Express, at threshold — non-UK | Express | {Ireland, EU} | £50.00 | £9.99'"
+    },
+    {
+      "id": "express-uses-value-sets",
+      "text": "Express rows use value sets to consolidate cases with the same outcome",
+      "passed": false,
+      "evidence": "While the below-threshold row consolidates destinations as {UK, Ireland, EU}, the at/above-threshold rows are split by order value rather than consolidated: 'Express, at threshold — UK' and 'Express, above threshold — UK' are separate rows with £50.00 and £75.00 respectively, rather than unified as one row with {£50, £75}. Similarly, non-UK at/above threshold appears as two rows instead of one consolidated row with {£50, £75}."
+    },
+    {
+      "id": "overnight-grouped",
+      "text": "Overnight UK and Ireland are in one row using a value set ({UK, Ireland})",
+      "passed": true,
+      "evidence": "'Overnight, UK or Ireland | Overnight | {UK, Ireland} | {£10.00, £100.00} | £14.99' shows UK and Ireland grouped in a single row with value set notation."
+    },
+    {
+      "id": "standard-destination-value-set-or-blank",
+      "text": "Standard shipping destination uses a value set covering all options or is blank/absent",
+      "passed": true,
+      "evidence": "'Standard, any destination and order value | Standard | {UK, Ireland, EU} | {£10.00, £100.00} | £3.99' uses a value set covering all destination options."
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "The output column header is 'Cost?' which ends with a question mark."
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 6,
+  "pass_rate": 0.8333333333333334
+}

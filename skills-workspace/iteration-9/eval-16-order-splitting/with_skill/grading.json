@@ -1,0 +1,85 @@
+{
+  "assertions": [
+    {
+      "id": "3.1-decomposition-concern-separation",
+      "text": "Trigger detection, shipment optimisation, and companion constraint are in separate tables. Not one monolithic table.",
+      "passed": true,
+      "evidence": "Five distinct tables: Tables 1-3 cover triggers (Fulfillment Method Split, Availability-Based Grouping, Multiple Delivery Addresses), Table 4 covers shipment optimization (Warehouse Assignment — Minimizing Shipments), and Table 5 covers companion constraint (Companion Product Grouping)."
+    },
+    {
+      "id": "3.2-decomposition-trigger-interactions",
+      "text": "At least one row where multiple triggers fire simultaneously (e.g. mixed fulfilment AND mixed stock status).",
+      "passed": false,
+      "evidence": "Each table independently addresses one trigger type. Table 1 shows fulfillment splits only, Table 2 shows availability splits only, Table 3 shows address splits only. No single scenario row demonstrates multiple trigger types firing together (e.g., a row with both different fulfillment methods AND different stock statuses)."
+    },
+    {
+      "id": "3.3-depth-all-four-triggers",
+      "text": "All four split triggers are covered: mixed fulfilment, mixed stock status, no single warehouse has all items, different addresses.",
+      "passed": true,
+      "evidence": "Mixed fulfillment covered in Table 1 ('One delivery, one pickup'). Mixed stock status covered in Table 2 ('In-stock + pre-order'). No single warehouse has all items covered in Table 4 ('Three warehouses minimum — no two-warehouse option' and 'Two warehouses optimal — avoid three'). Different addresses covered in Table 3 ('Two items, two addresses' and 'Three different addresses')."
+    },
+    {
+      "id": "3.4-depth-companion-ambiguity-surfaced",
+      "text": "The 'no warehouse has both companions' case is included and recognised as a product decision — e.g. flagged as an open question, or the chosen resolution is explained. Not silently omitted.",
+      "passed": true,
+      "evidence": "Table 5 Row 2 explicitly includes 'No warehouse stocks both companions' scenario. The response contains an open question: 'When companions must split (no warehouse has both), which companion does a non-companion item travel with?'"
+    },
+    {
+      "id": "3.5-depth-companion-edge-cases",
+      "text": "Companion constraint covers at least: companions at same location, companions split from non-companion items, and the ambiguous case (no location has both).",
+      "passed": true,
+      "evidence": "Table 5 Row 1 covers companions at same location ('One warehouse stocks both companions'). Row 3 covers companions split from non-companions ('Companions at one warehouse, non-companion at another'). Row 2 covers no location having both ('No warehouse stocks both companions')."
+    },
+    {
+      "id": "3.6-readability-scenario-names",
+      "text": "Optimisation scenarios describe the business situation (e.g. 'Consolidate: two beats three', 'Everything at one warehouse') — not 'Test case 2'.",
+      "passed": true,
+      "evidence": "Table 4 scenario names describe business situations: 'One warehouse has full stock', 'Two warehouses optimal — avoid three', 'Three warehouses minimum — no two-warehouse option', 'Different items, each at a different warehouse', 'Different items, one warehouse has both'."
+    },
+    {
+      "id": "3.7-readability-item-property-mapping",
+      "text": "The trigger table represents multi-item orders where each item has its own fulfillment type, address, and availability. The notation used makes the item-to-property mapping unambiguous — not value sets like {delivery, pickup} which lose which item has which property.",
+      "passed": true,
+      "evidence": "Tables 1-3 use position-based mapping with ordered columns. Example from Table 1: 'Items: Shirt, Shoes | Fulfillment Methods: Delivery, Pickup' clearly maps Shirt to first delivery method and Shoes to second (pickup). No use of ambiguous value sets."
+    },
+    {
+      "id": "3.8-readability-scalar-column",
+      "text": "Optimisation table uses a scalar count column (e.g. 'Shirts ordered') not item lists, when product identity doesn't matter for the logic.",
+      "passed": true,
+      "evidence": "Table 4 uses 'Qty Needed' as a scalar column (6, 5, 6, 5, 6) with 'Item' specifying what the quantity refers to, rather than listing items as sets."
+    },
+    {
+      "id": "3.9-correctness-valid-assignments",
+      "text": "Inventory assignments are physically valid: items are only assigned to locations that have them. Shipment counts match the assignments shown.",
+      "passed": true,
+      "evidence": "Table 4 assignments all match warehouse stock: 'Chicago: 6' (warehouse had 6), 'Philadelphia: 3, Washington: 3' (each had 3 and needed 6 total), 'Chicago: 2, LA: 2, Houston: 1' (quantities match what warehouses stocked)."
+    },
+    {
+      "id": "3.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "Scenario names throughout tables read as clear descriptive titles: 'One warehouse has full stock', 'Two warehouses optimal — avoid three', 'Multiple delivery items with one pickup'. These would convert clearly to method names satisfying the OR condition."
+    },
+    {
+      "id": "3.11-format-description",
+      "text": "@Description is present on at least the class and provides context beyond what the table rows already express — such as the splitting rules, constraints, or application context. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": false,
+      "evidence": "No Java @Description annotations are shown in the response. While descriptive text appears before tables ('Items in the same order cannot share a shipment when their fulfillment methods differ'), these are markdown headers, not Java @Description annotations as required by the assertion."
+    },
+    {
+      "id": "3.12-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": false,
+      "evidence": "No Java annotations are present in the response. The response contains markdown tables and descriptive text, but no @DisplayName, @Description, or @TableTest annotations to verify ordering."
+    },
+    {
+      "id": "3.13-format-description-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description annotations are absent from the response, so the default pass condition ('Passes if @Description is absent') is satisfied."
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 13,
+  "pass_rate": 0.7692307692307693
+}

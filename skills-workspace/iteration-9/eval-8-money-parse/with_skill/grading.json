@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\" appears twice in the response, decorating both test methods"
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell in the valid inputs @TableTest table (not the string 'null', and not as a separate @Test method). The blank cell maps to a null parameter.",
+      "passed": true,
+      "evidence": "Null input    |       | - the input column is blank (empty space between pipes) for the null case in the first table"
+    },
+    {
+      "id": "exception-has-expected-column",
+      "text": "The exception/invalid-input table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row",
+      "passed": true,
+      "evidence": "Scenario        | Input  | Throws? - second table includes Throws? column with IllegalArgumentException specified for each row"
+    },
+    {
+      "id": "exception-cases-handled",
+      "text": "The exception cases (empty string, letters-only, negative) are handled — via a Throws? column, assertThrows in the method body, or a separate @TableTest",
+      "passed": true,
+      "evidence": "Second table contains: Empty string, Letters only, Negative value rows, with assertThrows(throws_, () -> parse(input)); in the method body"
+    },
+    {
+      "id": "result-column-with-question-mark",
+      "text": "Valid inputs have a result column name ending with '?' (e.g. 'Money?' or 'Result?')",
+      "passed": true,
+      "evidence": "Scenario      | Input | Amount? - the result column is named Amount?"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "First method uses ternary operator (result != null ? result.getAmount() : null), second method uses assertThrows() - neither contains if or switch statements"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case",
+      "passed": true,
+      "evidence": "Method names are shouldParseInput and shouldRejectInvalidInput, which read as clear descriptive titles"
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description is present, it provides context beyond what the table rows already express. It is acceptable to omit @Description if the table already conveys all relevant context.",
+      "passed": true,
+      "evidence": "@Description annotation is absent, which is acceptable per the assertion rules since the table already conveys all relevant context"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest",
+      "passed": true,
+      "evidence": "Only @TableTest annotation is present in each method, with no other annotations, so annotation order is correct"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description annotation is absent, which satisfies the pass condition"
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 10,
+  "pass_rate": 1
+}

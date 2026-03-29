@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "produces-multiple-tables",
+      "text": "Output contains at least 2 separate markdown tables",
+      "passed": true,
+      "evidence": "Table 1: Subscription Pricing and Table 2: Cancellation Refund are both present as markdown tables"
+    },
+    {
+      "id": "annual-no-trial-rule-represented",
+      "text": "A table or note explicitly captures that the free trial is not available on annual plans (not just implied)",
+      "passed": true,
+      "evidence": "Table 1 shows 'Trial applies? | no' for annual rows, and the rule summary states: 'trial is a function of plan (monthly only)'"
+    },
+    {
+      "id": "loyalty-discount-row-present",
+      "text": "At least one table row demonstrates the loyalty programme discount scenario for annual plan subscribers",
+      "passed": true,
+      "evidence": "Table 1 row: 'Loyalty member on annual | Annual | yes | no | £86.29 | £86.29/year' demonstrates the discounted price (£86.29 vs £95.88)"
+    },
+    {
+      "id": "surfaces-genuine-open-questions",
+      "text": "The response identifies at least one genuinely underspecified interaction",
+      "passed": true,
+      "evidence": "Five open questions are explicitly listed, including '24h window at trial-to-monthly conversion', 'Loyalty status lost mid-annual-cycle', and 'Switching from trial to annual'"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The annual/loyalty/trial interaction is explicitly surfaced as an open question",
+      "passed": true,
+      "evidence": "Table 2 contains 'Cancel within 24h of trial→monthly conversion | Monthly | {yes, no} | Just converted | ≤ 24h | 0 | 30 | **?**' with explicit '?' marking, plus a dedicated 'Open Questions' section"
+    },
+    {
+      "id": "loyalty-discount-annual-only",
+      "text": "Makes clear that the loyalty discount applies to the annual plan only",
+      "passed": true,
+      "evidence": "Table 1 shows 'Loyalty member on monthly | Monthly | yes | yes — 30 days | £0 | £9.99/month' (no discount) contrasted with 'Loyalty member on annual | Annual | yes | no | £86.29 | £86.29/year' (with discount). Rule summary states: 'loyalty discount is a function of plan (annual only)'"
+    },
+    {
+      "id": "loyalty-refund-ambiguity",
+      "text": "Surfaces whether a loyalty annual subscriber's prorated cancellation refund is calculated from the discounted price or list price — as an open question, '?', or note",
+      "passed": false,
+      "evidence": "'For loyalty annual, refund is based on the discounted price paid (£86.29), not the list price.' This definitively resolves the ambiguity as a statement of fact rather than surfacing it as an open question, contrary to the expected output requirement to surface ambiguities 'as open questions rather than silently resolving them'"
+    },
+    {
+      "id": "cancellation-refund-table",
+      "text": "Includes a cancellation/refund table or section (not just pricing)",
+      "passed": true,
+      "evidence": "'Table 2: Cancellation Refund' with concrete rows including 'Cancel annual mid-cycle (standard) | Annual | no | Active | > 24h | 100 | 365 | £69.61' and refund calculation scenarios"
+    },
+    {
+      "id": "refund-table-includes-loyalty-dimension",
+      "text": "The cancellation/refund table includes a loyalty member column to distinguish loyalty vs non-loyalty annual refund rows",
+      "passed": true,
+      "evidence": "Table 2 includes 'Loyalty Member' column with distinct rows: 'Cancel annual mid-cycle (standard) | Annual | no | Active | > 24h | 100 | 365 | £69.61' and 'Cancel annual mid-cycle (loyalty) | Annual | yes | Active | > 24h | 100 | 365 | £62.65'"
+    },
+    {
+      "id": "question-mark-only-on-outputs",
+      "text": "The '?' suffix is only used on output/expected columns, not on input columns",
+      "passed": true,
+      "evidence": "The '?' appears only in 'Refund?' column (output). Input columns like 'Plan', 'Loyalty Member', 'Phase' contain values without '?' suffixes. Even when input values vary like '{yes, no}', no '?' is used on the input column itself"
+    }
+  ],
+  "assertions_passed": 9,
+  "assertions_total": 10,
+  "pass_rate": 0.9
+}
