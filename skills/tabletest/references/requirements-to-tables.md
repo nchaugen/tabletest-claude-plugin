@@ -3,7 +3,12 @@
 Use this reference when writing tests from natural-language requirements, vague
 feature descriptions, or when it is not clear how to decompose the behaviour
 into tables. The workflow below helps you derive table structure from the
-requirements before writing any `@TableTest` code.
+requirements, then produce `@TableTest` Java code.
+
+**Your deliverable is `@TableTest` code, not markdown tables.** Work through the
+steps below as a thinking process to determine table structure, then write the
+Java test class. Do not stop at table proposals or wait for feedback — the
+requirement analysis and code production happen in one pass.
 
 ---
 
@@ -184,18 +189,32 @@ should expose the decision, not hide it.
 
 ---
 
-## Checklist Before Writing Code
+## 9. Write the `@TableTest` Code
 
-After working through the steps above, verify:
+Once the table structure is clear from steps 1-8, write the Java test class.
+Each concern becomes a `@TableTest` method. Follow the main skill's Table Design
+section for syntax, and its Quality Checks for verification.
 
-- [ ] Each concern has its own table with a clear verb-phrase name
+For each `@TableTest` method:
+- Add `@DisplayName` with a clear title derived from the concern name (step 1)
+- Add `@Description` with context the table alone cannot convey — fixed values,
+  formulas, domain context, or open questions from step 8
+- Use `@TypeConverter` methods for any human-readable values that need conversion
+- Follow annotation order: `@DisplayName` → `@Description` → `@TableTest`
+
+**Do not present markdown tables for review.** Go directly to the Java code.
+Open questions from step 8 belong in `@Description`, not in a separate notes
+section.
+
+### Final checklist
+
+- [ ] Each concern has its own `@TableTest` method with a clear name
 - [ ] Boundary values are tested at the threshold (not just mid-range values)
 - [ ] Value sets group same-outcome values where applicable
-- [ ] Rules and arithmetic are in separate tables
+- [ ] Rules and arithmetic are in separate `@TableTest` methods
 - [ ] Stateful features use before/action/after columns
 - [ ] Policy thresholds are visible as columns
-- [ ] Open questions are marked, not silently resolved
+- [ ] Open questions are in `@Description`, not silently resolved
 - [ ] Each row is independently executable — no row depends on a prior row
-
-Once the table structure is clear, implement it as `@TableTest` code following
-the main skill's Table Design and Quality Checks sections.
+- [ ] `@DisplayName`, `@Description`, `@TableTest` annotations in correct order
+- [ ] `@TypeConverter` methods handle any non-standard type conversions

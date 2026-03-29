@@ -7,6 +7,21 @@ const path = require("path");
 const EVALS_PATH = "skills-workspace/evals/evals.json";
 const WORKSPACE_PATH = "skills-workspace";
 
+// Logger that writes to both console and a log file
+let logStream = null;
+
+function log(...args) {
+  const msg = args.map(a => typeof a === "string" ? a : JSON.stringify(a)).join(" ");
+  console.log(msg);
+  if (logStream) logStream.write(msg + "\n");
+}
+
+function logError(...args) {
+  const msg = args.map(a => typeof a === "string" ? a : JSON.stringify(a)).join(" ");
+  console.error(msg);
+  if (logStream) logStream.write("ERROR: " + msg + "\n");
+}
+
 const GRADING_SYSTEM_PROMPT = `You are an eval grader. You will receive a model response and a list of assertions.
 For each assertion, determine whether it passes or fails based on the response content.
 
@@ -131,17 +146,22 @@ async function main() {
     evals = evals.filter((e) => args.evals.includes(e.id));
   }
 
-  console.log(
-    `\nEval run: iteration ${args.iteration}, ${evals.length} evals, model ${args.model}`
-  );
-
-  const worktreePath = args.gradeOnly ? null : setupWorktree(repoRoot);
   const iterationDir = path.join(
     repoRoot,
     WORKSPACE_PATH,
     `iteration-${args.iteration}`
   );
   fs.mkdirSync(iterationDir, { recursive: true });
+
+  // Set up log file
+  logStream = fs.createWriteStream(path.join(iterationDir, "run.log"), { flags: "a" });
+  logStream.write(`\n--- Run started at ${new Date().toISOString()} ---\n`);
+
+  log(
+    `\nEval run: iteration ${args.iteration}, ${evals.length} evals, model ${args.model}`
+  );
+
+  const worktreePath = args.gradeOnly ? null : setupWorktree(repoRoot);
 
   try {
     if (!args.gradeOnly) {
@@ -151,10 +171,14 @@ async function main() {
     const benchmark = aggregateResults(evals, iterationDir, args);
     const previousBenchmark = loadPreviousBenchmark(repoRoot, args.iteration);
     generateReport(benchmark, previousBenchmark, iterationDir, args);
-    console.log("\nDone. Results in:", iterationDir);
+    log("\nDone. Results in:", iterationDir);
   } finally {
     if (worktreePath) {
       cleanupWorktree(worktreePath);
+    }
+    if (logStream) {
+      logStream.end();
+      logStream = null;
     }
   }
 }
@@ -164,7 +188,7 @@ function setupWorktree(repoRoot) {
     require("os").tmpdir(),
     `eval-run-${Date.now()}`
   );
-  console.log("Creating clean worktree at:", worktreePath);
+  log("Creating clean worktree at:", worktreePath);
 
   execSync(`git worktree add --detach "${worktreePath}" HEAD`, {
     cwd: repoRoot,
@@ -180,7 +204,7 @@ function setupWorktree(repoRoot) {
   );
   if (fs.existsSync(experimentsDir)) {
     fs.rmSync(experimentsDir, { recursive: true });
-    console.log("Removed experiment documents for contamination isolation");
+    log("Removed experiment documents for contamination isolation");
   }
 
   // Remove prior iteration outputs to prevent contamination
@@ -192,24 +216,24 @@ function setupWorktree(repoRoot) {
         fs.rmSync(path.join(workspaceDir, entry), { recursive: true });
       }
     }
-    console.log("Removed prior iteration outputs for contamination isolation");
+    log("Removed prior iteration outputs for contamination isolation");
   }
 
   return worktreePath;
 }
 
 function cleanupWorktree(worktreePath) {
-  console.log("Cleaning up worktree...");
+  log("Cleaning up worktree...");
   try {
     execSync(`git worktree remove --force "${worktreePath}"`, {
       stdio: "inherit",
     });
   } catch {
-    console.warn("Warning: could not remove worktree at", worktreePath);
+    logError("Warning: could not remove worktree at", worktreePath);
   }
 }
 
-function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 300000, verbose = false }) {
+function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 600000, verbose = false }) {
   return new Promise((resolve, reject) => {
     let settled = false;
     const settle = (fn, value) => {
@@ -282,7 +306,7 @@ async function generateResponses(evals, worktreePath, iterationDir, args) {
   const configs = ["with_skill"];
   if (args.baseline) configs.push("no_skill");
 
-  console.log(
+  log(
     `\nGenerating responses (${configs.join(", ")}, parallel=${args.parallel})...`
   );
 
@@ -302,7 +326,7 @@ async function generateResponses(evals, worktreePath, iterationDir, args) {
     const batchNum = Math.floor(i / args.parallel) + 1;
     const totalBatches = Math.ceil(jobs.length / args.parallel);
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(0);
-    console.log(`  [batch ${batchNum}/${totalBatches}, ${completedJobs}/${totalJobs} done, ${elapsed}s elapsed]`);
+    log(`  [batch ${batchNum}/${totalBatches}, ${completedJobs}/${totalJobs} done, ${elapsed}s elapsed]`);
 
     await Promise.all(
       batch.map(({ evalDef, config }) =>
@@ -327,13 +351,13 @@ async function generateOne(evalDef, config, worktreePath, iterationDir, model, v
     try {
       const existing = JSON.parse(fs.readFileSync(timingPath, "utf-8"));
       if (existing.duration_ms != null && !existing.error) {
-        console.log(`  ⏭ Eval ${evalDef.id} [${config}] — already completed, skipping`);
+        log(`  ⏭ Eval ${evalDef.id} [${config}] — already completed, skipping`);
         return;
       }
     } catch { /* re-run if timing.json is corrupt */ }
   }
 
-  console.log(`  Running eval ${evalDef.id} (${evalDef.slug}) [${config}]...`);
+  log(`  Running eval ${evalDef.id} (${evalDef.slug}) [${config}]...`);
 
   try {
     const result = await runClaude({
@@ -379,11 +403,17 @@ async function generateOne(evalDef, config, worktreePath, iterationDir, model, v
       );
     }
 
-    console.log(
+    log(
       `  ✓ Eval ${evalDef.id} [${config}] — ${timing.total_tokens} tokens, ${timing.duration_ms}ms`
     );
   } catch (err) {
-    console.error(`  ✗ Eval ${evalDef.id} [${config}] — ${err.message}`);
+    logError(`  ✗ Eval ${evalDef.id} [${config}] — ${err.message}`);
+    // Write error details for debugging
+    fs.writeFileSync(
+      path.join(evalDir, "error.log"),
+      `${new Date().toISOString()}\n${err.message}\n${err.stack || ""}\n`,
+      "utf-8"
+    );
     fs.writeFileSync(
       path.join(evalDir, "outputs", "response.md"),
       `ERROR: ${err.message}`,
@@ -424,17 +454,17 @@ async function gradeOne(evalDef, config, iterationDir, model, gradingSuffix = nu
   const responsePath = path.join(evalDir, "outputs", "response.md");
 
   if (!fs.existsSync(responsePath)) {
-    console.log(`  Skipping eval ${evalDef.id} [${config}] — no response`);
+    log(`  Skipping eval ${evalDef.id} [${config}] — no response`);
     return;
   }
 
   const response = fs.readFileSync(responsePath, "utf-8");
   if (response.startsWith("ERROR:")) {
-    console.log(`  Skipping eval ${evalDef.id} [${config}] — generation error`);
+    log(`  Skipping eval ${evalDef.id} [${config}] — generation error`);
     return;
   }
 
-  console.log(`  Grading eval ${evalDef.id} (${evalDef.slug}) [${config}]...`);
+  log(`  Grading eval ${evalDef.id} (${evalDef.slug}) [${config}]...`);
 
   const gradingPrompt = buildGradingPrompt(evalDef, response);
 
@@ -485,7 +515,7 @@ async function gradeOne(evalDef, config, iterationDir, model, gradingSuffix = nu
   );
 
   const status = grading.pass_rate === 1 ? "✓" : "✗";
-  console.log(
+  log(
     `  ${status} Eval ${evalDef.id} [${config}] — ${grading.assertions_passed}/${grading.assertions_total}`
   );
 }
@@ -494,7 +524,7 @@ async function gradeResponses(evals, iterationDir, args) {
   const configs = ["with_skill"];
   if (args.baseline) configs.push("no_skill");
 
-  console.log(`\nGrading responses (model=${args.gradingModel}, parallel=${args.parallel})...`);
+  log(`\nGrading responses (model=${args.gradingModel}, parallel=${args.parallel})...`);
 
   const jobs = [];
   for (const evalDef of evals) {
@@ -508,7 +538,16 @@ async function gradeResponses(evals, iterationDir, args) {
     await Promise.all(
       batch.map(({ evalDef, config }) =>
         gradeOne(evalDef, config, iterationDir, args.gradingModel, args.gradingSuffix).catch((err) => {
-          console.error(`  ✗ Eval ${evalDef.id} [${config}] — GRADING FAILED: ${err.message}`);
+          logError(`  ✗ Eval ${evalDef.id} [${config}] — GRADING FAILED: ${err.message}`);
+          // Write grading error details for debugging
+          const errDir = path.join(iterationDir, `eval-${evalDef.id}-${evalDef.slug}`, config);
+          if (fs.existsSync(errDir)) {
+            fs.writeFileSync(
+              path.join(errDir, "error.log"),
+              `${new Date().toISOString()}\nGRADING FAILED: ${err.message}\n${err.stack || ""}\n`,
+              "utf-8"
+            );
+          }
         })
       )
     );
@@ -600,7 +639,7 @@ function aggregateResults(evals, iterationDir, args) {
     "utf-8"
   );
 
-  console.log("\nBenchmark saved:", path.join(iterationDir, "benchmark.json"));
+  log("\nBenchmark saved:", path.join(iterationDir, "benchmark.json"));
   return benchmark;
 }
 
@@ -713,6 +752,43 @@ function generateReport(benchmark, previousBenchmark, iterationDir, args) {
     }
   }
 
+  // Resource comparison with previous iteration
+  if (previousBenchmark) {
+    md += `## Resource Comparison vs Iteration ${args.iteration - 1}\n\n`;
+    md += `| Eval | Pass Rate | Prev | Tokens | Prev | Time(s) | Prev |\n`;
+    md += `|------|-----------|------|--------|------|---------|------|\n`;
+
+    const prevByEvalNum = {};
+    for (const prevEval of previousBenchmark.evals) {
+      const match = prevEval.id.match(/eval-(\d+)/);
+      if (match) prevByEvalNum[match[1]] = prevEval;
+    }
+
+    for (const evalEntry of benchmark.evals) {
+      const evalNum = String(evalEntry.id.match(/eval-(\d+)/)?.[1]);
+      const curr = evalEntry.results.with_skill;
+      const prev = prevByEvalNum[evalNum]?.results?.with_skill || prevByEvalNum[evalNum]?.results?.old_skill;
+
+      // Also check timing.json for timed-out evals
+      const timingPath = path.join(iterationDir, evalEntry.id, "with_skill", "timing.json");
+      let timedOut = false;
+      if (fs.existsSync(timingPath)) {
+        const t = JSON.parse(fs.readFileSync(timingPath, "utf-8"));
+        if (t.error) timedOut = true;
+      }
+
+      const passRate = curr ? `${curr.assertions_passed}/${curr.assertions_total}` : (timedOut ? "T/O" : "—");
+      const prevPassRate = prev ? `${prev.assertions_passed}/${prev.assertions_total}` : "—";
+      const tokens = curr ? String(curr.total_tokens) : "—";
+      const prevTokens = prev ? String(prev.total_tokens) : "—";
+      const time = curr ? (curr.duration_ms / 1000).toFixed(1) : (timedOut ? "T/O" : "—");
+      const prevTime = prev ? (prev.duration_ms / 1000).toFixed(1) : "—";
+
+      md += `| ${evalEntry.id} | ${passRate} | ${prevPassRate} | ${tokens} | ${prevTokens} | ${time} | ${prevTime} |\n`;
+    }
+    md += `\n`;
+  }
+
   // Per-eval breakdown
   md += `## Per-Eval Results\n\n`;
   for (const evalEntry of benchmark.evals) {
@@ -747,7 +823,7 @@ function generateReport(benchmark, previousBenchmark, iterationDir, args) {
 
   const reportPath = path.join(iterationDir, "eval-review.md");
   fs.writeFileSync(reportPath, md, "utf-8");
-  console.log("Report saved:", reportPath);
+  log("Report saved:", reportPath);
 }
 
 process.on("unhandledRejection", (reason) => {
