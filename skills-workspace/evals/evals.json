@@ -564,6 +564,14 @@
         {
           "id": "1.13-format-description-textblock",
           "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
+        },
+        {
+          "id": "1.14-depth-zero-rate",
+          "text": "A row where the hourly rate is zero, showing that pay is zero regardless of hours worked. This is a distinct edge case from negative rate (which is rejected)."
+        },
+        {
+          "id": "1.15-format-clean-method",
+          "text": "The test method body contains no if/ternary null-handling or parsing logic. Null-to-default conversion (e.g. blank Sunday hours → 0) is handled via a @TypeConverter method or a private helper, keeping the test method limited to arrange/act/assert."
         }
       ]
     },
@@ -626,83 +634,131 @@
         {
           "id": "2.14-format-description-textblock",
           "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
+        },
+        {
+          "id": "2.17-zone-irrelevance-visible",
+          "text": "The eligibility/passenger-type table includes a Zone column (or equivalent) with a value set to show that the discount applies regardless of zone — rather than silently omitting zone. The requirement explicitly says 'regardless of the zones you travel in'."
+        },
+        {
+          "id": "2.18-adult-senior-value-set",
+          "text": "Adult and senior are expressed as a value set {ADULT, SENIOR} (or equivalent) in at least one row of the eligibility table, since they follow identical discount rules. Not enumerated as separate rows with the same outcome."
+        },
+        {
+          "id": "2.19-depth-all-tiers",
+          "text": "All 9 discount tiers are represented in the ladder table: 0% (tickets 1-4), 5% (5-9), 10% (10-14), 15% (15-19), 20% (20-24), 25% (25-29), 30% (30-34), 35% (35-39), and 40% (40+). Not just a subset of tiers."
+        },
+        {
+          "id": "2.20-readability-one-row-per-tier",
+          "text": "Each tier in the discount ladder is expressed as a single row with a value set for ticket counts — not split across multiple rows (e.g. separate rows for 'tier kicks in' and 'tier holds'). One tier = one row."
+        },
+        {
+          "id": "2.21-readability-relative-time",
+          "text": "The rolling window table expresses time relatively (e.g. '14 days ago', '30 days ago', or an integer 'Days ago' column) rather than using absolute dates, making the table readable without needing to know the reference date."
         }
       ]
     },
     {
       "id": 16,
       "slug": "order-splitting",
-      "skill": "tabletest",
+      "skill": "spec-by-example",
       "prompt": "We need to handle order splitting — when a customer places an order for multiple items, sometimes we can't ship everything together and need to break it into separate shipments.\n\nThis happens in a few situations we keep running into. Sometimes a customer adds items to their cart where some are for store pickup and others for home delivery — obviously those can't go in the same shipment. We also see orders where some items are in stock and others are pre-orders or backorders that won't be available for a while. We don't want to make the customer wait for everything, so items should ship when they are available. Then there's the inventory distribution problem — say someone orders six shirts and no single warehouse has all six. If a combination of warehouses can make up the order, e.g. Chicago might have four, LA has one, Houston has one, we split across locations rather than reject the order. And occasionally customers want items delivered to different addresses, like when they're ordering a gift for someone along with something for themselves.\n\nWhen we do split, we want to minimise the number of shipments. In that shirt example, if Philadelphia and Washington each have three shirts, we should ship from those two locations rather than three. Fewer shipments means lower cost and less confusion for the customer.\n\nOne important constraint: some products are companions — like a camera body and its matching lens, which are separate line items but useless without each other. If possible those should ship together from the same location.\n\nPlease help us map out these scenarios as test cases.",
-      "expected_output": "Multiple @TableTest methods with separate tables for: trigger detection (including trigger interactions), shipment optimisation (using scalar quantity column), and companion constraint. The trigger table represents multi-item orders — each item has its own fulfillment type, address, and availability, so per-item properties need an unambiguous notation (not value sets, which lose the item-to-property mapping). The companion table should recognise that 'no warehouse has both companions' creates a product decision.",
+      "expected_output": "Multiple tables for five distinct concerns: fulfillment method splitting, delivery address splitting, availability splitting, warehouse allocation (minimising shipments), and companion product grouping. Each concern has its own table with well-chosen scenarios. Per-item properties in trigger tables use unambiguous notation (not value sets). Warehouse allocation uses scalar quantity columns. Open questions should be surfaced where the rules are ambiguous.",
       "files": [],
       "assertions": [
         {
-          "id": "3.1-decomposition-concern-separation",
-          "text": "Trigger detection, shipment optimisation, and companion constraint are in separate tables. Not one monolithic table."
+          "id": "3.1a-concern-fulfillment-method",
+          "text": "Fulfillment method splitting is represented as its own table — items with different fulfillment types (store pickup vs home delivery) cannot share a shipment."
         },
         {
-          "id": "3.2-decomposition-trigger-interactions",
-          "text": "At least one row where multiple triggers fire simultaneously (e.g. mixed fulfilment AND mixed stock status)."
+          "id": "3.1b-concern-delivery-address",
+          "text": "Delivery address splitting is represented as its own table — items going to different addresses must be in separate shipments."
         },
         {
-          "id": "3.3-depth-all-four-triggers",
-          "text": "All four split triggers are covered: mixed fulfilment, mixed stock status, no single warehouse has all items, different addresses."
+          "id": "3.1c-concern-availability",
+          "text": "Availability splitting is represented as its own table — in-stock items ship immediately, backordered/pre-ordered items ship when available."
         },
         {
-          "id": "3.4-depth-companion-ambiguity-surfaced",
-          "text": "The 'no warehouse has both companions' case is included and recognised as a product decision — e.g. flagged as an open question, or the chosen resolution is explained. Not silently omitted."
+          "id": "3.1d-concern-warehouse-allocation",
+          "text": "Warehouse allocation (minimising shipments) is represented as its own table — choosing which warehouses to ship from to minimise total shipment count."
         },
         {
-          "id": "3.5-depth-companion-edge-cases",
-          "text": "Companion constraint covers at least: companions at same location, companions split from non-companion items, and the ambiguous case (no location has both)."
+          "id": "3.1e-concern-companion-products",
+          "text": "Companion product grouping is represented as its own table — paired items (e.g. camera body and lens) should ship together from the same location when possible."
         },
         {
-          "id": "3.6-readability-scenario-names",
-          "text": "Optimisation scenarios describe the business situation (e.g. 'Consolidate: two beats three', 'Everything at one warehouse') — not 'Test case 2'."
+          "id": "3.2-depth-fulfillment-scenarios",
+          "text": "Fulfillment table covers at least: all items for home delivery, all items for store pickup, and a mix of delivery and pickup items."
         },
         {
-          "id": "3.7-readability-item-property-mapping",
-          "text": "The trigger table represents multi-item orders where each item has its own fulfillment type, address, and availability. The notation used makes the item-to-property mapping unambiguous — not value sets like {delivery, pickup} which lose which item has which property."
+          "id": "3.3-depth-delivery-address-scenarios",
+          "text": "Delivery address table covers at least: all items to the same address, and items to different addresses."
         },
         {
-          "id": "3.8-readability-scalar-column",
-          "text": "Optimisation table uses a scalar count column (e.g. 'Shirts ordered') not item lists, when product identity doesn't matter for the logic."
+          "id": "3.4-depth-availability-scenarios",
+          "text": "Availability table covers at least: all items in stock, a mix of in-stock and pre-order/backorder, and two backordered/pre-ordered items with different dates. Pre-order and backorder are recognised as equivalent for splitting semantics — either by comment, note, or by including both with the same rules."
         },
         {
-          "id": "3.9-correctness-valid-assignments",
+          "id": "3.5-depth-warehouse-scenarios",
+          "text": "Warehouse allocation table covers at least: single warehouse has full quantity, multi-warehouse split needed, fewer-warehouse split preferred over more warehouses, and cannot fulfill (insufficient total stock)."
+        },
+        {
+          "id": "3.6-depth-companion-scenarios",
+          "text": "Companion table covers at least: single warehouse has both companions, unavoidable split (no warehouse has both but both are available), and fulfillment not possible (one companion not available anywhere)."
+        },
+        {
+          "id": "3.7-readability-scenario-names",
+          "text": "Scenario names describe the business situation (e.g. 'Consolidate: two beats three', 'Everything at one warehouse') — not 'Test case 2'."
+        },
+        {
+          "id": "3.8-readability-item-property-mapping",
+          "text": "Trigger tables represent multi-item orders where each item has its own fulfillment type, address, and availability. The notation makes the item-to-property mapping unambiguous — not value sets like {delivery, pickup} which lose which item has which property."
+        },
+        {
+          "id": "3.9-readability-scalar-column",
+          "text": "Warehouse allocation table uses a scalar count column (e.g. 'Qty ordered') not item lists, when product identity doesn't matter for the logic."
+        },
+        {
+          "id": "3.10-readability-business-language",
+          "text": "Column names use business/domain language (e.g. 'Shipments?' not 'Result?', 'Warehouse stock' not 'inventory_map'). The tables read as a specification a product person could review."
+        },
+        {
+          "id": "3.11-readability-output-column-question-mark",
+          "text": "Output/expected columns end with '?' (e.g. 'Shipments?', 'Groups?') to distinguish them from input columns."
+        },
+        {
+          "id": "3.12-correctness-valid-assignments",
           "text": "Inventory assignments are physically valid: items are only assigned to locations that have them. Shipment counts match the assignments shown."
         },
         {
-          "id": "3.10-format-displayname",
-          "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case."
-        },
-        {
-          "id": "3.11-format-description",
-          "text": "@Description is present on at least the class and provides context beyond what the table rows already express — such as the splitting rules, constraints, or application context. Does NOT merely restate the column names or summarise what the rows show."
-        },
-        {
-          "id": "3.12-format-annotation-order",
-          "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order."
-        },
-        {
-          "id": "3.13-format-description-textblock",
-          "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
+          "id": "3.13-depth-open-questions",
+          "text": "Multiple open questions are surfaced across the tables — ambiguities, edge cases, or product decisions that the requirements don't fully specify."
         }
       ]
     },
     {
       "id": 17,
       "slug": "shopping-cart",
-      "skill": "tabletest + spec-by-example",
+      "skill": "spec-by-example",
       "timeout_ms": 600000,
       "prompt": "We're building a shopping cart and I want to make sure we have good test coverage before we ship.\n\nThe basic flow is: customers browse a product catalogue, add items to their cart with a quantity, and can remove them again. Prices come from the catalogue, not from the customer — so the cart looks up what things cost. Customers can also enter a coupon code at any point. We support three kinds of coupons: percentage off the whole cart, a fixed amount off, or a discount on a specific product. Only one coupon can be active at a time though — if they enter a new code, it replaces whatever was there before. If the code is expired or doesn't exist, we show them an error message.\n\nAt checkout we verify stock levels. If anything in the cart doesn't have enough inventory, checkout fails and we tell them what's short. You also can't check out with an empty cart, obviously.\n\nThe cart total is the sum of quantity times price for each item, minus whatever coupon discount applies, and it can never go below zero — even if someone has a massive coupon on a small order.\n\nWe want every operation to return a user-facing message so the frontend can display it — things like 'Added 2x Widget to cart', 'Coupon has expired', 'Only 3 available' and so on.\n\nCan you help us think through the test scenarios for this?",
-      "expected_output": "Multiple tables for distinct concerns (item operations, coupon validation, cart total, checkout). Rows should be independently executable. Column names should use business language. Test data (prices, coupon rules) should be visible in the table. Coupon table uses columns to signal expiry and cart contents for product-specific coupons. Should surface open questions about underspecified interactions.",
+      "expected_output": "Multiple tables for four distinct concerns: item operations (add/remove), coupon application (validity and replacement — not coupon types), cart total (coupon type effects on price), and checkout. Rows should be independently executable. Column names should use business language. Test data (prices, coupon rules) should be visible in the table. Should surface multiple open questions about underspecified interactions.",
       "files": [],
       "assertions": [
         {
-          "id": "4.1-decomposition-items-separate-from-coupons",
-          "text": "Item operations (add/remove) are in a separate table from coupon validation. Not interleaved in one table."
+          "id": "4.1a-concern-item-operations",
+          "text": "Item operations (add/remove) are represented as their own table or tables — separate from coupon and cart total logic."
+        },
+        {
+          "id": "4.1b-concern-coupon-application",
+          "text": "Coupon application (entering, replacing, rejecting codes) is represented as its own table — separate from item operations and cart total calculation."
+        },
+        {
+          "id": "4.1c-concern-cart-total",
+          "text": "Cart total calculation (how different coupon types affect the price) is represented as its own table — separate from coupon application and item operations."
+        },
+        {
+          "id": "4.1d-concern-checkout",
+          "text": "Checkout (stock verification) is represented as its own table — separate from the other concerns."
         },
         {
           "id": "4.3-rows-independently-executable",
@@ -710,31 +766,31 @@
         },
         {
           "id": "4.4-depth-item-operations",
-          "text": "Item operations covered: add to empty cart, add different product, add more of same, remove product, remove unknown product, remove last item."
+          "text": "Item operations cover at least: add to empty cart, add to non-empty cart, add more of an item already in cart, remove item from cart, remove last item in cart, remove item not in cart."
         },
         {
-          "id": "4.5-depth-coupon-variations",
-          "text": "Coupon variations covered: valid percentage, valid fixed amount, product-specific, expired, unknown code, replace existing coupon."
+          "id": "4.5-depth-coupon-application",
+          "text": "Coupon application table covers validity and replacement — not coupon types. Scenarios include at least: add valid coupon (none active), add valid coupon (another active), add expired coupon (none active), add expired coupon (another active), add nonexistent code (none active), add nonexistent code (another active)."
         },
         {
-          "id": "4.6-depth-coupon-exceeds-total",
-          "text": "A scenario where the coupon discount exceeds the cart total — total floors at zero."
+          "id": "4.6-depth-cart-total-scenarios",
+          "text": "Cart total table covers how different coupon types affect the price. Scenarios include at least: no coupon, percentage off whole cart, fixed amount off, fixed amount exceeding cart total (floors at zero), product-specific discount (product in cart), product-specific discount (product not in cart)."
         },
         {
-          "id": "4.7-depth-checkout-edge-cases",
-          "text": "Checkout covers: sufficient stock, insufficient stock, and empty cart."
+          "id": "4.7-depth-checkout-scenarios",
+          "text": "Checkout table covers at least: empty cart, all items in stock, and not all items in stock (insufficient inventory)."
         },
         {
           "id": "4.8-readability-business-language",
-          "text": "Column names use business/user-perspective language (e.g. 'Message?' not 'Result?', 'Coupon code' not 'input'). The table reads as a specification a product person could review."
+          "text": "Column names use business/user-perspective language (e.g. 'Message?' not 'Result?', 'Coupon code' not 'input'). The tables read as a specification a product person could review."
         },
         {
           "id": "4.9-readability-test-data-visible",
           "text": "Test data that affects the outcome — product prices, coupon rules (type, amount, expiry) — is visible in the table via columns, notes, or explicit setup, not silently hardcoded. The reader can trace how inputs lead to outputs."
         },
         {
-          "id": "4.10-depth-open-questions-surfaced",
-          "text": "At least one genuinely underspecified interaction is surfaced as an open question — such as: what happens to a product-specific coupon when that product is removed from the cart, or how does a percentage coupon interact with a product-specific discount. These are NOT stated in the requirements."
+          "id": "4.10-depth-open-questions",
+          "text": "Multiple open questions are surfaced — ambiguities or product decisions the requirements don't specify (e.g. what happens to a product-specific coupon when that product is removed, or how percentage and product-specific discounts interact)."
         },
         {
           "id": "4.11-correctness-cart-totals",
@@ -742,15 +798,15 @@
         },
         {
           "id": "4.12-coupon-expiry-column",
-          "text": "Coupon table uses a column to signal expiry status — either an 'Expired?' yes/no column, an expiry date column, or equivalent. Expiry is visible per row, not just implied by the scenario name."
-        },
-        {
-          "id": "4.13-coupon-cart-contents-column",
-          "text": "Coupon table includes a cart contents column (or 'Applies to' / 'Product in cart?' column) so the reader can see whether a product-specific coupon's target is actually in the cart. The product discount applied/not-applied distinction is driven by visible data, not just the scenario name."
+          "text": "Coupon application table uses a column to signal expiry status — either an 'Expired?' yes/no column, a 'Status' column, or equivalent. Expiry is visible per row, not just implied by the scenario name."
         },
         {
           "id": "4.14-coupon-before-after-columns",
-          "text": "Coupon entry scenarios use before/after columns (e.g. 'Coupon before' / 'Coupon after?' or 'Active coupon' / 'Active coupon after?') to specify the state change when entering, replacing, or entering invalid coupon codes."
+          "text": "Coupon application table uses before/after columns (e.g. 'Active coupon' / 'Active coupon after?') to specify the state change when entering, replacing, or entering invalid coupon codes."
+        },
+        {
+          "id": "4.15-readability-scenario-names",
+          "text": "Scenario names describe the business situation (e.g. 'Add more of same product', 'Replace active coupon') — not 'Test case 1' or generic labels."
         }
       ]
     }
