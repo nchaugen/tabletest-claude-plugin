@@ -442,9 +442,10 @@ When writing TableTests with a pair, the most important habit is showing a mocku
 
 Resist the urge to start coding immediately. The time spent understanding the code under test pays off in a cleaner table structure:
 
-1. **Trace the logic**: Map decision trees, loops, or state transitions. Identify what actually varies between scenarios — this directly determines your columns.
-2. **Sketch the table**: What inputs vary? What outputs do you observe? How many scenarios do you need?
-3. **Show a mockup** with 2-3 rows before implementing — agree on column structure, naming, and coverage first:
+1. **Analyse the requirement**: When writing tests from natural-language requirements — or when the requirement has vague terms, multi-condition logic, or unclear decomposition — use `/spec-by-example` first. It will decompose the behaviour into example tables with proper concern separation, boundary conditions, and open questions. Those example tables become the structure for your `@TableTest` implementation.
+2. **Trace the logic**: Map decision trees, loops, or state transitions. Identify what actually varies between scenarios — this directly determines your columns.
+3. **Sketch the table**: What inputs vary? What outputs do you observe? How many scenarios do you need?
+4. **Show a mockup** with 2-3 rows before implementing — agree on column structure, naming, and coverage first:
    ```
    | Scenario        | orgId | featureId | version | Feature Toggles | Query Count? | Result?
    | Specific match  | O     | F         | V       | [O:F:V: true]   | 1            | true

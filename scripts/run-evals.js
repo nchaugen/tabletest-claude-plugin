@@ -96,6 +96,13 @@ function parseArgs(argv) {
 async function main() {
   const args = parseArgs(process.argv);
 
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.error("Error: ANTHROPIC_API_KEY environment variable is not set.");
+    console.error("The eval script requires an API key to avoid consuming interactive plan usage.");
+    console.error("Set it with: ANTHROPIC_API_KEY=sk-... node scripts/run-evals.js ...");
+    process.exit(1);
+  }
+
   const repoRoot = execSync("git rev-parse --show-toplevel", {
     encoding: "utf-8",
   }).trim();
@@ -216,6 +223,7 @@ function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 30
     const proc = spawn("claude", args, {
       cwd,
       env: { ...process.env },
+      stdio: ['ignore', 'pipe', 'pipe'],
     });
 
     const timer = setTimeout(() => {
