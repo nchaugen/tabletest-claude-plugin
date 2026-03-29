@@ -1,0 +1,17 @@
+
+--- Run started at 2026-03-29T13:20:55.809Z ---
+
+Eval run: iteration 10, 3 evals, model sonnet
+
+Grading responses (model=haiku, parallel=4)...
+  Grading eval 2 (parse-dates) [with_skill]...
+  Grading eval 5 (order-transitions) [with_skill]...
+  Grading eval 7 (permission-check) [with_skill]...
+  ✓ Eval 5 [with_skill] — 5/5
+  ✓ Eval 2 [with_skill] — 9/9
+  ✗ Eval 7 [with_skill] — 9/10
+
+Benchmark saved: /Users/nch/tabletest/tabletest-claude-plugin/skills-workspace/iteration-10/benchmark.json
+Report saved: /Users/nch/tabletest/tabletest-claude-plugin/skills-workspace/iteration-10/eval-review.md
+
+Done. Results in: /Users/nch/tabletest/tabletest-claude-plugin/skills-workspace/iteration-10

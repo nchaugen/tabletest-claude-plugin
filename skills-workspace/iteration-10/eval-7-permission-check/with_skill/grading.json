@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\" appears in the code, clearly marking the test with the required annotation"
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "Table uses value-set syntax (curly braces like {READ, WRITE} or {READ, WRITE, DELETE}) to express rules that hold across multiple actions",
+      "passed": true,
+      "evidence": "Multiple rows use value-set syntax: {READ, WRITE, DELETE} for ADMIN, {READ, WRITE} for USER, and {WRITE, DELETE} for GUEST"
+    },
+    {
+      "id": "fewer-than-nine-rows",
+      "text": "Table has fewer than 9 data rows",
+      "passed": true,
+      "evidence": "The table contains exactly 5 data rows: Admin can do anything, User can read and write, User cannot delete, Guest can only read, Guest cannot write or delete"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "Method body is: assertEquals(allowed, canPerform(role, action)); — contains only a single assertion call, no if or switch statements"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Table header shows 'Scenario' as the leftmost column, with descriptive values like 'Admin can do anything', 'User can read and write', etc."
+    },
+    {
+      "id": "no-duplicate-role-output",
+      "text": "No two rows share both the same Role value and the same boolean output",
+      "passed": true,
+      "evidence": "Each Role+Output combination is unique: ADMIN/true (1 row), USER/true (1 row), USER/false (1 row), GUEST/true (1 row), GUEST/false (1 row) — no duplicates"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title",
+      "passed": false,
+      "evidence": "Method named 'checkPermission' which converts to 'Check Permission' — this is similar in style to the explicitly bad example 'canPerform' (a generic verb-based permission check) and lacks the specificity of the good example 'Permissions By Role And Action' which describes what is actually being tested"
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description is present, it provides context beyond what the table rows already express",
+      "passed": true,
+      "evidence": "No @Description annotation is present in the code, so this assertion passes by the stated condition: 'It is acceptable to omit @Description if the table already conveys all relevant context'"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest",
+      "passed": true,
+      "evidence": "Only @TableTest annotation is present; no @DisplayName or @Description, so the order is trivially correct"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block",
+      "passed": true,
+      "evidence": "No @Description annotation is present, so the assertion passes per the stated condition: 'Passes if @Description is absent'"
+    }
+  ],
+  "assertions_passed": 9,
+  "assertions_total": 10,
+  "pass_rate": 0.9
+}

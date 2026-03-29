@@ -1,0 +1,61 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"\\n        Scenario     | Input      | Result?\\n        ISO format   | 2024-01-15 | 2024-01-15\\n        Slash format | 15/01/2024 | 2024-01-15\\n        Short year   | 24-01-15   | 2024-01-15\\n        Null input   |            |\\n        \"\"\")"
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell (not the string 'null') in the table",
+      "passed": true,
+      "evidence": "Null input   |            | (blank cell shown in table, confirmed by explanation: \"Blank input cell → `null` String\")"
+    },
+    {
+      "id": "exception-handled-cleanly",
+      "text": "The empty string / exception case is handled — either via a Throws? column, assertThrows inside the method, or a separate @TableTest",
+      "passed": true,
+      "evidence": "@Test\\n    void shouldThrowForEmptyString() {\\n        assertThrows(IllegalArgumentException.class, () -> parseDate(\"\"));\\n    }"
+    },
+    {
+      "id": "localdate-result-column",
+      "text": "There is a result column typed as LocalDate (or using a string representation that maps to LocalDate)",
+      "passed": true,
+      "evidence": "void shouldParseDate(String input, LocalDate result) with Result? column containing ISO dates like 2024-01-15"
+    },
+    {
+      "id": "type-conversion-addressed",
+      "text": "The response addresses type conversion for non-standard date formats (slash format, short year) — mentions @TypeConverter or a converter method",
+      "passed": true,
+      "evidence": "\"No `@TypeConverter` needed: The non-ISO strings (`15/01/2024`, `24-01-15`) live in the `String input` column — they're just raw strings handed to your method\" and \"The Result? column uses ISO format, which JUnit converts to `LocalDate` automatically.\""
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case",
+      "passed": true,
+      "evidence": "void shouldParseDate(String input, LocalDate result) and void shouldThrowForEmptyString() — both convert to clear descriptive titles: 'Should Parse Date' and 'Should Throw For Empty String'"
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description is present, it provides context beyond what the table rows already express — such as where/when the rule applies, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context",
+      "passed": true,
+      "evidence": "No @Description annotation present; per rule, this is acceptable since the table rows clearly show the supported formats and edge cases"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order",
+      "passed": true,
+      "evidence": "Only @TableTest annotation shown on shouldParseDate; only @Test on shouldThrowForEmptyString; no ordering violations"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent",
+      "passed": true,
+      "evidence": "@Description is absent, so this condition passes"
+    }
+  ],
+  "assertions_passed": 9,
+  "assertions_total": 9,
+  "pass_rate": 1
+}
