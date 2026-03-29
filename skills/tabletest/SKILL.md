@@ -440,12 +440,15 @@ When writing TableTests with a pair, the most important habit is showing a mocku
 
 ### Design Phase (Before Writing Code)
 
-Resist the urge to start coding immediately. The time spent understanding the code under test pays off in a cleaner table structure:
+Resist the urge to start coding immediately. The approach depends on what you are starting from:
 
-1. **Analyse the requirement**: When writing tests from natural-language requirements — or when the requirement has vague terms, multi-condition logic, or unclear decomposition — read `references/requirements-to-tables.md` and follow its elicitation workflow. It will help you decompose the behaviour into well-structured tables with proper concern separation, boundary conditions, and open questions before you write any code.
-2. **Trace the logic**: Map decision trees, loops, or state transitions. Identify what actually varies between scenarios — this directly determines your columns.
-3. **Sketch the table**: What inputs vary? What outputs do you observe? How many scenarios do you need?
-4. **Show a mockup** with 2-3 rows before implementing — agree on column structure, naming, and coverage first:
+**From natural-language requirements** (the prompt describes a feature, not existing code):
+Read `references/requirements-to-tables.md` and follow its workflow end-to-end. It produces the Java `@TableTest` class directly — do not stop at markdown tables.
+
+**From existing code or tests** (there is code to trace or tests to convert):
+1. **Trace the logic**: Map decision trees, loops, or state transitions. Identify what actually varies between scenarios — this directly determines your columns.
+2. **Sketch the table**: What inputs vary? What outputs do you observe? How many scenarios do you need?
+3. **Show a mockup** with 2-3 rows before implementing — agree on column structure, naming, and coverage first:
    ```
    | Scenario        | orgId | featureId | version | Feature Toggles | Query Count? | Result?
    | Specific match  | O     | F         | V       | [O:F:V: true]   | 1            | true
@@ -463,6 +466,9 @@ Resist the urge to start coding immediately. The time spent understanding the co
 
 ### Writing New TableTest
 
+When working from requirements (no existing code), follow `references/requirements-to-tables.md` — it covers the full workflow from analysis to Java code.
+
+When working from existing code:
 1. **Understand phase**: Read the code, trace logic, identify variations
 2. **Design phase**: Sketch table structure, discuss with pair
 3. **Confirm**: Show mockup with 2-3 rows, get agreement
@@ -508,7 +514,7 @@ After writing, verify:
 
 ## Advanced References
 
-**READ these references when the condition applies. DO NOT proceed without reading:**
+**Read selectively.** For any single task, you should rarely need more than one or two references beyond `requirements-to-tables.md`. Do not read references speculatively — read only when you encounter the specific condition described.
 
 | Reference                                | When to use                                                                |
 |------------------------------------------|----------------------------------------------------------------------------|

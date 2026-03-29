@@ -5,10 +5,10 @@ feature descriptions, or when it is not clear how to decompose the behaviour
 into tables. The workflow below helps you derive table structure from the
 requirements, then produce `@TableTest` Java code.
 
-**Your deliverable is `@TableTest` code, not markdown tables.** Work through the
-steps below as a thinking process to determine table structure, then write the
-Java test class. Do not stop at table proposals or wait for feedback — the
-requirement analysis and code production happen in one pass.
+**Your deliverable is a complete Java test class with `@TableTest` methods.**
+Steps 1–8 below are your internal analysis process — use them to determine
+table structure, but do not output markdown tables. Step 9 is where you
+produce the actual deliverable: Java code.
 
 ---
 
@@ -169,29 +169,26 @@ varies by car category) that belongs as new rows or a separate table.
 
 ---
 
-## 8. Mark What Is Still Open
+## 8. Note What Is Still Open
 
-Not everything needs to be resolved before coding. Mark uncertain cells or add a
-notes column for open questions:
-
-```
-Scenario           | Customer Age | Has Licence | Eligible? | Open Questions
-Senior age limit?  | 75           | yes         | ?         | Is there a max age?
-```
-
-Open cells signal decisions that need resolving — through conversation, a domain
-expert, or implementation exploration. They are not failures; they are honest
-about what is known and unknown.
+Not everything needs to be resolved before coding. Note open questions
+internally — they will go in `@Description` annotations in the Java code
+(step 9), not in a separate markdown section.
 
 **Do not silently resolve ambiguities.** When two interpretations of a rule are
-plausible, surface both as an open question rather than picking one. The table
-should expose the decision, not hide it.
+plausible, note both as an open question rather than picking one.
 
 ---
 
+## Produce the Deliverable
+
+Steps 1–8 determined your table structure. Now write the Java code.
+Do not present markdown tables for review. Do not summarise your analysis.
+Output the `@TableTest` class directly.
+
 ## 9. Write the `@TableTest` Code
 
-Once the table structure is clear from steps 1-8, write the Java test class.
+Write the Java test class.
 Each concern becomes a `@TableTest` method. Follow the main skill's Table Design
 section for syntax, and its Quality Checks for verification.
 
