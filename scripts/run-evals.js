@@ -68,7 +68,6 @@ function parseArgs(argv) {
     gradingSuffix: null,
     parallel: 4,
     gradeOnly: false,
-    verbose: false,
   };
 
   for (let i = 2; i < argv.length; i++) {
@@ -97,9 +96,6 @@ function parseArgs(argv) {
       case "--grade-only":
         args.gradeOnly = true;
         break;
-      case "--verbose":
-        args.verbose = true;
-        break;
       default:
         console.error(`Unknown argument: ${argv[i]}`);
         process.exit(1);
@@ -116,7 +112,6 @@ function parseArgs(argv) {
   console.error("  --grading-suffix S  Write grading to grading-S.json instead of grading.json");
   console.error("  --parallel N        Max parallel evals (default: 4)");
     console.error("  --grade-only        Re-grade existing outputs");
-    console.error("  --verbose           Capture full conversation trace (conversation.jsonl)");
     process.exit(1);
   }
 
@@ -233,7 +228,7 @@ function cleanupWorktree(worktreePath) {
   }
 }
 
-function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 600000, verbose = false }) {
+function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 600000 }) {
   return new Promise((resolve, reject) => {
     let settled = false;
     const settle = (fn, value) => {
@@ -242,9 +237,7 @@ function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 60
       fn(value);
     };
 
-    const args = verbose
-      ? ["--print", "--output-format", "stream-json", "--verbose", "--model", model]
-      : ["--print", "--output-format", "json", "--model", model];
+    const args = ["--print", "--output-format", "stream-json", "--verbose", "--model", model];
 
     args.push("--no-session-persistence", "--setting-sources", "");
 
@@ -280,16 +273,12 @@ function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 60
         return;
       }
       try {
-        if (verbose) {
-          const lines = stdout.split("\n").filter(l => l.trim());
-          const parsed = lines.map(l => JSON.parse(l));
-          const resultLine = parsed.filter(o => o.type === "result").pop();
-          if (!resultLine) throw new Error("No result line found in stream-json output");
-          resultLine._conversationJsonl = stdout;
-          settle(resolve, resultLine);
-        } else {
-          settle(resolve, JSON.parse(stdout));
-        }
+        const lines = stdout.split("\n").filter(l => l.trim());
+        const parsed = lines.map(l => JSON.parse(l));
+        const resultLine = parsed.filter(o => o.type === "result").pop();
+        if (!resultLine) throw new Error("No result line found in stream-json output");
+        resultLine._conversationJsonl = stdout;
+        settle(resolve, resultLine);
       } catch (e) {
         settle(reject, new Error(`Failed to parse claude output: ${e.message}\n${stdout.slice(0, 500)}`));
       }
@@ -330,14 +319,14 @@ async function generateResponses(evals, worktreePath, iterationDir, args) {
 
     await Promise.all(
       batch.map(({ evalDef, config }) =>
-        generateOne(evalDef, config, worktreePath, iterationDir, args.model, args.verbose)
+        generateOne(evalDef, config, worktreePath, iterationDir, args.model)
       )
     );
     completedJobs += batch.length;
   }
 }
 
-async function generateOne(evalDef, config, worktreePath, iterationDir, model, verbose) {
+async function generateOne(evalDef, config, worktreePath, iterationDir, model) {
   const evalDir = path.join(
     iterationDir,
     `eval-${evalDef.id}-${evalDef.slug}`,
@@ -366,7 +355,6 @@ async function generateOne(evalDef, config, worktreePath, iterationDir, model, v
       cwd: worktreePath,
       pluginDir: config === "with_skill" ? worktreePath : undefined,
       timeoutMs: evalDef.timeout_ms,
-      verbose,
     });
 
     fs.writeFileSync(
