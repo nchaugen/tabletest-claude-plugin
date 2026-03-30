@@ -1,5 +1,16 @@
 # Custom Type Converter Methods
 
+## Table of Contents
+- [Prefer Built-in Conversion Before Writing a Converter](#prefer-built-in-conversion-before-writing-a-converter)
+- [Writing Custom Converter Methods](#writing-custom-converter-methods) (Java / Kotlin)
+- [Using @TypeConverterSources](#using-typeconvertersources)
+- [Converter Method Requirements](#converter-method-requirements)
+- [Search Strategy](#search-strategy)
+- [Handling Null Values](#handling-null-values)
+- [Domain-Specific Formatting](#domain-specific-formatting)
+- [Converter Methods with Defaults](#converter-methods-with-defaults)
+- [Common Wrapper Types](#common-wrapper-types)
+
 ## Prefer Built-in Conversion Before Writing a Converter
 
 JUnit can convert strings to `Class<?>` when the value is a fully-qualified class name. Write `java.lang.RuntimeException` in the table instead of `RuntimeException` plus a custom `@TypeConverter`. This also works for collection elements: `[java.lang.RuntimeException, java.lang.NullPointerException]` → `List<Class<?>>`.

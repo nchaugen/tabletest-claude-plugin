@@ -2,6 +2,19 @@
 
 How you structure columns significantly impacts table readability. This guide covers when to split, when to combine, and how to evolve column design iteratively.
 
+## Table of Contents
+- [It Depends: Maps vs Separate Columns](#it-depends-maps-vs-separate-columns)
+- [Decision Criteria](#decision-criteria)
+- [Iterative Column Evolution](#iterative-column-evolution)
+- [Guidelines for Column Design](#guidelines-for-column-design)
+- [Red Flags](#red-flags)
+- [Encoding Related Values in Single Column](#encoding-related-values-in-single-column)
+- [Removing Redundant Columns](#removing-redundant-columns)
+- [Column Naming Evolution](#column-naming-evolution)
+- [Empty Cells for Optional Inputs](#empty-cells-for-optional-inputs)
+- [When Reviewing Multiple Tables](#when-reviewing-multiple-tables)
+- [Summary](#summary)
+
 ## It Depends: Maps vs Separate Columns
 
 Both approaches have valid use cases. Choose based on your specific scenario:
@@ -581,6 +594,34 @@ When you have multiple tables in a class:
 - Easier to understand (patterns repeat)
 - Fewer bugs (shared infrastructure tested once)
 - Clear intent (consistency signals related concerns)
+
+## Empty Cells for Optional Inputs
+
+When an input column is not relevant to certain scenarios (e.g., a peak surcharge when testing off-peak rides), use blank cells to signal "not part of this scenario" — do not fill with 0 or a default value. This makes it immediately clear which inputs matter for each row.
+
+```java
+@TableTest("""
+    Scenario              | Base fare | Peak surcharge | Airport fee | Total fare?
+    Off-peak city ride    | 12.00     |                |             | 12.00
+    Peak-hour city ride   | 12.00     | 5.00           |             | 17.00
+    Airport pickup        | 12.00     |                | 8.00        | 20.00
+    Peak airport pickup   | 12.00     | 5.00           | 8.00        | 25.00
+    """)
+void shouldCalculateTotalFare(BigDecimal baseFare, BigDecimal peakSurcharge,
+        BigDecimal airportFee, BigDecimal totalFare) {
+    assertThat(FareCalculator.calculate(baseFare, peakSurcharge, airportFee))
+            .isEqualTo(totalFare);
+}
+
+@TypeConverter
+BigDecimal toBigDecimal(String value) {
+    return value == null ? BigDecimal.ZERO : new BigDecimal(value);
+}
+```
+
+The `@TypeConverter` keeps the null-to-default logic out of the test method. Blank cells arrive as `null` strings; the converter translates them to `BigDecimal.ZERO` so every parameter is non-null by the time the test runs.
+
+Use `Integer` (not `int`) for primitive parameters that may be blank — primitive types cannot represent null. For reference types like `BigDecimal`, a `@TypeConverter` with a null check is the cleanest approach.
 
 ## When Reviewing Multiple Tables
 

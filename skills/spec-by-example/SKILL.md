@@ -1,6 +1,6 @@
 ---
 name: spec-by-example
-description: Do NOT use when the user asks to write tests, convert tests, or create a @TableTest — use the tabletest skill instead, which has its own requirements decomposition workflow. Use this skill only to pin down behaviour through concrete examples before or during implementation. Trigger when requirements use vague terms ("eligible customers", "valid input", "appropriate discount"), when behaviour depends on multiple conditions whose combinations aren't fully worked out, or when an edge case surfaces mid-implementation that calls the assumed behaviour into question.
+description: Clarify behaviour through concrete example tables before or during implementation. Trigger when requirements use vague terms ("eligible customers", "valid input", "appropriate discount"), when behaviour depends on multiple conditions whose combinations aren't fully worked out, when an edge case surfaces mid-implementation, or when the user asks to work through examples of a feature. This skill complements the tabletest skill — use it to pin down rules, then hand the table to /tabletest for executable tests. Even when the user asks to write tests, invoke this skill first if the requirements are unstructured or vague.
 ---
 
 # Spec by Example
@@ -17,24 +17,13 @@ implement with confidence.
 
 ## When to Use This Skill
 
-Use this skill when:
-
-- The behaviour depends on multiple conditions and the combinations are not fully
-  worked out ("it depends on the customer's age and whether they hold a licence")
-- Requirements use vague language that concrete examples would sharpen ("eligible
-  customers", "appropriate discount", "valid input")
-- Reading existing code reveals that a rule is more complex than it initially
-  appeared, and examples would clarify the intended behaviour
-- An edge case surfaces mid-implementation that calls the assumed behaviour into
-  question
-
 This skill is useful at any point — before implementation begins, mid-way through,
 or when revisiting a feature. The trigger is encountering conditional logic or
 variation that needs examples to pin down, not the phase of development.
 
-When you already have working tests to consolidate or refine, or when the user
-asks to write tests for a feature, use `/tabletest` instead — it has its own
-requirements decomposition workflow and will produce executable `@TableTest` code.
+When you already have working tests to consolidate or refine and the requirements
+are already clear, use `/tabletest` directly — it will produce executable
+`@TableTest` code.
 
 ---
 

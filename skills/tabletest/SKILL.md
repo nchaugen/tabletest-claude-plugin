@@ -405,34 +405,11 @@ void resolves_values(String input, String resolved) {
 
 **Note**: These are syntax examples, not test design patterns. Null/empty/blank variants of an input should typically be additional rows in the test that covers the feature, not in a separate test method. For example, if a resolver ignores blank JUnit dir values, add those as rows in the main resolution test rather than creating a separate "handles blank values" test.
 
-### Empty Cells for Optional Inputs
-
-When an input column is not relevant to certain scenarios (e.g., a peak surcharge when testing off-peak rides), use blank cells to signal "not part of this scenario" — do not fill with 0 or a default value. This makes it immediately clear which inputs matter for each row.
-
-```java
-@TableTest("""
-    Scenario              | Base fare | Peak surcharge | Airport fee | Total fare?
-    Off-peak city ride    | 12.00     |                |             | 12.00
-    Peak-hour city ride   | 12.00     | 5.00           |             | 17.00
-    Airport pickup        | 12.00     |                | 8.00        | 20.00
-    Peak airport pickup   | 12.00     | 5.00           | 8.00        | 25.00
-    """)
-void shouldCalculateTotalFare(BigDecimal baseFare, BigDecimal peakSurcharge,
-        BigDecimal airportFee, BigDecimal totalFare) {
-    // Blank cells → null (BigDecimal is a reference type); null treated as 0.00
-    BigDecimal peak = peakSurcharge != null ? peakSurcharge : BigDecimal.ZERO;
-    BigDecimal airport = airportFee != null ? airportFee : BigDecimal.ZERO;
-    // ...
-}
-```
-
-Use `Integer` (not `int`) for parameters that may be blank — primitive `int` cannot represent null. Handle null-to-default conversion in the test method body.
-
 ---
 
 ## Workflow
 
-**Start fresh from this workflow.** If you have already explored the codebase, read existing tests, or sketched a table structure before loading this skill — set that aside. Follow the Design Phase below to derive table structure from the logic. Pre-formed designs tend to miss value sets, traceability columns, and concern separation that this workflow surfaces.
+Pre-formed table designs tend to miss value sets, traceability columns, and concern separation. Even if you've already explored the codebase or sketched a structure, run through the Design Phase below — it often surfaces design improvements that aren't obvious until you work through the steps.
 
 ### Pair Programming Flow
 
@@ -443,10 +420,17 @@ When writing TableTests with a pair, the most important habit is showing a mocku
 Resist the urge to start coding immediately. The approach depends on what you are starting from:
 
 **From natural-language requirements** (the prompt describes a feature, not existing code):
-Skip the Pre-Check — there is no existing project to inspect. Read
-`references/requirements-to-tables.md` and follow its workflow end-to-end.
-It produces the Java `@TableTest` class directly — do not stop at markdown
-tables.
+Skip the Pre-Check — there is no existing project to inspect. Choose one path:
+
+- **Requirements are vague or unstructured** (terms like "eligible", "valid",
+  "appropriate" without concrete examples; multiple conditions whose combinations
+  aren't worked out): Invoke `/spec-by-example` first to pin down the rules
+  through example tables. Then return here and continue with the clarified examples.
+
+- **Requirements are concrete** (specific inputs, expected outputs, and decision
+  rules are already clear): Read `references/requirements-to-tables.md` and follow
+  its workflow end-to-end. It produces the Java `@TableTest` class directly — do
+  not stop at markdown tables.
 
 **From existing code or tests** (there is code to trace or tests to convert):
 1. **Trace the logic**: Map decision trees, loops, or state transitions. Identify what actually varies between scenarios — this directly determines your columns.
@@ -525,7 +509,7 @@ After writing, verify:
 | `references/dependency-setup.md`         | Project lacks TableTest dependency                                         |
 | `references/value-sets.md`               | Multiple example inputs map to same expectation                            |
 | `references/type-converters.md`          | Custom types need parsing logic; non-ISO date formats appear in the table (`dd/MM/yyyy`, `yy-MM-dd`, etc.); or any column value won't convert automatically |
-| `references/column-design.md`            | Deciding whether to split, combine, or use maps for columns; cross-table consistency |
+| `references/column-design.md`            | Deciding whether to split, combine, or use maps for columns; optional input cells; cross-table consistency |
 | `references/common-patterns.md`          | Consolidating identity+status, positional fields, timing, async testing    |
 | `references/large-tables.md`             | Need comments, grouping, or external table files                           |
 | `references/example-patterns.md`         | Need inspiration for table design (business rules, boundaries, exceptions) |

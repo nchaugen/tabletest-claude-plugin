@@ -1,5 +1,15 @@
 # Testing Async and Performance Behavior
 
+## Table of Contents
+- [Testing Non-Blocking Execution](#testing-non-blocking-execution)
+- [Tracking Execution Order](#tracking-execution-order)
+- [Helper Methods for Suppliers](#helper-methods-for-suppliers)
+- [Using Maps for Composite Request/Response Data](#using-maps-for-composite-requestresponse-data)
+- [Dynamic Async Coordination Based on Scenarios](#dynamic-async-coordination-based-on-scenarios)
+- [Complete Example](#complete-example)
+- [Timing Assertions: Upper-Bound Pattern](#timing-assertions-upper-bound-pattern)
+- [Focus on Observable Behavior, Not Implementation](#focus-on-observable-behavior-not-implementation)
+
 ## Testing Non-Blocking Execution
 
 When testing that operations don't block, use response time thresholds as observable expectations:

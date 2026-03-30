@@ -2,6 +2,18 @@
 
 This guide documents patterns that emerge when testing real-world systems with TableTest. These patterns solve common design challenges and improve table readability.
 
+## Table of Contents
+- [Pattern: Consolidating Identity + Status](#pattern-consolidating-identity--status)
+- [Pattern: Relative Positions](#pattern-relative-positions)
+- [Pattern: Production Constants in Tables](#pattern-production-constants-in-tables)
+- [Pattern: Timing Thresholds with Upper-Bound Assertions](#pattern-timing-thresholds-with-upper-bound-assertions)
+- [Pattern: Async Execution in Multi-Concern Tables](#pattern-async-execution-in-multi-concern-tables)
+- [Pattern: Test Helpers for Observing Behavior](#pattern-test-helpers-for-observing-behavior)
+- [Pattern: Recording Sequences with Controlled Stopping](#pattern-recording-sequences-with-controlled-stopping)
+- [Pattern: One-Letter Values for Composite Keys](#pattern-one-letter-values-for-composite-keys)
+- [Pattern: Static Constants for Readable Expected Values](#pattern-static-constants-for-readable-expected-values)
+- [Summary](#summary)
+
 ## Pattern: Consolidating Identity + Status
 
 ### Problem
