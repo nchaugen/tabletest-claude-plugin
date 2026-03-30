@@ -5,10 +5,10 @@ feature descriptions, or when it is not clear how to decompose the behaviour
 into tables. The workflow below helps you derive table structure from the
 requirements, then produce `@TableTest` Java code.
 
-**Your deliverable is a complete Java test class with `@TableTest` methods.**
-Steps 1–8 below are your internal analysis process — use them to determine
-table structure, but do not output markdown tables. Step 9 is where you
-produce the actual deliverable: Java code.
+**Your deliverable is a Java test class with `@TableTest` methods — not
+markdown tables.** Work through every step below carefully; each step
+deepens the table structure. Do not output intermediate markdown tables or
+stop for feedback. Write the Java test class directly as your final output.
 
 ---
 
@@ -29,6 +29,12 @@ Signs that concerns are mixed:
 - Some rows need columns that other rows leave blank throughout
 - Scenario names require qualifiers like "...for eligibility" vs "...for pricing"
 - The table has two groups of output columns that never both apply in the same row
+
+**Signs of a missing concern:**
+- An input to one rule is itself derived from raw data (e.g. "orders placed
+  this quarter" is computed from individual order timestamps). The derivation
+  — what counts, what doesn't, where the boundary falls — is a separate
+  testable concern.
 
 ---
 
@@ -81,6 +87,10 @@ Underage regardless of category | 17           | {Economy, Premium} | no
 This is more precise than a blank (which means absent) and more concise than
 separate rows for each category.
 
+Check every input dimension mentioned in the requirements. If the requirement
+says "regardless of X", X must appear as a column with a value set — omitting
+it silently hides the assertion that X is irrelevant.
+
 **Value sets for tier grouping:** When multiple input values produce the same
 output, group them into a value set rather than enumerating each as a separate
 row:
@@ -94,6 +104,10 @@ Second tier     | {10, 11, 12, 13, 14} | 10%
 This expresses the tier structure directly. Enumerating boundaries as separate
 rows (5 → 5%, 9 → 5%, 10 → 10%) tests the same thing with more noise and less
 clarity about the tier grouping.
+
+This also applies to entity types: when two types follow identical rules
+(e.g. `{Manager, Director}` both have the same approval limit), express
+them as a value set rather than separate rows with the same outcome.
 
 ---
 
@@ -180,15 +194,9 @@ plausible, note both as an open question rather than picking one.
 
 ---
 
-## Produce the Deliverable
-
-Steps 1–8 determined your table structure. Now write the Java code.
-Do not present markdown tables for review. Do not summarise your analysis.
-Output the `@TableTest` class directly.
-
 ## 9. Write the `@TableTest` Code
 
-Write the Java test class.
+Once the table structure is clear from steps 1-8, write the Java test class.
 Each concern becomes a `@TableTest` method. Follow the main skill's Table Design
 section for syntax, and its Quality Checks for verification.
 

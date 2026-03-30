@@ -443,7 +443,10 @@ When writing TableTests with a pair, the most important habit is showing a mocku
 Resist the urge to start coding immediately. The approach depends on what you are starting from:
 
 **From natural-language requirements** (the prompt describes a feature, not existing code):
-Read `references/requirements-to-tables.md` and follow its workflow end-to-end. It produces the Java `@TableTest` class directly — do not stop at markdown tables.
+Skip the Pre-Check — there is no existing project to inspect. Read
+`references/requirements-to-tables.md` and follow its workflow end-to-end.
+It produces the Java `@TableTest` class directly — do not stop at markdown
+tables.
 
 **From existing code or tests** (there is code to trace or tests to convert):
 1. **Trace the logic**: Map decision trees, loops, or state transitions. Identify what actually varies between scenarios — this directly determines your columns.
@@ -514,7 +517,7 @@ After writing, verify:
 
 ## Advanced References
 
-**Read selectively.** For any single task, you should rarely need more than one or two references beyond `requirements-to-tables.md`. Do not read references speculatively — read only when you encounter the specific condition described.
+**READ these references when the condition applies.** Do not read speculatively, but do not skip a reference whose condition matches your task.
 
 | Reference                                | When to use                                                                |
 |------------------------------------------|----------------------------------------------------------------------------|
