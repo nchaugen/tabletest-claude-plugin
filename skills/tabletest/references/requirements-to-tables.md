@@ -2,13 +2,17 @@
 
 Use this reference when writing tests from natural-language requirements, vague
 feature descriptions, or when it is not clear how to decompose the behaviour
-into tables. The workflow below helps you derive table structure from the
-requirements, then produce `@TableTest` Java code.
+into tables.
 
-**Your deliverable is a Java test class with `@TableTest` methods — not
-markdown tables.** Work through every step below carefully; each step
-deepens the table structure. Do not output intermediate markdown tables or
-stop for feedback. Write the Java test class directly as your final output.
+**Your deliverable is a Java test class with `@TableTest` methods.**
+Do not output markdown tables. Do not stop for user feedback between steps.
+Work through every step below, then write the Java class directly as your
+final output.
+
+Each step below is an analysis step that shapes the table structure. As you
+work through them, you are building up a mental model of the columns, rows,
+and concerns — but you do not output anything until step 9, where you write
+the complete Java `@TableTest` class.
 
 ---
 
@@ -196,9 +200,10 @@ plausible, note both as an open question rather than picking one.
 
 ## 9. Write the `@TableTest` Code
 
-Once the table structure is clear from steps 1-8, write the Java test class.
-Each concern becomes a `@TableTest` method. Follow the main skill's Table Design
-section for syntax, and its Quality Checks for verification.
+This is the only step that produces output. Everything above was analysis.
+Write the complete Java test class now — each concern becomes a `@TableTest`
+method. Follow the main skill's Table Design section for syntax, and its
+Quality Checks for verification.
 
 For each `@TableTest` method:
 - Add `@DisplayName` with a clear title derived from the concern name (step 1)
@@ -207,9 +212,9 @@ For each `@TableTest` method:
 - Use `@TypeConverter` methods for any human-readable values that need conversion
 - Follow annotation order: `@DisplayName` → `@Description` → `@TableTest`
 
-**Do not present markdown tables for review.** Go directly to the Java code.
-Open questions from step 8 belong in `@Description`, not in a separate notes
-section.
+**Do not present markdown tables for review.** Do not add a notes section or
+open questions list after the code. Go directly to the Java code. Open
+questions from step 8 belong in `@Description` annotations inside the code.
 
 ### Final checklist
 

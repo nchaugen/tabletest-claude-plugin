@@ -1,6 +1,6 @@
 ---
 name: spec-by-example
-description: Clarify behaviour through concrete example tables before or during implementation. Trigger when requirements use vague terms ("eligible customers", "valid input", "appropriate discount"), when behaviour depends on multiple conditions whose combinations aren't fully worked out, when an edge case surfaces mid-implementation, or when the user asks to work through examples of a feature. This skill complements the tabletest skill — use it to pin down rules, then hand the table to /tabletest for executable tests. Even when the user asks to write tests, invoke this skill first if the requirements are unstructured or vague.
+description: Clarify behaviour through concrete example tables before or during implementation. Trigger when requirements use vague terms ("eligible customers", "valid input", "appropriate discount"), when behaviour depends on multiple conditions whose combinations aren't fully worked out, when an edge case surfaces mid-implementation, or when the user asks to work through examples of a feature. Do NOT use when the user asks to write tests, convert tests, or create a @TableTest — use the tabletest skill instead, which has its own requirements decomposition workflow and will produce executable @TableTest code directly.
 ---
 
 # Spec by Example
