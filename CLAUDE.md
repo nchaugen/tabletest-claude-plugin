@@ -51,13 +51,14 @@ Skill snapshots used as baselines are stored as `snapshot.md` (not `SKILL.md`) t
 
 ### Contamination Protocol
 
-`docs/superpowers/experiments/` contains ideal answer tables for eval features. `skills-workspace/iteration-*/` directories contain prior model responses to the same eval prompts. Agents exploring the codebase during eval runs could discover and copy them, invalidating results.
+`docs/` contains ideal answer tables and spec documents describing eval strategy and known weaknesses. `skills-workspace/iteration-*/` directories contain prior model responses to the same eval prompts. `skills-workspace/evals/evals.json` contains assertions that describe the exact expected output structure. Agents exploring the codebase during eval runs could discover and use any of these, invalidating results.
 
-**The `run-evals.js` script enforces this automatically** — it creates a clean git worktree and removes experiment documents and prior iteration outputs before running any eval.
+**The `run-evals.js` script enforces this automatically** — it creates a clean git worktree and removes `docs/`, eval definitions, and prior iteration outputs before running any eval.
 
 **If running evals manually** (without the script), you must:
 1. Create a worktree: `git worktree add /tmp/eval-run HEAD`
-2. Remove experiments: `rm -rf /tmp/eval-run/docs/superpowers/experiments`
+2. Remove docs: `rm -rf /tmp/eval-run/docs`
 3. Remove prior iterations: `rm -rf /tmp/eval-run/skills-workspace/iteration-*`
-4. Run evals from the worktree directory
-5. Clean up: `git worktree remove /tmp/eval-run`
+4. Remove eval definitions: `rm -f /tmp/eval-run/skills-workspace/evals/evals.json`
+5. Run evals from the worktree directory
+6. Clean up: `git worktree remove /tmp/eval-run`

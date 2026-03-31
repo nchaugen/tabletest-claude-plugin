@@ -7,19 +7,19 @@ const path = require("path");
 const EVALS_PATH = "skills-workspace/evals/evals.json";
 const WORKSPACE_PATH = "skills-workspace";
 
-// Logger that writes to both console and a log file
-let logStream = null;
+// Logger that writes to both console and a log file (sync flush to survive crashes)
+let logFile = null;
 
 function log(...args) {
   const msg = args.map(a => typeof a === "string" ? a : JSON.stringify(a)).join(" ");
   console.log(msg);
-  if (logStream) logStream.write(msg + "\n");
+  if (logFile) fs.appendFileSync(logFile, msg + "\n");
 }
 
 function logError(...args) {
   const msg = args.map(a => typeof a === "string" ? a : JSON.stringify(a)).join(" ");
   console.error(msg);
-  if (logStream) logStream.write("ERROR: " + msg + "\n");
+  if (logFile) fs.appendFileSync(logFile, "ERROR: " + msg + "\n");
 }
 
 const GRADING_SYSTEM_PROMPT = `You are an eval grader. You will receive a model response and a list of assertions.
@@ -148,9 +148,9 @@ async function main() {
   );
   fs.mkdirSync(iterationDir, { recursive: true });
 
-  // Set up log file
-  logStream = fs.createWriteStream(path.join(iterationDir, "run.log"), { flags: "a" });
-  logStream.write(`\n--- Run started at ${new Date().toISOString()} ---\n`);
+  // Set up log file (sync writes so output survives crashes)
+  logFile = path.join(iterationDir, "run.log");
+  fs.appendFileSync(logFile, `\n--- Run started at ${new Date().toISOString()} ---\n`);
 
   log(
     `\nEval run: iteration ${args.iteration}, ${evals.length} evals, model ${args.model}`
@@ -171,10 +171,7 @@ async function main() {
     if (worktreePath) {
       cleanupWorktree(worktreePath);
     }
-    if (logStream) {
-      logStream.end();
-      logStream = null;
-    }
+    logFile = null;
   }
 }
 
@@ -190,16 +187,19 @@ function setupWorktree(repoRoot) {
     stdio: "inherit",
   });
 
-  // Remove experiment documents to prevent contamination
-  const experimentsDir = path.join(
-    worktreePath,
-    "docs",
-    "superpowers",
-    "experiments"
-  );
-  if (fs.existsSync(experimentsDir)) {
-    fs.rmSync(experimentsDir, { recursive: true });
-    log("Removed experiment documents for contamination isolation");
+  // Remove docs/ (contains experiment ideal answers and spec documents
+  // that describe eval strategy and known weaknesses)
+  const docsDir = path.join(worktreePath, "docs");
+  if (fs.existsSync(docsDir)) {
+    fs.rmSync(docsDir, { recursive: true });
+    log("Removed docs/ for contamination isolation");
+  }
+
+  // Remove eval definitions (assertions are the answer key)
+  const evalsFile = path.join(worktreePath, EVALS_PATH);
+  if (fs.existsSync(evalsFile)) {
+    fs.rmSync(evalsFile);
+    log("Removed evals.json for contamination isolation");
   }
 
   // Remove prior iteration outputs to prevent contamination
@@ -269,7 +269,10 @@ function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 60
     proc.on("close", (code) => {
       clearTimeout(timer);
       if (code !== 0) {
-        settle(reject, new Error(`claude exited with code ${code}:\n  stderr: ${stderr.slice(0, 500)}`));
+        const err = new Error(`claude exited with code ${code}:\n  stderr: ${stderr.slice(0, 500)}`);
+        err.stdout = stdout;
+        err.stderr = stderr;
+        settle(reject, err);
         return;
       }
       try {
@@ -397,11 +400,15 @@ async function generateOne(evalDef, config, worktreePath, iterationDir, model) {
   } catch (err) {
     logError(`  ✗ Eval ${evalDef.id} [${config}] — ${err.message}`);
     // Write error details for debugging
-    fs.writeFileSync(
-      path.join(evalDir, "error.log"),
-      `${new Date().toISOString()}\n${err.message}\n${err.stack || ""}\n`,
-      "utf-8"
-    );
+    let errorLog = `${new Date().toISOString()}\n${err.message}\n${err.stack || ""}\n`;
+    if (err.stderr) errorLog += `\n--- stderr ---\n${err.stderr}\n`;
+    if (err.stdout) errorLog += `\n--- stdout (partial conversation trace) ---\n${err.stdout}\n`;
+    fs.writeFileSync(path.join(evalDir, "error.log"), errorLog, "utf-8");
+
+    // Save partial conversation trace even on failure
+    if (err.stdout) {
+      fs.writeFileSync(path.join(evalDir, "conversation.jsonl"), err.stdout, "utf-8");
+    }
     fs.writeFileSync(
       path.join(evalDir, "outputs", "response.md"),
       `ERROR: ${err.message}`,
