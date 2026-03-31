@@ -35,10 +35,18 @@ Signs that concerns are mixed:
 - The table has two groups of output columns that never both apply in the same row
 
 **Signs of a missing concern:**
-- An input to one rule is itself derived from raw data (e.g. "orders placed
-  this quarter" is computed from individual order timestamps). The derivation
-  — what counts, what doesn't, where the boundary falls — is a separate
-  testable concern.
+- An input to one rule is itself derived from raw data. The recognisable
+  shape: a rule takes a value that is computed via a time window, rolling
+  count, aggregation, or filter over raw records (e.g. "average response
+  time over the last 7 days" feeds into an SLA compliance check). The
+  derivation has its own edge cases — what falls inside vs outside the
+  window, how the boundary instant is handled, what records are included —
+  and these need boundary testing in a separate table. The rule table then
+  takes the derived value as a direct input column, not the raw data.
+
+  Two tables, not one: *Concern 1 — derive the value* (which raw records
+  count, window boundaries). *Concern 2 — apply the rule* (given the
+  derived value, what is the outcome?).
 
 ---
 
@@ -95,23 +103,35 @@ Check every input dimension mentioned in the requirements. If the requirement
 says "regardless of X", X must appear as a column with a value set — omitting
 it silently hides the assertion that X is irrelevant.
 
+**Common mistake — omitting the irrelevant column entirely.** If a requirement
+says "regardless of membership level", the table must include a Membership
+Level column with a value set like `{Gold, Silver, Bronze}`. Without it, a
+reader cannot tell whether the irrelevance was tested or simply overlooked.
+The column makes the "regardless of" assertion visible and verifiable.
+
 **Value sets for tier grouping:** When multiple input values produce the same
-output, group them into a value set rather than enumerating each as a separate
-row:
+output (a tier), group them into a value set rather than enumerating each as
+a separate row:
 
 ```
-Scenario        | Tickets in 30 days | Discount?
-First tier      | {5, 6, 7, 8, 9}   | 5%
-Second tier     | {10, 11, 12, 13, 14} | 10%
+Scenario   | Credit Hours         | Standing?
+Freshman   | {0, 10, 20, 29}     | Freshman
+Sophomore  | {30, 45, 59}        | Sophomore
+Junior     | {60, 75, 89}        | Junior
+Senior     | {90, 100, 120}      | Senior
 ```
 
-This expresses the tier structure directly. Enumerating boundaries as separate
-rows (5 → 5%, 9 → 5%, 10 → 10%) tests the same thing with more noise and less
-clarity about the tier grouping.
+This makes the tier structure a first-class concept — each row IS a tier. The
+alternative — separate rows for boundaries (29 → Freshman, 30 → Sophomore) —
+tests boundary detection but obscures which values belong to the same tier. Use
+value sets for tier membership; add boundary rows (29 vs 30) only as additional
+rows alongside the tier rows, not instead of them.
 
-This also applies to entity types: when two types follow identical rules
-(e.g. `{Manager, Director}` both have the same approval limit), express
-them as a value set rather than separate rows with the same outcome.
+**Value sets for identical entity types:** When two categories follow
+identical rules (e.g. `{Manager, Director}` both have the same expense
+approval limit), express them as a value set in one row rather than separate
+rows. This is more concise AND more expressive — it asserts the rules are
+identical, whereas separate rows merely happen to show the same output.
 
 ---
 
