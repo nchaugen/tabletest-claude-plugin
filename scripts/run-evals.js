@@ -232,14 +232,6 @@ function setupWorktree(repoRoot, mode = "skill") {
   if (mode === "baseline") {
     const skillsDir = path.join(worktreePath, "skills");
     if (fs.existsSync(skillsDir)) { fs.rmSync(skillsDir, { recursive: true }); removals.push("skills/"); }
-    if (fs.existsSync(workspaceDir)) {
-      for (const entry of fs.readdirSync(workspaceDir)) {
-        if (entry.startsWith("skill-snapshot-")) {
-          fs.rmSync(path.join(workspaceDir, entry), { recursive: true });
-          removals.push(entry);
-        }
-      }
-    }
   }
 
   log(`  Removed for isolation: ${removals.join(", ")}`);

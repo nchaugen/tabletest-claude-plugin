@@ -48,8 +48,6 @@ node scripts/run-evals.js --iteration N --baseline-only  # run without skill onl
 
 **Regression detection:** The script compares with_skill scores against the previous iteration's benchmark.json and flags any assertion that passed before but fails now.
 
-Skill snapshots used as baselines are stored as `snapshot.md` (not `SKILL.md`) to prevent auto-discovery by Claude.
-
 ### Contamination Protocol
 
 `docs/` contains ideal answer tables and spec documents describing eval strategy and known weaknesses. `skills-workspace/iteration-*/` directories contain prior model responses to the same eval prompts. `skills-workspace/evals/evals.json` contains assertions that describe the exact expected output structure. `README.md`, `CLAUDE.md`, and `CHANGELOG.md` describe eval strategy and project context. Agents exploring the codebase during eval runs could discover and use any of these, invalidating results.
