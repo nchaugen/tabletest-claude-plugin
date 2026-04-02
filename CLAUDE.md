@@ -52,15 +52,15 @@ Skill snapshots used as baselines are stored as `snapshot.md` (not `SKILL.md`) t
 
 ### Contamination Protocol
 
-`docs/` contains ideal answer tables and spec documents describing eval strategy and known weaknesses. `skills-workspace/iteration-*/` directories contain prior model responses to the same eval prompts. `skills-workspace/evals/evals.json` contains assertions that describe the exact expected output structure. Agents exploring the codebase during eval runs could discover and use any of these, invalidating results.
+`docs/` contains ideal answer tables and spec documents describing eval strategy and known weaknesses. `skills-workspace/iteration-*/` directories contain prior model responses to the same eval prompts. `skills-workspace/evals/evals.json` contains assertions that describe the exact expected output structure. `README.md`, `CLAUDE.md`, and `CHANGELOG.md` describe eval strategy and project context. Agents exploring the codebase during eval runs could discover and use any of these, invalidating results.
 
-**The `run-evals.js` script enforces this automatically** — it creates a depth-1 shallow clone (not a worktree) so agents cannot retrieve deleted files from git history via `git show`, `git log -p`, etc. It then removes contaminating files and commits the deletions so they can't be restored with `git checkout`.
+**The `run-evals.js` script enforces this automatically** — it creates a git worktree and removes contaminating files. Git tools are disallowed at runtime (`--disallowedTools "Bash(git:*)"`) so agents cannot recover deleted files from history.
 
 **If running evals manually** (without the script), you must:
-1. Create a shallow clone: `git clone --depth 1 --single-branch file://$(pwd) /tmp/eval-run`
+1. Create a worktree: `git worktree add /tmp/eval-run`
 2. Remove docs: `rm -rf /tmp/eval-run/docs`
-3. Remove prior iterations: `rm -rf /tmp/eval-run/skills-workspace/iteration-*`
-4. Remove eval definitions: `rm -f /tmp/eval-run/skills-workspace/evals/evals.json`
-5. Commit deletions: `cd /tmp/eval-run && git add -A && git commit -m "eval isolation"`
-6. Run evals from the clone directory
-7. Clean up: `rm -rf /tmp/eval-run`
+3. Remove project files: `rm -f /tmp/eval-run/{README,CLAUDE,CHANGELOG}.md`
+4. Remove prior iterations: `rm -rf /tmp/eval-run/skills-workspace/iteration-*`
+5. Remove eval definitions: `rm -f /tmp/eval-run/skills-workspace/evals/evals.json`
+6. Run evals from the worktree with `--disallowedTools "Bash(git:*)"`
+7. Clean up: `git worktree remove /tmp/eval-run`

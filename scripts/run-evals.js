@@ -185,78 +185,79 @@ async function main() {
 }
 
 function setupWorktree(repoRoot, mode = "skill") {
+  const branch = `eval-${mode}-${Date.now()}`;
   const worktreePath = path.join(
     require("os").tmpdir(),
-    `eval-run-${mode}-${Date.now()}`
+    branch
   );
-  log(`Creating isolated shallow clone (${mode}) at:`, worktreePath);
+  log(`Creating worktree (${mode}) at: ${worktreePath}`);
 
-  // Use a depth-1 shallow clone instead of a worktree so the agent
-  // cannot retrieve deleted files from git history (git show, git log -p, etc.)
   execSync(
-    `git clone --depth 1 --single-branch "file://${repoRoot}" "${worktreePath}"`,
-    { stdio: "inherit" }
+    `git worktree add -b "${branch}" "${worktreePath}" HEAD`,
+    { cwd: repoRoot, stdio: "pipe" }
   );
 
-  // Remove docs/ (contains experiment ideal answers and spec documents
-  // that describe eval strategy and known weaknesses)
-  const docsDir = path.join(worktreePath, "docs");
-  if (fs.existsSync(docsDir)) {
-    fs.rmSync(docsDir, { recursive: true });
-    log("Removed docs/ for contamination isolation");
+  // Remove contaminating files — git tools are disallowed at runtime
+  // so the agent cannot recover these via git history
+  const removals = [];
+
+  // docs/ contains ideal answers, eval strategy, and known weaknesses
+  for (const dir of ["docs"]) {
+    const p = path.join(worktreePath, dir);
+    if (fs.existsSync(p)) { fs.rmSync(p, { recursive: true }); removals.push(dir + "/"); }
   }
 
-  // Remove eval definitions (assertions are the answer key)
+  // Project files that leak eval strategy or expected answers
+  for (const file of ["README.md", "CLAUDE.md", "CHANGELOG.md"]) {
+    const p = path.join(worktreePath, file);
+    if (fs.existsSync(p)) { fs.rmSync(p); removals.push(file); }
+  }
+
+  // Eval definitions (assertions are the answer key)
   const evalsFile = path.join(worktreePath, EVALS_PATH);
-  if (fs.existsSync(evalsFile)) {
-    fs.rmSync(evalsFile);
-    log("Removed evals.json for contamination isolation");
-  }
+  if (fs.existsSync(evalsFile)) { fs.rmSync(evalsFile); removals.push("evals.json"); }
 
-  // Remove prior iteration outputs to prevent contamination
-  // (response.md files contain model answers to the same eval prompts)
+  // Prior iteration outputs (model answers to the same prompts)
   const workspaceDir = path.join(worktreePath, "skills-workspace");
   if (fs.existsSync(workspaceDir)) {
     for (const entry of fs.readdirSync(workspaceDir)) {
       if (entry.startsWith("iteration-")) {
         fs.rmSync(path.join(workspaceDir, entry), { recursive: true });
+        removals.push(entry);
       }
     }
-    log("Removed prior iteration outputs for contamination isolation");
   }
 
   // Baseline: also remove skill files so the agent can't discover them
   if (mode === "baseline") {
     const skillsDir = path.join(worktreePath, "skills");
-    if (fs.existsSync(skillsDir)) {
-      fs.rmSync(skillsDir, { recursive: true });
-      log("Removed skills/ for baseline isolation");
-    }
+    if (fs.existsSync(skillsDir)) { fs.rmSync(skillsDir, { recursive: true }); removals.push("skills/"); }
     if (fs.existsSync(workspaceDir)) {
       for (const entry of fs.readdirSync(workspaceDir)) {
         if (entry.startsWith("skill-snapshot-")) {
           fs.rmSync(path.join(workspaceDir, entry), { recursive: true });
+          removals.push(entry);
         }
       }
-      log("Removed skill snapshots for baseline isolation");
     }
   }
 
-  // Commit the deletions so they can't be recovered via git checkout/restore
-  execSync(
-    `git add -A && git commit --allow-empty -m "eval isolation" --no-gpg-sign`,
-    { cwd: worktreePath, stdio: "inherit" }
-  );
-
+  log(`  Removed for isolation: ${removals.join(", ")}`);
   return worktreePath;
 }
 
 function cleanupWorktree(worktreePath) {
-  log("Cleaning up clone...");
+  log("Cleaning up worktree...");
   try {
-    fs.rmSync(worktreePath, { recursive: true, force: true });
+    const repoRoot = execSync("git rev-parse --show-toplevel", { encoding: "utf-8" }).trim();
+    const branch = path.basename(worktreePath);
+    execSync(`git worktree remove "${worktreePath}" --force`, { cwd: repoRoot, stdio: "pipe" });
+    // Clean up the temporary branch
+    try { execSync(`git branch -D "${branch}"`, { cwd: repoRoot, stdio: "pipe" }); } catch {}
   } catch {
-    logError("Warning: could not remove clone at", worktreePath);
+    // Fallback: just remove the directory
+    try { fs.rmSync(worktreePath, { recursive: true, force: true }); } catch {}
+    logError("Warning: could not cleanly remove worktree at", worktreePath);
   }
 }
 
