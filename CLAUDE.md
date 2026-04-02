@@ -33,7 +33,7 @@ iteration-N/
       outputs/            ← model's actual output files
       grading.json        ← assertion pass/fail with evidence
       timing.json         ← duration_ms and total_tokens
-    no_skill/             ← baseline without skill (only with --baseline)
+    no_skill/             ← baseline without skill (--baseline or --baseline-only)
       ...same structure
 ```
 
@@ -42,7 +42,8 @@ iteration-N/
 ```bash
 node scripts/run-evals.js --iteration N              # run all evals
 node scripts/run-evals.js --iteration N --evals 1,2  # run specific evals
-node scripts/run-evals.js --iteration N --baseline   # also run without skill
+node scripts/run-evals.js --iteration N --baseline      # run both with and without skill
+node scripts/run-evals.js --iteration N --baseline-only  # run without skill only
 ```
 
 **Regression detection:** The script compares with_skill scores against the previous iteration's benchmark.json and flags any assertion that passed before but fails now.
@@ -53,12 +54,13 @@ Skill snapshots used as baselines are stored as `snapshot.md` (not `SKILL.md`) t
 
 `docs/` contains ideal answer tables and spec documents describing eval strategy and known weaknesses. `skills-workspace/iteration-*/` directories contain prior model responses to the same eval prompts. `skills-workspace/evals/evals.json` contains assertions that describe the exact expected output structure. Agents exploring the codebase during eval runs could discover and use any of these, invalidating results.
 
-**The `run-evals.js` script enforces this automatically** — it creates a clean git worktree and removes `docs/`, eval definitions, and prior iteration outputs before running any eval.
+**The `run-evals.js` script enforces this automatically** — it creates a depth-1 shallow clone (not a worktree) so agents cannot retrieve deleted files from git history via `git show`, `git log -p`, etc. It then removes contaminating files and commits the deletions so they can't be restored with `git checkout`.
 
 **If running evals manually** (without the script), you must:
-1. Create a worktree: `git worktree add /tmp/eval-run HEAD`
+1. Create a shallow clone: `git clone --depth 1 --single-branch file://$(pwd) /tmp/eval-run`
 2. Remove docs: `rm -rf /tmp/eval-run/docs`
 3. Remove prior iterations: `rm -rf /tmp/eval-run/skills-workspace/iteration-*`
 4. Remove eval definitions: `rm -f /tmp/eval-run/skills-workspace/evals/evals.json`
-5. Run evals from the worktree directory
-6. Clean up: `git worktree remove /tmp/eval-run`
+5. Commit deletions: `cd /tmp/eval-run && git add -A && git commit -m "eval isolation"`
+6. Run evals from the clone directory
+7. Clean up: `rm -rf /tmp/eval-run`

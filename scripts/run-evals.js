@@ -63,6 +63,7 @@ function parseArgs(argv) {
     iteration: null,
     evals: null,       // null = all, or array of ids
     baseline: false,
+    baselineOnly: false,
     model: "sonnet",
     gradingModel: "haiku",
     gradingSuffix: null,
@@ -80,6 +81,9 @@ function parseArgs(argv) {
         break;
       case "--baseline":
         args.baseline = true;
+        break;
+      case "--baseline-only":
+        args.baselineOnly = true;
         break;
       case "--model":
         args.model = argv[++i];
@@ -107,6 +111,7 @@ function parseArgs(argv) {
     console.error("Options:");
     console.error("  --evals 1,2,3       Run specific evals (supports ranges: 1-13)");
     console.error("  --baseline          Also run without skill");
+    console.error("  --baseline-only     Run without skill only (no with_skill)");
     console.error("  --model MODEL       Model to use (default: sonnet)");
     console.error("  --grading-model M   Model for grading (default: haiku)");
   console.error("  --grading-suffix S  Write grading to grading-S.json instead of grading.json");
@@ -156,11 +161,12 @@ async function main() {
     `\nEval run: iteration ${args.iteration}, ${evals.length} evals, model ${args.model}`
   );
 
-  const worktreePath = args.gradeOnly ? null : setupWorktree(repoRoot);
+  const worktreePath = (args.gradeOnly || args.baselineOnly) ? null : setupWorktree(repoRoot, "skill");
+  const baselineWorktreePath = (!args.gradeOnly && (args.baseline || args.baselineOnly)) ? setupWorktree(repoRoot, "baseline") : null;
 
   try {
     if (!args.gradeOnly) {
-      await generateResponses(evals, worktreePath, iterationDir, args);
+      await generateResponses(evals, worktreePath, baselineWorktreePath, iterationDir, args);
     }
     await gradeResponses(evals, iterationDir, args);
     const benchmark = aggregateResults(evals, iterationDir, args);
@@ -171,21 +177,26 @@ async function main() {
     if (worktreePath) {
       cleanupWorktree(worktreePath);
     }
+    if (baselineWorktreePath) {
+      cleanupWorktree(baselineWorktreePath);
+    }
     logFile = null;
   }
 }
 
-function setupWorktree(repoRoot) {
+function setupWorktree(repoRoot, mode = "skill") {
   const worktreePath = path.join(
     require("os").tmpdir(),
-    `eval-run-${Date.now()}`
+    `eval-run-${mode}-${Date.now()}`
   );
-  log("Creating clean worktree at:", worktreePath);
+  log(`Creating isolated shallow clone (${mode}) at:`, worktreePath);
 
-  execSync(`git worktree add --detach "${worktreePath}" HEAD`, {
-    cwd: repoRoot,
-    stdio: "inherit",
-  });
+  // Use a depth-1 shallow clone instead of a worktree so the agent
+  // cannot retrieve deleted files from git history (git show, git log -p, etc.)
+  execSync(
+    `git clone --depth 1 --single-branch "file://${repoRoot}" "${worktreePath}"`,
+    { stdio: "inherit" }
+  );
 
   // Remove docs/ (contains experiment ideal answers and spec documents
   // that describe eval strategy and known weaknesses)
@@ -214,17 +225,38 @@ function setupWorktree(repoRoot) {
     log("Removed prior iteration outputs for contamination isolation");
   }
 
+  // Baseline: also remove skill files so the agent can't discover them
+  if (mode === "baseline") {
+    const skillsDir = path.join(worktreePath, "skills");
+    if (fs.existsSync(skillsDir)) {
+      fs.rmSync(skillsDir, { recursive: true });
+      log("Removed skills/ for baseline isolation");
+    }
+    if (fs.existsSync(workspaceDir)) {
+      for (const entry of fs.readdirSync(workspaceDir)) {
+        if (entry.startsWith("skill-snapshot-")) {
+          fs.rmSync(path.join(workspaceDir, entry), { recursive: true });
+        }
+      }
+      log("Removed skill snapshots for baseline isolation");
+    }
+  }
+
+  // Commit the deletions so they can't be recovered via git checkout/restore
+  execSync(
+    `git add -A && git commit --allow-empty -m "eval isolation" --no-gpg-sign`,
+    { cwd: worktreePath, stdio: "inherit" }
+  );
+
   return worktreePath;
 }
 
 function cleanupWorktree(worktreePath) {
-  log("Cleaning up worktree...");
+  log("Cleaning up clone...");
   try {
-    execSync(`git worktree remove --force "${worktreePath}"`, {
-      stdio: "inherit",
-    });
+    fs.rmSync(worktreePath, { recursive: true, force: true });
   } catch {
-    logError("Warning: could not remove worktree at", worktreePath);
+    logError("Warning: could not remove clone at", worktreePath);
   }
 }
 
@@ -239,6 +271,7 @@ function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 60
 
     const args = ["--print", "--output-format", "stream-json", "--verbose", "--model", model];
 
+    args.push("--disallowedTools", "Bash(git:*)");
     args.push("--no-session-persistence", "--setting-sources", "");
 
     if (pluginDir) {
@@ -260,7 +293,10 @@ function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 60
 
     const timer = setTimeout(() => {
       proc.kill("SIGTERM");
-      settle(reject, new Error(`Timed out after ${timeoutMs}ms`));
+      const err = new Error(`Timed out after ${timeoutMs}ms`);
+      err.stdout = stdout;
+      err.stderr = stderr;
+      settle(reject, err);
     }, timeoutMs);
 
     proc.stdout.on("data", (data) => { stdout += data; });
@@ -294,9 +330,9 @@ function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 60
   });
 }
 
-async function generateResponses(evals, worktreePath, iterationDir, args) {
-  const configs = ["with_skill"];
-  if (args.baseline) configs.push("no_skill");
+async function generateResponses(evals, worktreePath, baselineWorktreePath, iterationDir, args) {
+  const configs = args.baselineOnly ? ["no_skill"] : ["with_skill"];
+  if (args.baseline && !args.baselineOnly) configs.push("no_skill");
 
   log(
     `\nGenerating responses (${configs.join(", ")}, parallel=${args.parallel})...`
@@ -305,7 +341,8 @@ async function generateResponses(evals, worktreePath, iterationDir, args) {
   const jobs = [];
   for (const evalDef of evals) {
     for (const config of configs) {
-      jobs.push({ evalDef, config });
+      const cwd = config === "no_skill" ? baselineWorktreePath : worktreePath;
+      jobs.push({ evalDef, config, cwd });
     }
   }
 
@@ -321,8 +358,8 @@ async function generateResponses(evals, worktreePath, iterationDir, args) {
     log(`  [batch ${batchNum}/${totalBatches}, ${completedJobs}/${totalJobs} done, ${elapsed}s elapsed]`);
 
     await Promise.all(
-      batch.map(({ evalDef, config }) =>
-        generateOne(evalDef, config, worktreePath, iterationDir, args.model)
+      batch.map(({ evalDef, config, cwd }) =>
+        generateOne(evalDef, config, cwd, iterationDir, args.model)
       )
     );
     completedJobs += batch.length;
@@ -516,8 +553,8 @@ async function gradeOne(evalDef, config, iterationDir, model, gradingSuffix = nu
 }
 
 async function gradeResponses(evals, iterationDir, args) {
-  const configs = ["with_skill"];
-  if (args.baseline) configs.push("no_skill");
+  const configs = args.baselineOnly ? ["no_skill"] : ["with_skill"];
+  if (args.baseline && !args.baselineOnly) configs.push("no_skill");
 
   log(`\nGrading responses (model=${args.gradingModel}, parallel=${args.parallel})...`);
 
@@ -549,8 +586,8 @@ async function gradeResponses(evals, iterationDir, args) {
   }
 }
 function aggregateResults(evals, iterationDir, args) {
-  const configs = ["with_skill"];
-  if (args.baseline) configs.push("no_skill");
+  const configs = args.baselineOnly ? ["no_skill"] : ["with_skill"];
+  if (args.baseline && !args.baselineOnly) configs.push("no_skill");
 
   const benchmark = {
     skill_name: "tabletest + spec-by-example",
@@ -672,9 +709,9 @@ function detectRegressions(benchmark, previousBenchmark) {
     const prevEval = prevByEvalNum[evalNum];
     if (!prevEval) continue;
 
-    const currResult = evalEntry.results.with_skill;
-    // Fallback to old_skill for backward compat with iterations 1-3
-    const prevResult = prevEval.results.with_skill || prevEval.results.old_skill;
+    const currResult = evalEntry.results.with_skill || evalEntry.results.no_skill;
+    // Fallback chain for backward compat with baseline-only and iterations 1-3
+    const prevResult = prevEval.results.with_skill || prevEval.results.no_skill || prevEval.results.old_skill;
     if (!currResult || !prevResult) continue;
 
     const prevFailed = new Set(prevResult.failed_assertions || []);
@@ -707,8 +744,8 @@ function generateReport(benchmark, previousBenchmark, iterationDir, args) {
     benchmark,
     previousBenchmark
   );
-  const configs = ["with_skill"];
-  if (args.baseline) configs.push("no_skill");
+  const configs = args.baselineOnly ? ["no_skill"] : ["with_skill"];
+  if (args.baseline && !args.baselineOnly) configs.push("no_skill");
 
   let md = `# Eval Review — Iteration ${args.iteration}\n\n`;
   md += `**Model:** ${args.model} · **Date:** ${new Date().toISOString().split("T")[0]} · **Evals:** ${benchmark.evals.length}\n\n`;
@@ -761,11 +798,12 @@ function generateReport(benchmark, previousBenchmark, iterationDir, args) {
 
     for (const evalEntry of benchmark.evals) {
       const evalNum = String(evalEntry.id.match(/eval-(\d+)/)?.[1]);
-      const curr = evalEntry.results.with_skill;
-      const prev = prevByEvalNum[evalNum]?.results?.with_skill || prevByEvalNum[evalNum]?.results?.old_skill;
+      const curr = evalEntry.results.with_skill || evalEntry.results.no_skill;
+      const prev = prevByEvalNum[evalNum]?.results?.with_skill || prevByEvalNum[evalNum]?.results?.no_skill || prevByEvalNum[evalNum]?.results?.old_skill;
 
       // Also check timing.json for timed-out evals
-      const timingPath = path.join(iterationDir, evalEntry.id, "with_skill", "timing.json");
+      const currConfig = evalEntry.results.with_skill ? "with_skill" : "no_skill";
+      const timingPath = path.join(iterationDir, evalEntry.id, currConfig, "timing.json");
       let timedOut = false;
       if (fs.existsSync(timingPath)) {
         const t = JSON.parse(fs.readFileSync(timingPath, "utf-8"));
