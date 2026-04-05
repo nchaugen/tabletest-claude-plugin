@@ -6,7 +6,7 @@
 
 ## What changed from the original design
 
-The original experiment design (in `docs/superpowers/specs/`) defined three separate rubrics:
+The original experiment design (in `docs/tabletest-as-agentic-spec-format-design.md`) defined three separate rubrics:
 - Rubric A — Spec readability (1–5)
 - Rubric B — Test quality (1–5)
 - Rubric C — Table structure (1–5)

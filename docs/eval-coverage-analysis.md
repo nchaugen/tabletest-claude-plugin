@@ -1,7 +1,7 @@
 # Eval Coverage Analysis
 
 Analysis of how well the current evals and assertions cover the skill instructions,
-categorised by testable aspect. Date: 2026-04-03.
+categorised by testable aspect. Last updated: 2026-04-05 (added evals 25-28).
 
 ---
 
@@ -137,12 +137,12 @@ The tabletest skill is larger and covers both table design (shared with spec-by-
 
 | # | Testable Aspect | Current Coverage | Evals |
 |---|----------------|-----------------|-------|
-| T1.1 | Has `@TableTest` annotation | `has-tabletest-annotation` | 1,2,7,8,9 — **well covered** |
-| T1.2 | Annotation order: `@DisplayName` → `@Description` → `@TableTest` | `annotation-order` | 1,2,7,8,9 + `1.12`, `2.13` in 14,15 — **well covered** |
-| T1.3 | `@DisplayName` or descriptive method name | `has-descriptive-title` | 1,2,7,8,9 + `1.10`, `2.10` in 14,15 — **well covered** |
-| T1.4 | `@Description` adds info beyond table (not restatement) | `description-if-present-adds-information` | 1,2,7,8,9 + `1.11`, `2.11` in 14,15 — **well covered** |
-| T1.5 | `@Description` uses text block (`"""`) | `description-uses-textblock` | 1,2,7,8,9 + `1.13`, `2.14` in 14,15 — **well covered** |
-| T1.6 | No if/switch in method body | `no-if-switch-in-method` | 1,7,8,9 + `1.15` in 14 — **well covered** |
+| T1.1 | Has `@TableTest` annotation | `has-tabletest-annotation` | 1,2,7,8,9,25,26,27,28 — **well covered** |
+| T1.2 | Annotation order: `@DisplayName` → `@Description` → `@TableTest` | `annotation-order` | 1,2,7,8,9,14,15,25,26,27,28 — **well covered** |
+| T1.3 | `@DisplayName` or descriptive method name | `has-descriptive-title` | 1,2,7,8,9,14,15,25,26,27,28 — **well covered** |
+| T1.4 | `@Description` adds info beyond table (not restatement) | `description-if-present-adds-information` | 1,2,7,8,9,14,15 — **well covered** |
+| T1.5 | `@Description` uses text block (`"""`) | `description-uses-textblock` | 1,2,7,8,9,14,15 — **well covered** |
+| T1.6 | No if/switch in method body | `no-if-switch-in-method` | 1,7,8,9,14,25,26,27,28 — **well covered** |
 | T1.7 | Method non-private, non-static, void | _none_ | **gap** (hard to test without compilation) |
 | T1.8 | Parameters match column order left-to-right | _none_ | **gap** (hard to test without compilation) |
 | T1.9 | Single assertion logic (uniform across rows) | `single-assertion-in-method` | 1 — **weak** (1 eval) |
@@ -154,7 +154,7 @@ The tabletest skill is larger and covers both table design (shared with spec-by-
 | T2.1 | Blank cells for null | `null-as-blank-cell` | 2,8 — **reasonable** |
 | T2.2 | `''` for empty strings | _none as assertion_ | **gap** (eval 2 prompt mentions it but no assertion) |
 | T2.3 | Quoting for pipes, brackets, quotes | _none_ | **gap** |
-| T2.4 | Collection syntax: `[]` for lists, `{}` for sets, `[:]` for empty map | _none_ | **gap** |
+| T2.4 | Collection syntax: `[]` for lists, `{}` for sets, `[:]` for empty map | `dimensions-as-list` + `options-as-map` in 25,26,27,28 — **reasonable** (list and map syntax tested; set syntax untested) |
 | T2.5 | `\\n` for newlines in values (not literal) | _none_ | **gap** |
 
 ### Category T3: Code Structure — Type Conversion
@@ -162,7 +162,7 @@ The tabletest skill is larger and covers both table design (shared with spec-by-
 | # | Testable Aspect | Current Coverage | Evals |
 |---|----------------|-----------------|-------|
 | T3.1 | Built-in conversion for standard types (LocalDate, enum, etc.) | `localdate-result-column` | 2 — **weak** |
-| T3.2 | `@TypeConverter` for non-standard formats | `type-conversion-addressed` in 2, `2.12-format-typeconverter` in 15 — **reasonable** |
+| T3.2 | `@TypeConverter` for non-standard formats | `type-conversion-addressed` in 2, `2.12-format-typeconverter` in 15, `options-type-converter` in 25,26,27,28 — **well covered** |
 | T3.3 | ISO date format limitation awareness | Implied by eval 2 prompt — **weak** |
 
 ### Category T4: Code Structure — Exception Handling
@@ -176,8 +176,8 @@ The tabletest skill is larger and covers both table design (shared with spec-by-
 
 | # | Testable Aspect | Current Coverage | Evals |
 |---|----------------|-----------------|-------|
-| T5.1 | Scenario column as leftmost | `scenario-column-present` | 1,7,9 — **reasonable** |
-| T5.2 | Expectation columns end with `?` (suffix not prefix) | `has-question-mark-column`, `result-column-with-question-mark` | 1,8 — **reasonable** |
+| T5.1 | Scenario column as leftmost | `scenario-column-present` | 1,7,9,25,26,27,28 — **well covered** |
+| T5.2 | Expectation columns end with `?` (suffix not prefix) | `has-question-mark-column`, `result-column-with-question-mark` | 1,8,25,26,27,28 — **well covered** |
 | T5.3 | Multiple rows (2+) | `has-three-data-rows` | 1 — **weak** (only 1 eval, and it's trivially met) |
 | T5.4 | Traceability/intermediate columns | `1.1-traceability-columns` | 14 — **weak** (1 eval) |
 | T5.5 | All outputs of same concern in one table | _none_ | **gap** |
@@ -186,9 +186,9 @@ The tabletest skill is larger and covers both table design (shared with spec-by-
 
 | # | Testable Aspect | Current Coverage | Evals |
 |---|----------------|-----------------|-------|
-| T6.1 | Concrete domain values, not abstract codes | Implied by scenario assertions — **weak** |
-| T6.2 | Domain terminology in column names | _none as standalone_ | **gap** |
-| T6.3 | Scenario names describe conditions not outcomes | `1.7-readability-scenario-names` in 14 — **weak** (1 eval) |
+| T6.1 | Concrete domain values, not abstract codes | `numeric-types-correct` in 25,26,27,28 + implied by scenario assertions in 14 — **reasonable** |
+| T6.2 | Domain terminology in column names | `business-language-columns` | 25,26,27,28 — **reasonable** |
+| T6.3 | Scenario names describe conditions not outcomes | `1.7-readability-scenario-names` in 14, `scenario-names-describe-conditions` in 25,26,27,28 — **well covered** |
 | T6.4 | Output values traceable to inputs | `1.8-correctness-expected-values` in 14 — **weak** (1 eval) |
 | T6.5 | Blank cells for optional/irrelevant inputs (not 0) | `1.6-readability-empty-cells` | 14 — **weak** (1 eval) |
 
@@ -196,7 +196,7 @@ The tabletest skill is larger and covers both table design (shared with spec-by-
 
 | # | Testable Aspect | Current Coverage | Evals |
 |---|----------------|-----------------|-------|
-| T7.1 | `{...}` for "regardless of" relationships | `uses-value-sets` in 7, `contractor-uses-value-set` in 9, `2.15` in 15 — **reasonable** |
+| T7.1 | `{...}` for "regardless of" relationships | `uses-value-sets` in 7,9,15,25,26,27,28 — **well covered** |
 | T7.2 | Value sets only when all values produce same result | `1.9-correctness-value-set-semantics` in 14, `2.9` in 15 — **reasonable** |
 | T7.3 | Value sets reduce row count vs listing combinations | `fewer-than-nine-rows` + `no-duplicate-role-output` in 7 — **partial** |
 
@@ -204,7 +204,7 @@ The tabletest skill is larger and covers both table design (shared with spec-by-
 
 | # | Testable Aspect | Current Coverage | Evals |
 |---|----------------|-----------------|-------|
-| T8.1 | Separate tables for separate concerns | `2.1-decomposition-concern-separation` | 15 — **weak** (1 eval, 23% pass rate) |
+| T8.1 | Separate tables for separate concerns | `2.1-decomposition-concern-separation` in 15, `concerns-decomposed` in 25,26,27,28 — **reasonable** |
 | T8.2 | Black-box design (observable I/O, not internal flags) | _none_ | **gap** |
 | T8.3 | Match table structure to logic type (decision/parsing/transformation) | _none_ | **gap** |
 
@@ -241,25 +241,24 @@ The tabletest skill is larger and covers both table design (shared with spec-by-
 | Category | Coverage Level | Notes |
 |----------|---------------|-------|
 | T1. Annotations & Method Shape | **Strong** | Well covered by structural assertions across 5+ evals |
-| T2. Syntax & Quoting | **Weak** | Only null-as-blank tested; empty strings, quoting, collections untested |
-| T3. Type Conversion | **Partial** | TypeConverter covered; built-in conversion limits undertested |
+| T2. Syntax & Quoting | **Partial** | Null-as-blank tested; collection syntax (list, map) now in 25-28; empty strings, quoting, set syntax still untested |
+| T3. Type Conversion | **Strong** | TypeConverter now well covered across 2,15,25-28; built-in conversion limits undertested |
 | T4. Exception Handling | **Reasonable** | Throws? column and exception coverage in 2-3 evals |
-| T5. Column Structure | **Partial** | Scenario and ? columns covered; traceability and completeness weak |
-| T6. Values & Readability | **Weak** | Most aspects only in eval 14; domain terminology untested |
-| T7. Value Sets | **Reasonable** | Multiple evals test usage and semantics |
-| T8. Decomposition | **Weak** | Only eval 15 (which scores 23%); black-box untested |
+| T5. Column Structure | **Strong** | Scenario and ? columns well covered (1,7-9,25-28); traceability and completeness weak |
+| T6. Values & Readability | **Moderate** | Domain terminology and scenario names now covered in 25-28; output traceability and blank cells still weak |
+| T7. Value Sets | **Strong** | Well covered across 7,9,15,25-28 |
+| T8. Decomposition | **Partial** | Now in 15,25-28 but black-box and logic-type matching still untested |
 | T9. Depth of Scenarios | **Reasonable** | Boundaries and core branches covered in 14,15 |
 | T10. Pre-Check | **Strong** | Dedicated eval 3 covers this well |
 | T11. Workflow & Process | **Gap** | Not output-testable in current eval format |
 
 ## Priority Gaps (TableTest)
 
-1. **Syntax & quoting** (T2) — Empty strings, collection syntax, quoting rules have zero assertions. These are easy to test with targeted evals.
+1. **Syntax & quoting** (T2) — Empty strings, quoting rules, set syntax still have zero assertions. List and map syntax now covered by evals 25-28.
 2. **Black-box design** (T8.2) — Core skill principle with no assertion. An eval could present internal flags vs observable I/O and check the model avoids internal details.
-3. **Domain terminology** (T6.2) — Skill emphasizes domain language in columns but no assertion checks this for tabletest output (unlike spec-by-example which has `business-language-columns`).
-4. **Table decomposition** (T8.1) — Only 1 eval at 23% pass rate. Needs either skill improvement or more evals to diagnose.
-5. **Traceability columns** (T5.4) — Distinctive skill instruction, only tested in eval 14.
-6. **All outputs in one table** (T5.5) — Skill section with zero coverage.
+3. **Traceability columns** (T5.4) — Distinctive skill instruction, only tested in eval 14.
+4. **All outputs in one table** (T5.5) — Skill section with zero coverage.
+5. **Output traceability** (T6.4) and **blank cells** (T6.5) — Only tested in eval 14.
 
 ---
 ---
@@ -272,11 +271,11 @@ Several categories appear in both skills with similar or identical instructions.
 
 | Shared Aspect | Spec-by-Example Coverage | TableTest Coverage |
 |--------------|-------------------------|-------------------|
-| Scenario names as conditions | Moderate (3 evals) | Weak (1 eval) |
-| Value sets for "regardless of" | Weak-Reasonable | Reasonable |
-| Business/domain language | Partial | Weak |
-| One table per concern | Moderate | Weak |
-| Concrete domain values | Gap | Weak |
+| Scenario names as conditions | Moderate (3 evals) | Strong (14,25-28) |
+| Value sets for "regardless of" | Weak-Reasonable | Strong (7,9,15,25-28) |
+| Business/domain language | Partial | Moderate (25-28) |
+| One table per concern | Moderate | Reasonable (15,25-28) |
+| Concrete domain values | Gap | Reasonable (25-28) |
 | Blank cells vs value sets | Gap | Weak |
 | Output traceability | Weak | Weak |
 | Boundary/threshold coverage | Weak | Reasonable |

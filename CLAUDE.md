@@ -41,7 +41,7 @@ iteration-N/
       ...same structure
 ```
 
-**Running evals:** Use `scripts/run-evals.js`. See `docs/superpowers/specs/2026-03-22-eval-automation-design.md` for the full design.
+**Running evals:** Use `scripts/run-evals.js`.
 
 ```bash
 node scripts/run-evals.js --iteration N              # run all evals
