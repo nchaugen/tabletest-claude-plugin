@@ -12,11 +12,11 @@ This spec defines 4 new evals (25–28) sharing the same shipping cost domain, e
 
 ```java
 BigDecimal calculateShippingCost(
-    ShippingZone zone,       // region + speed
-    BigDecimal weightKg,     // package weight
-    List<Integer> dimensions, // [length, width, height] in cm
-    Set<String> options,     // e.g. {fragile, insured}
-    Carrier carrier          // enum: DHL, UPS, FEDEX
+    ShippingZone zone,        // region + speed
+    BigDecimal weightKg,      // package weight
+    List<Integer> dimensions,  // [length, width, height] in cm
+    PackageOptions options,    // fragile, insuredValue, handling — sparse fields
+    Carrier carrier            // enum: DHL, UPS, FEDEX
 )
 ```
 
@@ -29,8 +29,9 @@ BigDecimal calculateShippingCost(
 2. **Dimensional weight override** — if `(L × W × H) / 5000 > weightKg`, use dimensional weight for tier lookup instead of actual weight
 
 3. **Surcharges** (additive, applied after base rate):
-   - `fragile`: +15% of base rate
-   - `insured`: +€3.00 flat
+   - `fragile: true`: +15% of base rate
+   - `insuredValue: N`: +€3.00 flat (any non-null value triggers fee)
+   - `handling: hazmat`: +€8.00 flat
    - `oversize` (any dimension > 100cm): +€10.00 flat
 
 4. **Carrier equivalence** — DHL, UPS, FEDEX all produce the same rate for identical inputs
@@ -39,11 +40,15 @@ BigDecimal calculateShippingCost(
 
 | TableTest feature | How it appears in the converted output |
 |-------------------|---------------------------------------|
-| **TypeConverter** | Map `[region: EU, speed: express]` → `ShippingZone` via `@TypeConverter` method |
-| **Maps** | Zone config as `[key: value]` pairs in the table |
+| **TypeConverter** | Map `[fragile: true, insuredValue: 500]` → `PackageOptions` via `@TypeConverter` method |
+| **Maps** | Package options as `[key: value]` pairs — sparse fields that vary per scenario (most rows only need 0–2 of 3 fields) |
 | **Nested collections** | Dimensions as `[30, 20, 15]` list in the table |
 | **Value sets** | `{DHL, UPS, FEDEX}` carriers that produce the same cost |
-| **Numbers** | Weight (`BigDecimal`), dimensions (`int`), cost (`BigDecimal`) |
+| **Numbers** | Weight (`BigDecimal`), dimensions (`int`), cost (`BigDecimal`), insuredValue (`int`) |
+
+### Why maps for options (not zone)
+
+Zone has only 2 fields (region, speed) both always populated — two simple columns are clearer. Package options have 3 fields (fragile, insuredValue, handling) where most scenarios only use 0–1 of them. Separate columns would create a sea of blank cells. A map column like `[fragile: true]` or `[fragile: true, insuredValue: 200]` is more readable and justifies a `@TypeConverter`.
 
 ### Expected concern decomposition
 
@@ -97,8 +102,8 @@ All evals present the same shipping cost scenario. The source test is written in
 | ID | Text |
 |----|------|
 | `has-tabletest-annotation` | Output contains a `@TableTest` annotation |
-| `zone-as-map` | Zone is represented as a map literal `[region: X, speed: Y]` in the table — not as separate region and speed columns, and not as a constructor call |
-| `zone-type-converter` | A `@TypeConverter` method is present that accepts `Map<String, String>` (or `String`) and returns `ShippingZone` |
+| `options-as-map` | Package options (fragile, insuredValue, handling) are collapsed into a single map column like `[fragile: true, insuredValue: 500]` — not kept as three separate columns with mostly-blank cells |
+| `options-type-converter` | A `@TypeConverter` method is present that accepts `Map<String, String>` (or similar) and returns `PackageOptions`, applying defaults for missing keys |
 | `dimensions-as-list` | Dimensions are represented as a `[L, W, H]` list in the table — not as three separate length/width/height columns |
 | `uses-value-sets` | At least one table uses value set syntax `{DHL, UPS, FEDEX}` (or subset) to express carrier equivalence, rather than duplicating rows per carrier |
 | `concerns-decomposed` | Multiple `@TableTest` methods exist, each addressing a distinct concern — not one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence |
@@ -127,8 +132,8 @@ Each prompt.md should contain:
 The source tests should be messy/verbose to simulate real legacy code:
 - All concerns in one test method/data provider
 - Manual object construction (not factories)
-- Separate columns for region/speed instead of zone object
 - Separate columns for length/width/height instead of dimensions list
+- Separate columns for fragile/insuredValue/handling instead of options map (sea of blanks)
 - Duplicated rows for each carrier instead of using equivalence
 - Hardcoded numeric values without business context
 - ~12-15 data rows mixing all concerns

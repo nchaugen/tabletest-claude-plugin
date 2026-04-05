@@ -2,9 +2,11 @@
 
 ## Future eval ideas
 
-### Advanced rewrite evals
-- **Spock Framework tests**: Convert Spock `where:` blocks with inline Groovy expressions to TableTest. Tests whether the skill handles computed expected values and Groovy-specific patterns.
-- **JUnit parameterized tests with method-based value providers**: Convert `@MethodSource` parameterized tests (where test data comes from a static method returning `Stream<Arguments>`) to TableTest. Tests handling of complex object construction and multi-line setup.
+### ~~Advanced rewrite evals~~ (done — evals 25-28)
+- ~~**Spock Framework tests** (eval 25)~~
+- ~~**Kotest data-driven tests** (eval 26)~~
+- ~~**TestNG @DataProvider tests** (eval 27)~~
+- ~~**JUnit @MethodSource tests** (eval 28)~~
 
 ### Eval 19 enhancements
 - Tune the email validation conversion eval to make it preferable to use more TableTest features: collection type syntax, type converters, value sets (where semantically appropriate, e.g. grouping invalid emails by failure category).

@@ -1,0 +1,99 @@
+{
+  "skill_name": "tabletest + spec-by-example",
+  "iteration": 26,
+  "model": "sonnet",
+  "timestamp": "2026-04-05T20:20:08.963Z",
+  "evals": [
+    {
+      "id": "eval-25-convert-from-spock",
+      "name": "convert from spock",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 10,
+          "assertions_total": 15,
+          "pass_rate": 0.6666666666666666,
+          "failed_assertions": [
+            "options-as-map",
+            "options-type-converter",
+            "concerns-decomposed",
+            "numeric-types-correct",
+            "no-if-switch-in-method"
+          ],
+          "total_tokens": 200782,
+          "duration_ms": 147765,
+          "cost_usd": 0.3472419
+        }
+      }
+    },
+    {
+      "id": "eval-26-convert-from-kotest",
+      "name": "convert from kotest",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 9,
+          "assertions_total": 15,
+          "pass_rate": 0.6,
+          "failed_assertions": [
+            "options-as-map",
+            "options-type-converter",
+            "concerns-decomposed",
+            "business-language-columns",
+            "no-if-switch-in-method",
+            "no-kotest-syntax"
+          ],
+          "total_tokens": 132257,
+          "duration_ms": 180070,
+          "cost_usd": 0.3894384000000001
+        }
+      }
+    },
+    {
+      "id": "eval-27-convert-from-testng",
+      "name": "convert from testng",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 12,
+          "assertions_total": 15,
+          "pass_rate": 0.8,
+          "failed_assertions": [
+            "options-as-map",
+            "options-type-converter",
+            "concerns-decomposed"
+          ],
+          "total_tokens": 201361,
+          "duration_ms": 159167,
+          "cost_usd": 0.36004905
+        }
+      }
+    },
+    {
+      "id": "eval-28-convert-from-methodsource",
+      "name": "convert from methodsource",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 15,
+          "assertions_total": 15,
+          "pass_rate": 1,
+          "failed_assertions": [],
+          "total_tokens": 209554,
+          "duration_ms": 496263,
+          "cost_usd": 0.48008549999999994
+        }
+      }
+    }
+  ],
+  "summary": {
+    "with_skill": {
+      "assertions_passed": 46,
+      "assertions_total": 60,
+      "pass_rate": 0.7666666666666667,
+      "total_tokens": 743954,
+      "total_duration_ms": 983265,
+      "total_cost_usd": 1.5768148499999999
+    }
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"...Scenario...\"\"\")"
+    },
+    {
+      "id": "options-as-map",
+      "text": "Package options collapsed into single map column [fragile: true, insuredValue: 500], not three separate columns",
+      "passed": false,
+      "evidence": "| Fragile | Insured value | Handling | ...with mostly blank cells per row"
+    },
+    {
+      "id": "options-type-converter",
+      "text": "A @TypeConverter method accepts Map<String, String> and returns PackageOptions",
+      "passed": false,
+      "evidence": "Response states 'No custom @TypeConverter needed'; buildOptions is helper, not @TypeConverter"
+    },
+    {
+      "id": "dimensions-as-list",
+      "text": "Dimensions represented as [L, W, H] list, not three separate columns",
+      "passed": true,
+      "evidence": "List<Integer> dimensions parameter; [20, 15, 10], [30, 20, 15] format in table"
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX}",
+      "passed": true,
+      "evidence": "| {DHL, UPS, FEDEX} | 12.00 in final row"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods exist, each addressing distinct concern",
+      "passed": false,
+      "evidence": "Only one @TableTest method (calculateShippingCost); all concerns in single table"
+    },
+    {
+      "id": "numeric-types-correct",
+      "text": "Weight and cost use BigDecimal; dimensions use Integer/int",
+      "passed": true,
+      "evidence": "BigDecimal weight, List<Integer> dimensions, BigDecimal cost in signature"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Each table has scenario/description column as leftmost column",
+      "passed": true,
+      "evidence": "First column header: 'Scenario'"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions, not outcomes or generic labels",
+      "passed": true,
+      "evidence": "'EU standard light', 'Fragile surcharge', 'Dimensional weight override' describe conditions"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?'",
+      "passed": true,
+      "evidence": "Column header: 'Cost?'"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain language, not code identifiers",
+      "passed": true,
+      "evidence": "'Country', 'Service', 'Weight', 'Dimensions', 'Cost?' used instead of identifiers"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method bodies contain no if or switch statements",
+      "passed": true,
+      "evidence": "@TableTest method body: zone construction, assertEquals call; no if/switch"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations in order: @DisplayName (if present), @Description, @TableTest",
+      "passed": true,
+      "evidence": "Only @TableTest annotation present before method; correct position"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Each test method has @DisplayName or descriptive method name",
+      "passed": true,
+      "evidence": "Method named 'calculateShippingCost'; clearly descriptive title"
+    },
+    {
+      "id": "no-testng-artifacts",
+      "text": "Output contains no TestNG syntax or imports",
+      "passed": true,
+      "evidence": "Imports: org.junit.jupiter, org.tabletest.junit; no org.testng"
+    }
+  ],
+  "assertions_passed": 12,
+  "assertions_total": 15,
+  "pass_rate": 0.8
+}
