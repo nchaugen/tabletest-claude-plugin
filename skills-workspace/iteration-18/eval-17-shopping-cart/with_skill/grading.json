@@ -1,0 +1,103 @@
+{
+  "assertions": [
+    {
+      "id": "4.1a-concern-item-operations",
+      "text": "Item operations (add/remove) are represented as their own table or tables — separate from coupon and cart total logic.",
+      "passed": true,
+      "evidence": "The response includes separate tables: 'Adding Items to Cart' and 'Removing Items from Cart', clearly separated from 'Applying a Coupon Code', 'Discount Calculation', and 'Checkout' tables."
+    },
+    {
+      "id": "4.1b-concern-coupon-application",
+      "text": "Coupon application (entering, replacing, rejecting codes) is represented as its own table — separate from item operations and cart total calculation.",
+      "passed": true,
+      "evidence": "The 'Applying a Coupon Code' table is dedicated to coupon entry, replacement ('New coupon replaces active one'), and rejection scenarios ('Expired code', 'Non-existent code'), separate from item operations and discount calculation tables."
+    },
+    {
+      "id": "4.1c-concern-cart-total",
+      "text": "Cart total calculation (how different coupon types affect the price) is represented as its own table — separate from coupon application and item operations.",
+      "passed": true,
+      "evidence": "The 'Discount Calculation' table is dedicated to calculating totals under different coupon scenarios (no coupon, percentage off, fixed amount, product-specific, etc.), separate from other concerns."
+    },
+    {
+      "id": "4.1d-concern-checkout",
+      "text": "Checkout (stock verification) is represented as its own table — separate from the other concerns.",
+      "passed": true,
+      "evidence": "The 'Checkout' table focuses exclusively on stock verification scenarios ('All items sufficiently stocked', 'One unit short', 'Item completely out of stock', etc.), separate from other tables."
+    },
+    {
+      "id": "4.3-rows-independently-executable",
+      "text": "Each table row is independently executable — no row depends on a prior row's result. The table expresses rules, not a sequential test script.",
+      "passed": true,
+      "evidence": "Every row specifies complete initial state (e.g., 'Cart before', 'Stock levels', 'Code status', 'Previously active coupon') and expected outcomes, allowing each row to be executed independently without relying on prior rows."
+    },
+    {
+      "id": "4.4-depth-item-operations",
+      "text": "Item operations cover at least: add to empty cart, add to non-empty cart, add more of an item already in cart, remove item from cart, remove last item in cart, remove item not in cart.",
+      "passed": true,
+      "evidence": "Add scenarios: 'Add item to empty cart', 'Add a second distinct product' (non-empty), 'Add more of an existing product'. Remove scenarios: 'Remove one product among several', 'Remove the only item' (last item), 'Remove item not in cart'."
+    },
+    {
+      "id": "4.5-depth-coupon-application",
+      "text": "Coupon application table covers validity and replacement — not coupon types. Scenarios include at least: add valid coupon (none active), add valid coupon (another active), add expired coupon (none active), add expired coupon (another active), add nonexistent code (none active), add nonexistent code (another active).",
+      "passed": false,
+      "evidence": "Table covers: valid (none active) - 3 rows; valid (another active) - 'New coupon replaces active one'; expired (none active) - 'Expired code'; expired (another active) - 'Expired code entered while another is active'; nonexistent (none active) - 'Non-existent code'. Missing: nonexistent code (another active) scenario - no row exists where a non-existent code is entered while another coupon is active."
+    },
+    {
+      "id": "4.6-depth-cart-total-scenarios",
+      "text": "Cart total table covers how different coupon types affect the price. Scenarios include at least: no coupon, percentage off whole cart, fixed amount off, fixed amount exceeding cart total (floors at zero), product-specific discount (product in cart), product-specific discount (product not in cart).",
+      "passed": true,
+      "evidence": "Discount Calculation table includes: 'No coupon', 'Percentage off entire cart', 'Fixed amount off entire cart', 'Fixed coupon larger than cart total' (demonstrates flooring at zero with discount=£5, total=£0), 'Product coupon, product is in cart', 'Product coupon, product not in cart'."
+    },
+    {
+      "id": "4.7-depth-checkout-scenarios",
+      "text": "Checkout table covers at least: empty cart, all items in stock, and not all items in stock (insufficient inventory).",
+      "passed": true,
+      "evidence": "Checkout table includes: 'Empty cart', 'All items sufficiently stocked' and 'Exactly enough stock' (all in stock scenarios), plus 'One unit short', 'Item completely out of stock', 'Multiple items short' (insufficient inventory scenarios)."
+    },
+    {
+      "id": "4.8-readability-business-language",
+      "text": "Column names use business/user-perspective language (e.g. 'Message?' not 'Result?', 'Coupon code' not 'input'). The tables read as a specification a product person could review.",
+      "passed": true,
+      "evidence": "Column names across all tables use business language: 'Cart before/after', 'Product', 'Unit price', 'Message?', 'Coupon code', 'Code status', 'Active coupon after?', 'Cart subtotal', 'Discount?', 'Total?', 'Stock levels', 'Checkout result?' — all readable and appropriate for product review."
+    },
+    {
+      "id": "4.9-readability-test-data-visible",
+      "text": "Test data that affects the outcome — product prices, coupon rules (type, amount, expiry) — is visible in the table via columns, notes, or explicit setup, not silently hardcoded. The reader can trace how inputs lead to outputs.",
+      "passed": true,
+      "evidence": "Product prices visible in 'Unit price' column and 'Cart items' (e.g., '[Widget×2 @£10, Gadget×1 @£25]'). Coupon rules visible in 'Coupon type' and 'Coupon value' columns (e.g., '10% off cart', '£5 off cart'). Stock levels explicit in 'Stock levels' column (e.g., 'Widget: 5, Gadget: 3'). Example: 'Percentage off entire cart' row shows cart items, coupon percentage, subtotal, and calculated discount of £4.50 and total of £40.50."
+    },
+    {
+      "id": "4.10-depth-open-questions",
+      "text": "Multiple open questions are surfaced — ambiguities or product decisions the requirements don't specify (e.g. what happens to a product-specific coupon when that product is removed, or how percentage and product-specific discounts interact).",
+      "passed": true,
+      "evidence": "Response surfaces 4 distinct open questions: 1) 'Does adding zero quantity succeed silently, reject with an error...?'; 2) 'Does remove clear the entire line (all units), or reduce by one?'; 3) 'When an invalid code is submitted and a different coupon is already active, does the existing coupon stay or get cleared?'; 4) 'Is a product coupon a flat discount per line, or multiplied by quantity?', plus additional question about multiple checkout failures reporting."
+    },
+    {
+      "id": "4.11-correctness-cart-totals",
+      "text": "Cart totals are arithmetically correct: sum(quantity × price) − coupon = total, for every row in the total calculation table.",
+      "passed": true,
+      "evidence": "Verified arithmetic for all Discount Calculation rows: 'No coupon' (45 - 0 = 45), 'Percentage off' (45 - 4.50 = 40.50), 'Fixed amount off' (45 - 15 = 30), 'Product coupon in cart' (45 - 3 = 42), 'Product coupon not in cart' (25 - 0 = 25), 'Fixed coupon larger than total' (5 - 5 = 0, floored), '100% percentage' (20 - 20 = 0). All totals are arithmetically correct."
+    },
+    {
+      "id": "4.12-coupon-expiry-column",
+      "text": "Coupon application table uses a column to signal expiry status — either an 'Expired?' yes/no column, a 'Status' column, or equivalent. Expiry is visible per row, not just implied by the scenario name.",
+      "passed": true,
+      "evidence": "The 'Applying a Coupon Code' table includes a 'Code status' column that explicitly shows expiry status per row: 'valid', 'expired', 'does not exist'. Examples: 'Expired code' row shows 'Code status: expired'; 'Non-existent code' row shows 'Code status: does not exist'."
+    },
+    {
+      "id": "4.14-coupon-before-after-columns",
+      "text": "Coupon application table uses before/after columns (e.g. 'Active coupon' / 'Active coupon after?') to specify the state change when entering, replacing, or entering invalid coupon codes.",
+      "passed": true,
+      "evidence": "The 'Applying a Coupon Code' table includes 'Previously active coupon' (before state) and 'Active coupon after?' (after state) columns. Example: 'New coupon replaces active one' row shows 'Previously active coupon: SAVE10' and 'Active coupon after?: SAVE20', clearly displaying the state change."
+    },
+    {
+      "id": "4.15-readability-scenario-names",
+      "text": "Scenario names describe the business situation (e.g. 'Add more of same product', 'Replace active coupon') — not 'Test case 1' or generic labels.",
+      "passed": true,
+      "evidence": "All scenario names describe business situations: 'Add item to empty cart', 'Add more of an existing product', 'Remove the only item', 'New coupon replaces active one', 'Percentage off entire cart', 'Product coupon, product is in cart', 'All items sufficiently stocked', 'One unit short'. None use generic labels like 'Test case 1'."
+    }
+  ],
+  "assertions_passed": 15,
+  "assertions_total": 16,
+  "pass_rate": 0.9375
+}

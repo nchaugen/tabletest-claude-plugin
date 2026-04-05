@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "produces-multiple-tables",
+      "text": "Output contains at least 2 separate markdown tables (not everything crammed into one table)",
+      "passed": true,
+      "evidence": "Response contains two clearly labeled markdown tables: '## Table 1: Cancellation Refund Eligibility' and '## Table 2: Prorated Refund Amount'"
+    },
+    {
+      "id": "tables-have-distinct-concerns",
+      "text": "The tables cover distinct concerns — e.g. pricing/plans is separate from cancellation/refund rules",
+      "passed": true,
+      "evidence": "Response explicitly states 'There are two separable concerns here: **whether** a refund is owed, and **how much**. I'll build a table for each'; Table 1 covers eligibility, Table 2 covers amounts"
+    },
+    {
+      "id": "output-columns-have-question-marks",
+      "text": "At least one output column in each table ends with '?'",
+      "passed": true,
+      "evidence": "Table 1 has 'Refund Eligible?' and 'Reason?'; Table 2 has 'Refund Amount?'"
+    },
+    {
+      "id": "refund-exception-covered",
+      "text": "The 24-hour no-refund exception is included as a distinct scenario row",
+      "passed": true,
+      "evidence": "Table 1 includes rows: 'Monthly, cancelled within 24h of renewal', 'Annual, cancelled within 24h of renewal', and 'Trial auto-converts; subscriber cancels within 24h' — each marked with 'no' refund and '24h' reasoning"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language — no implementation terms like 'boolean', 'int', 'isProrated', camelCase identifiers",
+      "passed": true,
+      "evidence": "All column names are business-friendly: 'Refund Eligible?', 'Account Status', 'Hours Since Last Charge', 'Days Remaining', 'Plan Price' — no camelCase, no implementation jargon"
+    },
+    {
+      "id": "trial-cancellation-row",
+      "text": "Includes a row or scenario for cancelling during the free trial — no charge was made, so no refund applies. This case should be explicit, not omitted.",
+      "passed": true,
+      "evidence": "Table 1 first row: 'Cancelled during free trial | Trial | — | no | No charge was taken' — explicitly shows trial cancellation with 'no' refund and clear reasoning"
+    },
+    {
+      "id": "prorated-refund-formula",
+      "text": "The prorated refund calculation is shown or explained — e.g. days remaining × daily rate, or an equivalent formula. Not just 'prorated refund' without showing how.",
+      "passed": true,
+      "evidence": "Table 2 shows formula through concrete examples with all components visible (Plan Price, Days Remaining, Days in Cycle, Refund Amount), e.g., '15 | 30 | £5.00' which demonstrates (15/30 × £9.99 = £5.00); Open Questions #3 discusses 'remaining days' methodology"
+    },
+    {
+      "id": "24h-boundary-near-boundary",
+      "text": "The 24-hour no-refund window is tested near the boundary (e.g. values at or close to 23h, 24h, 25h) — not just 'within 24h' vs 'well after renewal'.",
+      "passed": true,
+      "evidence": "Table 1 includes 'Monthly, cancelled within 24h of renewal | 12' (well within) and 'Monthly, cancelled at exactly 24h | 24' (at the boundary itself)"
+    },
+    {
+      "id": "eligibility-separate-from-amount",
+      "text": "Refund eligibility (yes/no, based on 24h rule and trial status) and refund amount (prorated calculation) are in separate tables — not mixed into one table.",
+      "passed": true,
+      "evidence": "Table 1 focuses on 'Refund Eligible?' column; Table 2 focuses on 'Refund Amount?' column; response explicitly states '*(Applies only when Refund Eligible? = yes...)*' showing intentional separation"
+    },
+    {
+      "id": "question-mark-only-on-outputs",
+      "text": "The '?' suffix is only used on output/expected columns (e.g. 'Refund Eligible?', 'Refund Amount?') — not on input columns like plan type, loyalty status, or yes/no flags.",
+      "passed": true,
+      "evidence": "Input columns in Table 1 ('Scenario', 'Account Status', 'Hours Since Last Charge') and Table 2 ('Scenario', 'Plan Type', 'Plan Price', 'Days Remaining', 'Days in Cycle') have no '?' suffix; only output columns 'Refund Eligible?', 'Reason?', and 'Refund Amount?' have '?'"
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 10,
+  "pass_rate": 1
+}

@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"\n        Scenario                               | Tags"
+    },
+    {
+      "id": "list-syntax-correct",
+      "text": "List values in the table use bracket syntax like [tech:java, biz:sales, dev:ci] — not comma-separated strings without brackets.",
+      "passed": true,
+      "evidence": "[tech:java, biz:sales, dev:ci], [biz:sales], [], [\"biz:hr|recruiting\", tech:go], [tech:go], [\"tech:[ci]\"]"
+    },
+    {
+      "id": "empty-list-explicit",
+      "text": "Empty list input uses [] (not a blank cell, which represents null). The distinction between empty list and null is preserved.",
+      "passed": true,
+      "evidence": "empty list returns empty list | [] ... and null category returns all tags | ... | (blank cell) | ..."
+    },
+    {
+      "id": "special-chars-quoted",
+      "text": "Values containing pipes (|) or brackets are properly quoted or escaped so they don't conflict with table syntax.",
+      "passed": true,
+      "evidence": "pipe in biz tag preserved for business | [\"biz:hr|recruiting\", tech:go] | business | [\"biz:hr|recruiting\"] and brackets in tech tag preserved | [\"tech:[ci]\", biz:sales] | tech | [\"tech:[ci]\"]"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Scenario | Tags | Category | Filtered? (Scenario is leftmost column)"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Filtered tags?' or 'Result?')",
+      "passed": true,
+      "evidence": "Filtered?"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "void shouldFilterTagsByCategory(List<String> tags, String category, List<String> filtered) {\n        assertEquals(filtered, filter.filterTags(tags, category));\n    }"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "@DisplayName(\"Tag filtering by category\")\n    @Description(\"\"\"\n        Open: behaviour for unknown category values (not \"tech\" or \"business\")\n        is unspecified. Prefix matching is assumed to be case-sensitive.\n        \"\"\")\n    @TableTest(\"\"\"..."
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "@DisplayName(\"Tag filtering by category\") and void shouldFilterTagsByCategory(...)"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description(\"\"\"\n        Open: behaviour for unknown category values (not \"tech\" or \"business\")\n        is unspecified. Prefix matching is assumed to be case-sensitive.\n        \"\"\")"
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 10,
+  "pass_rate": 1
+}

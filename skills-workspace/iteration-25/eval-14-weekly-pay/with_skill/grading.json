@@ -1,0 +1,115 @@
+{
+  "assertions": [
+    {
+      "id": "1.1-traceability-columns",
+      "text": "The pay table includes intermediate expected columns (e.g. Regular pay?, Overtime pay?, Premium pay?) so the reader can trace which rule contributes what — not just a single total Weekly pay? column.",
+      "passed": false,
+      "evidence": "The main @TableTest table has columns: \"Scenario | Weekday hrs | Sunday hrs | Holiday hrs | Rate | Total pay?\" — only a single \"Total pay?\" column for the final result, with no intermediate columns like \"Regular pay?\", \"Overtime pay?\", \"Sunday pay?\", or \"Holiday pay?\" to show traceability of individual components."
+    },
+    {
+      "id": "1.2-error-has-expected-column",
+      "text": "The error/rejection table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row — rather than hardcoding the exception type in @Description or the method name.",
+      "passed": true,
+      "evidence": "The error @TableTest includes a 'Throws?' column with row: \"Negative rate | {0, 40} | 0 | 0 | -1.00 | IllegalArgumentException\" — the exception type is specified per-row in the table, not hardcoded elsewhere."
+    },
+    {
+      "id": "1.3-depth-overtime-boundary",
+      "text": "Overtime threshold boundary is covered: at least a value at the threshold (40) and just above (41 or similar). Not just values well below and well above.",
+      "passed": true,
+      "evidence": "The table includes two rows testing the boundary: \"Weekday hours at threshold | 40 | 0 | 0 | 20.00 | 800.00\" and \"One overtime hour | 41 | 0 | 0 | 20.00 | 830.00\" — directly at 40 and just above at 41."
+    },
+    {
+      "id": "1.4-depth-combined-scenario",
+      "text": "A combined scenario is present: a row with weekday + Sunday + holiday hours, testing the composition of all hour types.",
+      "passed": true,
+      "evidence": "Row present: \"All pay types in one week | 42 | 4 | 4 | 20.00 | 1180.00\" — combines weekday (42), Sunday (4), and holiday (4) hours in a single scenario."
+    },
+    {
+      "id": "1.5-depth-error-edge-cases",
+      "text": "Error/edge cases covered: at least negative hours (floored at zero) and negative or missing rate (rejected).",
+      "passed": false,
+      "evidence": "The error table tests only \"Negative rate | {0, 40} | 0 | 0 | -1.00 | IllegalArgumentException\". The main pay table contains no row with negative weekday, Sunday, or holiday hours to test the 'floored at zero' behavior. Negative hours as an edge case are not covered."
+    },
+    {
+      "id": "1.6-readability-empty-cells",
+      "text": "Sunday and Holiday hour columns use empty cells (not 0) when those inputs are not relevant to a scenario — making it easier to spot which rows involve weekend/holiday hours. This is a readability preference; parameter types should be Integer (not int) to support null from blank cells.",
+      "passed": false,
+      "evidence": "The table uses explicit 0 values for unused inputs, e.g. \"Weekday hours under threshold | 35 | 0 | 0 | 20.00\" uses '0' for Sunday and Holiday hrs instead of empty cells. Parameter types are defined as \"int weekdayHours, int sundayHours, int holidayHours\" (primitive int) rather than Integer, which cannot support nulls from blank cells."
+    },
+    {
+      "id": "1.7-readability-scenario-names",
+      "text": "Scenario names describe work patterns (e.g. 'Part-time', 'Five hours overtime', 'Full Sunday shift') — not 'Test case 1' or expected outcomes.",
+      "passed": true,
+      "evidence": "All scenario names describe work patterns: \"No hours worked\", \"Weekday hours under threshold\", \"One overtime hour\", \"Significant overtime\", \"Sunday hours only\", \"Holiday hours only\", \"Sunday with weekday under threshold\", \"Sunday with weekday overtime\", \"Holiday with weekday overtime\", \"All pay types in one week\", \"Zero hourly rate\" — none use generic labels like 'Test case 1' or state expected values."
+    },
+    {
+      "id": "1.8-correctness-expected-values",
+      "text": "Expected values in intermediate and total columns are arithmetically correct for every row, consistent with the formulas in @Description.",
+      "passed": true,
+      "evidence": "Spot-checked total pay values: 'One overtime hour' 41 hrs → 40×20 + 1×1.5×20 = 800+30 = 830.00 ✓; 'All pay types' 42 weekday + 4 Sunday + 4 holiday → 40×20 + 2×1.5×20 + 4×2×20 + 4×2×20 = 800+60+160+160 = 1180.00 ✓; 'Zero hourly rate' 40×0 = 0.00 ✓. All total values are arithmetically correct and consistent with the @Description formulas."
+    },
+    {
+      "id": "1.9-correctness-value-set-semantics",
+      "text": "Value sets are only used where all values in the set produce the same expected result (e.g. any rate × 0 = 0). Not used where results would differ.",
+      "passed": true,
+      "evidence": "Error table row \"Negative rate | {0, 40} | 0 | 0 | -1.00 | IllegalArgumentException\" uses value set {0, 40} for weekday hours. Model notes: \"This makes the assertion explicit: a negative rate is rejected regardless of how many hours were worked.\" Both 0 and 40 weekday hours produce the same expected exception, so the set is used correctly."
+    },
+    {
+      "id": "1.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "Both test methods have @DisplayName annotations: @DisplayName(\"Weekly pay calculation\") on calculatesWeeklyPay and @DisplayName(\"Reject negative hourly rate\") on rejectsNegativeRate."
+    },
+    {
+      "id": "1.11-format-description",
+      "text": "@Description is present on at least the pay calculation method and provides context beyond what the table rows already express — such as the overtime threshold (40 hours), premium multipliers (Sunday 2×, Holiday 2.5×), or other fixed assumptions not visible in the table. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": true,
+      "evidence": "@Description present on calculatesWeeklyPay: \"Regular pay: weekday hours up to 40 × hourly rate. Overtime pay: weekday hours beyond 40 × 1.5 × hourly rate. Sunday pay: Sunday hours × 2 × hourly rate (always, regardless of weekday total). Holiday pay: holiday hours × 2 × hourly rate (always, regardless of weekday total). Total pay floor is zero; the result cannot be negative.\" Provides explicit thresholds (40), multipliers (1.5×, 2×), and assumptions not visible in table rows."
+    },
+    {
+      "id": "1.12-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "calculatesWeeklyPay shows correct order: @DisplayName, @Description, @TableTest. rejectsNegativeRate shows: @DisplayName, @TableTest (no @Description, which is permitted). No violations of the required annotation order."
+    },
+    {
+      "id": "1.13-format-description-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description on calculatesWeeklyPay uses triple-quoted string syntax: @Description(\"\"\" ... \"\"\") spanning multiple lines, not string concatenation. rejectsNegativeRate has no @Description, so it passes by default."
+    },
+    {
+      "id": "1.14-depth-zero-rate",
+      "text": "A row where the hourly rate is zero, showing that pay is zero regardless of hours worked. This is a distinct edge case from negative rate (which is rejected).",
+      "passed": true,
+      "evidence": "Table includes row \"Zero hourly rate | 40 | 0 | 0 | 0.00 | 0.00\" — tests that when rate is 0.00, the resulting pay is 0.00 even with 40 hours worked, distinct from the negative rate error case."
+    },
+    {
+      "id": "1.15-format-clean-method",
+      "text": "The test method body contains no if/ternary null-handling or parsing logic. Null-to-default conversion (e.g. blank Sunday hours → 0) is handled via a @TypeConverter method or a private helper, keeping the test method limited to arrange/act/assert.",
+      "passed": true,
+      "evidence": "calculatesWeeklyPay body: \"BigDecimal actual = calculator.calculate(...); assertEquals(0, expectedPay.compareTo(actual), ...);\" — only arrange/act/assert, no conditional or parsing logic. rejectsNegativeRate body: \"assertThrows(throws_, () -> calculator.calculate(...));\" — also clean, no if/ternary logic."
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language (e.g. 'Weekday hours', 'Sunday hours', 'Hourly rate', 'Weekly pay?') — not implementation terms like 'weekdayHrs', 'int', 'param1'.",
+      "passed": true,
+      "evidence": "Main table columns: \"Scenario | Weekday hrs | Sunday hrs | Holiday hrs | Rate | Total pay?\" and error table columns: \"Scenario | Weekday hrs | Sunday hrs | Holiday hrs | Rate | Throws?\" — all use business language (hours, rate, pay, exception type) rather than implementation terms."
+    },
+    {
+      "id": "rules-separate-from-arithmetic",
+      "text": "Decision logic (which rate applies — regular, overtime, Sunday, holiday) and calculation (hours × rate) are in separate tables or clearly separated. The rule table tests rate selection; the calculation table tests arithmetic. Not interleaved in one undifferentiated table.",
+      "passed": false,
+      "evidence": "The main @TableTest 'calculatesWeeklyPay' contains 12 rows that interleave both rule logic (testing which pay rates apply: regular, overtime, Sunday, holiday) and arithmetic verification in a single table. No clear separation or distinct rule vs. arithmetic tables; all rows combined into one undifferentiated table testing both concerns together."
+    },
+    {
+      "id": "arithmetic-minimal-rows",
+      "text": "Calculation/arithmetic verification uses few rows (2-3) — not exhaustive enumeration. Once the rule is tested, arithmetic needs only a sanity check.",
+      "passed": false,
+      "evidence": "The main @TableTest table contains 12 rows: \"No hours worked\", \"Weekday hours under threshold\", \"Weekday hours at threshold\", \"One overtime hour\", \"Significant overtime\", \"Sunday hours only\", \"Holiday hours only\", \"Sunday with weekday under threshold\", \"Sunday with weekday overtime\", \"Holiday with weekday overtime\", \"All pay types in one week\", \"Zero hourly rate\" — far exceeding the recommended 2-3 rows for arithmetic sanity checks."
+    }
+  ],
+  "assertions_passed": 13,
+  "assertions_total": 18,
+  "pass_rate": 0.7222222222222222
+}

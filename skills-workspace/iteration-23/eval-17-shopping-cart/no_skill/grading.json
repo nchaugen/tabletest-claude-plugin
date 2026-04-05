@@ -1,0 +1,103 @@
+{
+  "assertions": [
+    {
+      "id": "4.1a-concern-item-operations",
+      "text": "Item operations (add/remove) are represented as their own table or tables — separate from coupon and cart total logic.",
+      "passed": false,
+      "evidence": "Response contains 'Adding items to cart' and 'Removing items from cart' sections organized as bullet-point lists (e.g., '**Happy path**' with dashes, '**Edge cases**' with dashes) rather than structured tables."
+    },
+    {
+      "id": "4.1b-concern-coupon-application",
+      "text": "Coupon application (entering, replacing, rejecting codes) is represented as its own table — separate from item operations and cart total calculation.",
+      "passed": false,
+      "evidence": "Response has '## Coupon codes' section with bullet-point subsections like '**Percentage off**', '**Fixed amount off**', etc., not a dedicated coupon application table."
+    },
+    {
+      "id": "4.1c-concern-cart-total",
+      "text": "Cart total calculation (how different coupon types affect the price) is represented as its own table — separate from coupon application and item operations.",
+      "passed": false,
+      "evidence": "Response has '## Cart total calculation' section with bullet points, not a table: '- Empty cart → total is $0', '- Single item: `quantity × price`', etc."
+    },
+    {
+      "id": "4.1d-concern-checkout",
+      "text": "Checkout (stock verification) is represented as its own table — separate from the other concerns.",
+      "passed": false,
+      "evidence": "Response has '## Checkout' section with bullet-point subsections under '**Stock validation**', '**Empty cart**', etc., not a dedicated checkout table. Only a small 'User-facing messages' table exists at the end."
+    },
+    {
+      "id": "4.3-rows-independently-executable",
+      "text": "Each table row is independently executable — no row depends on a prior row's result. The table expresses rules, not a sequential test script.",
+      "passed": false,
+      "evidence": "Response lacks structured table rows entirely. Content is organized as bullet-point lists under categorical headings (e.g., '**Happy path**', '**Edge cases**'), not as independent executable rows in table format."
+    },
+    {
+      "id": "4.4-depth-item-operations",
+      "text": "Item operations cover at least: add to empty cart, add to non-empty cart, add more of an item already in cart, remove item from cart, remove last item in cart, remove item not in cart.",
+      "passed": true,
+      "evidence": "Response covers: 'Add a new item → appears in cart' (add to empty); 'Add multiple distinct items → all appear independently' (add to non-empty); 'Add the same item twice → quantities accumulate' (add more of same); 'Remove an item that exists → gone from cart'; 'Remove the last item → cart is now empty'; 'Remove an item not in cart → error message'."
+    },
+    {
+      "id": "4.5-depth-coupon-application",
+      "text": "Coupon application table covers validity and replacement — not coupon types. Scenarios include at least: add valid coupon (none active), add valid coupon (another active), add expired coupon (none active), add expired coupon (another active), add nonexistent code (none active), add nonexistent code (another active).",
+      "passed": false,
+      "evidence": "No coupon application table exists. While the response mentions 'Apply coupon A, then coupon B → only B is active', 'Code doesn't exist', and 'Code exists but is expired', these are in prose bullet points, not organized in a table structure. Scenarios lack explicit context (none active vs. another active)."
+    },
+    {
+      "id": "4.6-depth-cart-total-scenarios",
+      "text": "Cart total table covers how different coupon types affect the price. Scenarios include at least: no coupon, percentage off whole cart, fixed amount off, fixed amount exceeding cart total (floors at zero), product-specific discount (product in cart), product-specific discount (product not in cart).",
+      "passed": false,
+      "evidence": "No cart total table exists. While response mentions scenarios like 'With percentage coupon applied', 'With fixed coupon applied', '$20 off a $15 cart → total floors at $0', they appear as bullet points in '## Cart total calculation' section, not in table form."
+    },
+    {
+      "id": "4.7-depth-checkout-scenarios",
+      "text": "Checkout table covers at least: empty cart, all items in stock, and not all items in stock (insufficient inventory).",
+      "passed": false,
+      "evidence": "No checkout table exists. Scenarios appear as bullet points under '## Checkout' (e.g., '**Stock validation**' subsection with '- All items in stock → checkout succeeds', '- One item has insufficient stock'), not in table format."
+    },
+    {
+      "id": "4.8-readability-business-language",
+      "text": "Column names use business/user-perspective language (e.g. 'Message?' not 'Result?', 'Coupon code' not 'input'). The tables read as a specification a product person could review.",
+      "passed": false,
+      "evidence": "Response lacks proper table structure for main concerns. One small 'User-facing messages' table exists with columns 'Operation' and 'Expected message shape', but the assertion requires tables (plural) that collectively read as a specification. Core concerns are presented as bullet-point lists, not tables."
+    },
+    {
+      "id": "4.9-readability-test-data-visible",
+      "text": "Test data that affects the outcome — product prices, coupon rules (type, amount, expiry) — is visible in the table via columns, notes, or explicit setup, not silently hardcoded. The reader can trace how inputs lead to outputs.",
+      "passed": false,
+      "evidence": "Assertion requires test data 'visible in the table'. While response includes examples like '10% off a $100 cart → $90' and '$20 off a $15 cart → total floors at $0', these are embedded in prose bullet points, not systematized in table columns. No explicit setup sections or dedicated columns for prices and coupon rules."
+    },
+    {
+      "id": "4.10-depth-open-questions",
+      "text": "Multiple open questions are surfaced — ambiguities or product decisions the requirements don't specify (e.g. what happens to a product-specific coupon when that product is removed, or how percentage and product-specific discounts interact).",
+      "passed": true,
+      "evidence": "Response surfaces multiple open questions: 'should this be rejected? Define the behavior.' (zero quantity); 'should it be blocked at add-time, or only at checkout?' (zero stock); 'Remove an item not in cart → error message (or silent no-op — define which)'; 'Can a customer remove a coupon without replacing it? Define and test.'; 'does checkout re-validate it?' (expired coupon); 'Order of operations: add item → apply coupon → remove item → does coupon still apply correctly'; 'what is the total? What happens to the coupon?' (coupon state after item removal)."
+    },
+    {
+      "id": "4.11-correctness-cart-totals",
+      "text": "Cart totals are arithmetically correct: sum(quantity × price) − coupon = total, for every row in the total calculation table.",
+      "passed": false,
+      "evidence": "No cart total table exists to verify. While response states correct formulas like '10% off a $100 cart → $90', it does not present a complete table with multiple rows showing arithmetic verification for different coupon types."
+    },
+    {
+      "id": "4.12-coupon-expiry-column",
+      "text": "Coupon application table uses a column to signal expiry status — either an 'Expired?' yes/no column, a 'Status' column, or equivalent. Expiry is visible per row, not just implied by the scenario name.",
+      "passed": false,
+      "evidence": "No coupon application table exists. Expiry is mentioned in prose: 'Code exists but is expired → error message', but no structured table with an expiry column."
+    },
+    {
+      "id": "4.14-coupon-before-after-columns",
+      "text": "Coupon application table uses before/after columns (e.g. 'Active coupon' / 'Active coupon after?') to specify the state change when entering, replacing, or entering invalid coupon codes.",
+      "passed": false,
+      "evidence": "No coupon application table exists with before/after columns. Replacement is mentioned briefly: 'Apply coupon A, then coupon B → only B is active', but this is a bullet point, not a structured table row with explicit before/after columns."
+    },
+    {
+      "id": "4.15-readability-scenario-names",
+      "text": "Scenario names describe the business situation (e.g. 'Add more of same product', 'Replace active coupon') — not 'Test case 1' or generic labels.",
+      "passed": true,
+      "evidence": "Response uses descriptive scenario names throughout: 'Add a new item', 'Add the same item twice', 'Add multiple distinct items', 'Remove an item that exists', 'Remove the last item', '10% off a $100 cart', '$20 off a $15 cart', 'Apply coupon A, then coupon B', 'Code doesn't exist', 'Code exists but is expired'. All describe business situations, not generic labels."
+    }
+  ],
+  "assertions_passed": 3,
+  "assertions_total": 16,
+  "pass_rate": 0.1875
+}

@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest annotations appear on both methods: `@TableTest(\"\"\"...Scenario | Input | Expected?...\"\"\")`"
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell in the valid inputs @TableTest table (not the string 'null', and not as a separate @Test method). The blank cell maps to a null parameter.",
+      "passed": true,
+      "evidence": "In the first table: `Null input      |        |` shows blank cells for both Input and Expected columns. The response explains: 'blank cell → `null` parameter' and '`assertEquals(null, null)` passes when `parse(null)` returns null'"
+    },
+    {
+      "id": "exception-has-expected-column",
+      "text": "The exception/invalid-input table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row — rather than hardcoding the exception type in @Description or the method name.",
+      "passed": true,
+      "evidence": "Second table includes column `Throws?` with rows: `java.lang.IllegalArgumentException` (three times), providing the exception type per row"
+    },
+    {
+      "id": "exception-cases-handled",
+      "text": "The exception cases (empty string, letters-only, negative) are handled — via a Throws? column, assertThrows in the method body, or a separate @TableTest — not silently omitted",
+      "passed": true,
+      "evidence": "Second @TableTest covers all three cases: `Empty string | '' | java.lang.IllegalArgumentException`, `Letters only | abc | java.lang.IllegalArgumentException`, `Negative value | -5.00 | java.lang.IllegalArgumentException` with `assertThrows(throws_, () -> parse(input));`"
+    },
+    {
+      "id": "result-column-with-question-mark",
+      "text": "Valid inputs have a result column name ending with '?' (e.g. 'Money?' or 'Result?')",
+      "passed": true,
+      "evidence": "First table has column header: `Expected?` which ends with a question mark"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "First method body: `assertEquals(expected, parse(input));` and second method body: `assertThrows(throws_, () -> parse(input));` — neither contains if or switch"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'moneyParsing' → 'Money Parsing'). Not a generic name like 'test1' or 'testMethod'.",
+      "passed": true,
+      "evidence": "Method names are descriptive: `shouldParseInput` (converts to 'Should Parse Input') and `shouldRejectInvalidInput` (converts to 'Should Reject Invalid Input')"
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description is present, it provides context beyond what the table rows already express — such as the expected currency format, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context.",
+      "passed": true,
+      "evidence": "No @Description annotations are present in the code, which is acceptable per the assertion rule: 'It is acceptable to omit @Description if the table already conveys all relevant context'"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Both methods have only @TableTest annotations (no @DisplayName or @Description), so the order is correct"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "No @Description annotations are present, so this condition passes per the rule 'Passes if @Description is absent'"
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 10,
+  "pass_rate": 1
+}

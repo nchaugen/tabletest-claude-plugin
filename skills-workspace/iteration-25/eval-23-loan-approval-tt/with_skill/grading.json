@@ -1,0 +1,73 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"\n            Scenario                                   | Age | Credit Score | Has Stable Income | Status?"
+    },
+    {
+      "id": "threshold-as-column",
+      "text": "Policy thresholds (650/600 credit scores) appear as values in an input column — not buried in output values or only mentioned in prose.",
+      "passed": true,
+      "evidence": "At standard threshold, not above           | 30  | 650          | true              | REJECTED\nAt senior threshold (600)                  | 65  | 600          | true              | APPROVED"
+    },
+    {
+      "id": "concrete-domain-values",
+      "text": "Cell values use concrete domain terms (e.g. '70', '650', 'APPROVED') — not abstract codes or raw booleans like 'true', '1'.",
+      "passed": false,
+      "evidence": "The 'Has Stable Income' column uses raw boolean values 'true' and 'false' (e.g., 'Standard approval | 30 | 700 | true | APPROVED'), which the assertion explicitly prohibits."
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Scenario                                   | Age | Credit Score | Has Stable Income | Status?"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('Senior at lower threshold', 'Missing income') — not outcomes ('Approved', 'Rejected').",
+      "passed": true,
+      "evidence": "Scenario names include: 'Just above standard threshold', 'At standard threshold, not above', 'Below standard threshold regardless', 'Above threshold, no stable income', 'Age 65 qualifies for senior threshold', 'Missing income regardless of score', 'Senior - missing income' — all describing conditions, not outcomes."
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language (e.g. 'Age', 'Credit score', 'Stable income', 'Decision?') — not code identifiers like 'customerAge', 'boolean'.",
+      "passed": true,
+      "evidence": "Column headers: Scenario | Age | Credit Score | Has Stable Income | Status?"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Decision?' or 'Status?')",
+      "passed": true,
+      "evidence": "Status?"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "void shouldEvaluateLoan(int customerAge, int creditScore, Boolean hasStableIncome,\n                            ApprovalResult expectedStatus) {\n        assertEquals(expectedStatus, service.evaluateLoan(customerAge, creditScore, hasStableIncome));\n    }"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "@DisplayName(\"Loan approval decision\")\n    @Description(\"\"\"\n    ...\n    \"\"\")\n    @TableTest(\"\"\""
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "@DisplayName(\"Loan approval decision\")"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description(\"\"\"\n            Standard approval: credit score > 650 with stable income.\n            Senior applicants (age >= 65): threshold lowered to 600, still requires stable income.\n            ...\n            \"\"\")"
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 11,
+  "pass_rate": 0.9090909090909091
+}

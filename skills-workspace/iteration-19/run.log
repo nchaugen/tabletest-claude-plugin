@@ -1,0 +1,26 @@
+
+--- Run started at 2026-03-30T19:36:56.145Z ---
+
+Eval run: iteration 19, 2 evals, model sonnet
+Creating clean worktree at: /var/folders/fz/zxx_qbvj49gbql83cc5l47pr0000gn/T/eval-run-1774899416147
+Removed experiment documents for contamination isolation
+Removed prior iteration outputs for contamination isolation
+
+Generating responses (with_skill, parallel=4)...
+  [batch 1/1, 0/2 done, 0s elapsed]
+  Running eval 14 (weekly-pay) [with_skill]...
+  Running eval 15 (reis-discount) [with_skill]...
+  ✓ Eval 14 [with_skill] — 279218 tokens, 286557ms
+  ✓ Eval 15 [with_skill] — 344694 tokens, 309517ms
+
+Grading responses (model=haiku, parallel=4)...
+  Grading eval 14 (weekly-pay) [with_skill]...
+  Grading eval 15 (reis-discount) [with_skill]...
+  ✗ Eval 15 [with_skill] — 9/18
+  ✗ Eval 14 [with_skill] — 13/15
+
+Benchmark saved: /Users/nch/tabletest/tabletest-claude-plugin/skills-workspace/iteration-19/benchmark.json
+Report saved: /Users/nch/tabletest/tabletest-claude-plugin/skills-workspace/iteration-19/eval-review.md
+
+Done. Results in: /Users/nch/tabletest/tabletest-claude-plugin/skills-workspace/iteration-19
+Cleaning up worktree...

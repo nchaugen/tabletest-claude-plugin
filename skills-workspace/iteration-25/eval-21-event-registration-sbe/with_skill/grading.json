@@ -1,0 +1,49 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains at least one markdown table (using | column | syntax)",
+      "passed": true,
+      "evidence": "| Scenario | Name | Email | Dietary Requirements | Accessibility Needs | Accepted? | Rejection Reason? | and | Scenario | Registration Date | Group Size | Early Bird Cutoff (Policy) | Min Group Size (Policy) | Discount? | Notes? |"
+    },
+    {
+      "id": "validation-rules-covered",
+      "text": "Email validation and name-required scenarios are present — at least one row for invalid email and one for missing name.",
+      "passed": true,
+      "evidence": "Missing name | | alice@example.com | | | no | Name is required and Invalid email format | Alice Smith | not-an-email | | | no | Invalid email format"
+    },
+    {
+      "id": "blank-for-absent-optional",
+      "text": "Dietary requirements and/or accessibility needs use blank cells when the attendee has not provided them (genuinely absent) — not 'N/A' or 'none'.",
+      "passed": true,
+      "evidence": "Optional fields absent | Alice Smith | alice@example.com | | | yes | | - the cells for Dietary Requirements and Accessibility Needs are blank, not filled with 'N/A' or 'none'"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column name ends with '?' (e.g. 'Accepted?', 'Price?')",
+      "passed": true,
+      "evidence": "Accepted? | Rejection Reason? in Table 1 and Discount? | Notes? in Table 2"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('Missing email', 'Early-bird single attendee') — not outcomes ('Rejected', 'Discounted').",
+      "passed": true,
+      "evidence": "All scenario names in Table 1 describe input conditions: 'Typical registration', 'All fields provided', 'Missing name', 'Invalid email format', 'Optional fields absent'; Table 2 scenarios describe input conditions: 'Early bird, solo', 'Group, after cutoff', 'Early bird + group', 'On the cutoff date'"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The discount stacking ambiguity (early-bird + group) is surfaced as an open question — not silently resolved.",
+      "passed": true,
+      "evidence": "Early bird + group | before cutoff | 5 | 2026-06-01 | 5 | ? | **Do discounts stack?** and **The key open questions to resolve:** followed by detailed explanation of stacking options (additive, multiplicative, take the better one, mutually exclusive)"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "| Scenario | is the first column in both Table 1 and Table 2"
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 7,
+  "pass_rate": 1
+}

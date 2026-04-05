@@ -1,0 +1,9 @@
+2026-04-04T12:25:33.428Z
+GRADING FAILED: Expected ',' or '}' after property value in JSON at position 193 (line 7 column 49)
+SyntaxError: Expected ',' or '}' after property value in JSON at position 193 (line 7 column 49)
+    at JSON.parse (<anonymous>)
+    at gradeOne (/Users/nch/tabletest/tabletest-claude-plugin/scripts/run-evals.js:512:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async Promise.all (index 0)
+    at async gradeResponses (/Users/nch/tabletest/tabletest-claude-plugin/scripts/run-evals.js:563:5)
+    at async main (/Users/nch/tabletest/tabletest-claude-plugin/scripts/run-evals.js:171:5)

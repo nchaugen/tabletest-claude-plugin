@@ -1,0 +1,43 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "The response contains a markdown table with columns: Scenario | Shipping Method | Destination | Order Value | Cost?"
+    },
+    {
+      "id": "express-split-by-uk-free-tier",
+      "text": "Express shipping is split into at least two cases distinguishing the UK free tier (UK, order £50+, free) from the paid tier. The split is driven by the UK-only free threshold rule.",
+      "passed": true,
+      "evidence": "Express rows show: UK at £50.00+ = £0.00 (free), UK under £50.00 = £9.99 (paid), non-UK at any value = £9.99 (paid), clearly distinguishing the UK free tier from paid tiers"
+    },
+    {
+      "id": "express-uses-value-sets",
+      "text": "Express rows use value sets to consolidate cases with the same outcome — e.g. non-UK destinations at/above threshold in one row (such as {Ireland, Other} or {Ireland, International}), or UK at/above threshold in one row ({£50, £75}). Not enumerated as separate rows per destination or per order value when the result is identical.",
+      "passed": false,
+      "evidence": "Rows 'Express — at free threshold, UK' (£50.00 → £0.00) and 'Express — over free threshold, UK' (£100.00 → £0.00) are separate rows with identical outcomes, but should be consolidated into a single row with a value set {£50.00, £100.00} per the specification"
+    },
+    {
+      "id": "overnight-grouped",
+      "text": "Overnight UK and Ireland are in one row using a value set ({UK, Ireland}) — not separate rows, since both have the same cost and availability.",
+      "passed": false,
+      "evidence": "'Overnight — UK' and 'Overnight — Ireland' are listed as separate rows, both with cost £14.99 and order value {£10.00, £100.00}, but should be consolidated into a single row with destination {UK, Ireland}"
+    },
+    {
+      "id": "standard-destination-value-set-or-blank",
+      "text": "Standard shipping destination uses a value set covering all options (e.g. {UK, Ireland, International} or {UK, Ireland, Other}) or is blank/absent — either approach is valid since destination is irrelevant to the cost.",
+      "passed": true,
+      "evidence": "Standard row shows: 'Standard — flat fee always' | Standard | {UK, Ireland, International}, using a complete value set for destination"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "The output column header is labeled 'Cost?' with a question mark"
+    }
+  ],
+  "assertions_passed": 4,
+  "assertions_total": 6,
+  "pass_rate": 0.6666666666666666
+}

@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": false,
+      "evidence": "The response uses @ParameterizedTest with @CsvSource and @ValueSource annotations, but contains no @TableTest annotation."
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell in the valid inputs @TableTest table (not the string 'null', and not as a separate @Test method). The blank cell maps to a null parameter.",
+      "passed": false,
+      "evidence": "Null input is handled as a separate test method: `void parse_nullInput_returnsNull()` with `@ValueSource(strings = {})`, not as a blank cell within a table."
+    },
+    {
+      "id": "exception-has-expected-column",
+      "text": "The exception/invalid-input table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row — rather than hardcoding the exception type in @Description or the method name.",
+      "passed": false,
+      "evidence": "The exception type is hardcoded in the method name: `parse_invalidInput_throwsIllegalArgumentException`. The @ValueSource lists input strings without a 'Throws?' column specifying exceptions per row."
+    },
+    {
+      "id": "exception-cases-handled",
+      "text": "The exception cases (empty string, letters-only, negative) are handled — via a Throws? column, assertThrows in the method body, or a separate @TableTest — not silently omitted",
+      "passed": true,
+      "evidence": "@ValueSource contains `\"\", \"abc\", \"-5.00\"` with `assertThrows(IllegalArgumentException.class, () -> parser.parse(input));` in the method body."
+    },
+    {
+      "id": "result-column-with-question-mark",
+      "text": "Valid inputs have a result column name ending with '?' (e.g. 'Money?' or 'Result?')",
+      "passed": false,
+      "evidence": "@CsvSource uses raw values without column headers: `\"10.00, 10.00\", \"0.01, 0.01\"` with no column names ending in '?'."
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "All three test methods (`parse_validInput_returnsMoney`, `parse_nullInput_returnsNull`, `parse_invalidInput_throwsIllegalArgumentException`) contain only assertions (assertNotNull, assertEquals, assertNull, assertThrows) with no conditional logic."
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'moneyParsing' → 'Money Parsing'). Not a generic name like 'test1' or 'testMethod'.",
+      "passed": true,
+      "evidence": "Method names are descriptive: `parse_validInput_returnsMoney` (→ 'parse valid input returns money'), `parse_nullInput_returnsNull`, `parse_invalidInput_throwsIllegalArgumentException`."
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description is present, it provides context beyond what the table rows already express — such as the expected currency format, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context.",
+      "passed": true,
+      "evidence": "No @Description annotation is present in the code, which is acceptable per the assertion rules."
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": false,
+      "evidence": "The response contains no @TableTest annotation; instead it uses @ParameterizedTest, @CsvSource, and @ValueSource. The required @TableTest annotation is entirely absent, preventing order verification."
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "No @Description annotation is present, which satisfies the 'acceptable to omit' condition."
+    }
+  ],
+  "assertions_passed": 5,
+  "assertions_total": 10,
+  "pass_rate": 0.5
+}

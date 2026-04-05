@@ -1,0 +1,25 @@
+
+--- Run started at 2026-04-02T08:18:53.982Z ---
+
+Eval run: iteration 22, 1 evals, model sonnet
+Creating clean worktree (baseline) at: /var/folders/fz/zxx_qbvj49gbql83cc5l47pr0000gn/T/eval-run-baseline-1775117933985
+Removed docs/ for contamination isolation
+Removed evals.json for contamination isolation
+Removed prior iteration outputs for contamination isolation
+Removed skills/ for baseline isolation
+Removed skill snapshots for baseline isolation
+
+Generating responses (no_skill, parallel=4)...
+  [batch 1/1, 0/1 done, 0s elapsed]
+  Running eval 1 (convert-repetitive-tests) [no_skill]...
+  ✓ Eval 1 [no_skill] — 59581 tokens, 89259ms
+
+Grading responses (model=haiku, parallel=4)...
+  Grading eval 1 (convert-repetitive-tests) [no_skill]...
+  ✓ Eval 1 [no_skill] — 10/10
+
+Benchmark saved: /Users/nch/tabletest/tabletest-claude-plugin/skills-workspace/iteration-22/benchmark.json
+Report saved: /Users/nch/tabletest/tabletest-claude-plugin/skills-workspace/iteration-22/eval-review.md
+
+Done. Results in: /Users/nch/tabletest/tabletest-claude-plugin/skills-workspace/iteration-22
+Cleaning up worktree...

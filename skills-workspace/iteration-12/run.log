@@ -1,0 +1,53 @@
+
+--- Run started at 2026-03-29T17:08:13.816Z ---
+
+Eval run: iteration 12, 4 evals, model sonnet
+Creating clean worktree at: /var/folders/fz/zxx_qbvj49gbql83cc5l47pr0000gn/T/eval-run-1774804093818
+Removed experiment documents for contamination isolation
+Removed prior iteration outputs for contamination isolation
+
+Generating responses (with_skill, parallel=4)...
+  [batch 1/1, 0/4 done, 0s elapsed]
+  Running eval 14 (weekly-pay) [with_skill]...
+  Running eval 15 (reis-discount) [with_skill]...
+  Running eval 16 (order-splitting) [with_skill]...
+  Running eval 17 (shopping-cart) [with_skill]...
+  ✓ Eval 17 [with_skill] — 68687 tokens, 71618ms
+  ✓ Eval 16 [with_skill] — 77674 tokens, 210856ms
+  ✓ Eval 15 [with_skill] — 276981 tokens, 253045ms
+  ✓ Eval 14 [with_skill] — 303464 tokens, 339564ms
+
+Grading responses (model=haiku, parallel=4)...
+  Grading eval 14 (weekly-pay) [with_skill]...
+  Grading eval 15 (reis-discount) [with_skill]...
+  Grading eval 16 (order-splitting) [with_skill]...
+  Grading eval 17 (shopping-cart) [with_skill]...
+  ✓ Eval 14 [with_skill] — 13/13
+  ✓ Eval 15 [with_skill] — 13/13
+  ✗ Eval 16 [with_skill] — 9/13
+ERROR:   ✗ Eval 17 [with_skill] — GRADING FAILED: Timed out after 600000ms
+
+Benchmark saved: /Users/nch/tabletest/tabletest-claude-plugin/skills-workspace/iteration-12/benchmark.json
+Report saved: /Users/nch/tabletest/tabletest-claude-plugin/skills-workspace/iteration-12/eval-review.md
+
+Done. Results in: /Users/nch/tabletest/tabletest-claude-plugin/skills-workspace/iteration-12
+Cleaning up worktree...
+
+--- Run started at 2026-03-29T23:53:17.169Z ---
+
+Eval run: iteration 12, 4 evals, model sonnet
+
+Grading responses (model=haiku, parallel=4)...
+  Grading eval 14 (weekly-pay) [with_skill]...
+  Grading eval 15 (reis-discount) [with_skill]...
+  Grading eval 16 (order-splitting) [with_skill]...
+  Grading eval 17 (shopping-cart) [with_skill]...
+  ✗ Eval 16 [with_skill] — 16/17
+  ✗ Eval 14 [with_skill] — 14/15
+  ✗ Eval 15 [with_skill] — 16/18
+  ✓ Eval 17 [with_skill] — 16/16
+
+Benchmark saved: /Users/nch/tabletest/tabletest-claude-plugin/skills-workspace/iteration-12/benchmark.json
+Report saved: /Users/nch/tabletest/tabletest-claude-plugin/skills-workspace/iteration-12/eval-review.md
+
+Done. Results in: /Users/nch/tabletest/tabletest-claude-plugin/skills-workspace/iteration-12

@@ -1,0 +1,79 @@
+{
+  "assertions": [
+    {
+      "id": "produces-multiple-tables",
+      "text": "Output contains at least 2 separate markdown tables (not everything crammed into one table)",
+      "passed": true,
+      "evidence": "## Table 1 — Cancellation Refund Eligibility ... ## Table 2 — Prorated Refund Amount"
+    },
+    {
+      "id": "tables-have-distinct-concerns",
+      "text": "The tables cover distinct concerns — e.g. pricing/plans is separate from cancellation/refund rules",
+      "passed": true,
+      "evidence": "Table 1 titled 'Cancellation Refund Eligibility' covers yes/no decisions, Table 2 titled 'Prorated Refund Amount' covers calculation formulas"
+    },
+    {
+      "id": "output-columns-have-question-marks",
+      "text": "At least one output column in each table ends with '?'",
+      "passed": true,
+      "evidence": "Table 1: 'Refund Eligible?' and 'Reason?'; Table 2: 'Refund Amount?'; Table 3: 'Outcome?' and 'Plan After?'"
+    },
+    {
+      "id": "refund-exception-covered",
+      "text": "The 24-hour no-refund exception is included as a distinct scenario row",
+      "passed": true,
+      "evidence": "Table 1 rows: 'Cancel within 24h of monthly renewal | Monthly | Active | 12 | no | Within 24h of renewal' and 'Cancel within 24h of annual renewal | Annual | Active | 18 | no | Within 24h of renewal'"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language — no implementation terms like 'boolean', 'int', 'isProrated', camelCase identifiers",
+      "passed": true,
+      "evidence": "All column headers use business language: 'Refund Eligible?', 'Hours Since Last Charge', 'Days Remaining in Cycle', 'Refund Amount?', 'Outcome?', 'Plan After?'"
+    },
+    {
+      "id": "trial-cancellation-row",
+      "text": "Includes a row or scenario for cancelling during the free trial — no charge was made, so no refund applies. This case should be explicit, not omitted.",
+      "passed": true,
+      "evidence": "Table 1 row: 'Cancel during free trial | {Monthly, Annual} | Trial | — | no | No charge has been taken'"
+    },
+    {
+      "id": "prorated-refund-formula",
+      "text": "The prorated refund calculation is shown or explained — e.g. days remaining × daily rate, or an equivalent formula. Not just 'prorated refund' without showing how.",
+      "passed": true,
+      "evidence": "Table 2 shows concrete examples: 'Half a month remaining | Monthly | 15 | 30 | £4.99' (15/30 × £9.99) and 'One week remaining (31-day month) | Monthly | 7 | 31 | £2.26' (7/31 × £9.99), demonstrating the days-remaining-divided-by-cycle-length formula"
+    },
+    {
+      "id": "24h-boundary-near-boundary",
+      "text": "The 24-hour no-refund window is tested near the boundary (e.g. values at or close to 23h, 24h, 25h) — not just 'within 24h' vs 'well after renewal'.",
+      "passed": true,
+      "evidence": "Table 1 includes: 'At exactly 24h mark | Monthly | Active | 24 | ?' and 'Cancel just outside 24h window (monthly) | Monthly | Active | 25 | yes', explicitly testing the boundary region"
+    },
+    {
+      "id": "eligibility-separate-from-amount",
+      "text": "Refund eligibility (yes/no, based on 24h rule and trial status) and refund amount (prorated calculation) are in separate tables — not mixed into one table. This separation makes each concern independently reviewable.",
+      "passed": true,
+      "evidence": "## Table 1 — Cancellation Refund Eligibility (decision logic) and ## Table 2 — Prorated Refund Amount (arithmetic) are presented as distinct tables"
+    },
+    {
+      "id": "question-mark-only-on-outputs",
+      "text": "The '?' suffix is only used on output/expected columns (e.g. 'Refund Eligible?', 'Refund Amount?') — not on input columns like plan type, loyalty status, or yes/no flags. Input columns should not have '?' suffixes.",
+      "passed": true,
+      "evidence": "Input columns in all tables ('Plan', 'Scenario', 'Hours Since Last Charge', 'Days Remaining in Cycle', 'Trial Days Elapsed', 'Card on File') have no '?'; only output columns ('Refund Eligible?', 'Reason?', 'Refund Amount?', 'Outcome?', 'Plan After?') have '?'"
+    },
+    {
+      "id": "output-values-traceable",
+      "text": "Output values (e.g. refund amounts, prices) can be derived from input values by a reader — the calculation is visible or explained. Not just magic numbers with no traceable origin.",
+      "passed": true,
+      "evidence": "Table 2 row: 'Half a month remaining | Monthly | 15 | 30 | £4.99' — a reader can derive the refund amount as (15 days ÷ 30 days) × £9.99 = £4.995 ≈ £4.99"
+    },
+    {
+      "id": "rules-separate-from-arithmetic",
+      "text": "Refund eligibility (yes/no rule based on 24h window, trial status) and refund amount (prorated calculation) are treated as separate concerns — not mixed into one table where rules and arithmetic are interleaved.",
+      "passed": true,
+      "evidence": "Table 1 contains only yes/no eligibility decisions ('Refund Eligible?' column with Reason); Table 2 contains only amount calculations ('Days Remaining in Cycle' and 'Refund Amount?' columns); these concerns are completely separated"
+    }
+  ],
+  "assertions_passed": 12,
+  "assertions_total": 12,
+  "pass_rate": 1
+}

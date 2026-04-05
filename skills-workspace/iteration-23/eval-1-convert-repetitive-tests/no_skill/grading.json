@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": false,
+      "evidence": "The response uses @ParameterizedTest and @CsvSource annotations, but does not contain a @TableTest annotation"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Discount?' or 'Expected?')",
+      "passed": false,
+      "evidence": "The @CsvSource contains only raw values ('GOLD, 20', 'SILVER, 10', 'BRONZE, 0') with no visible column names, and certainly none ending with '?'"
+    },
+    {
+      "id": "has-three-data-rows",
+      "text": "Table has exactly 3 data rows (GOLD, SILVER, BRONZE)",
+      "passed": true,
+      "evidence": "The @CsvSource contains exactly 3 rows: 'GOLD, 20', 'SILVER, 10', 'BRONZE, 0'"
+    },
+    {
+      "id": "single-assertion-in-method",
+      "text": "Test method body contains only one assertEquals (or equivalent assertion) — not three",
+      "passed": true,
+      "evidence": "The method body contains exactly one assertion: 'assertEquals(expectedDiscount, discountService.calculate(tier, 100));'"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "The method body contains no conditional statements—only a single assertEquals call"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": false,
+      "evidence": "The leftmost column contains tier values (GOLD, SILVER, BRONZE), not a scenario or description column"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'discountByCustomerTier' → 'Discount By Customer Tier'). Not a generic name like 'test1' or 'testMethod'.",
+      "passed": true,
+      "evidence": "The method name 'returnsDiscountForCustomer' converts from camelCase to 'Returns Discount For Customer', which is descriptive and informative"
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description is present, it provides context beyond what the table rows already express — such as fixed values shared by all rows, where/when the rule applies, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context (e.g. fixed values are included as a column rather than hardcoded in the method body).",
+      "passed": true,
+      "evidence": "No @Description annotation is present in the response, which is acceptable per the assertion's allowance for omission"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": false,
+      "evidence": "The response uses @ParameterizedTest and @CsvSource in a different order; the expected @DisplayName, @Description, and @TableTest annotations are not present"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "No @Description annotation is present, so this assertion passes by default"
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 10,
+  "pass_rate": 0.6
+}

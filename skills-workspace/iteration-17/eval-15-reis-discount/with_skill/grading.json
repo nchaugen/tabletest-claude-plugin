@@ -1,0 +1,115 @@
+{
+  "assertions": [
+    {
+      "id": "2.1-decomposition-concern-separation",
+      "text": "Discount ladder, and traveller eligibility are in separate tables. Rolling window counting as a third table is desirable.",
+      "passed": false,
+      "evidence": "The response provides three tables: 'Reis Discount Level', 'Discount by Passenger Type', and 'Final Ticket Price'. While discount ladder and eligibility are separated, the third table is for price arithmetic ('A third small table verifies the final price arithmetic') rather than rolling window boundary testing as expected ('30-day rolling window counting (with boundary testing)')."
+    },
+    {
+      "id": "2.2-children-flat-discount",
+      "text": "Children's flat 20% discount is represented — either as a row in the eligibility table or a separate note. It does not follow the ladder.",
+      "passed": true,
+      "evidence": "Table 2 includes: 'Child — flat discount, regardless of trips | Child | {1, 4, 5, 40} | Flat | 20%', clearly showing the flat 20% discount for children marked as 'Flat' (distinct from 'Reis' rule)."
+    },
+    {
+      "id": "2.3-depth-tier-boundaries",
+      "text": "The discount ladder has multiple tiers derived from the 'every fifth trip' rule, with boundary values or value sets showing which ticket counts produce which discount. The maximum 40% discount is represented.",
+      "passed": true,
+      "evidence": "Table 1 shows all tiers (0%, 5%, 10%, 15%, 20%, 25%, 30%, 35%, 40%) with boundary values: '5 → 5%', '10 → 10%', '15 → 15%', ..., '40 → 40%', demonstrating the maximum 40% discount is represented."
+    },
+    {
+      "id": "2.4-depth-rolling-window-boundary",
+      "text": "The 30-day rolling window boundary is tested: a ticket at exactly 30 days is included, at 31 days is excluded.",
+      "passed": false,
+      "evidence": "Table 1 shows trip counts (1, 4, 5, etc.) but does not test time-based rolling window boundaries (e.g., 'ticket purchased 30 days ago' vs '31 days ago'). The response has no dedicated rolling window table with relative time testing."
+    },
+    {
+      "id": "2.6-readability-human-readable-values",
+      "text": "Eligibility uses human-readable values (yes/no or equivalent) rather than raw true/false. TypeConverter or similar mechanism mentioned.",
+      "passed": false,
+      "evidence": "Table 2 uses human-readable values like 'Reis (earned)', 'Flat', and percentages, but the response contains no mention of 'TypeConverter' or any similar mechanism for achieving these conversions."
+    },
+    {
+      "id": "2.9-correctness-value-set-tier-semantics",
+      "text": "Value sets in the tier table contain exactly the values that produce the same discount. No cross-tier contamination.",
+      "passed": false,
+      "evidence": "Table 1 lists individual trip counts per row ('5 → 5%', '9 → 5%') rather than grouping them in value sets (e.g., '{5, 6, 7, 8, 9} → 5%' or '{5, 9} → 5%'). Each tier is split across multiple rows without value set notation."
+    },
+    {
+      "id": "2.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": false,
+      "evidence": "The response shows only markdown tables with scenario names ('First trip', 'Below first step'), not actual test method code. No @DisplayName annotations or Java method names are shown, making it impossible to verify this format requirement."
+    },
+    {
+      "id": "2.11-format-description",
+      "text": "@Description is present on at least the class or the tier method and provides context beyond what the table rows already express — such as the discount ladder structure, eligibility rules, or application context. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": false,
+      "evidence": "The response contains no @Description annotations. While there is contextual text (open questions, notes about zones), the response does not show test code with @Description annotations as required."
+    },
+    {
+      "id": "2.12-format-typeconverter",
+      "text": "TypeConverterSources is used for at least one human-readable conversion (yes/no, or rolling window notation).",
+      "passed": false,
+      "evidence": "The word 'TypeConverter' does not appear anywhere in the response. The response provides tables but no mention of TypeConverterSources or implementation of human-readable conversions via this mechanism."
+    },
+    {
+      "id": "2.13-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": false,
+      "evidence": "No annotations are shown in the response. The response displays markdown tables rather than Java test code with annotations, making it impossible to verify annotation order."
+    },
+    {
+      "id": "2.14-format-description-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "No @Description annotations are present in the response, so this assertion passes by default as stated: 'Passes if @Description is absent'."
+    },
+    {
+      "id": "2.15-ticket-count-uses-value-sets",
+      "text": "The discount ladder table uses value sets for the ticket count column to group counts within the same tier (e.g. {5, 6, 7, 8, 9} or {5, 9} for min/max → 5%) — not one row per boundary value. The 'every fifth trip' rule creates tiers; the table should express tiers, not enumerate boundaries.",
+      "passed": false,
+      "evidence": "Table 1 enumerates boundary values with one row per value: '5 → 5%', '9 → 5%', '10 → 10%', etc. The assertion explicitly forbids 'one row per boundary value', but this is exactly how Table 1 is structured. No value sets like '{5, 6, 7, 8, 9} → 5%' are used."
+    },
+    {
+      "id": "2.16-no-duplicate-tier-mapping",
+      "text": "The tier-to-discount mapping is expressed once — not repeated across multiple tables. A price application table (if present) should test the arithmetic (base price × discount → final price) without re-enumerating which ticket counts map to which tier.",
+      "passed": false,
+      "evidence": "Table 1 shows '5 → 5%', '10 → 10%', '40 → 40%'. Table 2 repeats this mapping with rows like 'Adult at first step | Adult | 5 | Reis (earned) | 5%' and 'Adult | 10 | ... → 10%'. The tier-to-discount relationship is enumerated in both Table 1 and Table 2."
+    },
+    {
+      "id": "2.17-zone-irrelevance-visible",
+      "text": "The eligibility/passenger-type table includes a Zone column (or equivalent) with a value set to show that the discount applies regardless of zone — rather than silently omitting zone. The requirement explicitly says 'regardless of the zones you travel in'.",
+      "passed": false,
+      "evidence": "Table 2 does not include a Zone column. The response explicitly states: 'Zone is not a column because it never affects the outcome. A single integration row confirming this may be worth adding once zone data is available in the model.' This violates the requirement to make zone irrelevance visible via a value set."
+    },
+    {
+      "id": "2.18-adult-senior-value-set",
+      "text": "Adult and senior are expressed as a value set {ADULT, SENIOR} (or equivalent) in at least one row of the eligibility table, since they follow identical discount rules. Not enumerated as separate rows with the same outcome.",
+      "passed": false,
+      "evidence": "Table 2 has separate rows: 'Adult below threshold | Adult | 4 | Reis (earned) | 0%' and 'Senior below threshold | Senior | 4 | Reis (earned) | 0%'. These are enumerated as separate rows instead of combined as a value set '{ADULT, SENIOR}' in a single row with identical outcomes."
+    },
+    {
+      "id": "2.19-depth-all-tiers",
+      "text": "All 9 discount tiers are represented in the ladder table: 0% (tickets 1-4), 5% (5-9), 10% (10-14), 15% (15-19), 20% (20-24), 25% (25-29), 30% (30-34), 35% (35-39), and 40% (40+). Not just a subset of tiers.",
+      "passed": true,
+      "evidence": "Table 1 includes all 9 tiers: '1 → 0%', '5 → 5%', '10 → 10%', '15 → 15%', '20 → 20%', '25 → 25%', '30 → 30%', '35 → 35%', '40 → 40%', with additional rows showing boundaries within each tier."
+    },
+    {
+      "id": "2.20-readability-one-row-per-tier",
+      "text": "Each tier in the discount ladder is expressed as a single row with a value set for ticket counts — not split across multiple rows (e.g. separate rows for 'tier kicks in' and 'tier holds'). One tier = one row.",
+      "passed": false,
+      "evidence": "Table 1 splits each tier across multiple rows. For example, the 5% tier is shown as 'First discount step | 5 | 5%' and 'Within first step | 9 | 5%'—two rows for the same tier. This violates the requirement of 'One tier = one row'."
+    },
+    {
+      "id": "2.21-readability-relative-time",
+      "text": "The rolling window table expresses time relatively (e.g. '14 days ago', '30 days ago', or an integer 'Days ago' column) rather than using absolute dates, making the table readable without needing to know the reference date.",
+      "passed": false,
+      "evidence": "There is no rolling window table in the response. The three tables are: Reis Discount Level, Discount by Passenger Type, and Final Ticket Price. No table tests rolling window boundaries with relative time notation."
+    }
+  ],
+  "assertions_passed": 4,
+  "assertions_total": 18,
+  "pass_rate": 0.2222222222222222
+}

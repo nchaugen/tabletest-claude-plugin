@@ -1,0 +1,43 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "| Scenario | Order Value | Bulk Threshold | Loyalty Tier | Bulk Discount | Loyalty Discount | Discount Applied? | Notes / Open |\n|---|---|---|---|---|---|---|---|"
+    },
+    {
+      "id": "does-not-invent-resolution",
+      "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved",
+      "passed": true,
+      "evidence": "Rows 4 and 5 explicitly mark the Discount Applied column with '**?**' and include notes: '15% if stacked, 10% if best-of' and '35% if stacked — is there a cap?' The response states: 'The three rows with `?` are the decisions your team needs to make.'"
+    },
+    {
+      "id": "covers-both-discounts-applying",
+      "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)",
+      "passed": true,
+      "evidence": "Row 4 'Both qualify — stacked?' shows Order Value £150, Bulk Discount 10%, Loyalty Tier Silver (5%), Loyalty Discount 5%. Row 5 'Both qualify — capped?' shows Order Value £500, Bulk Discount 20%, Loyalty Tier Gold (15%), Loyalty Discount 15%."
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note",
+      "passed": true,
+      "evidence": "The table includes a 'Notes / Open' column. Below the table, the response explicitly lists: '1. **Stacking vs. best-of** — row 4: when both apply, is the result 15% (stacked) or 10% (best-of)? 2. **Cap** — row 5: if stacking is allowed, does 35% get capped (at what value?), or is it uncapped?'"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "The 'Discount Applied?' column header ends with '?', and rows 4 and 5 in that column contain '**?**'"
+    },
+    {
+      "id": "extreme-discount-row",
+      "text": "Table includes at least one row with a high combined discount (e.g. large order + top loyalty tier) that would force a decision about whether a cap applies — making the cap question concrete, not theoretical",
+      "passed": true,
+      "evidence": "Row 5 'Both qualify — capped?' with Order Value £500, Bulk Discount 20%, Gold tier (15%), and notes '35% if stacked — is there a cap?' The response explicitly states: 'if stacking is allowed, does 35% get capped (at what value?), or is it uncapped?' making the cap decision concrete."
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 6,
+  "pass_rate": 1
+}

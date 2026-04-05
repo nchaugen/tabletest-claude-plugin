@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains at least one markdown table",
+      "passed": true,
+      "evidence": "The response contains three markdown tables with pipe formatting: '| # | From | Event | To | Notes |', '| # | From | Event | Expected Error |', and '| # | Scenario | Expected |'"
+    },
+    {
+      "id": "cancellation-coverage",
+      "text": "Table covers cancellation rules — includes rows for states where cancellation is allowed and where it is not",
+      "passed": true,
+      "evidence": "Valid Transitions rows 4-5 show cancellation allowed from PENDING and CONFIRMED (both marked 'Allowed'). Invalid Transitions rows 7-8 show cancellation blocked from SHIPPED and DELIVERED with error 'Cannot cancel order after it has shipped'. Row 9 shows CANCELLED state cannot be cancelled with error 'Order is already cancelled'."
+    },
+    {
+      "id": "return-window-addressed",
+      "text": "The 30-day return window rule is addressed — either as a threshold column, a separate table, or flagged as an open question",
+      "passed": true,
+      "evidence": "Valid Transitions row 6 notes 'Within 30 days'. Invalid Transitions row 11 includes error 'Return window expired' (> 30 days since delivery)'. Edge Cases rows 14-16 specifically address the 30-day boundary: 'Flag return exactly on day 30' (Allowed), 'Flag return on day 31' (Rejected), 'Flag return on day 0' (Allowed). Question #2 asks about the 30-day clock starting point."
+    },
+    {
+      "id": "value-set-or-multiple-states",
+      "text": "Uses value sets {PENDING, CONFIRMED} or equivalent to express 'regardless of which starting state' for cases where a rule holds across states",
+      "passed": false,
+      "evidence": "The response lists each state in separate rows rather than using set notation. Rows 4 and 5 both show cancellation is allowed, but they are presented as two distinct rows ('PENDING | cancel' and 'CONFIRMED | cancel') rather than a single row with value set notation like '{PENDING, CONFIRMED}' to express the rule holding across multiple states."
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": false,
+      "evidence": "All table column headers are: 'From', 'Event', 'To', 'Notes', 'Expected Error', 'Scenario', 'Expected'. None of these column headers end with a question mark. The questions appear below the tables in a separate 'Questions to settle before coding' section, not as a column header."
+    }
+  ],
+  "assertions_passed": 3,
+  "assertions_total": 5,
+  "pass_rate": 0.6
+}

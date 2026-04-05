@@ -1,0 +1,79 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"...\"\"\")\nvoid shouldValidateRegistrationInput(...) and shouldApplyPricingDiscounts(...)"
+    },
+    {
+      "id": "validation-rules-covered",
+      "text": "Email validation and name-required error scenarios are present — at least one row for invalid email and one for missing name.",
+      "passed": true,
+      "evidence": "\"Null name\" row, \"Blank name\" row (missing name); \"Invalid email - no at sign\", \"Invalid email - missing domain\", \"Null email\" rows"
+    },
+    {
+      "id": "blank-for-absent-optional",
+      "text": "Dietary requirements and/or accessibility needs use blank cells (null) when not provided — not 'N/A' or 'none'. These are genuinely optional and absent.",
+      "passed": true,
+      "evidence": "@Description states 'dietaryRequirements = null, accessibilityNeeds = null' and code passes null"
+    },
+    {
+      "id": "blank-vs-value-set-correct",
+      "text": "When testing pricing rules, irrelevant inputs (e.g. dietary requirements don't affect price) use value sets or representative values — not blanks (which mean null). Blanks are reserved for genuinely absent/null inputs.",
+      "passed": true,
+      "evidence": "Pricing test fixed values: name=\"Alice Smith\", email=\"alice@example.com\" (representative), null for dietary/accessibility (absent)"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "\"Scenario | Name | Email...\" and \"Scenario | Registration date | Group size...\""
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Result?', 'Price?')",
+      "passed": true,
+      "evidence": "\"Accepted?\", \"Error message?\", \"Price?\" all end with ?"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language (e.g. 'Name', 'Email', 'Registration date', 'Group size', 'Price?') — not code identifiers.",
+      "passed": true,
+      "evidence": "Columns: Name, Email, Accepted?, Error message?, Registration date, Group size, Price?"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('Early-bird single attendee', 'Missing name') — not outcomes ('Rejected', '20% off').",
+      "passed": true,
+      "evidence": "\"Null name\", \"Group of 5 - group discount applies\", \"Both apply - early-bird wins\" describe input conditions/implications"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "Both methods contain only: result assignment, assertEquals/assertTrue calls; no conditionals"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "@DisplayName(...) then @Description(...) then @TableTest(...) in both methods"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "@DisplayName(\"Registration input validation\") and @DisplayName(\"Registration pricing and discounts\")"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description(\"\"\"...Fixed for all rows...\"\"\" and @Description(\"\"\"...Base price...\"\"\" both use triple-quoted text blocks"
+    }
+  ],
+  "assertions_passed": 12,
+  "assertions_total": 12,
+  "pass_rate": 1
+}

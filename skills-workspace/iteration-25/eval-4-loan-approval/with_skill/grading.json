@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table (using | column | syntax)",
+      "passed": true,
+      "evidence": "Table with markdown pipe separators present: | Scenario | Age | Credit Score | Income Status | Approved? | Rejection Reason? |"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column name ends with '?' (e.g. 'Eligible?' or 'Approved?')",
+      "passed": true,
+      "evidence": "Column headers include 'Approved?' and 'Rejection Reason?' both ending with '?'"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language — no implementation terms like 'creditScore', 'isEligible', 'boolean', 'int'",
+      "passed": true,
+      "evidence": "All column names use business language: 'Scenario', 'Age', 'Credit Score', 'Income Status', 'Approved?', 'Rejection Reason?' - no camelCase or technical terms"
+    },
+    {
+      "id": "senior-threshold-row",
+      "text": "Table includes at least one row specifically for the senior applicant (65+) threshold scenario",
+      "passed": true,
+      "evidence": "Multiple senior threshold rows present: 'Senior approval with lower threshold | 70 | 625 | Stable | yes |', 'Age boundary — qualifies as senior | 65 | 625 | Stable | yes |', 'Senior credit score not above senior threshold | 70 | 600 | Stable | no |'"
+    },
+    {
+      "id": "missing-income-marked-open",
+      "text": "The missing income scenario is represented — either as a row with an open/uncertain expected value (?, TBD, or blank) or as an explicit open question note",
+      "passed": true,
+      "evidence": "Two rows with missing income marked as open: 'Missing income info | 40 | 700 | (missing) | ? | **Open: reject or treat as unstable?**' and 'Senior, missing income info | 70 | 625 | (missing) | ? | **Open: same rule as non-senior?**'"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('Senior applicant at threshold') not outcomes ('Approved')",
+      "passed": false,
+      "evidence": "Scenario names 'Standard approval' and 'Senior approval with lower threshold' explicitly name outcomes (approval), rather than describing only the input conditions like the recommended format 'Senior applicant at threshold'"
+    },
+    {
+      "id": "threshold-values-visible",
+      "text": "The policy thresholds (650 for standard, 600 for senior) appear as concrete values in the Credit Score column — not just described in prose. The reader can see the boundary values in the table rows.",
+      "passed": true,
+      "evidence": "Boundary values appear as concrete entries: 'Credit score not above threshold | 40 | 650 | Stable | no' and 'Senior credit score not above senior threshold | 70 | 600 | Stable | no'"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "'Scenario' is the first column header: | Scenario | Age | Credit Score | Income Status | Approved? | Rejection Reason? |"
+    },
+    {
+      "id": "threshold-as-column",
+      "text": "Policy thresholds (650/600 credit scores) appear as values in an input column — not buried in output values or only mentioned in prose. The reader sees the threshold as a concrete input the decision depends on.",
+      "passed": true,
+      "evidence": "Credit Score input column displays threshold values: 650 in row 'Credit score not above threshold | 40 | 650' and 600 in row 'Senior credit score not above senior threshold | 70 | 600'"
+    },
+    {
+      "id": "concrete-domain-values",
+      "text": "Cell values use concrete domain terms (e.g. '65', '700', 'Stable') — not abstract codes or raw booleans like 'true', 'false', 'CATEGORY_A', '1'.",
+      "passed": true,
+      "evidence": "All cell values use concrete domain language: Ages shown as '40', '70', '65', '64'; Credit Scores as '700', '625', '600', '651'; Income Status as 'Stable', 'Unstable', '(missing)'; Approved as 'yes', 'no', '?' (not true/false); Reasons as 'Credit score below 651', 'Unstable income', 'Income information required'"
+    }
+  ],
+  "assertions_passed": 9,
+  "assertions_total": 10,
+  "pass_rate": 0.9
+}

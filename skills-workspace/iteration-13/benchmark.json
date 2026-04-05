@@ -1,0 +1,101 @@
+{
+  "skill_name": "tabletest + spec-by-example",
+  "iteration": 13,
+  "model": "sonnet",
+  "timestamp": "2026-03-29T23:58:30.907Z",
+  "evals": [
+    {
+      "id": "eval-14-weekly-pay",
+      "name": "weekly pay",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 10,
+          "assertions_total": 15,
+          "pass_rate": 0.6666666666666666,
+          "failed_assertions": [
+            "1.1-traceability-columns",
+            "1.5-depth-error-edge-cases",
+            "1.8-correctness-expected-values",
+            "1.11-format-description",
+            "1.15-format-clean-method"
+          ],
+          "total_tokens": 468626,
+          "duration_ms": 220209,
+          "cost_usd": 0.5438601000000001
+        }
+      }
+    },
+    {
+      "id": "eval-15-reis-discount",
+      "name": "reis discount",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 9,
+          "assertions_total": 18,
+          "pass_rate": 0.5,
+          "failed_assertions": [
+            "2.4-depth-rolling-window-boundary",
+            "2.6-readability-human-readable-values",
+            "2.15-ticket-count-uses-value-sets",
+            "2.16-no-duplicate-tier-mapping",
+            "2.12-format-typeconverter",
+            "2.18-adult-senior-value-set",
+            "2.19-depth-all-tiers",
+            "2.20-readability-one-row-per-tier",
+            "2.21-readability-relative-time"
+          ],
+          "total_tokens": 530073,
+          "duration_ms": 248961,
+          "cost_usd": 0.6061249500000001
+        }
+      }
+    },
+    {
+      "id": "eval-16-order-splitting",
+      "name": "order splitting",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 15,
+          "assertions_total": 17,
+          "pass_rate": 0.8823529411764706,
+          "failed_assertions": [
+            "3.4-depth-availability-scenarios",
+            "3.6-depth-companion-scenarios"
+          ],
+          "total_tokens": 71164,
+          "duration_ms": 103845,
+          "cost_usd": 0.21764145000000001
+        }
+      }
+    },
+    {
+      "id": "eval-17-shopping-cart",
+      "name": "shopping cart",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 16,
+          "assertions_total": 16,
+          "pass_rate": 1,
+          "failed_assertions": [],
+          "total_tokens": 68783,
+          "duration_ms": 68240,
+          "cost_usd": 0.18242730000000001
+        }
+      }
+    }
+  ],
+  "summary": {
+    "with_skill": {
+      "assertions_passed": 50,
+      "assertions_total": 66,
+      "pass_rate": 0.7575757575757576,
+      "total_tokens": 1138646,
+      "total_duration_ms": 641255,
+      "total_cost_usd": 1.5500538000000001
+    }
+  }
+}

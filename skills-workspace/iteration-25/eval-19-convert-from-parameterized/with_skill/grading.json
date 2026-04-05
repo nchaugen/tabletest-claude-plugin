@@ -1,0 +1,61 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"...\"\"\")"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Scenario | Email | Valid? — Scenario is the leftmost column"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?'",
+      "passed": true,
+      "evidence": "Valid? column header ends with '?'"
+    },
+    {
+      "id": "value-sets-used",
+      "text": "Value sets are used to consolidate rows that share the same rule and outcome",
+      "passed": false,
+      "evidence": "All rows are listed individually (Standard address, Multi-part TLD, etc. as separate rows; No @ symbol, Missing local part, etc. as separate rows), with no consolidation or grouping of rows that share the same outcome (e.g., the three valid cases are separate rows, the five invalid cases are separate rows)"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "assertEquals(valid, validator.isValid(email)); — single assertion with no control flow"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions — not outcomes or 'Test case 1'",
+      "passed": true,
+      "evidence": "Standard address, Multi-part TLD, With dot and plus tag, No @ symbol, Missing local part, Domain starts with dot, No TLD dot, Empty string — all describe input conditions, not outcomes"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest",
+      "passed": true,
+      "evidence": "Only @TableTest is present; no incorrect annotation ordering"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title",
+      "passed": true,
+      "evidence": "Method name testEmailValidation reads as a clear descriptive title when converted from camelCase"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and longer than a single line, it uses a text block, not concatenation. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description annotation is not present in the output"
+    }
+  ],
+  "assertions_passed": 8,
+  "assertions_total": 9,
+  "pass_rate": 0.8888888888888888
+}

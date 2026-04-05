@@ -1,0 +1,55 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains at least one markdown table (using | column | syntax)",
+      "passed": true,
+      "evidence": "| Scenario | Weekday Hours | Sunday Hours | Holiday Hours | Hourly Rate | Overtime Threshold | Total Pay? | appears in the response, and a second table | Scenario | Hourly Rate | Valid? | Error? | also present"
+    },
+    {
+      "id": "rules-separate-from-arithmetic",
+      "text": "Decision logic (which rate applies — regular, overtime, Sunday, holiday) and calculation (hours × rate = pay) are in separate tables or clearly separated. Not interleaved in one undifferentiated table.",
+      "passed": false,
+      "evidence": "The single '## Weekly Pay Calculation' table contains both the rules (Overtime Threshold, different hour types) and the arithmetic results (Total Pay) all in one undifferentiated structure. No separate rules table showing decision logic is provided."
+    },
+    {
+      "id": "arithmetic-minimal-rows",
+      "text": "Calculation/arithmetic verification uses few rows (2-3) — not exhaustive enumeration. Once the rule is tested, arithmetic needs only a sanity check.",
+      "passed": false,
+      "evidence": "The '## Weekly Pay Calculation' table contains 13 rows of scenarios, which is exhaustive enumeration rather than minimal verification. Rows include: 'Regular weekday hours under limit', 'Weekday hours exactly at threshold', 'One hour over threshold', 'Substantial overtime', 'Sunday hours only', 'Holiday hours only', 'Sunday and holiday hours together', 'Sunday/holiday do not count toward overtime threshold', 'Weekday regular + Sunday', 'Weekday overtime + Sunday', 'All three hour types with overtime', 'Zero hours', and 'Zero rate'."
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column name ends with '?' (e.g. 'Pay?', 'Rate?')",
+      "passed": true,
+      "evidence": "Column header 'Total Pay?' ends with a question mark in the main calculation table"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe work patterns or conditions ('Part-time weekday', 'Full week with overtime', 'Sunday shift') — not outcomes ('Gets overtime', 'Double pay').",
+      "passed": true,
+      "evidence": "Scenario names like 'Regular weekday hours under limit', 'One hour over threshold', 'Sunday hours only', 'Weekday regular + Sunday', and 'All three hour types with overtime' describe work conditions and patterns, not outcomes"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language (e.g. 'Weekday hours', 'Sunday hours', 'Hourly rate', 'Weekly pay?') — not code identifiers.",
+      "passed": true,
+      "evidence": "Column names are 'Scenario', 'Weekday Hours', 'Sunday Hours', 'Holiday Hours', 'Hourly Rate', 'Overtime Threshold', 'Total Pay?' — all business-appropriate terms with no code identifiers"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "The leftmost column in both tables is 'Scenario', as shown in the header: '| Scenario | Weekday Hours | Sunday Hours | ...'"
+    },
+    {
+      "id": "overtime-boundary-covered",
+      "text": "The overtime threshold boundary (40 hours) is covered with at least a value at the threshold and one above.",
+      "passed": true,
+      "evidence": "Weekday Hours column includes 'Weekday hours exactly at threshold | 40' and 'One hour over threshold | 41' and 'Substantial overtime | 50', clearly covering the 40-hour boundary and values above it"
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 8,
+  "pass_rate": 0.75
+}

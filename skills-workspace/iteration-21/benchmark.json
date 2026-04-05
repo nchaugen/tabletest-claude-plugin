@@ -1,0 +1,89 @@
+{
+  "skill_name": "tabletest + spec-by-example",
+  "iteration": 21,
+  "model": "sonnet",
+  "timestamp": "2026-03-31T22:21:12.569Z",
+  "evals": [
+    {
+      "id": "eval-14-weekly-pay",
+      "name": "weekly pay",
+      "skill": "tabletest",
+      "results": {}
+    },
+    {
+      "id": "eval-15-reis-discount",
+      "name": "reis discount",
+      "skill": "tabletest",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 6,
+          "assertions_total": 18,
+          "pass_rate": 0.3333333333333333,
+          "failed_assertions": [
+            "2.1-decomposition-concern-separation",
+            "2.4-depth-rolling-window-boundary",
+            "2.6-readability-human-readable-values",
+            "2.9-correctness-value-set-tier-semantics",
+            "2.15-ticket-count-uses-value-sets",
+            "2.10-format-displayname",
+            "2.11-format-description",
+            "2.12-format-typeconverter",
+            "2.13-format-annotation-order",
+            "2.18-adult-senior-value-set",
+            "2.20-readability-one-row-per-tier",
+            "2.21-readability-relative-time"
+          ],
+          "total_tokens": 69830,
+          "duration_ms": 474253,
+          "cost_usd": 0.19653615000000002
+        }
+      }
+    },
+    {
+      "id": "eval-16-order-splitting",
+      "name": "order splitting",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 16,
+          "assertions_total": 17,
+          "pass_rate": 0.9411764705882353,
+          "failed_assertions": [
+            "3.6-depth-companion-scenarios"
+          ],
+          "total_tokens": 71468,
+          "duration_ms": 110189,
+          "cost_usd": 0.22302675000000002
+        }
+      }
+    },
+    {
+      "id": "eval-17-shopping-cart",
+      "name": "shopping cart",
+      "skill": "spec-by-example",
+      "results": {
+        "with_skill": {
+          "assertions_passed": 15,
+          "assertions_total": 16,
+          "pass_rate": 0.9375,
+          "failed_assertions": [
+            "4.5-depth-coupon-application"
+          ],
+          "total_tokens": 69429,
+          "duration_ms": 83090,
+          "cost_usd": 0.19191885000000003
+        }
+      }
+    }
+  ],
+  "summary": {
+    "with_skill": {
+      "assertions_passed": 37,
+      "assertions_total": 51,
+      "pass_rate": 0.7254901960784313,
+      "total_tokens": 210727,
+      "total_duration_ms": 667532,
+      "total_cost_usd": 0.61148175
+    }
+  }
+}

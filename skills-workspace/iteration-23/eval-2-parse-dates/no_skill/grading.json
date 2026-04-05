@@ -1,0 +1,61 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": false,
+      "evidence": "The response uses @ParameterizedTest and @MethodSource annotations, but does not contain any @TableTest annotation. The test data is provided via a static Stream method, not a @TableTest."
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell (not the string 'null') in the table",
+      "passed": false,
+      "evidence": "Null is represented as an actual null value in the Object array: 'new Object[]{ null, null, null }' - not as a blank cell in a table structure. The @TableTest format uses blank cells; this uses the @MethodSource format with explicit null values."
+    },
+    {
+      "id": "exception-handled-cleanly",
+      "text": "The empty string / exception case is handled — either via a Throws? column, assertThrows inside the method, or a separate @TableTest — rather than being silently omitted",
+      "passed": true,
+      "evidence": "The empty string case includes 'IllegalArgumentException.class' as expectedException and is handled via 'assertThrows(expectedException, () -> parser.parseDate(input))' inside the test method."
+    },
+    {
+      "id": "localdate-result-column",
+      "text": "There is a result column typed as LocalDate (or using a string representation that maps to LocalDate)",
+      "passed": true,
+      "evidence": "The parameter 'LocalDate expected' serves as the result column and is explicitly typed as LocalDate: 'void parseDate(String input, LocalDate expected, Class<? extends Exception> expectedException)'"
+    },
+    {
+      "id": "type-conversion-addressed",
+      "text": "The response addresses type conversion for non-standard date formats (slash format, short year) — mentions @TypeConverter or a converter method",
+      "passed": false,
+      "evidence": "The test data includes different formats like '15/01/2024' and '24-01-15', but the response does not mention @TypeConverter, a converter method, or how type conversion is implemented. Only the test cases themselves show the expected inputs."
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'dateParsing' → 'Date Parsing'). Not a generic name like 'test1' or 'testMethod'.",
+      "passed": false,
+      "evidence": "The method is named 'parseDate' (converts to 'Parse Date'), which is generic and does not describe the specific test scenarios being validated (multiple date formats, null handling, exception cases). No @DisplayName annotation is present to provide additional context."
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description is present, it provides context beyond what the table rows already express — such as where/when the rule applies, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context (e.g. supported date formats are visible as table rows).",
+      "passed": true,
+      "evidence": "No @Description annotation is present, which is acceptable per the assertion: 'It is acceptable to omit @Description if the table already conveys all relevant context.'"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": false,
+      "evidence": "The response uses @ParameterizedTest followed by @MethodSource, not the expected @DisplayName/@Description/@TableTest order. The annotations present are '@ParameterizedTest(name = \"[{index}] input={0}\")' and '@MethodSource(\"parseDateCases\")', which do not match the expected sequence."
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "No @Description annotation is present in the response, so this assertion passes by the explicit condition: 'Passes if @Description is absent.'"
+    }
+  ],
+  "assertions_passed": 4,
+  "assertions_total": 9,
+  "pass_rate": 0.4444444444444444
+}

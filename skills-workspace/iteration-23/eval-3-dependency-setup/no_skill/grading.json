@@ -1,0 +1,31 @@
+{
+  "assertions": [
+    {
+      "id": "flags-junit-version",
+      "text": "Response explicitly flags that JUnit 5.10.0 is below the required minimum (5.11) and recommends upgrading",
+      "passed": false,
+      "evidence": "The response does not mention JUnit version requirements or recommend upgrading. It states 'TableTest' isn't a name I can map to a specific, well-known Java library with confidence' and asks for clarification instead."
+    },
+    {
+      "id": "provides-correct-groupid",
+      "text": "Response provides the tabletest dependency with groupId 'org.tabletest' (not guessed)",
+      "passed": false,
+      "evidence": "The response explicitly avoids providing groupId, stating 'I want to avoid giving you incorrect Maven coordinates' and asks the user to clarify which library they mean."
+    },
+    {
+      "id": "provides-artifactid",
+      "text": "Response includes 'tabletest-junit' as the artifactId",
+      "passed": false,
+      "evidence": "No artifactId is provided. The response asks for clarification on what library is meant instead of providing dependency coordinates."
+    },
+    {
+      "id": "includes-test-scope",
+      "text": "The suggested dependency includes <scope>test</scope>",
+      "passed": false,
+      "evidence": "No Maven dependency with test scope is suggested. The response refuses to provide specific coordinates and asks the user to clarify what library they're targeting."
+    }
+  ],
+  "assertions_passed": 0,
+  "assertions_total": 4,
+  "pass_rate": 0
+}

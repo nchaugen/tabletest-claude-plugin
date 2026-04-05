@@ -1,0 +1,61 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"..."
+    },
+    {
+      "id": "contractor-uses-value-set",
+      "text": "CONTRACTOR row uses a value set for Department (e.g. {SALES, ENGINEERING}) to express 'regardless of department' — not a dummy placeholder like 'ANY' or 'N/A', and not enumerated as separate rows.",
+      "passed": false,
+      "evidence": "CONTRACTOR | SALES | 0.0 and CONTRACTOR | ENGINEERING | 0.0 are enumerated as separate rows. The assertion requires a value set like {SALES, ENGINEERING} in a single row, and explicitly forbids separate rows."
+    },
+    {
+      "id": "four-core-rules-covered",
+      "text": "The four level×department combinations (SENIOR+SALES, SENIOR+ENGINEERING, JUNIOR+SALES, JUNIOR+ENGINEERING) are all present in the table(s)",
+      "passed": true,
+      "evidence": "SENIOR | SALES | 15.0, SENIOR | ENGINEERING | 12.0, JUNIOR | SALES | 8.0, JUNIOR | ENGINEERING | 5.0"
+    },
+    {
+      "id": "expects-bonus-percentage",
+      "text": "The expected output column contains bonus percentages (e.g. 15%, 12%, 0%) — not bonus amounts. The method returns a percentage, and the table should reflect that.",
+      "passed": true,
+      "evidence": "expected column values are 15.0, 12.0, 8.0, 5.0, 0.0 representing percentages as double values"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "Method body: Employee employee = new Employee(level, department); assertThat(calculator.calculateBonusPercentage(employee)).isEqualTo(expected);"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case",
+      "passed": true,
+      "evidence": "Method name is 'calculateBonusPercentage' which converts to 'Calculate Bonus Percentage' — a clear, descriptive title"
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description is present, it provides context beyond what the table already expresses — such as how bonus rates are applied (e.g. as percentage of base salary), or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context.",
+      "passed": true,
+      "evidence": "No @Description annotation is present in the code, so the condition 'if present' is not met; rule passes by absence"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Only @TableTest annotation is present; no ordering violation"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "No @Description annotation is present in the code, so the rule passes by absence"
+    }
+  ],
+  "assertions_passed": 8,
+  "assertions_total": 9,
+  "pass_rate": 0.8888888888888888
+}

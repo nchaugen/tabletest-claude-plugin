@@ -1,0 +1,73 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"\n    Scenario                    | Applicant type | Age | Claims | Decision?     | Premium?"
+    },
+    {
+      "id": "black-box-columns",
+      "text": "Table columns represent the method's public inputs (applicant type, age, claim count) and observable outputs (decision, premium) — not internal state like hasActivePolicy, internalRiskScore, or calculateRiskScore.",
+      "passed": true,
+      "evidence": "Columns are Scenario | Applicant type | Age | Claims | Decision? | Premium? — representing public inputs and observable outputs with no internal state columns present"
+    },
+    {
+      "id": "observable-io-only",
+      "text": "No column is named after private fields or internal variables (hasActivePolicy, internalRiskScore, riskScore). The test treats the method as a black box.",
+      "passed": true,
+      "evidence": "Column names: Scenario, Applicant type, Age, Claims, Decision?, Premium? — none match private field names like hasActivePolicy, internalRiskScore, or riskScore"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Scenario is the first column in the table: \"Scenario                    | Applicant type | Age | Claims | Decision?     | Premium?\""
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language (e.g. 'Applicant type', 'Age', 'Claims', 'Decision?', 'Premium?') — not code identifiers like 'applicantType', 'claimCount', 'String'.",
+      "passed": true,
+      "evidence": "Columns use business language: 'Applicant type', 'Age', 'Claims', 'Decision?', 'Premium?' rather than camelCase identifiers"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('Renewal with no claims', 'Senior applicant') — not outcomes ('Auto approved', 'Rejected').",
+      "passed": false,
+      "evidence": "Scenario row 'High claim count, rejected' includes 'rejected' which is an outcome word, violating the requirement that scenario names describe conditions only, not outcomes"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Decision?' or 'Premium?')",
+      "passed": true,
+      "evidence": "Table columns include 'Decision?' and 'Premium?' both ending with question marks"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "Method body is: 'EvaluationResult result = evaluator.evaluateApplication(applicantType, age, claimCount); assertAll(...)' with no if or switch statements"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "@DisplayName(\"Application evaluation\") @Description(...) @TableTest(...) in that exact order before the method"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "@DisplayName(\"Application evaluation\") provides a clear descriptive title for the test method"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses triple-quoted text block: \"\"\"\\n        Risk score = (age / 10) + (claimCount × 15), integer division...\\n        \"\"\" not string concatenation"
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 11,
+  "pass_rate": 0.9090909090909091
+}

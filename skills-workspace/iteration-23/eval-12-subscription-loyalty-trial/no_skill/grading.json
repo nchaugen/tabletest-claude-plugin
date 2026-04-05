@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "produces-multiple-tables",
+      "text": "Output contains at least 2 separate markdown tables",
+      "passed": true,
+      "evidence": "Two markdown tables are present: (1) 'Plans' table with columns 'Plan | Price | Trial', and (2) 'Edge Cases Resolved' table with columns 'Scenario | Resolution'"
+    },
+    {
+      "id": "annual-no-trial-rule-represented",
+      "text": "A table or note explicitly captures that the free trial is not available on annual plans (not just implied)",
+      "passed": true,
+      "evidence": "Plans table shows: '| Annual | £95.88/year | Not available |' and '| Annual + Loyalty | £86.29/year (10% off) | Not available |' with explicit 'Not available' in the Trial column"
+    },
+    {
+      "id": "loyalty-discount-row-present",
+      "text": "At least one table row demonstrates the loyalty programme discount scenario for annual plan subscribers",
+      "passed": true,
+      "evidence": "Plans table includes row '| Annual + Loyalty | £86.29/year (10% off) | Not available |' and Edge Cases table includes 'Loyalty member cancels annual plan mid-year | Prorated refund based on £86.29 paid, not £95.88'"
+    },
+    {
+      "id": "surfaces-genuine-open-questions",
+      "text": "The response identifies at least one genuinely underspecified interaction — such as: what happens when a trial subscriber upgrades to annual mid-trial, when a subscriber joins the loyalty programme mid-billing-cycle, or whether a cancellation refund is based on the discounted or full price",
+      "passed": true,
+      "evidence": "Open Questions section item 3 explicitly flags: 'Trial → Annual upgrade: Should the remaining trial days be forfeited entirely, or is any credit applied? (Spec above assumes forfeited for simplicity.)'"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The annual/loyalty/trial interaction is explicitly surfaced as an open question — via '?', 'TBD', blank expected value, or a written open question — rather than silently resolved",
+      "passed": false,
+      "evidence": "The response states 'If a user on a free trial upgrades to annual mid-trial: the trial ends immediately and the annual charge is applied on the day of upgrade' without explicitly surfacing whether the loyalty discount applies to that annual charge. The Open Questions section asks about trial day forfeiture, not about loyalty discount application in mid-trial upgrades."
+    },
+    {
+      "id": "loyalty-discount-annual-only",
+      "text": "Makes clear (via table structure, a note, or explicit rows) that the loyalty discount applies to the annual plan only — a loyalty member on monthly pays the same as anyone else",
+      "passed": true,
+      "evidence": "Explicitly stated: 'Loyalty discount does not apply to monthly plans, so a loyalty member who auto-converts from trial pays £9.99/month.' Also in Edge Cases: '| User is a loyalty member but on monthly plan | No discount; loyalty discount is annual-only |'"
+    },
+    {
+      "id": "loyalty-refund-ambiguity",
+      "text": "Surfaces whether a loyalty annual subscriber's prorated cancellation refund is calculated from the discounted price (£86.29) or the list price (£95.88) — as an open question, '?', or note. Not silently resolved",
+      "passed": false,
+      "evidence": "The response states the rule as decided: 'prorated refund for unused days, calculated on the amount actually charged (i.e. discounted rate for loyalty annual subscribers)' and 'Loyalty member cancels annual plan mid-year | Prorated refund based on £86.29 paid, not £95.88'. This is presented as a resolved rule, not flagged as an open question or ambiguity."
+    },
+    {
+      "id": "cancellation-refund-table",
+      "text": "Includes a cancellation/refund table or section (not just pricing) — the loyalty discount creates a refund calculation ambiguity that should be shown with concrete rows",
+      "passed": false,
+      "evidence": "The response has a 'Cancellation & Refunds' section with text-based rules, but no dedicated table showing concrete refund calculations with scenarios (e.g., Monthly plan, 10 days used, refund = £X; Annual + Loyalty, 90 days used, refund = £Y)"
+    },
+    {
+      "id": "refund-table-includes-loyalty-dimension",
+      "text": "The cancellation/refund table includes a loyalty member column (or equivalent) to distinguish loyalty vs non-loyalty annual refund rows — not just plan type alone",
+      "passed": false,
+      "evidence": "No cancellation/refund table exists in the response to include a loyalty dimension. The refund logic is only described in prose and edge cases, not in a structured refund calculation table."
+    },
+    {
+      "id": "question-mark-only-on-outputs",
+      "text": "The '?' suffix is only used on output/expected columns (e.g. 'Refund?', 'Price?') — not on input columns like plan type, loyalty status, or yes/no flags",
+      "passed": true,
+      "evidence": "No '?' suffix appears in any table headers or input columns. The response uses question format in the 'Open Questions to Confirm' section but does not misuse '?' in table structures."
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 10,
+  "pass_rate": 0.6
+}

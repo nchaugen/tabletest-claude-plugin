@@ -1,0 +1,97 @@
+{
+  "assertions": [
+    {
+      "id": "1.1-traceability-columns",
+      "text": "The pay table includes intermediate expected columns (e.g. Regular pay?, Overtime pay?, Premium pay?) so the reader can trace which rule contributes what — not just a single total Weekly pay? column.",
+      "passed": false,
+      "evidence": "The response uses individual @Test methods with inline comments showing calculations (e.g., '// 40 regular + 8 overtime: (40 * 10) + (8 * 15) = 520') rather than @TableTest with intermediate expected columns like 'Regular pay?', 'Overtime pay?', 'Premium pay?'."
+    },
+    {
+      "id": "1.2-error-has-expected-column",
+      "text": "The error/rejection table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row — rather than hardcoding the exception type in @Description or the method name.",
+      "passed": false,
+      "evidence": "Error cases appear as individual @Test methods using assertThrows() (e.g., 'void negativeHourlyRateIsRejected() { assertThrows(IllegalArgumentException.class, ...') rather than a @TableTest with rows and an 'expected exception' column per row."
+    },
+    {
+      "id": "1.3-depth-overtime-boundary",
+      "text": "Overtime threshold boundary is covered: at least a value at the threshold (40) and just above (41 or similar). Not just values well below and well above.",
+      "passed": true,
+      "evidence": "Tests include 'exactlyFortyWeekdayHoursPaidAtBaseRate()' with 40 hours and 'singleOvertimeHour()' with 41 hours (comment: '// (40 * 20) + (1 * 30) = 830'), covering the boundary and a value just above it."
+    },
+    {
+      "id": "1.4-depth-combined-scenario",
+      "text": "A combined scenario is present: a row with weekday + Sunday + holiday hours, testing the composition of all hour types.",
+      "passed": true,
+      "evidence": "Test 'combinationOfAllHourTypes()' calls 'WeeklyPayCalculator.calculate(45, 4, 3, 10.0)' with comment '// 45 weekday (40 reg + 5 OT) + 4 Sunday + 3 holiday, rate=10', combining all three hour types."
+    },
+    {
+      "id": "1.5-depth-error-edge-cases",
+      "text": "Error/edge cases covered: at least negative hours (floored at zero) and negative or missing rate (rejected).",
+      "passed": false,
+      "evidence": "Test 'negativeHourlyRateIsRejected()' covers negative rate with 'assertThrows(IllegalArgumentException.class, () -> WeeklyPayCalculator.calculate(40, 0, 0, -10.0))', but there is no test for negative hours or behavior when hours are floored at zero."
+    },
+    {
+      "id": "1.6-readability-empty-cells",
+      "text": "Sunday and Holiday hour columns use empty cells (not 0) when those inputs are not relevant to a scenario — making it easier to spot which rows involve weekend/holiday hours. This is a readability preference; parameter types should be Integer (not int) to support null from blank cells.",
+      "passed": false,
+      "evidence": "The response uses individual @Test methods, not a @TableTest table format. There is no table structure with empty cells vs. 0 values; all tests pass explicit parameter values (e.g., 'calculate(40, 0, 0, 20.0)') to method calls."
+    },
+    {
+      "id": "1.7-readability-scenario-names",
+      "text": "Scenario names describe work patterns (e.g. 'Part-time', 'Five hours overtime', 'Full Sunday shift') — not 'Test case 1' or expected outcomes.",
+      "passed": false,
+      "evidence": "Method names are outcome and expectation-focused rather than pattern-focused: 'exactlyFortyWeekdayHoursPaidAtBaseRate' (describes expectation), 'negativeHourlyRateIsRejected' (describes result), 'combinationOfAllHourTypes' (describes parameters/scope). Names do not describe work scenarios like 'Part-time', 'Five-hour overtime shift', or 'Full Sunday shift'."
+    },
+    {
+      "id": "1.8-correctness-expected-values",
+      "text": "Expected values in intermediate and total columns are arithmetically correct for every row, consistent with the formulas in @Description.",
+      "passed": true,
+      "evidence": "Spot-check calculations: '40 * 20 = 800' ✓, '40*10 + 8*15 = 400 + 120 = 520' ✓, '20*10 + 4*20 + 4*20 = 200 + 80 + 80 = 360' ✓. All expected values in assertions match the calculations shown in comments."
+    },
+    {
+      "id": "1.9-correctness-value-set-semantics",
+      "text": "Value sets are only used where all values in the set produce the same expected result (e.g. any rate × 0 = 0). Not used where results would differ.",
+      "passed": false,
+      "evidence": "The response uses individual @Test methods with no @ParameterizedTest, @CsvSource, @ValueSource, or @TableTest parameterization. No value sets are present; the assertion expects value sets to be used only where semantically appropriate."
+    },
+    {
+      "id": "1.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "No @DisplayName annotations are present, but method names are clear descriptive titles: 'exactlyFortyWeekdayHoursPaidAtBaseRate', 'fewerThanFortyWeekdayHoursPaidAtBaseRate', 'overtimeHoursPaidAtOneAndAHalfTimesBaseRate', 'combinationOfAllHourTypes'. The assertion allows this alternative."
+    },
+    {
+      "id": "1.11-format-description",
+      "text": "@Description is present on at least the pay calculation method and provides context beyond what the table rows already express — such as the overtime threshold (40 hours), premium multipliers (Sunday 2×, Holiday 2.5×), or other fixed assumptions not visible in the table. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": false,
+      "evidence": "No @Description annotation appears on any test method or class. The expected output specifies '@Description explaining the conversion formulas' with details like 'overtime threshold (40 hours), premium multipliers (Sunday 2×, Holiday 2.5×)', which are completely absent."
+    },
+    {
+      "id": "1.12-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": false,
+      "evidence": "The code uses only @Test annotations; @DisplayName, @Description, and @TableTest are entirely absent. The expected output requires these annotations in the specified order."
+    },
+    {
+      "id": "1.13-format-description-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description is absent from the response, and the assertion states 'Passes if @Description is absent.'"
+    },
+    {
+      "id": "1.14-depth-zero-rate",
+      "text": "A row where the hourly rate is zero, showing that pay is zero regardless of hours worked. This is a distinct edge case from negative rate (which is rejected).",
+      "passed": true,
+      "evidence": "Test 'zeroRateWithHoursYieldsZeroPay()' calls 'WeeklyPayCalculator.calculate(40, 8, 4, 0.0)' with a zero rate and expects 'assertEquals(0.0, pay, 0.001)', demonstrating zero pay with non-zero hours."
+    },
+    {
+      "id": "1.15-format-clean-method",
+      "text": "The test method body contains no if/ternary null-handling or parsing logic. Null-to-default conversion (e.g. blank Sunday hours → 0) is handled via a @TypeConverter method or a private helper, keeping the test method limited to arrange/act/assert.",
+      "passed": true,
+      "evidence": "All test method bodies follow arrange/act/assert structure with no conditional logic: 'double pay = WeeklyPayCalculator.calculate(...); assertEquals(..., pay, 0.001);' Examples: overtimeHoursPaidAtOneAndAHalfTimesBaseRate(), combinationOfAllHourTypes(), negativeHourlyRateIsRejected() all contain only assignments, method calls, and assertions."
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 15,
+  "pass_rate": 0.4666666666666667
+}

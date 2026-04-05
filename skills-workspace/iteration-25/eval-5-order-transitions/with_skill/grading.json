@@ -1,0 +1,49 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains at least one markdown table",
+      "passed": true,
+      "evidence": "Two markdown tables are provided: 'Table 1: Order Status Transition' and 'Table 2: Return Eligibility', both using pipe-delimited markdown table syntax with headers and rows."
+    },
+    {
+      "id": "cancellation-coverage",
+      "text": "Table covers cancellation rules — includes rows for states where cancellation is allowed and where it is not",
+      "passed": true,
+      "evidence": "Table 1 includes 'Cancel pre-shipment order | {PENDING, CONFIRMED} | CANCELLED | yes' (allowed) and 'Cancel shipped order | SHIPPED | CANCELLED | no', 'Cancel delivered order | DELIVERED | CANCELLED | no', 'Cancel already-cancelled order | CANCELLED | CANCELLED | no' (not allowed)."
+    },
+    {
+      "id": "return-window-addressed",
+      "text": "The 30-day return window rule is addressed — either as a threshold column, a separate table, or flagged as an open question",
+      "passed": true,
+      "evidence": "Table 2 is dedicated to 'Return Eligibility' and includes a 'Return Window (Policy)' column set to '30 days' with rows demonstrating the 30-day threshold: 'Recent delivery, well within window | DELIVERED | 15 | 30 days | yes' and 'One day past the window | DELIVERED | 31 | 30 days | no'."
+    },
+    {
+      "id": "value-set-or-multiple-states",
+      "text": "Uses value sets {PENDING, CONFIRMED} or equivalent to express 'regardless of which starting state' for cases where a rule holds across states",
+      "passed": true,
+      "evidence": "Table 1 uses '{PENDING, CONFIRMED}' in the 'Cancel pre-shipment order' row, and the response explicitly states: 'The row `{PENDING, CONFIRMED} → CANCELLED` uses a value set to express the rule directly: cancellation is allowed from *any* pre-shipment state'. Table 2 also uses '{PENDING, CONFIRMED, SHIPPED}' in the 'Order not yet delivered' row."
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Both tables have output columns ending with '?': Table 1's 'Allowed?' column and Table 2's 'Return Eligible?' column. Additionally, specific rows contain '?' values: 'Skip confirmation step | PENDING | SHIPPED | ?' and 'At the boundary — last eligible day | DELIVERED | 30 | 30 days | ?'."
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Both Table 1 and Table 2 have 'Scenario' as the leftmost column. Table 1 starts with '| Scenario | Current Status |' and Table 2 starts with '| Scenario | Current Status |'."
+    },
+    {
+      "id": "row-independence",
+      "text": "Each row is independently verifiable — no row references a prior row's outcome. Each row specifies its own starting state and expected result.",
+      "passed": true,
+      "evidence": "All rows in both tables are self-contained. Examples: 'Standard order confirmation | PENDING | CONFIRMED | yes' stands alone; 'At the boundary — last eligible day | DELIVERED | 30 | 30 days | ?' specifies its own state and days independently. No row says 'given the previous row's outcome' or references another row."
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 7,
+  "pass_rate": 1
+}

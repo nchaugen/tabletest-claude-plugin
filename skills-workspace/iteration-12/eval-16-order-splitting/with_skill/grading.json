@@ -1,0 +1,109 @@
+{
+  "assertions": [
+    {
+      "id": "3.1a-concern-fulfillment-method",
+      "text": "Fulfillment method splitting is represented as its own table — items with different fulfillment types (store pickup vs home delivery) cannot share a shipment.",
+      "passed": true,
+      "evidence": "Section '1. Fulfillment Method Splitting' with dedicated table showing 'One pickup, one delivery: Camera (pickup), Tripod (delivery) | 2 shipments | {Camera}, {Tripod}'"
+    },
+    {
+      "id": "3.1b-concern-delivery-address",
+      "text": "Delivery address splitting is represented as its own table — items going to different addresses must be in separate shipments.",
+      "passed": true,
+      "evidence": "Section '2. Delivery Address Splitting' with dedicated table showing address-based splitting, e.g. 'Gift to a different address: Shirt (123 Main St), Toy (456 Oak Ave) | 2 shipments'"
+    },
+    {
+      "id": "3.1c-concern-availability",
+      "text": "Availability splitting is represented as its own table — in-stock items ship immediately, backordered/pre-ordered items ship when available.",
+      "passed": true,
+      "evidence": "Section '3. Availability-Based Splitting' with dedicated table showing 'One backordered: Shirt (in stock), Jeans (backordered May 1) | 2 shipments | {Shirt} immediately, {Jeans} May 1'"
+    },
+    {
+      "id": "3.1d-concern-warehouse-allocation",
+      "text": "Warehouse allocation (minimising shipments) is represented as its own table — choosing which warehouses to ship from to minimise total shipment count.",
+      "passed": true,
+      "evidence": "Section '4. Warehouse Allocation — Minimising Shipments' with dedicated table showing warehouse selection optimization, e.g. 'Two warehouses preferred over three' with 2 shipments chosen"
+    },
+    {
+      "id": "3.1e-concern-companion-products",
+      "text": "Companion product grouping is represented as its own table — paired items (e.g. camera body and lens) should ship together from the same location when possible.",
+      "passed": true,
+      "evidence": "Section '5. Companion Product Co-location' with dedicated table showing scenarios like 'Single warehouse stocks both companions: Camera body, Lens | Body ↔ Lens | 1 shipment | Chicago: body + lens | yes'"
+    },
+    {
+      "id": "3.2-depth-fulfillment-scenarios",
+      "text": "Fulfillment table covers at least: all items for home delivery, all items for store pickup, and a mix of delivery and pickup items.",
+      "passed": true,
+      "evidence": "Table 1 includes: 'All home delivery: Shirt (delivery), Jeans (delivery)', 'All store pickup: Camera (pickup), Bag (pickup)', and 'One pickup, one delivery: Camera (pickup), Tripod (delivery)'"
+    },
+    {
+      "id": "3.3-depth-delivery-address-scenarios",
+      "text": "Delivery address table covers at least: all items to the same address, and items to different addresses.",
+      "passed": true,
+      "evidence": "Table 2 includes: 'All to same address: Shirt (123 Main St), Book (123 Main St) | 1 shipment' and 'Gift to a different address: Shirt (123 Main St), Toy (456 Oak Ave) | 2 shipments'"
+    },
+    {
+      "id": "3.4-depth-availability-scenarios",
+      "text": "Availability table covers at least: all items in stock, a mix of in-stock and pre-order/backorder, and two backordered/pre-ordered items with different dates. Pre-order and backorder are recognised as equivalent for splitting semantics — either by comment, note, or by including both with the same rules.",
+      "passed": true,
+      "evidence": "Table 3 includes: 'All in stock', 'One backordered: Shirt (in stock), Jeans (backordered May 1)', 'Both backordered, different dates: Shirt (backordered May 1), Jeans (backordered Jun 1)', and 'In stock + pre-order' scenario. Intro states 'backordered and pre-order items ship when available' treating them equivalently"
+    },
+    {
+      "id": "3.5-depth-warehouse-scenarios",
+      "text": "Warehouse allocation table covers at least: single warehouse has full quantity, multi-warehouse split needed, fewer-warehouse split preferred over more warehouses, and cannot fulfill (insufficient total stock).",
+      "passed": true,
+      "evidence": "Table 4 includes: 'Single warehouse has full qty: Chicago: 6 | 1 shipment', 'Two warehouses needed, clean split', 'Two warehouses preferred over three' (2 shipments over 3), and 'Total stock insufficient: Cannot fulfill'"
+    },
+    {
+      "id": "3.6-depth-companion-scenarios",
+      "text": "Companion table covers at least: single warehouse has both companions, unavoidable split (no warehouse has both but both are available), and fulfillment not possible (one companion not available anywhere).",
+      "passed": false,
+      "evidence": "Table 5 includes: 'Single warehouse stocks both companions' (first scenario) and 'No warehouse stocks both companions' (fourth scenario with unavoidable split: Chicago: body, LA: lens). However, no scenario shows fulfillment impossible due to one companion being completely unavailable at any warehouse—all companion scenarios involve both items being available somewhere."
+    },
+    {
+      "id": "3.7-readability-scenario-names",
+      "text": "Scenario names describe the business situation (e.g. 'Consolidate: two beats three', 'Everything at one warehouse') — not 'Test case 2'.",
+      "passed": true,
+      "evidence": "All scenario names are descriptive: 'All home delivery', 'One pickup, one delivery', 'Gift to a different address', 'Both backordered, different dates', 'Two warehouses preferred over three', 'Co-location is a tie-breaker between equal-shipment options'. None use generic labels like 'Test case 2'"
+    },
+    {
+      "id": "3.8-readability-item-property-mapping",
+      "text": "Trigger tables represent multi-item orders where each item has its own fulfillment type, address, and availability. The notation makes the item-to-property mapping unambiguous — not value sets like {delivery, pickup} which lose which item has which property.",
+      "passed": true,
+      "evidence": "Tables use explicit item-property notation: 'Shirt (delivery), Jeans (delivery)' in Table 1; 'Shirt (123 Main St), Toy (456 Oak Ave)' in Table 2; 'Shirt (in stock), Jeans (backordered May 1)' in Table 3. Each item name has its properties in parentheses, making mapping unambiguous"
+    },
+    {
+      "id": "3.9-readability-scalar-column",
+      "text": "Warehouse allocation table uses a scalar count column (e.g. 'Qty ordered') not item lists, when product identity doesn't matter for the logic.",
+      "passed": true,
+      "evidence": "Table 4 uses 'Qty ordered' column with scalar values (6, 4, 6, 6, 6, 6) and 'Warehouse stocks' shows quantities: 'Chicago: 6', 'Chicago: 6, LA: 3, Houston: 1' rather than item names"
+    },
+    {
+      "id": "3.10-readability-business-language",
+      "text": "Column names use business/domain language (e.g. 'Shipments?' not 'Result?', 'Warehouse stock' not 'inventory_map'). The tables read as a specification a product person could review.",
+      "passed": true,
+      "evidence": "Column names across all tables use business language: 'Cart items', 'Shipments?', 'Groups?', 'Warehouse stocks', 'Allocation?', 'Companion pair', 'Companions together?' — all domain-appropriate and readable by product stakeholders"
+    },
+    {
+      "id": "3.11-readability-output-column-question-mark",
+      "text": "Output/expected columns end with '?' (e.g. 'Shipments?', 'Groups?') to distinguish them from input columns.",
+      "passed": true,
+      "evidence": "All output columns consistently use question marks: 'Shipments?' and 'Groups?' in Tables 1–3; 'Shipments?', 'Allocation?', and 'Companions together?' in Tables 4–5, while input columns ('Scenario', 'Cart items', 'Warehouse stocks') lack question marks"
+    },
+    {
+      "id": "3.12-correctness-valid-assignments",
+      "text": "Inventory assignments are physically valid: items are only assigned to locations that have them. Shipment counts match the assignments shown.",
+      "passed": true,
+      "evidence": "Table 4: 'Two warehouses needed, uneven split' — 6 items needed, Chicago stock: 4, LA stock: 4, allocation 'Chicago: 4, LA: 2' uses available inventory; 'Cannot fulfill' — 6 needed but only 5 total available (2+2+1). Table 5: 'No warehouse stocks both companions' — body assigned to Chicago (which has it), lens to LA (which has it)"
+    },
+    {
+      "id": "3.13-depth-open-questions",
+      "text": "Multiple open questions are surfaced across the tables — ambiguities, edge cases, or product decisions that the requirements don't fully specify.",
+      "passed": true,
+      "evidence": "Three 'Open questions:' sections surfaced: Table 3 with 2 questions (backorder date handling, early shipment opt-out); Table 4 with 2 questions (tie-breaking criteria, per-item vs order-wide application); Table 5 with 3 questions (companion availability conflicts, multi-item companion sets, fulfillment method boundaries)"
+    }
+  ],
+  "assertions_passed": 16,
+  "assertions_total": 17,
+  "pass_rate": 0.9411764705882353
+}
