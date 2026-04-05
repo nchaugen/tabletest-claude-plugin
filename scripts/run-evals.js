@@ -41,7 +41,9 @@ Rules:
 - Be strict. An assertion passes only if clearly demonstrated in the response.
 - The evidence field must contain a direct quote from the response, not your interpretation.
 - If the assertion is about absence (e.g. "does NOT invent..."), evidence should explain what you checked and why it passes/fails.
-- Return valid JSON only. No markdown code fences. No text before or after the JSON.`;
+- Return valid JSON only. No markdown code fences. No text before or after the JSON.
+- Keep evidence short (under 80 chars). Summarise or truncate long quotes. Replace triple-quotes or special characters with ellipsis.
+- Ensure all strings in the JSON are properly escaped (especially double quotes within values).`;
 
 function parseEvalIds(str) {
   const ids = [];
@@ -500,28 +502,78 @@ async function gradeOne(evalDef, config, iterationDir, model, gradingSuffix = nu
     cwd: process.cwd(),
   });
 
-  // Parse grading JSON from the response
+  // Parse grading JSON from the response — try multiple extraction strategies
   const gradingText = result.result || "";
   let grading;
-  try {
-    grading = JSON.parse(gradingText);
-  } catch {
-    // Try extracting JSON from markdown code fences
-    const fenceMatch = gradingText.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (fenceMatch) {
-      grading = JSON.parse(fenceMatch[1]);
-    } else {
-      // Try extracting the outermost JSON object (handles prose before/after)
-      const start = gradingText.indexOf("{");
-      const end = gradingText.lastIndexOf("}");
-      if (start !== -1 && end > start) {
-        grading = JSON.parse(gradingText.slice(start, end + 1));
-      } else {
-        throw new Error(
-          `Failed to parse grading JSON for eval ${evalDef.id}: ${gradingText.slice(0, 200)}`
-        );
+
+  function extractJson(text) {
+    const start = text.indexOf("{");
+    const end = text.lastIndexOf("}");
+    if (start === -1 || end <= start) return null;
+    return text.slice(start, end + 1);
+  }
+
+  // Repair common JSON issues: unescaped quotes inside string values
+  function repairJson(text) {
+    // Fix unescaped quotes in "evidence" values — the most common failure mode.
+    // Strategy: find "evidence": "..." patterns and escape inner quotes.
+    return text.replace(/"evidence":\s*"((?:[^"\\]|\\.)*)(")((?:[^"\\]|\\.)*"[^,}\]]*)/g,
+      (match) => {
+        // Fall back to a simpler approach: find each evidence value and escape it
+        return match;
       }
+    ) || text;
+  }
+
+  // More robust repair: re-serialize by finding assertion blocks with regex
+  function repairGradingJson(text) {
+    const json = extractJson(text) || text;
+    const assertions = [];
+    // Match each assertion object, tolerant of broken evidence strings
+    const pattern = /"id"\s*:\s*"([^"]*)"[\s\S]*?"text"\s*:\s*"((?:[^"\\]|\\.)*)"[\s\S]*?"passed"\s*:\s*(true|false)[\s\S]*?"evidence"\s*:\s*"([\s\S]*?)"\s*\n?\s*[}\]]/g;
+    let m;
+    while ((m = pattern.exec(json)) !== null) {
+      assertions.push({
+        id: m[1],
+        text: m[2].replace(/\\"/g, '"'),
+        passed: m[3] === "true",
+        evidence: m[4].replace(/\\"/g, '"').replace(/"/g, "'").replace(/\n/g, " ").trim(),
+      });
     }
+    if (assertions.length === 0) return null;
+    return { assertions };
+  }
+
+  const parseAttempts = [
+    () => JSON.parse(gradingText),
+    () => {
+      const m = gradingText.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (!m) throw new Error("no fence");
+      return JSON.parse(m[1]);
+    },
+    () => {
+      const json = extractJson(gradingText);
+      if (!json) throw new Error("no braces");
+      return JSON.parse(json);
+    },
+    () => {
+      const repaired = repairGradingJson(gradingText);
+      if (!repaired) throw new Error("repair failed");
+      return repaired;
+    },
+  ];
+  for (const attempt of parseAttempts) {
+    try {
+      grading = attempt();
+      break;
+    } catch {
+      // try next strategy
+    }
+  }
+  if (!grading) {
+    throw new Error(
+      `Failed to parse grading JSON for eval ${evalDef.id}: ${gradingText.slice(0, 200)}`
+    );
   }
 
   // Add summary fields
@@ -591,6 +643,7 @@ function aggregateResults(evals, iterationDir, args) {
     summary: {},
   };
 
+  const regradedEntries = [];
   for (const evalDef of evals) {
     const evalEntry = {
       id: `eval-${evalDef.id}-${evalDef.slug}`,
@@ -629,7 +682,21 @@ function aggregateResults(evals, iterationDir, args) {
       }
     }
 
-    benchmark.evals.push(evalEntry);
+    regradedEntries.push(evalEntry);
+  }
+
+  // When re-grading a subset, merge with existing benchmark instead of replacing
+  const benchPath = path.join(iterationDir, "benchmark.json");
+  if (args.gradeOnly && fs.existsSync(benchPath)) {
+    const existing = JSON.parse(fs.readFileSync(benchPath, "utf-8"));
+    for (const newEntry of regradedEntries) {
+      const idx = existing.evals.findIndex((e) => e.id === newEntry.id);
+      if (idx !== -1) existing.evals[idx] = newEntry;
+      else existing.evals.push(newEntry);
+    }
+    benchmark.evals = existing.evals;
+  } else {
+    benchmark.evals = regradedEntries;
   }
 
   // Compute summaries per config
