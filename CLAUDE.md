@@ -24,7 +24,11 @@ The `.github/workflows/release.yml` workflow triggers on version tags and create
 Skills are validated via a benchmark in `skills-workspace/`:
 
 ```
-evals/evals.json          ← eval definitions (prompts + assertions) — source of truth
+evals/
+  eval-X-name/
+    prompt.md             ← user prompt sent to Claude
+    expected_output.md    ← criteria for grading
+    eval.json             ← metadata: id, slug, skill, assertions, timeout_ms?
 iteration-N/
   benchmark.json          ← aggregated pass rates and token counts
   eval-review.md          ← human-readable report with regression detection
@@ -50,7 +54,7 @@ node scripts/run-evals.js --iteration N --baseline-only  # run without skill onl
 
 ### Contamination Protocol
 
-`docs/` contains ideal answer tables and spec documents describing eval strategy and known weaknesses. `skills-workspace/iteration-*/` directories contain prior model responses to the same eval prompts. `skills-workspace/evals/evals.json` contains assertions that describe the exact expected output structure. `README.md`, `CLAUDE.md`, and `CHANGELOG.md` describe eval strategy and project context. Agents exploring the codebase during eval runs could discover and use any of these, invalidating results.
+`docs/` contains ideal answer tables and spec documents describing eval strategy and known weaknesses. `skills-workspace/iteration-*/` directories contain prior model responses to the same eval prompts. Each eval's `eval.json` and `expected_output.md` contain assertions and grading criteria that describe the exact expected output structure. `README.md`, `CLAUDE.md`, and `CHANGELOG.md` describe eval strategy and project context. Agents exploring the codebase during eval runs could discover and use any of these, invalidating results.
 
 **The `run-evals.js` script enforces this automatically** — it creates a git worktree and removes contaminating files. Git tools are disallowed at runtime (`--disallowedTools "Bash(git:*)"`) so agents cannot recover deleted files from history.
 
@@ -59,6 +63,6 @@ node scripts/run-evals.js --iteration N --baseline-only  # run without skill onl
 2. Remove docs: `rm -rf /tmp/eval-run/docs`
 3. Remove project files: `rm -f /tmp/eval-run/{README,CLAUDE,CHANGELOG}.md`
 4. Remove prior iterations: `rm -rf /tmp/eval-run/skills-workspace/iteration-*`
-5. Remove eval definitions: `rm -f /tmp/eval-run/skills-workspace/evals/evals.json`
+5. Remove eval answer keys: `find /tmp/eval-run/skills-workspace/evals -name eval.json -o -name expected_output.md | xargs rm -f`
 6. Run evals from the worktree with `--disallowedTools "Bash(git:*)"`
 7. Clean up: `git worktree remove /tmp/eval-run`

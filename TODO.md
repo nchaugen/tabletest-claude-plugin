@@ -11,10 +11,11 @@
 
 ## Refactoring
 
-### Split evals.json
-- Document is long and hard to read
-- Instead put each eval in separate sub-directory and spread eval values into separate files
-- For evals working on existing code, create actual project directory with code files in the eval sub-directory
+### ~~Split evals.json~~ (done)
+
+### Extract inline code to project files
+- For evals working on existing code (e.g. eval 18, 19), create actual project directory with code files in the eval sub-directory
+- Update run-evals.js to set per-eval cwd to the eval's directory
 
 ## Skill improvements
 

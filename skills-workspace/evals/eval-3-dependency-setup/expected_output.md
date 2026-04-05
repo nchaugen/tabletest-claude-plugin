@@ -1,0 +1,1 @@
+The response should flag that JUnit 5.10.0 is below the required 5.11 minimum and recommend upgrading. It should provide the correct tabletest-junit dependency coordinates from the dependency-setup reference (not from memory). It should not guess the groupId/artifactId.

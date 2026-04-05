@@ -1,0 +1,1 @@
+One or more example tables covering the transitions. Should use business language (not enum names as-is unless they're domain terms). Should include the 'regardless of' pattern for cases where a rule holds across multiple states. Should flag the '30 days' rule as either a threshold column or an open question. Scenario names should describe conditions, not outcomes.

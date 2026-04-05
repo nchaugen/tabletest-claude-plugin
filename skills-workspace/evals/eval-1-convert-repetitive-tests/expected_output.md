@@ -1,0 +1,1 @@
+A single @TableTest method with a scenario column, a customer tier column, an order amount column, and a discount expectation column (suffixed with ?). The table should have 3 rows, one per original test. The method body should contain a single assertEquals.

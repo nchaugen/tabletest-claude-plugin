@@ -1,0 +1,1 @@
+A @TableTest with a scenario column (missing from the @ParameterizedTest), descriptive scenario names, and an output column with '?' suffix. Should use value sets to consolidate rows with the same outcome where the underlying rule is the same. Clean method body with no if/switch.

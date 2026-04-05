@@ -1,0 +1,1 @@
+I'm building an order status transition system. An order can be in states: PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED. The rules are getting complex — cancellation is allowed from PENDING and CONFIRMED but not after SHIPPED, and DELIVERED orders can be flagged for return within 30 days. Help me write out the examples before I start coding.

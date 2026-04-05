@@ -1,0 +1,1 @@
+A @TableTest with a scenario column and an input column. The valid cases should have a LocalDate result column. The exception case should use a Throws? column or be split into a separate @TableTest. The method should handle type conversion cleanly, using @TypeConverter if needed for non-standard formats. Null should be represented as a blank cell.

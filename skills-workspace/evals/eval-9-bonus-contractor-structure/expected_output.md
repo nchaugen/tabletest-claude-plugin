@@ -1,0 +1,1 @@
+A single @TableTest with CONTRACTOR using a value set for Department ({SALES, ENGINEERING}) to express 'regardless of department'. Not a separate table, not dummy placeholder values like 'ANY' or 'N/A', and not enumerated as individual rows.

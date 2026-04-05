@@ -4,8 +4,24 @@ const { execSync, spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
-const EVALS_PATH = "skills-workspace/evals/evals.json";
+const EVALS_DIR = "skills-workspace/evals";
 const WORKSPACE_PATH = "skills-workspace";
+
+function loadEvalsFromDir(evalsDir) {
+  const entries = fs.readdirSync(evalsDir).filter(e => e.startsWith("eval-"));
+  entries.sort((a, b) => {
+    const idA = parseInt(a.split("-")[1], 10);
+    const idB = parseInt(b.split("-")[1], 10);
+    return idA - idB;
+  });
+  return entries.map(entry => {
+    const dir = path.join(evalsDir, entry);
+    const meta = JSON.parse(fs.readFileSync(path.join(dir, "eval.json"), "utf-8"));
+    meta.prompt = fs.readFileSync(path.join(dir, "prompt.md"), "utf-8").replace(/\n$/, "");
+    meta.expected_output = fs.readFileSync(path.join(dir, "expected_output.md"), "utf-8").replace(/\n$/, "");
+    return meta;
+  });
+}
 
 // Logger that writes to both console and a log file (sync flush to survive crashes)
 let logFile = null;
@@ -139,11 +155,7 @@ async function main() {
     encoding: "utf-8",
   }).trim();
 
-  const evalsData = JSON.parse(
-    fs.readFileSync(path.join(repoRoot, EVALS_PATH), "utf-8")
-  );
-
-  let evals = evalsData.evals;
+  let evals = loadEvalsFromDir(path.join(repoRoot, EVALS_DIR));
   if (args.evals) {
     evals = evals.filter((e) => args.evals.includes(e.id));
   }
@@ -215,9 +227,19 @@ function setupWorktree(repoRoot, mode = "skill") {
     if (fs.existsSync(p)) { fs.rmSync(p); removals.push(file); }
   }
 
-  // Eval definitions (assertions are the answer key)
-  const evalsFile = path.join(worktreePath, EVALS_PATH);
-  if (fs.existsSync(evalsFile)) { fs.rmSync(evalsFile); removals.push("evals.json"); }
+  // Eval definitions: remove eval.json and expected_output.md (answer keys), keep prompt.md (input)
+  const evalsDir = path.join(worktreePath, EVALS_DIR);
+  if (fs.existsSync(evalsDir)) {
+    for (const entry of fs.readdirSync(evalsDir)) {
+      if (!entry.startsWith("eval-")) continue;
+      const dir = path.join(evalsDir, entry);
+      for (const file of ["eval.json", "expected_output.md"]) {
+        const p = path.join(dir, file);
+        if (fs.existsSync(p)) fs.rmSync(p);
+      }
+    }
+    removals.push("eval definitions (eval.json + expected_output.md)");
+  }
 
   // Prior iteration outputs (model answers to the same prompts)
   const workspaceDir = path.join(worktreePath, "skills-workspace");

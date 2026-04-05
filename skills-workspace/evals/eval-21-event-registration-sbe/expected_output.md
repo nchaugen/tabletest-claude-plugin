@@ -1,0 +1,1 @@
+One or more markdown tables covering validation rules and pricing rules separately. Absent optional fields (dietary, accessibility) use blank cells when not provided. When testing pricing rules where dietary requirements are irrelevant, the distinction should be clear. Open questions surfaced for discount stacking ambiguity.

@@ -1,0 +1,1 @@
+One or more @TableTest methods whose columns represent the method's public inputs (applicantType, age, claimCount) and observable outputs (decision, premium) — not internal fields like hasActivePolicy, internalRiskScore. Scenario names describe conditions. Business-language column names.

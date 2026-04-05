@@ -1,0 +1,1 @@
+A @TableTest (or pair of @TableTest methods) covering both valid and invalid inputs. Valid inputs use a result column with '?' suffix. Null input is a blank cell. The exception cases use a Throws? column or a separate @TableTest with assertThrows. No duplication of assertion logic across rows.

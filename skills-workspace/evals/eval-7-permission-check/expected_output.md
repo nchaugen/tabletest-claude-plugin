@@ -1,0 +1,1 @@
+A @TableTest that uses value sets (e.g. {READ, WRITE, DELETE} or {READ, WRITE}) to express rules that hold across multiple actions, rather than writing one row per role/action combination. Should not have 9 individual rows. No if/switch in method body.

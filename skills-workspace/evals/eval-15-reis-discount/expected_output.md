@@ -1,0 +1,1 @@
+Multiple @TableTest methods with separate tables for: discount ladder (deriving tiers from the 'every fifth trip' rule, using value sets per tier), traveller eligibility (adults/seniors vs children), and 30-day rolling window counting (with boundary testing). Should use TypeConverters for human-readable values.

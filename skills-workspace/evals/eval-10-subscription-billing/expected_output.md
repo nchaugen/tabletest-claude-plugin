@@ -1,0 +1,1 @@
+The response should produce at least two separate example tables covering distinct concerns — e.g. one for plan pricing, one for cancellation/refund rules. It should not try to combine everything into a single table. Each table should have a clear named concern, business-language column names, and at least one output column ending with '?'.

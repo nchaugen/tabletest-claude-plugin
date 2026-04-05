@@ -1,0 +1,1 @@
+Midway through implementing a discount calculator I found that the 'bulk' discount and the 'loyalty' discount interact in ways we haven't agreed on. Specifically: does a customer get both discounts stacked, or only the higher one, and is there a cap? I need to work this out with the team.

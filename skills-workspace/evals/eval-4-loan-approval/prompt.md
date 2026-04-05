@@ -1,0 +1,1 @@
+We're implementing a loan approval feature. The rule is: customers are approved if their credit score is above 650 and they have a stable income. But senior applicants (65+) get approved with a lower threshold of 600. We're not sure what happens if income info is missing. Can you help me work out the examples?
