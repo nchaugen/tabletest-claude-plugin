@@ -2,7 +2,7 @@
   "skill_name": "tabletest + spec-by-example",
   "iteration": 25,
   "model": "sonnet",
-  "timestamp": "2026-04-04T12:37:00.500Z",
+  "timestamp": "2026-04-05T14:11:29.308Z",
   "evals": [
     {
       "id": "eval-1-convert-repetitive-tests",
@@ -26,8 +26,8 @@
       "skill": "tabletest",
       "results": {
         "with_skill": {
-          "assertions_passed": 10,
-          "assertions_total": 10,
+          "assertions_passed": 13,
+          "assertions_total": 13,
           "pass_rate": 1,
           "failed_assertions": [],
           "total_tokens": 106297,
@@ -58,11 +58,15 @@
       "skill": "spec-by-example",
       "results": {
         "with_skill": {
-          "assertions_passed": 9,
-          "assertions_total": 10,
-          "pass_rate": 0.9,
+          "assertions_passed": 8,
+          "assertions_total": 13,
+          "pass_rate": 0.6153846153846154,
           "failed_assertions": [
-            "scenario-names-describe-conditions"
+            "scenario-names-describe-conditions",
+            "threshold-as-column",
+            "concerns-decomposed",
+            "minimal-rows-per-concern",
+            "separates-age-credit-income"
           ],
           "total_tokens": 66529,
           "duration_ms": 35625,
@@ -76,8 +80,8 @@
       "skill": "spec-by-example",
       "results": {
         "with_skill": {
-          "assertions_passed": 7,
-          "assertions_total": 7,
+          "assertions_passed": 10,
+          "assertions_total": 10,
           "pass_rate": 1,
           "failed_assertions": [],
           "total_tokens": 67835,
@@ -124,8 +128,8 @@
       "skill": "tabletest",
       "results": {
         "with_skill": {
-          "assertions_passed": 10,
-          "assertions_total": 10,
+          "assertions_passed": 13,
+          "assertions_total": 13,
           "pass_rate": 1,
           "failed_assertions": [],
           "total_tokens": 209823,
@@ -141,11 +145,9 @@
       "results": {
         "with_skill": {
           "assertions_passed": 11,
-          "assertions_total": 12,
-          "pass_rate": 0.9166666666666666,
-          "failed_assertions": [
-            "traceability-column-present"
-          ],
+          "assertions_total": 11,
+          "pass_rate": 1,
+          "failed_assertions": [],
           "total_tokens": 108357,
           "duration_ms": 42846,
           "cost_usd": 0.1077603
@@ -159,9 +161,14 @@
       "results": {
         "with_skill": {
           "assertions_passed": 12,
-          "assertions_total": 12,
-          "pass_rate": 1,
-          "failed_assertions": [],
+          "assertions_total": 16,
+          "pass_rate": 0.75,
+          "failed_assertions": [
+            "prorated-refund-formula",
+            "output-values-traceable",
+            "refund-table-includes-price-paid",
+            "refund-table-shows-proportion"
+          ],
           "total_tokens": 68115,
           "duration_ms": 61958,
           "cost_usd": 0.09725310000000001
@@ -174,12 +181,11 @@
       "skill": "spec-by-example",
       "results": {
         "with_skill": {
-          "assertions_passed": 8,
-          "assertions_total": 10,
-          "pass_rate": 0.8,
+          "assertions_passed": 12,
+          "assertions_total": 13,
+          "pass_rate": 0.9230769230769231,
           "failed_assertions": [
-            "open-question-surfaced",
-            "question-mark-only-on-outputs"
+            "separates-pricing-trial-loyalty-refund"
           ],
           "total_tokens": 68448,
           "duration_ms": 64191,
@@ -193,11 +199,13 @@
       "skill": "spec-by-example",
       "results": {
         "with_skill": {
-          "assertions_passed": 7,
-          "assertions_total": 8,
-          "pass_rate": 0.875,
+          "assertions_passed": 8,
+          "assertions_total": 11,
+          "pass_rate": 0.7272727272727273,
           "failed_assertions": [
-            "overnight-grouped"
+            "express-uses-value-sets",
+            "overnight-grouped",
+            "minimal-rows-per-concern"
           ],
           "total_tokens": 70521,
           "duration_ms": 92305,
@@ -211,15 +219,14 @@
       "skill": "tabletest",
       "results": {
         "with_skill": {
-          "assertions_passed": 13,
-          "assertions_total": 18,
-          "pass_rate": 0.7222222222222222,
+          "assertions_passed": 15,
+          "assertions_total": 19,
+          "pass_rate": 0.7894736842105263,
           "failed_assertions": [
             "1.1-traceability-columns",
             "1.5-depth-error-edge-cases",
             "1.6-readability-empty-cells",
-            "rules-separate-from-arithmetic",
-            "arithmetic-minimal-rows"
+            "separates-classification-and-calculation"
           ],
           "total_tokens": 361428,
           "duration_ms": 280771,
@@ -233,16 +240,16 @@
       "skill": "tabletest",
       "results": {
         "with_skill": {
-          "assertions_passed": 12,
-          "assertions_total": 18,
-          "pass_rate": 0.6666666666666666,
+          "assertions_passed": 14,
+          "assertions_total": 20,
+          "pass_rate": 0.7,
           "failed_assertions": [
-            "2.9-correctness-value-set-tier-semantics",
-            "2.12-format-typeconverter",
             "2.15-ticket-count-uses-value-sets",
+            "2.12-format-typeconverter",
             "2.17-zone-irrelevance-visible",
             "2.20-readability-one-row-per-tier",
-            "2.21-readability-relative-time"
+            "2.21-readability-relative-time",
+            "minimal-rows-per-concern"
           ],
           "total_tokens": 322521,
           "duration_ms": 384195,
@@ -257,13 +264,15 @@
       "results": {
         "with_skill": {
           "assertions_passed": 13,
-          "assertions_total": 17,
-          "pass_rate": 0.7647058823529411,
+          "assertions_total": 19,
+          "pass_rate": 0.6842105263157895,
           "failed_assertions": [
             "3.1a-concern-fulfillment-method",
             "3.1b-concern-delivery-address",
             "3.1c-concern-availability",
-            "3.6-depth-companion-scenarios"
+            "3.6-depth-companion-scenarios",
+            "concerns-decomposed",
+            "minimal-rows-per-concern"
           ],
           "total_tokens": 93969,
           "duration_ms": 475738,
@@ -277,12 +286,13 @@
       "skill": "spec-by-example",
       "results": {
         "with_skill": {
-          "assertions_passed": 14,
-          "assertions_total": 16,
-          "pass_rate": 0.875,
+          "assertions_passed": 15,
+          "assertions_total": 18,
+          "pass_rate": 0.8333333333333334,
           "failed_assertions": [
             "4.5-depth-coupon-application",
-            "4.6-depth-cart-total-scenarios"
+            "4.6-depth-cart-total-scenarios",
+            "minimal-rows-per-concern"
           ],
           "total_tokens": 70005,
           "duration_ms": 86010,
@@ -297,10 +307,13 @@
       "results": {
         "with_skill": {
           "assertions_passed": 10,
-          "assertions_total": 11,
-          "pass_rate": 0.9090909090909091,
+          "assertions_total": 14,
+          "pass_rate": 0.7142857142857143,
           "failed_assertions": [
-            "scenario-names-describe-conditions"
+            "scenario-names-describe-conditions",
+            "concerns-decomposed",
+            "minimal-rows-per-concern",
+            "separates-decision-and-premium"
           ],
           "total_tokens": 73488,
           "duration_ms": 102506,
@@ -315,11 +328,9 @@
       "results": {
         "with_skill": {
           "assertions_passed": 8,
-          "assertions_total": 9,
-          "pass_rate": 0.8888888888888888,
-          "failed_assertions": [
-            "value-sets-used"
-          ],
+          "assertions_total": 8,
+          "pass_rate": 1,
+          "failed_assertions": [],
           "total_tokens": 67155,
           "duration_ms": 20902,
           "cost_usd": 0.06745469999999999
@@ -332,10 +343,12 @@
       "skill": "tabletest",
       "results": {
         "with_skill": {
-          "assertions_passed": 10,
+          "assertions_passed": 9,
           "assertions_total": 10,
-          "pass_rate": 1,
-          "failed_assertions": [],
+          "pass_rate": 0.9,
+          "failed_assertions": [
+            "special-chars-quoted"
+          ],
           "total_tokens": 119634,
           "duration_ms": 141702,
           "cost_usd": 0.21773745
@@ -348,10 +361,12 @@
       "skill": "spec-by-example",
       "results": {
         "with_skill": {
-          "assertions_passed": 7,
-          "assertions_total": 7,
-          "pass_rate": 1,
-          "failed_assertions": [],
+          "assertions_passed": 12,
+          "assertions_total": 13,
+          "pass_rate": 0.9230769230769231,
+          "failed_assertions": [
+            "no-redundant-policy-columns"
+          ],
           "total_tokens": 66217,
           "duration_ms": 29508,
           "cost_usd": 0.07425105
@@ -364,10 +379,17 @@
       "skill": "tabletest",
       "results": {
         "with_skill": {
-          "assertions_passed": 12,
-          "assertions_total": 12,
-          "pass_rate": 1,
-          "failed_assertions": [],
+          "assertions_passed": 14,
+          "assertions_total": 20,
+          "pass_rate": 0.7,
+          "failed_assertions": [
+            "blank-for-absent-optional",
+            "validation-includes-optional-fields",
+            "descriptive-registration-date",
+            "cutoff-date-column-if-literal-dates",
+            "description-no-irrelevant-information",
+            "discount-column-preferred"
+          ],
           "total_tokens": 220456,
           "duration_ms": 216385,
           "cost_usd": 0.33689145
@@ -381,10 +403,13 @@
       "results": {
         "with_skill": {
           "assertions_passed": 10,
-          "assertions_total": 11,
-          "pass_rate": 0.9090909090909091,
+          "assertions_total": 14,
+          "pass_rate": 0.7142857142857143,
           "failed_assertions": [
-            "concrete-domain-values"
+            "threshold-as-column",
+            "concerns-decomposed",
+            "minimal-rows-per-concern",
+            "separates-age-credit-income"
           ],
           "total_tokens": 218847,
           "duration_ms": 174263,
@@ -399,11 +424,12 @@
       "results": {
         "with_skill": {
           "assertions_passed": 6,
-          "assertions_total": 8,
-          "pass_rate": 0.75,
+          "assertions_total": 9,
+          "pass_rate": 0.6666666666666666,
           "failed_assertions": [
-            "rules-separate-from-arithmetic",
-            "arithmetic-minimal-rows"
+            "concerns-decomposed",
+            "minimal-rows-per-concern",
+            "separates-classification-and-calculation"
           ],
           "total_tokens": 69185,
           "duration_ms": 72028,
@@ -414,9 +440,9 @@
   ],
   "summary": {
     "with_skill": {
-      "assertions_passed": 221,
-      "assertions_total": 248,
-      "pass_rate": 0.8911290322580645,
+      "assertions_passed": 245,
+      "assertions_total": 296,
+      "pass_rate": 0.8277027027027027,
       "total_tokens": 2873555,
       "total_duration_ms": 2618550,
       "total_cost_usd": 4.71455055

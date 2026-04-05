@@ -4,43 +4,43 @@
       "id": "produces-markdown-table",
       "text": "Output contains a markdown table",
       "passed": true,
-      "evidence": "| Scenario | Order Value | Bulk Threshold | Bulk Discount (Policy) | Loyalty Member | Loyalty Discount (Policy) | Discount Cap (Policy) | Discount Applied? | Final Price? |"
+      "evidence": "Table with headers like \"Scenario | Order Value | Bulk Threshold | ...\" and rows with data separated by pipes"
     },
     {
       "id": "does-not-invent-resolution",
       "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved",
       "passed": true,
-      "evidence": "Multiple cells explicitly marked with '?' including 'Discount Cap (Policy)' column showing '?' across rows, and rows like 'Both apply — capped' having '?' for both 'Discount Applied?' and 'Final Price?' columns"
+      "evidence": "Multiple `?` cells in 'Discount Cap (Policy)', 'Discount Applied?', and 'Final Price?' columns for rows 4-7"
     },
     {
       "id": "covers-both-discounts-applying",
       "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)",
       "passed": true,
-      "evidence": "| Both apply — stacked | £150 | £100 | 10% | yes | 5% | ? | 15% | £127.50 | and rows 5, 6, 7 which also show both discounts applying with different resolution approaches"
+      "evidence": "Rows 4-7 all show scenarios where both discounts apply: 'Both apply — stacked', 'Both apply — higher only', 'Both apply — capped', 'Large order, high loyalty'"
     },
     {
       "id": "open-question-surfaced",
       "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note",
       "passed": true,
-      "evidence": "The three open questions this makes explicit: 1. Stacking vs. higher-only: Rows 4 and 5 show the two options — which is it? 2. Cap: Does a cap exist? If so, what is it — and does it apply before or after stacking? 3. Large order + high loyalty: Row 7 is the stress test"
+      "evidence": "'The three open questions this makes explicit: 1. Stacking vs. higher-only... 2. Cap... 3. Large order + high loyalty...'"
     },
     {
       "id": "output-column-has-question-mark",
       "text": "At least one output column ends with '?'",
       "passed": true,
-      "evidence": "Both 'Discount Applied?' and 'Final Price?' are column headers that end with '?'"
+      "evidence": "Columns 'Discount Applied?' and 'Final Price?' both end with '?' in header row"
     },
     {
       "id": "extreme-discount-row",
-      "text": "Table includes at least one row with a high combined discount (e.g. large order + top loyalty tier) that would force a decision about whether a cap applies — making the cap question concrete, not theoretical",
+      "text": "Table includes at least one row with a high combined discount (e.g. large order + top loyalty tier) that would force a decision about whether a cap applies — making the cap question concrete, not theoretical.",
       "passed": true,
-      "evidence": "| Large order, high loyalty | £500 | £100 | 10% | yes | 15% | ? | ? | ? | with the note 'Row 7 is the stress test — with bigger discounts the stakes are higher'"
+      "evidence": "Row 7: 'Large order, high loyalty | £500 | £100 | 10% | yes | 15% | ? | ? | ?'"
     },
     {
       "id": "scenario-column-present",
       "text": "Table has a scenario/description column as the leftmost column",
       "passed": true,
-      "evidence": "First column is 'Scenario' with descriptions such as 'No discounts apply', 'Loyalty only', 'Bulk only', 'Both apply — stacked', etc."
+      "evidence": "Leftmost column is 'Scenario' with descriptive entries like 'No discounts apply', 'Loyalty only', 'Bulk only', etc."
     }
   ],
   "assertions_passed": 7,

@@ -4,7 +4,7 @@
       "id": "flags-junit-version",
       "text": "Response explicitly flags that JUnit 5.10.0 is below the required minimum (5.11) and recommends upgrading",
       "passed": true,
-      "evidence": "**One thing to watch out for**: your JUnit Jupiter version. TableTest requires **5.11 or higher**, and you currently have **5.10.0**. You'll need to bump it:"
+      "evidence": "TableTest requires **5.11 or higher**, and you currently have **5.10.0**. You'll need to bump it"
     },
     {
       "id": "provides-correct-groupid",

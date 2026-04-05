@@ -4,11 +4,11 @@
       "id": "produces-multiple-tables",
       "text": "Output contains at least 2 separate markdown tables",
       "passed": true,
-      "evidence": "Response includes 'Table 1: Subscription Charge' and 'Table 2: Cancellation Refund', each with distinct markdown table syntax and different purposes."
+      "evidence": "Table 1: Subscription Charge and Table 2: Cancellation Refund are both present"
     },
     {
       "id": "annual-no-trial-rule-represented",
-      "text": "A table or note explicitly captures that the free trial is not available on annual plans (not just implied)",
+      "text": "A table or note explicitly captures that the free trial is not available on annual plans",
       "passed": true,
       "evidence": "Note states: 'Annual + trial is not a valid combination (rule 6), so no row for it.'"
     },
@@ -16,52 +16,70 @@
       "id": "loyalty-discount-row-present",
       "text": "At least one table row demonstrates the loyalty programme discount scenario for annual plan subscribers",
       "passed": true,
-      "evidence": "Table 1 contains row: 'Annual subscriber, loyalty member | Annual | yes | no | £86.29/year' showing the discounted price compared to non-loyalty annual at £95.88/year."
+      "evidence": "Table 1 row: 'Annual subscriber, loyalty member | Annual | yes | no | £86.29/year'"
     },
     {
       "id": "surfaces-genuine-open-questions",
       "text": "The response identifies at least one genuinely underspecified interaction",
       "passed": true,
-      "evidence": "Response explicitly lists three open questions: (1) 'Loyalty refund basis... is the prorated refund calculated on the discounted price... or the full price?', (2) '24h rule on annual renewals... Does this apply to annual renewals too, or only monthly?', (3) 'Trial → monthly conversion: first billing... Does the 24h no-refund rule apply if they cancel in the first 2 hours after that charge?'"
+      "evidence": "Three open questions listed: loyalty refund basis (discounted vs full price), 24h rule on annual renewals, and trial-to-monthly first billing"
     },
     {
       "id": "open-question-surfaced",
-      "text": "The annual/loyalty/trial interaction is correctly resolved with a note explaining that they are mutually exclusive (annual gets loyalty discounts but no trial, monthly gets trial but no loyalty discount) — not left as an unresolved open question",
-      "passed": false,
-      "evidence": "The response explicitly raises an open question about the resolved case: 'Is £9.99/month correct, or does loyalty membership ever apply to monthly plans? The rules only mention annual, but worth confirming.' This leaves the loyalty-monthly interaction unresolved rather than confirming mutual exclusivity."
+      "text": "The annual/loyalty/trial interaction is correctly resolved with a note explaining mutual exclusivity",
+      "passed": true,
+      "evidence": "Note: 'Annual + trial is not a valid combination (rule 6)' plus rows showing annual gets loyalty, monthly gets trial"
     },
     {
       "id": "loyalty-discount-annual-only",
-      "text": "Makes clear (via table structure, a note, or explicit rows) that the loyalty discount applies to the annual plan only — a loyalty member on monthly pays the same as anyone else.",
+      "text": "Makes clear that loyalty discount applies to annual plan only",
       "passed": true,
-      "evidence": "Table 1 shows 'Loyalty member on monthly plan | Monthly | yes | no | £9.99/month' at the same price as non-loyalty monthly. The note explicitly states: 'The `{yes, no}` on monthly rows records that loyalty membership does not affect monthly pricing.'"
+      "evidence": "Table 1 shows Annual loyalty at £86.29 vs Annual non-loyalty at £95.88, and 'Loyalty member on monthly plan' at £9.99/month"
     },
     {
       "id": "loyalty-refund-ambiguity",
-      "text": "The loyalty annual subscriber's prorated cancellation refund is either surfaced as an open question (discounted vs list price) OR calculated from the discounted price with a visible trace",
+      "text": "Loyalty annual subscriber's prorated cancellation refund is surfaced as open question or calculated",
       "passed": true,
-      "evidence": "Table 2 shows 'Annual loyalty, mid-year cancellation | Annual | yes | 182 of 365 | no | ?' with a '?' in the Refund column. The open questions section states: 'If a loyalty member on an annual plan cancels mid-year, is the prorated refund calculated on the discounted price (£86.29/year → £0.236/day) or the full price (£95.88/year → £0.263/day)?'"
+      "evidence": "Table 2 row: 'Annual loyalty, mid-year cancellation' shows '?' and open question details discounted (£43.25) vs full price (£48.06)"
     },
     {
       "id": "cancellation-refund-table",
-      "text": "Includes a cancellation/refund table or section (not just pricing)",
+      "text": "Includes a cancellation/refund table or section",
       "passed": true,
-      "evidence": "Table 2 is titled 'Cancellation Refund' with seven rows showing different cancellation scenarios and their resulting refunds, demonstrating a dedicated refund section."
+      "evidence": "Table 2 titled 'Cancellation Refund' with Refund? column containing calculations and ? marks"
     },
     {
       "id": "refund-table-includes-loyalty-dimension",
-      "text": "The cancellation/refund table includes a loyalty member column (or equivalent) to distinguish loyalty vs non-loyalty annual refund rows",
+      "text": "The cancellation/refund table includes a loyalty member column",
       "passed": true,
-      "evidence": "Table 2 includes a 'Loyalty Member' column, and includes the row 'Annual loyalty, mid-year cancellation | Annual | yes | 182 of 365 | no | ?' to distinguish the loyalty annual case from standard annual."
+      "evidence": "Table 2 has 'Loyalty Member' column with {yes, no} and specific 'yes' entry for 'Annual loyalty, mid-year cancellation'"
     },
     {
       "id": "question-mark-only-on-outputs",
-      "text": "The '?' suffix is only used on output/expected columns (e.g. 'Refund?', 'Price?') — not on input columns like plan type, loyalty status, or yes/no flags.",
+      "text": "'?' suffix is only used on output/derived columns, not input columns",
+      "passed": true,
+      "evidence": "'Charge?' and 'Refund?' and 'Within 24h of Renewal?' are all output/derived columns; inputs like Plan, Loyalty Member lack '?'"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables address distinct concerns, not one monolithic table",
+      "passed": true,
+      "evidence": "Table 1 addresses subscription charges; Table 2 addresses cancellation refunds — two distinct concerns"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only rows needed to express its concern's rules",
+      "passed": true,
+      "evidence": "Table 1 has 5 rows covering key scenarios without unnecessary permutations; Table 2 has 7 rows covering refund logic"
+    },
+    {
+      "id": "separates-pricing-trial-loyalty-refund",
+      "text": "Pricing/plans, trial eligibility, loyalty discount applicability, and cancellation/refund are in separate tables",
       "passed": false,
-      "evidence": "Table 2 includes a column header 'Within 24h of Renewal?' which is an input condition flag (showing yes/no values describing the scenario state), not an output. The assertion explicitly forbids '?' suffixes on 'yes/no flags', yet this column violates that rule."
+      "evidence": "Table 1 combines pricing, trial eligibility, and loyalty applicability in one table; only refund is truly separated in Table 2"
     }
   ],
-  "assertions_passed": 8,
-  "assertions_total": 10,
-  "pass_rate": 0.8
+  "assertions_passed": 12,
+  "assertions_total": 13,
+  "pass_rate": 0.9230769230769231
 }

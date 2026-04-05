@@ -4,67 +4,67 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "@TableTest(\"\"\"...\"\"\")"
+      "evidence": "@TableTest(\"\"\"Scenario | Role | Action | Allowed?...\"\"\") present in code"
     },
     {
       "id": "uses-value-sets",
-      "text": "Table uses value-set syntax (curly braces like {READ, WRITE} or {READ, WRITE, DELETE}) to express rules that hold across multiple actions — rather than one row per role/action combination",
+      "text": "Table uses value-set syntax (curly braces like {READ, WRITE} or {READ, WRITE, DELETE}) to express rules",
       "passed": true,
-      "evidence": "Admin row shows {READ, WRITE, DELETE}, User row shows {READ, WRITE}, and Guest denied row shows {WRITE, DELETE}"
+      "evidence": "Contains {READ, WRITE, DELETE}, {READ, WRITE}, and {WRITE, DELETE} in Action column"
     },
     {
       "id": "fewer-than-nine-rows",
-      "text": "Table has fewer than 9 data rows (i.e. does not enumerate every role/action combination individually)",
+      "text": "Table has fewer than 9 data rows",
       "passed": true,
-      "evidence": "Table contains 5 data rows: 'Admin can do anything', 'User can read and write', 'User cannot delete', 'Guest can only read', 'Guest cannot write or delete'"
+      "evidence": "Table has exactly 5 data rows (Admin, User read/write, User delete, Guest read, Guest write/delete)"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method body contains no if or switch statements",
       "passed": true,
-      "evidence": "Method body is: assertEquals(allowed, canPerform(role, action)); — contains only an assertion call, no conditional logic"
+      "evidence": "Method body: assertEquals(allowed, canPerform(role, action)); — no conditionals"
     },
     {
       "id": "scenario-column-present",
       "text": "Table has a scenario/description column as the leftmost column",
       "passed": true,
-      "evidence": "Table header shows: Scenario | Role | Action | Allowed? — with Scenario as the leftmost column containing descriptive names like 'Admin can do anything'"
+      "evidence": "First column header is 'Scenario' with values like 'Admin can do anything'"
     },
     {
       "id": "no-duplicate-role-output",
-      "text": "No two rows share both the same Role value and the same boolean output — forces value set consolidation (e.g. USER can READ and USER can WRITE, both true, should be one row with {READ, WRITE}).",
+      "text": "No two rows share both the same Role value and the same boolean output",
       "passed": true,
-      "evidence": "ADMIN appears once with true; USER appears with true (row 2) and false (row 3)—different outputs; GUEST appears with true (row 4) and false (row 5)—different outputs. No (Role, Output) pairs are duplicated."
+      "evidence": "USER has (true, false); GUEST has (true, false); ADMIN has only (true) — no duplicates"
     },
     {
       "id": "has-descriptive-title",
-      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'permissionsByRoleAndAction' → 'Permissions By Role And Action'). Not a generic name like 'test1' or 'canPerform'.",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title",
       "passed": true,
-      "evidence": "@DisplayName(\"Check action permission by role\") — provides a clear, descriptive title beyond generic names"
+      "evidence": "@DisplayName(\"Check action permission by role\") clearly describes the test intent"
     },
     {
       "id": "description-if-present-adds-information",
-      "text": "If @Description is present, it provides context beyond what the table rows already express — such as where permissions are checked in the request lifecycle, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context.",
+      "text": "If @Description is present, it provides context beyond what the table already expresses",
       "passed": true,
-      "evidence": "No @Description annotation is present, and the assertion explicitly states this is acceptable if the table conveys all relevant context"
+      "evidence": "@Description is absent; assertion accepts this (acceptable per requirements)"
     },
     {
       "id": "annotation-order",
-      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest",
       "passed": true,
-      "evidence": "Annotations appear in order: @DisplayName(\"Check action permission by role\") followed by @TableTest(...)"
+      "evidence": "Actual order: @DisplayName, @TableTest — correct; @Description not present"
     },
     {
       "id": "description-uses-textblock",
-      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "text": "If @Description is present and longer than one line, uses text block not string concatenation",
       "passed": true,
-      "evidence": "@Description is absent; assertion passes per explicit rule"
+      "evidence": "@Description is absent; assertion passes when absent per requirements"
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions ('Admin performs any action', 'Guest reads') — not outcomes ('Allowed', 'Denied').",
+      "text": "Scenario names describe conditions, not outcomes",
       "passed": true,
-      "evidence": "Scenario names are: 'Admin can do anything', 'User can read and write', 'User cannot delete', 'Guest can only read', 'Guest cannot write or delete' — all describe conditions/capabilities rather than outcomes"
+      "evidence": "All scenarios describe conditions: 'Admin can do anything', 'User can read and write', etc."
     }
   ],
   "assertions_passed": 11,

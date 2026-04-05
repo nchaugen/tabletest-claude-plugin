@@ -4,70 +4,88 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "@TableTest(\"\"\"\n    Scenario                    | Applicant type | Age | Claims | Decision?     | Premium?"
+      "evidence": "@TableTest annotation present in method"
     },
     {
       "id": "black-box-columns",
       "text": "Table columns represent the method's public inputs (applicant type, age, claim count) and observable outputs (decision, premium) — not internal state like hasActivePolicy, internalRiskScore, or calculateRiskScore.",
       "passed": true,
-      "evidence": "Columns are Scenario | Applicant type | Age | Claims | Decision? | Premium? — representing public inputs and observable outputs with no internal state columns present"
+      "evidence": "Applicant type | Age | Claims | Decision? | Premium?"
     },
     {
       "id": "observable-io-only",
       "text": "No column is named after private fields or internal variables (hasActivePolicy, internalRiskScore, riskScore). The test treats the method as a black box.",
       "passed": true,
-      "evidence": "Column names: Scenario, Applicant type, Age, Claims, Decision?, Premium? — none match private field names like hasActivePolicy, internalRiskScore, or riskScore"
+      "evidence": "No hasActivePolicy, internalRiskScore, riskScore columns"
     },
     {
       "id": "scenario-column-present",
       "text": "Table has a scenario/description column as the leftmost column",
       "passed": true,
-      "evidence": "Scenario is the first column in the table: \"Scenario                    | Applicant type | Age | Claims | Decision?     | Premium?\""
+      "evidence": "Scenario | Applicant type | Age | Claims | ..."
     },
     {
       "id": "business-language-columns",
       "text": "Column names use domain/business language (e.g. 'Applicant type', 'Age', 'Claims', 'Decision?', 'Premium?') — not code identifiers like 'applicantType', 'claimCount', 'String'.",
       "passed": true,
-      "evidence": "Columns use business language: 'Applicant type', 'Age', 'Claims', 'Decision?', 'Premium?' rather than camelCase identifiers"
+      "evidence": "Applicant type, Claims (not applicantType, claimCount)"
     },
     {
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions ('Renewal with no claims', 'Senior applicant') — not outcomes ('Auto approved', 'Rejected').",
       "passed": false,
-      "evidence": "Scenario row 'High claim count, rejected' includes 'rejected' which is an outcome word, violating the requirement that scenario names describe conditions only, not outcomes"
+      "evidence": "\"High claim count, rejected\" includes outcome \"rejected\""
     },
     {
       "id": "has-question-mark-column",
       "text": "Table has at least one column name ending with '?' (e.g. 'Decision?' or 'Premium?')",
       "passed": true,
-      "evidence": "Table columns include 'Decision?' and 'Premium?' both ending with question marks"
+      "evidence": "Decision? and Premium? columns both end with ?"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method body contains no if or switch statements",
       "passed": true,
-      "evidence": "Method body is: 'EvaluationResult result = evaluator.evaluateApplication(applicantType, age, claimCount); assertAll(...)' with no if or switch statements"
+      "evidence": "assertEquals(...) calls only, no if/switch in body"
     },
     {
       "id": "annotation-order",
       "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
       "passed": true,
-      "evidence": "@DisplayName(\"Application evaluation\") @Description(...) @TableTest(...) in that exact order before the method"
+      "evidence": "@DisplayName, @Description, @TableTest in order"
     },
     {
       "id": "has-descriptive-title",
       "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
       "passed": true,
-      "evidence": "@DisplayName(\"Application evaluation\") provides a clear descriptive title for the test method"
+      "evidence": "@DisplayName(\"Application evaluation\")"
     },
     {
       "id": "description-uses-textblock",
       "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
       "passed": true,
-      "evidence": "@Description uses triple-quoted text block: \"\"\"\\n        Risk score = (age / 10) + (claimCount × 15), integer division...\\n        \"\"\" not string concatenation"
+      "evidence": "@Description uses triple-quoted text block, not +"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": false,
+      "evidence": "Single @TableTest method covers both decision and premium"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
+      "passed": false,
+      "evidence": "One table mixes decision and premium logic concerns"
+    },
+    {
+      "id": "separates-decision-and-premium",
+      "text": "Decision logic (AUTO_APPROVED/REJECTED/APPROVED) and premium calculation are in separate @TableTest methods",
+      "passed": false,
+      "evidence": "Decision? and Premium? in single method, not separate"
     }
   ],
   "assertions_passed": 10,
-  "assertions_total": 11,
-  "pass_rate": 0.9090909090909091
+  "assertions_total": 14,
+  "pass_rate": 0.7142857142857143
 }

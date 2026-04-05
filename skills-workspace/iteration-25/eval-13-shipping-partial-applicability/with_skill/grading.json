@@ -4,52 +4,70 @@
       "id": "produces-markdown-table",
       "text": "Output contains a markdown table",
       "passed": true,
-      "evidence": "The response contains two markdown tables: 'Shipping Method Availability' and 'Shipping Cost Calculation', both formatted as markdown tables with pipe-delimited columns and headers."
+      "evidence": "Multiple markdown tables present with pipe delimiters: 'Shipping Method Availability' and 'Shipping Cost Calculation'"
     },
     {
       "id": "express-split-by-uk-free-tier",
-      "text": "Express shipping is split into at least two cases distinguishing the UK free tier (UK, order £50+, free) from the paid tier. The split is driven by the UK-only free threshold rule.",
+      "text": "Express shipping is split into at least two cases distinguishing the UK free tier (UK, order £50+, free) from the paid tier.",
       "passed": true,
-      "evidence": "The cost table contains separate rows for: 'Express – exactly at threshold, UK (free tier)' with UK at £50 = £0.00, 'Express – above threshold, UK' with UK at £75 = £0.00, and 'Express – at or above threshold, non-UK (no free tier)' with {Ireland, EU, International} at {£50, £75} = £9.99. This clearly distinguishes UK free tier from non-UK paid tier above threshold."
+      "evidence": "'Express – exactly at threshold, UK (free tier)' £50 £0.00 vs 'Express – at or above threshold, non-UK' {£50, £75} £9.99"
     },
     {
       "id": "express-uses-value-sets",
-      "text": "Express rows use value sets to consolidate cases with the same outcome — e.g. non-UK destinations at/above threshold in one row (such as {Ireland, Other} or {Ireland, International}), or UK at/above threshold in one row ({£50, £75}). Not enumerated as separate rows per destination or per order value when the result is identical.",
-      "passed": true,
-      "evidence": "Express rows consolidate: 'Express – below threshold' groups {UK, Ireland, EU, International} at £30 into one row; 'Express – above threshold, UK' uses value set {£75} (but paired with earlier £50 row); 'Express – at or above threshold, non-UK (no free tier)' groups {Ireland, EU, International} at {£50, £75} = £9.99 in one row. Value sets are used to consolidate identical outcomes."
+      "text": "Express rows use value sets to consolidate cases with the same outcome",
+      "passed": false,
+      "evidence": "UK at/above threshold split as separate rows: '£50 | £0.00' and '£75 | £0.00' instead of '{£50, £75} | £0.00'"
     },
     {
       "id": "overnight-grouped",
-      "text": "Overnight UK and Ireland are in one row using a value set ({UK, Ireland}) — not separate rows, since both have the same cost and availability.",
+      "text": "Overnight UK and Ireland are in one row using a value set ({UK, Ireland})",
       "passed": false,
-      "evidence": "In the 'Shipping Method Availability' table, Overnight UK and Ireland are shown as separate rows: 'Overnight – UK' (UK, yes) and 'Overnight – Ireland' (Ireland, yes). Although the cost table correctly shows 'Overnight – UK or Ireland, any value' in one row, the availability table violates the principle by splitting them into separate rows despite identical outcomes."
+      "evidence": "Availability table rows 3-4: 'Overnight | UK | yes' and 'Overnight | Ireland | yes' are separate"
     },
     {
       "id": "standard-destination-value-set-or-blank",
-      "text": "Standard shipping destination uses a value set covering all options (e.g. {UK, Ireland, International} or {UK, Ireland, Other}) or is blank/absent — either approach is valid since destination is irrelevant to the cost.",
+      "text": "Standard shipping destination uses a value set or is blank",
       "passed": true,
-      "evidence": "Standard shipping row shows: 'Standard – fixed rate, any destination or value' | {UK, Ireland, EU, International} | {£20, £75} | £3.99. Destination is represented as a value set covering all options."
+      "evidence": "'Standard | {UK, Ireland, EU, International} | {£20, £75} | £3.99'"
     },
     {
       "id": "output-column-has-question-mark",
       "text": "At least one output column ends with '?'",
       "passed": true,
-      "evidence": "The first table has column header 'Available?' and the second table has column header 'Cost?' — both output columns end with question marks."
+      "evidence": "Column headers: 'Available?' and 'Cost?'"
     },
     {
       "id": "concrete-domain-values",
-      "text": "Cell values use concrete domain terms (e.g. 'Standard', 'Express', 'UK', '£3.99') — not abstract codes or raw booleans like 'true', 'false', 'TYPE_1', '1'.",
+      "text": "Cell values use concrete domain terms, not abstract codes or raw booleans",
       "passed": true,
-      "evidence": "Cell values throughout both tables use concrete domain terms: shipping methods ('Standard', 'Express', 'Overnight'), destinations ('UK', 'Ireland', 'EU', 'International'), currency amounts ('£3.99', '£9.99', '£0.00', '£30', '£49.99', '£50', '£75'), and availability labels ('yes', 'no' rather than boolean true/false)."
+      "evidence": "Values: 'yes', 'no', '£3.99', 'Standard', 'Express', 'UK', 'Ireland' are all concrete terms"
     },
     {
       "id": "blank-vs-value-set-correct",
-      "text": "Value sets (not blanks) are used for irrelevant inputs — e.g. Standard shipping destination uses a value set like {UK, Ireland, International} because destination exists but doesn't affect the cost. Blanks are reserved for genuinely absent/N/A inputs. The distinction between 'irrelevant to this rule' (value set) and 'not applicable' (blank) is correct.",
+      "text": "Value sets are used for irrelevant inputs; blanks for genuinely absent/N/A inputs",
       "passed": true,
-      "evidence": "Standard destination uses value set {UK, Ireland, EU, International} correctly, as destination exists but is irrelevant to the fixed £3.99 cost. Overnight unavailable for EU/International is shown with value set {EU, International} | no in the availability table (irrelevant input with consistent outcome), not a blank. The tables correctly distinguish irrelevant-but-present inputs (value sets) from genuinely absent inputs."
+      "evidence": "Standard destination uses {UK, Ireland, EU, International} value set because destination exists but doesn't affect cost"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables are used, each addressing a distinct concern",
+      "passed": true,
+      "evidence": "Two tables: 'Shipping Method Availability' and 'Shipping Cost Calculation' with model stating 'two concerns'"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules",
+      "passed": false,
+      "evidence": "Availability has 5 rows with Overnight UK/Ireland separate (rows 3-4); Cost table splits UK at-threshold into rows: '£50 | £0.00' and '£75 | £0.00'"
+    },
+    {
+      "id": "separates-availability-and-cost",
+      "text": "Shipping method availability and cost are in separate tables",
+      "passed": true,
+      "evidence": "Model explicitly states concerns are 'which methods are available' and 'what they cost' with two distinct tables"
     }
   ],
-  "assertions_passed": 7,
-  "assertions_total": 8,
-  "pass_rate": 0.875
+  "assertions_passed": 8,
+  "assertions_total": 11,
+  "pass_rate": 0.7272727272727273
 }

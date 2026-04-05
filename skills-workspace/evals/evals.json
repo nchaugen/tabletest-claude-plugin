@@ -77,7 +77,7 @@
         },
         {
           "id": "type-conversion-addressed",
-          "text": "The response addresses type conversion for non-standard date formats (slash format, short year) — mentions @TypeConverter or a converter method"
+          "text": "The response addresses type conversion for non-trivial column types — either by providing a @TypeConverter/converter method, or by using a representation that leverages built-in conversion (e.g., FQCN for Class<?>, ISO format for LocalDate)"
         },
         {
           "id": "has-descriptive-title",
@@ -94,6 +94,22 @@
         {
           "id": "description-uses-textblock",
           "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
+        },
+        {
+          "id": "empty-string-uses-quotes",
+          "text": "Empty string input uses quoted syntax (e.g. '' or \"\") in the table — not a blank cell, which represents null. The distinction between empty string and null is preserved."
+        },
+        {
+          "id": "concerns-decomposed",
+          "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern."
+        },
+        {
+          "id": "minimal-rows-per-concern",
+          "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated."
+        },
+        {
+          "id": "separates-valid-and-invalid",
+          "text": "Valid parsing cases and error/exception cases are in separate @TableTest methods"
         }
       ]
     },
@@ -158,6 +174,30 @@
         {
           "id": "threshold-values-visible",
           "text": "The policy thresholds (650 for standard, 600 for senior) appear as concrete values in the Credit Score column — not just described in prose. The reader can see the boundary values in the table rows."
+        },
+        {
+          "id": "scenario-column-present",
+          "text": "Table has a scenario/description column as the leftmost column"
+        },
+        {
+          "id": "threshold-as-column",
+          "text": "Policy thresholds (650/600 credit scores) appear in a dedicated policy column (e.g. 'Credit threshold') separate from the applicant's actual credit score column. The reader sees both the threshold and the score, making the comparison explicit."
+        },
+        {
+          "id": "concrete-domain-values",
+          "text": "Cell values use concrete domain terms (e.g. '65', '700', 'Stable', 'yes', 'no') — not abstract codes or raw booleans like 'true', 'false', 'CATEGORY_A', '1'."
+        },
+        {
+          "id": "concerns-decomposed",
+          "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern."
+        },
+        {
+          "id": "minimal-rows-per-concern",
+          "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated."
+        },
+        {
+          "id": "separates-age-credit-income",
+          "text": "Age boundary policy, credit score categorisation, and income status are separated into distinct tables, with a final table combining these for the expected verdict"
         }
       ]
     },
@@ -188,6 +228,26 @@
         {
           "id": "output-column-has-question-mark",
           "text": "At least one output column ends with '?'"
+        },
+        {
+          "id": "scenario-column-present",
+          "text": "Table has a scenario/description column as the leftmost column"
+        },
+        {
+          "id": "row-independence",
+          "text": "Each row is independently verifiable — no row references a prior row's outcome. Each row specifies its own starting state and expected result."
+        },
+        {
+          "id": "concerns-decomposed",
+          "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern."
+        },
+        {
+          "id": "minimal-rows-per-concern",
+          "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated."
+        },
+        {
+          "id": "separates-transitions-and-returns",
+          "text": "Status transition rules and return eligibility rules are in separate tables"
         }
       ]
     },
@@ -222,6 +282,10 @@
         {
           "id": "extreme-discount-row",
           "text": "Table includes at least one row with a high combined discount (e.g. large order + top loyalty tier) that would force a decision about whether a cap applies — making the cap question concrete, not theoretical."
+        },
+        {
+          "id": "scenario-column-present",
+          "text": "Table has a scenario/description column as the leftmost column"
         }
       ]
     },
@@ -272,6 +336,10 @@
         {
           "id": "description-uses-textblock",
           "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
+        },
+        {
+          "id": "scenario-names-describe-conditions",
+          "text": "Scenario names describe conditions ('Admin performs any action', 'Guest reads') — not outcomes ('Allowed', 'Denied')."
         }
       ]
     },
@@ -322,6 +390,18 @@
         {
           "id": "description-uses-textblock",
           "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
+        },
+        {
+          "id": "concerns-decomposed",
+          "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern."
+        },
+        {
+          "id": "minimal-rows-per-concern",
+          "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated."
+        },
+        {
+          "id": "separates-valid-and-invalid",
+          "text": "Valid parsing cases and error/exception cases are in separate @TableTest methods"
         }
       ]
     },
@@ -368,6 +448,14 @@
         {
           "id": "description-uses-textblock",
           "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
+        },
+        {
+          "id": "scenario-names-describe-conditions",
+          "text": "Scenario names describe conditions ('Senior in Sales', 'Contractor regardless of department') — not outcomes ('Gets 15%', 'No bonus')."
+        },
+        {
+          "id": "business-language-columns",
+          "text": "Column names use domain/business language (e.g. 'Level', 'Department', 'Bonus %') — not implementation terms like 'employeeLevel', 'deptCode', 'result'."
         }
       ]
     },
@@ -417,7 +505,31 @@
         },
         {
           "id": "question-mark-only-on-outputs",
-          "text": "The '?' suffix is only used on output/expected columns (e.g. 'Refund Eligible?', 'Refund Amount?') — not on input columns like plan type, loyalty status, or yes/no flags. Input columns should not have '?' suffixes."
+          "text": "The '?' suffix is only used on output or derived columns (e.g. 'Refund Eligible?', 'Refund Amount?') — not on given input columns like plan type, loyalty status, or subscription phase. A column that interprets or classifies an input value (e.g. deriving whether a cancellation falls within 24h from a raw time value) is a valid derived output and may use '?'."
+        },
+        {
+          "id": "output-values-traceable",
+          "text": "Output values (e.g. refund amounts, prices) can be derived from input values by a reader — the calculation is visible or explained. Not just magic numbers with no traceable origin."
+        },
+        {
+          "id": "refund-table-includes-price-paid",
+          "text": "The refund amount table includes the price paid (or daily rate) as an input column, making the table self-contained — a reader should not need to refer to another table or the spec to verify the refund calculation."
+        },
+        {
+          "id": "refund-table-shows-proportion",
+          "text": "The refund amount table includes an intermediate traceability column (e.g. 'Refund Proportion?', fraction, or daily rate) that makes the calculation step visible before the final amount — not just inputs and a final number."
+        },
+        {
+          "id": "rules-separate-from-arithmetic",
+          "text": "Refund eligibility (yes/no rule based on 24h window, trial status) and refund amount (prorated calculation) are treated as separate concerns — not mixed into one table where rules and arithmetic are interleaved."
+        },
+        {
+          "id": "concerns-decomposed",
+          "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern."
+        },
+        {
+          "id": "minimal-rows-per-concern",
+          "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated."
         }
       ]
     },
@@ -447,7 +559,7 @@
         },
         {
           "id": "open-question-surfaced",
-          "text": "The annual/loyalty/trial interaction is explicitly surfaced as an open question — via '?', 'TBD', blank expected value, or a written open question — rather than silently resolved"
+          "text": "The annual/loyalty/trial interaction is correctly resolved with a note explaining that they are mutually exclusive (annual gets loyalty discounts but no trial, monthly gets trial but no loyalty discount) — not left as an unresolved open question"
         },
         {
           "id": "loyalty-discount-annual-only",
@@ -455,7 +567,7 @@
         },
         {
           "id": "loyalty-refund-ambiguity",
-          "text": "Surfaces whether a loyalty annual subscriber's prorated cancellation refund is calculated from the discounted price (£86.29) or the list price (£95.88) — as an open question, '?', or note. Not silently resolved."
+          "text": "The loyalty annual subscriber's prorated cancellation refund is either surfaced as an open question (discounted vs list price) OR calculated from the discounted price with a visible trace — since that is what was actually paid"
         },
         {
           "id": "cancellation-refund-table",
@@ -467,7 +579,19 @@
         },
         {
           "id": "question-mark-only-on-outputs",
-          "text": "The '?' suffix is only used on output/expected columns (e.g. 'Refund?', 'Price?') — not on input columns like plan type, loyalty status, or yes/no flags. Input columns should not have '?' suffixes."
+          "text": "The '?' suffix is only used on output or derived columns (e.g. 'Refund?', 'Price?') — not on given input columns like plan type, loyalty status, or subscription phase. A column that interprets or classifies an input value (e.g. deriving whether a cancellation falls within 24h from a raw time value) is a valid derived output and may use '?'."
+        },
+        {
+          "id": "concerns-decomposed",
+          "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern."
+        },
+        {
+          "id": "minimal-rows-per-concern",
+          "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated."
+        },
+        {
+          "id": "separates-pricing-trial-loyalty-refund",
+          "text": "Pricing/plans, trial eligibility, loyalty discount applicability, and cancellation/refund are in separate tables"
         }
       ]
     },
@@ -502,6 +626,26 @@
         {
           "id": "output-column-has-question-mark",
           "text": "At least one output column ends with '?'"
+        },
+        {
+          "id": "concrete-domain-values",
+          "text": "Cell values use concrete domain terms (e.g. 'Standard', 'Express', 'UK', '£3.99') — not abstract codes or raw booleans like 'true', 'false', 'TYPE_1', '1'."
+        },
+        {
+          "id": "blank-vs-value-set-correct",
+          "text": "Value sets (not blanks) are used for irrelevant inputs — e.g. Standard shipping destination uses a value set like {UK, Ireland, International} because destination exists but doesn't affect the cost. Blanks are reserved for genuinely absent/N/A inputs. The distinction between 'irrelevant to this rule' (value set) and 'not applicable' (blank) is correct."
+        },
+        {
+          "id": "concerns-decomposed",
+          "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern."
+        },
+        {
+          "id": "minimal-rows-per-concern",
+          "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated."
+        },
+        {
+          "id": "separates-availability-and-cost",
+          "text": "Shipping method availability and shipping cost are in separate tables"
         }
       ]
     },
@@ -572,6 +716,22 @@
         {
           "id": "1.15-format-clean-method",
           "text": "The test method body contains no if/ternary null-handling or parsing logic. Null-to-default conversion (e.g. blank Sunday hours → 0) is handled via a @TypeConverter method or a private helper, keeping the test method limited to arrange/act/assert."
+        },
+        {
+          "id": "business-language-columns",
+          "text": "Column names use domain/business language (e.g. 'Weekday hours', 'Sunday hours', 'Hourly rate', 'Weekly pay?') — not implementation terms like 'weekdayHrs', 'int', 'param1'."
+        },
+        {
+          "id": "concerns-decomposed",
+          "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern."
+        },
+        {
+          "id": "minimal-rows-per-concern",
+          "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated."
+        },
+        {
+          "id": "separates-classification-and-calculation",
+          "text": "Payable hours categorisation (1x regular, 1.5x overtime, 2x Sunday/holiday) and pay calculation (hours × rate) are in separate @TableTest methods"
         }
       ]
     },
@@ -654,6 +814,14 @@
         {
           "id": "2.21-readability-relative-time",
           "text": "The rolling window table expresses time relatively (e.g. '14 days ago', '30 days ago', or an integer 'Days ago' column) rather than using absolute dates, making the table readable without needing to know the reference date."
+        },
+        {
+          "id": "concerns-decomposed",
+          "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern."
+        },
+        {
+          "id": "minimal-rows-per-concern",
+          "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated."
         }
       ]
     },
@@ -732,6 +900,14 @@
         {
           "id": "3.13-depth-open-questions",
           "text": "Multiple open questions are surfaced across the tables — ambiguities, edge cases, or product decisions that the requirements don't fully specify."
+        },
+        {
+          "id": "concerns-decomposed",
+          "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern."
+        },
+        {
+          "id": "minimal-rows-per-concern",
+          "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated."
         }
       ]
     },
@@ -807,6 +983,436 @@
         {
           "id": "4.15-readability-scenario-names",
           "text": "Scenario names describe the business situation (e.g. 'Add more of same product', 'Replace active coupon') — not 'Test case 1' or generic labels."
+        },
+        {
+          "id": "concerns-decomposed",
+          "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern."
+        },
+        {
+          "id": "minimal-rows-per-concern",
+          "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated."
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "slug": "convert-from-code",
+      "skill": "tabletest",
+      "prompt": "I have this Java class and I want to write TableTests for the `evaluateApplication` method:\n\n```java\npublic class InsuranceEvaluator {\n\n    private boolean hasActivePolicy;\n    private int internalRiskScore;\n\n    public EvaluationResult evaluateApplication(String applicantType, int age, int claimCount) {\n        internalRiskScore = calculateRiskScore(age, claimCount);\n        hasActivePolicy = checkPolicyDatabase(applicantType);\n\n        if (applicantType.equals(\"RENEWAL\") && claimCount == 0) {\n            return new EvaluationResult(\"AUTO_APPROVED\", 0);\n        }\n\n        if (internalRiskScore > 75) {\n            return new EvaluationResult(\"REJECTED\", 0);\n        }\n\n        if (age >= 65) {\n            double premium = calculateSeniorPremium(internalRiskScore);\n            return new EvaluationResult(\"APPROVED\", premium);\n        }\n\n        double premium = calculateStandardPremium(internalRiskScore);\n        return new EvaluationResult(\"APPROVED\", premium);\n    }\n\n    private int calculateRiskScore(int age, int claimCount) {\n        return (age / 10) + (claimCount * 15);\n    }\n\n    private double calculateSeniorPremium(int riskScore) {\n        return 200.0 + (riskScore * 3.5);\n    }\n\n    private double calculateStandardPremium(int riskScore) {\n        return 100.0 + (riskScore * 2.0);\n    }\n\n    private boolean checkPolicyDatabase(String type) {\n        // database lookup\n        return type.equals(\"RENEWAL\");\n    }\n}\n```\n\nCan you write TableTests for this?",
+      "expected_output": "One or more @TableTest methods whose columns represent the method's public inputs (applicantType, age, claimCount) and observable outputs (decision, premium) — not internal fields like hasActivePolicy, internalRiskScore. Scenario names describe conditions. Business-language column names.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "has-tabletest-annotation",
+          "text": "Output contains a @TableTest annotation"
+        },
+        {
+          "id": "black-box-columns",
+          "text": "Table columns represent the method's public inputs (applicant type, age, claim count) and observable outputs (decision, premium) — not internal state like hasActivePolicy, internalRiskScore, or calculateRiskScore."
+        },
+        {
+          "id": "observable-io-only",
+          "text": "No column is named after private fields or internal variables (hasActivePolicy, internalRiskScore, riskScore). The test treats the method as a black box."
+        },
+        {
+          "id": "scenario-column-present",
+          "text": "Table has a scenario/description column as the leftmost column"
+        },
+        {
+          "id": "business-language-columns",
+          "text": "Column names use domain/business language (e.g. 'Applicant type', 'Age', 'Claims', 'Decision?', 'Premium?') — not code identifiers like 'applicantType', 'claimCount', 'String'."
+        },
+        {
+          "id": "scenario-names-describe-conditions",
+          "text": "Scenario names describe conditions ('Renewal with no claims', 'Senior applicant') — not outcomes ('Auto approved', 'Rejected')."
+        },
+        {
+          "id": "has-question-mark-column",
+          "text": "Table has at least one column name ending with '?' (e.g. 'Decision?' or 'Premium?')"
+        },
+        {
+          "id": "no-if-switch-in-method",
+          "text": "Test method body contains no if or switch statements"
+        },
+        {
+          "id": "annotation-order",
+          "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order."
+        },
+        {
+          "id": "has-descriptive-title",
+          "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case."
+        },
+        {
+          "id": "description-uses-textblock",
+          "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
+        },
+        {
+          "id": "concerns-decomposed",
+          "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern."
+        },
+        {
+          "id": "minimal-rows-per-concern",
+          "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated."
+        },
+        {
+          "id": "separates-decision-and-premium",
+          "text": "Decision logic (AUTO_APPROVED/REJECTED/APPROVED) and premium calculation are in separate @TableTest methods"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "slug": "convert-from-parameterized",
+      "skill": "tabletest",
+      "prompt": "I have this JUnit parameterized test and I'd like to convert it to use TableTest:\n\n```java\nclass EmailValidatorTest {\n\n    private final EmailValidator validator = new EmailValidator();\n\n    @ParameterizedTest\n    @CsvSource({\n        \"user@example.com, true\",\n        \"admin@company.co.uk, true\",\n        \"test.name+tag@domain.org, true\",\n        \"plainaddress, false\",\n        \"@missinglocal.com, false\",\n        \"user@.com, false\",\n        \"user@com, false\",\n        \"'', false\"\n    })\n    void testEmailValidation(String email, boolean expected) {\n        assertEquals(expected, validator.isValid(email));\n    }\n}\n```\n\nCan you convert this to a TableTest?",
+      "expected_output": "A @TableTest with a scenario column (missing from the @ParameterizedTest), descriptive scenario names, and an output column with '?' suffix. Should use value sets to consolidate rows with the same outcome where the underlying rule is the same. Clean method body with no if/switch.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "has-tabletest-annotation",
+          "text": "Output contains a @TableTest annotation"
+        },
+        {
+          "id": "scenario-column-present",
+          "text": "Table has a scenario/description column as the leftmost column — this was missing in the @ParameterizedTest and should be added."
+        },
+        {
+          "id": "has-question-mark-column",
+          "text": "At least one output column name ends with '?' (e.g. 'Valid?' or 'Expected?')"
+        },
+        {
+          "id": "no-if-switch-in-method",
+          "text": "Test method body contains no if or switch statements"
+        },
+        {
+          "id": "scenario-names-describe-conditions",
+          "text": "Scenario names describe conditions ('Valid standard format', 'Missing local part') — not outcomes ('True', 'False') or 'Test case 1'."
+        },
+        {
+          "id": "annotation-order",
+          "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order."
+        },
+        {
+          "id": "has-descriptive-title",
+          "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case."
+        },
+        {
+          "id": "description-uses-textblock",
+          "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "slug": "collections-and-quoting",
+      "skill": "tabletest",
+      "prompt": "Write a TableTest for this method:\n\n```java\nList<String> filterTags(List<String> tags, String category)\n```\n\nThe rules are:\n- If category is \"tech\", keep only tags starting with \"tech:\" or \"dev:\"\n- If category is \"business\", keep only tags starting with \"biz:\"\n- Empty list input returns empty list\n- Tags containing special characters like pipes (|) or brackets ([, ]) should be preserved as-is\n- Null category returns all tags unfiltered\n\nI want to test with inputs like: [\"tech:java\", \"biz:sales\", \"dev:ci\"], [\"biz:hr|recruiting\", \"tech:go\"], and empty list [].",
+      "expected_output": "A @TableTest using [] syntax for list values, [] for empty lists (not blank), proper quoting for values containing pipes or brackets, and null category as blank cell.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "has-tabletest-annotation",
+          "text": "Output contains a @TableTest annotation"
+        },
+        {
+          "id": "list-syntax-correct",
+          "text": "List values in the table use bracket syntax like [tech:java, biz:sales, dev:ci] — not comma-separated strings without brackets."
+        },
+        {
+          "id": "empty-list-explicit",
+          "text": "Empty list input uses [] (not a blank cell, which represents null). The distinction between empty list and null is preserved."
+        },
+        {
+          "id": "special-chars-quoted",
+          "text": "Values containing pipes (|), brackets, or colons (:) are properly quoted (e.g. \"tech:java\") so they don't conflict with table syntax. Colons without quoting would be mis-interpreted as map key:value entries."
+        },
+        {
+          "id": "scenario-column-present",
+          "text": "Table has a scenario/description column as the leftmost column"
+        },
+        {
+          "id": "has-question-mark-column",
+          "text": "At least one output column name ends with '?' (e.g. 'Filtered tags?' or 'Result?')"
+        },
+        {
+          "id": "no-if-switch-in-method",
+          "text": "Test method body contains no if or switch statements"
+        },
+        {
+          "id": "annotation-order",
+          "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order."
+        },
+        {
+          "id": "has-descriptive-title",
+          "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case."
+        },
+        {
+          "id": "description-uses-textblock",
+          "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "slug": "event-registration-sbe",
+      "skill": "spec-by-example",
+      "prompt": "We're building an event registration system and I need help clarifying the rules with examples before we start coding.\n\nThe requirements so far:\n- Attendees register with: name, email, optional dietary requirements, optional accessibility needs\n- Validation: email must be valid format, name is required\n- Early-bird pricing: registrations before the cutoff date get 20% off\n- Group discount: groups of 5 or more get 15% off\n- We're not sure if early-bird and group discount can stack\n\nCan you help me work through the examples?",
+      "expected_output": "One or more markdown tables covering validation rules and pricing rules separately. Absent optional fields (dietary, accessibility) use blank cells when not provided. When testing pricing rules where dietary requirements are irrelevant, the distinction should be clear. Open questions surfaced for discount stacking ambiguity.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "produces-markdown-table",
+          "text": "Output contains at least one markdown table (using | column | syntax)"
+        },
+        {
+          "id": "validation-rules-covered",
+          "text": "Email validation and name-required scenarios are present — at least one row for invalid email and one for missing name."
+        },
+        {
+          "id": "blank-for-absent-optional",
+          "text": "Dietary requirements and/or accessibility needs use blank cells when the attendee has not provided them (genuinely absent) — not 'N/A' or 'none'."
+        },
+        {
+          "id": "output-column-has-question-mark",
+          "text": "At least one output column name ends with '?' (e.g. 'Accepted?', 'Price?')"
+        },
+        {
+          "id": "scenario-names-describe-conditions",
+          "text": "Scenario names describe conditions ('Missing email', 'Early-bird single attendee') — not outcomes ('Rejected', 'Discounted')."
+        },
+        {
+          "id": "open-question-surfaced",
+          "text": "The discount stacking ambiguity (early-bird + group) is surfaced as an open question — not silently resolved."
+        },
+        {
+          "id": "scenario-column-present",
+          "text": "Table has a scenario/description column as the leftmost column"
+        },
+        {
+          "id": "concerns-decomposed",
+          "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern."
+        },
+        {
+          "id": "minimal-rows-per-concern",
+          "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated."
+        },
+        {
+          "id": "separates-validation-and-pricing",
+          "text": "Input validation rules and pricing/discount calculation are in separate tables"
+        },
+        {
+          "id": "descriptive-registration-date",
+          "text": "Registration date uses descriptive values (e.g. 'before cutoff', 'on cutoff', 'after cutoff') rather than raw dates — making the table readable without knowing the actual cutoff date."
+        },
+        {
+          "id": "no-redundant-policy-columns",
+          "text": "If registration date uses descriptive values like 'before cutoff', the cutoff date is not also present as a separate column (it's already encoded in the description). Numeric policy thresholds like min group size are acceptable as columns since they are configuration values worth discussing with business experts."
+        },
+        {
+          "id": "group-size-policy-as-column",
+          "text": "The minimum group size threshold appears as a policy column (e.g. 'Min group size (policy)') — surfacing this as a configurable business rule, not just implied by the boundary rows."
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "slug": "event-registration-tt",
+      "skill": "tabletest",
+      "prompt": "Write TableTests for an event registration validation and pricing feature.\n\nThe method signatures are:\n\n```java\nRegistrationResult register(String name, String email, String dietaryRequirements, String accessibilityNeeds, LocalDate registrationDate, int groupSize)\n```\n\nThe rules:\n- Validation: email must be valid format, name is required. dietaryRequirements and accessibilityNeeds are optional (null is fine).\n- Early-bird pricing: registrations before 2025-03-01 get 20% off the base price of £100\n- Group discount: groups of 5 or more get 15% off\n- If both early-bird and group apply, only the higher discount is used (they don't stack)\n- Invalid registrations return a rejected result with an error message",
+      "expected_output": "Multiple @TableTest methods separating validation from pricing. Blank cells for null optional fields. Value sets where inputs are irrelevant. Business-language column names.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "has-tabletest-annotation",
+          "text": "Output contains a @TableTest annotation"
+        },
+        {
+          "id": "validation-rules-covered",
+          "text": "Email validation and name-required error scenarios are present — at least one row for invalid email and one for missing name."
+        },
+        {
+          "id": "blank-for-absent-optional",
+          "text": "Dietary requirements and/or accessibility needs use blank cells (null) when not provided — not 'N/A' or 'none'. These are genuinely optional and absent."
+        },
+        {
+          "id": "blank-vs-value-set-correct",
+          "text": "When testing pricing rules, irrelevant inputs (e.g. dietary requirements don't affect price) use value sets or representative values — not blanks (which mean null). Blanks are reserved for genuinely absent/null inputs."
+        },
+        {
+          "id": "scenario-column-present",
+          "text": "Table has a scenario/description column as the leftmost column"
+        },
+        {
+          "id": "has-question-mark-column",
+          "text": "At least one output column name ends with '?' (e.g. 'Result?', 'Price?')"
+        },
+        {
+          "id": "business-language-columns",
+          "text": "Column names use domain/business language (e.g. 'Name', 'Email', 'Registration date', 'Group size', 'Price?') — not code identifiers."
+        },
+        {
+          "id": "scenario-names-describe-conditions",
+          "text": "Scenario names describe conditions ('Early-bird single attendee', 'Missing name') — not outcomes ('Rejected', '20% off')."
+        },
+        {
+          "id": "no-if-switch-in-method",
+          "text": "Test method body contains no if or switch statements"
+        },
+        {
+          "id": "annotation-order",
+          "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order."
+        },
+        {
+          "id": "has-descriptive-title",
+          "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case."
+        },
+        {
+          "id": "description-uses-textblock",
+          "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
+        },
+        {
+          "id": "concerns-decomposed",
+          "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern."
+        },
+        {
+          "id": "minimal-rows-per-concern",
+          "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated."
+        },
+        {
+          "id": "separates-validation-and-pricing",
+          "text": "Input validation and pricing/discount calculation are in separate @TableTest methods"
+        },
+        {
+          "id": "validation-includes-optional-fields",
+          "text": "Validation @TableTest includes Dietary Requirements and Accessibility Needs columns, with rows showing both null (blank) and non-null values are accepted — not hardcoded as null in the method body."
+        },
+        {
+          "id": "descriptive-registration-date",
+          "text": "Registration date uses descriptive values (e.g. 'before cutoff', 'on cutoff', 'after cutoff') with a @TypeConverter method converting to actual dates — not raw date literals like '2025-02-28'. Readability over precision."
+        },
+        {
+          "id": "cutoff-date-column-if-literal-dates",
+          "text": "If registration dates are literal (e.g. '2025-02-28' instead of descriptive), the early-bird cutoff date appears as a separate policy column so the reader can see both dates and verify the comparison. Passes automatically if descriptive date values are used."
+        },
+        {
+          "id": "description-no-irrelevant-information",
+          "text": "If @Description is present, it does not include information that is already visible in the table columns or that can be derived from the table structure — such as fixed input values that could be columns, or restating the discount rules that the rows already demonstrate."
+        },
+        {
+          "id": "discount-column-preferred",
+          "text": "Output column is 'Discount?' (percentage or amount off) rather than 'Price?' — making verification simpler (discount is the rule's direct output; price requires knowing the base price). If 'Price?' is used instead, both 'Base price' and 'Price?' columns must be present so the reader can trace the calculation."
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "slug": "loan-approval-tt",
+      "skill": "tabletest",
+      "prompt": "Write TableTests for a loan approval feature. The method signature is:\n\n```java\nApprovalResult evaluateLoan(int customerAge, int creditScore, boolean hasStableIncome)\n```\n\nThe rules:\n- Customers are approved if their credit score is above 650 and they have stable income\n- Senior applicants (65+) get approved with a lower threshold of 600\n- Missing income information (null) should result in a 'PENDING_REVIEW' status\n- Below-threshold scores are rejected regardless of income\n\nWrite comprehensive TableTests covering these rules.",
+      "expected_output": "One or more @TableTest methods with policy thresholds visible as concrete input values, scenario names describing conditions, business-language columns, and concrete domain values.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "has-tabletest-annotation",
+          "text": "Output contains a @TableTest annotation"
+        },
+        {
+          "id": "threshold-as-column",
+          "text": "Policy thresholds (650/600 credit scores) appear in a dedicated policy column (e.g. 'Credit threshold') separate from the applicant's actual credit score column. The reader sees both the threshold and the score, making the comparison explicit. Not just threshold values used as data in the score column."
+        },
+        {
+          "id": "concrete-domain-values",
+          "text": "Cell values use concrete domain terms (e.g. '70', '650', 'APPROVED') — not abstract codes like 'CATEGORY_A' or '1'. Boolean true/false is acceptable for yes/no flags when the parameter type is boolean."
+        },
+        {
+          "id": "scenario-column-present",
+          "text": "Table has a scenario/description column as the leftmost column"
+        },
+        {
+          "id": "scenario-names-describe-conditions",
+          "text": "Scenario names describe conditions ('Senior at lower threshold', 'Missing income') — not outcomes ('Approved', 'Rejected')."
+        },
+        {
+          "id": "business-language-columns",
+          "text": "Column names use domain/business language (e.g. 'Age', 'Credit score', 'Stable income', 'Decision?') — not code identifiers like 'customerAge', 'boolean'."
+        },
+        {
+          "id": "has-question-mark-column",
+          "text": "At least one output column name ends with '?' (e.g. 'Decision?' or 'Status?')"
+        },
+        {
+          "id": "no-if-switch-in-method",
+          "text": "Test method body contains no if or switch statements"
+        },
+        {
+          "id": "annotation-order",
+          "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order."
+        },
+        {
+          "id": "has-descriptive-title",
+          "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case."
+        },
+        {
+          "id": "description-uses-textblock",
+          "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
+        },
+        {
+          "id": "concerns-decomposed",
+          "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern."
+        },
+        {
+          "id": "minimal-rows-per-concern",
+          "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated."
+        },
+        {
+          "id": "separates-age-credit-income",
+          "text": "Age boundary policy, credit score categorisation, and income status are separated into distinct @TableTest methods, with a method combining these for the expected verdict"
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "slug": "weekly-pay-sbe",
+      "skill": "spec-by-example",
+      "prompt": "We're about to implement weekly pay calculation for hourly employees and I want to work through the examples before we start coding.\n\nThe rules:\n- Weekday hours up to 40 are paid at the base hourly rate\n- Weekday hours beyond 40 are overtime, paid at 1.5× the base rate (time-and-a-half)\n- Sunday hours are always paid at 2× the base rate (double time)\n- Holiday hours are always paid at 2× the base rate (double time)\n- Total pay cannot go below zero\n- A negative hourly rate is not allowed (should be rejected)\n\nCan you help me work through the examples so we can agree on the expected behaviour before implementing?",
+      "expected_output": "Multiple markdown tables separating rate selection rules from arithmetic verification. Business-language columns. Scenario names describe work patterns. Rules and arithmetic clearly separated.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "produces-markdown-table",
+          "text": "Output contains at least one markdown table (using | column | syntax)"
+        },
+        {
+          "id": "output-column-has-question-mark",
+          "text": "At least one output column name ends with '?' (e.g. 'Pay?', 'Rate?')"
+        },
+        {
+          "id": "scenario-names-describe-conditions",
+          "text": "Scenario names describe work patterns or conditions ('Part-time weekday', 'Full week with overtime', 'Sunday shift') — not outcomes ('Gets overtime', 'Double pay')."
+        },
+        {
+          "id": "business-language-columns",
+          "text": "Column names use domain/business language (e.g. 'Weekday hours', 'Sunday hours', 'Hourly rate', 'Weekly pay?') — not code identifiers."
+        },
+        {
+          "id": "scenario-column-present",
+          "text": "Table has a scenario/description column as the leftmost column"
+        },
+        {
+          "id": "overtime-boundary-covered",
+          "text": "The overtime threshold boundary (40 hours) is covered with at least a value at the threshold and one above."
+        },
+        {
+          "id": "concerns-decomposed",
+          "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern."
+        },
+        {
+          "id": "minimal-rows-per-concern",
+          "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated."
+        },
+        {
+          "id": "separates-classification-and-calculation",
+          "text": "Payable hours categorisation (1x regular, 1.5x overtime, 2x Sunday/holiday) and pay calculation (hours × rate) are in separate tables"
         }
       ]
     }

@@ -4,61 +4,61 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "@TableTest(\"\"\"...\"\"\")"
+      "evidence": "@TableTest(\"\"\"..."
     },
     {
       "id": "has-question-mark-column",
       "text": "Table has at least one column name ending with '?' (e.g. 'Discount?' or 'Expected?')",
       "passed": true,
-      "evidence": "Discount? column in header: 'Scenario | Customer tier | Discount?'"
+      "evidence": "Scenario | Customer tier | Discount?"
     },
     {
       "id": "has-three-data-rows",
       "text": "Table has exactly 3 data rows (GOLD, SILVER, BRONZE)",
       "passed": true,
-      "evidence": "Three data rows: 'Gold customer | GOLD | 20', 'Silver customer | SILVER | 10', 'Bronze customer | BRONZE | 0'"
+      "evidence": "Gold customer | GOLD | 20, Silver customer | SILVER | 10, Bronze customer | BRONZE | 0"
     },
     {
       "id": "single-assertion-in-method",
       "text": "Test method body contains only one assertEquals (or equivalent assertion) — not three",
       "passed": true,
-      "evidence": "Method body contains single line: 'assertEquals(discount, discountService.calculate(customerTier, 100));'"
+      "evidence": "assertEquals(discount, discountService.calculate(customerTier, 100));"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method body contains no if or switch statements",
       "passed": true,
-      "evidence": "Method body contains only 'assertEquals(discount, discountService.calculate(customerTier, 100));' with no conditional logic"
+      "evidence": "Method body contains only single assertEquals statement, no control flow"
     },
     {
       "id": "scenario-column-present",
       "text": "Table has a scenario/description column as the leftmost column",
       "passed": true,
-      "evidence": "First column in table header is 'Scenario'"
+      "evidence": "Scenario is first column header with values like Gold customer, Silver customer..."
     },
     {
       "id": "has-descriptive-title",
       "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case",
       "passed": true,
-      "evidence": "Method name 'calculatesDiscountByCustomerTier' converts to 'Calculates Discount By Customer Tier', a clear descriptive title"
+      "evidence": "void calculatesDiscountByCustomerTier(...) reads as 'Calculates Discount By Customer Tier'"
     },
     {
       "id": "description-if-present-adds-information",
       "text": "If @Description is present, it provides context beyond what the table rows already express",
       "passed": true,
-      "evidence": "@Description(\"Order value is always 100.\") provides fixed parameter context not visible in table columns. Response notes: 'The order value (100) is fixed across all rows, so I'll note it in @Description rather than repeat it as a column'"
+      "evidence": "@Description(\"Order value is always 100.\") conveys fixed value absent from table"
     },
     {
       "id": "annotation-order",
-      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest",
       "passed": true,
-      "evidence": "Annotations appear as @Description followed by @TableTest (correct order with @DisplayName absent)"
+      "evidence": "@Description appears before @TableTest in correct sequence"
     },
     {
       "id": "description-uses-textblock",
-      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "text": "If @Description is present and text is longer than one line, uses triple-quoted string not +",
       "passed": true,
-      "evidence": "@Description text \"Order value is always 100.\" is short and fits on a single line, so text block is not required"
+      "evidence": "@Description text is single line, textblock not needed; passes requirement"
     }
   ],
   "assertions_passed": 10,

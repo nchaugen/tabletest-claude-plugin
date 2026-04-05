@@ -4,112 +4,124 @@
       "id": "2.1-decomposition-concern-separation",
       "text": "Discount ladder, and traveller eligibility are in separate tables. Rolling window counting as a third table is desirable.",
       "passed": true,
-      "evidence": "Three separate @TableTest methods: reisDiscountTier (discount ladder), discountTypeByPassengerType (traveller eligibility), and ticketsInRollingWindow (rolling window counting)"
+      "evidence": "Four separate @TableTest methods: reisDiscountTier, ticketsInRollingWindow, discountedTicketPrice, discountTypeByPassengerType"
     },
     {
       "id": "2.2-children-flat-discount",
       "text": "Children's flat 20% discount is represented — either as a row in the eligibility table or a separate note. It does not follow the ladder.",
       "passed": true,
-      "evidence": "@Description states 'Children receive a flat 20% discount regardless of travel history or zones' and the discountTypeByPassengerType table row shows 'Child: flat 20% | child | CHILD_FLAT'"
+      "evidence": "Row 'Child: flat 20% | child | CHILD_FLAT' in discountTypeByPassengerType table"
     },
     {
       "id": "2.3-depth-tier-boundaries",
       "text": "The discount ladder has multiple tiers derived from the 'every fifth trip' rule, with boundary values or value sets showing which ticket counts produce which discount. The maximum 40% discount is represented.",
       "passed": true,
-      "evidence": "reisDiscountTier table shows 'Building up, no discount yet | {1, 2, 3, 4} | 0' through 'Maximum tier: ticket 40 | {40, 41, 42, 43, 44} | 40' and 'Above maximum tier, capped at 40 | {45, 50, 100} | 40'"
+      "evidence": "All 9 tiers shown with boundaries and value sets; 40% max shown in rows '{40, 41, 42, 43, 44} | 40' and '{45, 50, 100} | 40'"
     },
     {
       "id": "2.4-depth-rolling-window-boundary",
       "text": "The 30-day rolling window boundary is tested: a ticket at exactly 30 days is included, at 31 days is excluded.",
       "passed": true,
-      "evidence": "ticketsInRollingWindow table rows: 'Ticket exactly at boundary | 2024-04-04 | [2024-03-05] | 1' (March 5 = 30 days before April 4, included) and 'Ticket just outside boundary | 2024-04-04 | [2024-03-04] | 0' (March 4 = 31 days before, excluded)"
+      "evidence": "'Ticket exactly at boundary | 2024-04-04 | [2024-03-05] | 1' and 'Ticket just outside boundary | 2024-04-04 | [2024-03-04] | 0'"
     },
     {
       "id": "2.6-readability-human-readable-values",
       "text": "Eligibility uses human-readable values (yes/no or equivalent) rather than raw true/false. TypeConverter or similar mechanism mentioned.",
       "passed": true,
-      "evidence": "discountTypeByPassengerType table uses human-readable values 'adult', 'senior', 'child', 'REIS', 'CHILD_FLAT' instead of true/false; @TypeConverter is present in the code for parsing human-readable strings"
+      "evidence": "Passenger types use 'adult', 'senior', 'child'; discount types use 'REIS', 'CHILD_FLAT'; @TypeConverter declared in code"
     },
     {
       "id": "2.9-correctness-value-set-tier-semantics",
       "text": "Value sets in the tier table contain exactly the values that produce the same discount. No cross-tier contamination.",
-      "passed": false,
-      "evidence": "The formula 'min(floor(count / 5) * 5, 40)%' means tickets 10-14 all produce 10%, but the table shows only 'Second tier: ticket 10 | 10 | 10'. Similarly, tickets 15-19 produce 15%, but only 'Third tier: ticket 15 | 15 | 15' is shown. Value sets are incomplete and do not represent all ticket counts that produce each discount tier."
-    },
-    {
-      "id": "2.10-format-displayname",
-      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
       "passed": true,
-      "evidence": "All four test methods have @DisplayName: '@DisplayName(\"Reis discount percentage\")' on reisDiscountTier, '@DisplayName(\"Tickets counted in rolling 30-day window\")' on ticketsInRollingWindow, '@DisplayName(\"Discounted ticket price\")' on discountedTicketPrice, '@DisplayName(\"Discount type by passenger type\")' on discountTypeByPassengerType"
-    },
-    {
-      "id": "2.11-format-description",
-      "text": "@Description is present on at least the class or the tier method and provides context beyond what the table rows already express — such as the discount ladder structure, eligibility rules, or application context. Does NOT merely restate the column names or summarise what the rows show.",
-      "passed": true,
-      "evidence": "reisDiscountTier @Description includes formula 'min(floor(count / 5) * 5, 40)%' and open questions about ticket inclusion; ticketsInRollingWindow explains 30-day window semantics and boundary behavior; discountedTicketPrice describes rounding behavior; all go beyond restating rows"
-    },
-    {
-      "id": "2.12-format-typeconverter",
-      "text": "TypeConverterSources is used for at least one human-readable conversion (yes/no, or rolling window notation).",
-      "passed": false,
-      "evidence": "@TypeConverter is present only for BigDecimal parsing ('public static BigDecimal parseBigDecimal(String value)'), not for human-readable conversions like yes/no or rolling window notation (e.g., converting days to '30 days ago')"
-    },
-    {
-      "id": "2.13-format-annotation-order",
-      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
-      "passed": true,
-      "evidence": "All methods follow the order: '@DisplayName(...) @Description(...) @TableTest(...)' consistently"
-    },
-    {
-      "id": "2.14-format-description-textblock",
-      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
-      "passed": true,
-      "evidence": "All @Description annotations use triple-quoted strings: '@Description(\"\"\"...\"\"\")', not string concatenation"
+      "evidence": "Value sets like {1,2,3,4}→0%, {6,7,8,9}→5%, {40,41,42,43,44}→40% each contain only values that produce their stated discount"
     },
     {
       "id": "2.15-ticket-count-uses-value-sets",
       "text": "The discount ladder table uses value sets for the ticket count column to group counts within the same tier (e.g. {5, 6, 7, 8, 9} or {5, 9} for min/max → 5%) — not one row per boundary value. The 'every fifth trip' rule creates tiers; the table should express tiers, not enumerate boundaries.",
       "passed": false,
-      "evidence": "The 5% tier is split across two rows: 'First discount: ticket 5 | 5 | 5' and 'Still on first tier | {6, 7, 8, 9} | 5' instead of a single value set {5, 6, 7, 8, 9}. Tiers 10%, 15%, 20%, 25%, 30%, 35% are each shown as single values (10, 15, 20, etc.) rather than complete value sets for their ranges (10-14, 15-19, etc.)"
+      "evidence": "Tiers 10%, 15%, 20%, 25%, 30%, 35% shown as single boundary values ('10', '15', '20', '25', '30', '35') not value sets like {10,11,12,13,14}"
     },
     {
       "id": "2.16-no-duplicate-tier-mapping",
       "text": "The tier-to-discount mapping is expressed once — not repeated across multiple tables. A price application table (if present) should test the arithmetic (base price × discount → final price) without re-enumerating which ticket counts map to which tier.",
       "passed": true,
-      "evidence": "discountedTicketPrice table tests the formula 'Final price = base price × (1 - discount / 100)' by taking discount percentage directly as input, without re-listing which ticket counts produce which tiers"
+      "evidence": "Tier-to-discount mapping only in reisDiscountTier; discountedTicketPrice tests arithmetic without re-mapping"
+    },
+    {
+      "id": "2.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "All four methods have @DisplayName: 'Reis discount percentage', 'Tickets counted in rolling 30-day window', 'Discounted ticket price', 'Discount type by passenger type'"
+    },
+    {
+      "id": "2.11-format-description",
+      "text": "@Description is present on at least the class or the tier method and provides context beyond what the table rows already express — such as the discount ladder structure, eligibility rules, or application context. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": true,
+      "evidence": "@Description explains formula, flags boundary ambiguities, application context; e.g. 'min(floor(count / 5) * 5, 40)%' and zone-irrelevance"
+    },
+    {
+      "id": "2.12-format-typeconverter",
+      "text": "TypeConverterSources is used for at least one human-readable conversion (yes/no, or rolling window notation).",
+      "passed": false,
+      "evidence": "@TypeConverter shown only for BigDecimal parsing, not for human-readable conversions like yes/no or rolling window notation"
+    },
+    {
+      "id": "2.13-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "All methods follow order: @DisplayName, @Description, @TableTest()"
+    },
+    {
+      "id": "2.14-format-description-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "All multi-line @Description blocks use triple quotes (\"\"\"...\"\"\")"
     },
     {
       "id": "2.17-zone-irrelevance-visible",
       "text": "The eligibility/passenger-type table includes a Zone column (or equivalent) with a value set to show that the discount applies regardless of zone — rather than silently omitting zone. The requirement explicitly says 'regardless of the zones you travel in'.",
       "passed": false,
-      "evidence": "The discountTypeByPassengerType table has columns 'Scenario | Passenger type | Discount type?' with no Zone column. Although @Description for reisDiscountTier mentions 'The discount applies regardless of which zones are traveled', the eligibility table itself does not include a Zone column to demonstrate this."
+      "evidence": "discountTypeByPassengerType table has only 'Passenger type' and 'Discount type?' columns; no Zone column present"
     },
     {
       "id": "2.18-adult-senior-value-set",
       "text": "Adult and senior are expressed as a value set {ADULT, SENIOR} (or equivalent) in at least one row of the eligibility table, since they follow identical discount rules. Not enumerated as separate rows with the same outcome.",
       "passed": true,
-      "evidence": "discountTypeByPassengerType table row 'Adult and senior: Reis | {adult, senior} | REIS' uses a value set to group both passenger types"
+      "evidence": "Row 'Adult and senior: Reis | {adult, senior} | REIS' uses value set {adult, senior}"
     },
     {
       "id": "2.19-depth-all-tiers",
       "text": "All 9 discount tiers are represented in the ladder table: 0% (tickets 1-4), 5% (5-9), 10% (10-14), 15% (15-19), 20% (20-24), 25% (25-29), 30% (30-34), 35% (35-39), and 40% (40+). Not just a subset of tiers.",
       "passed": true,
-      "evidence": "reisDiscountTier table includes rows producing each tier: 0% ({1,2,3,4}), 5% ({5}, {6,7,8,9}), 10% (10), 15% (15), 20% (20), 25% (25), 30% (30), 35% (35), 40% ({40-44}, {45,50,100})"
+      "evidence": "Rows show 0%, 5%, 10%, 15%, 20%, 25%, 30%, 35%, 40% — all 9 tiers represented"
     },
     {
       "id": "2.20-readability-one-row-per-tier",
       "text": "Each tier in the discount ladder is expressed as a single row with a value set for ticket counts — not split across multiple rows (e.g. separate rows for 'tier kicks in' and 'tier holds'). One tier = one row.",
       "passed": false,
-      "evidence": "The 5% tier is split across two rows: 'First discount: ticket 5 | 5 | 5' and 'Still on first tier | {6, 7, 8, 9} | 5' instead of a single row with a combined value set. This violates the requirement that one tier = one row."
+      "evidence": "5% tier split: 'First discount: ticket 5 | 5 | 5' and 'Still on first tier | {6,7,8,9} | 5'; 40% tier split: '{40,41,42,43,44} | 40' and '{45,50,100} | 40'"
     },
     {
       "id": "2.21-readability-relative-time",
       "text": "The rolling window table expresses time relatively (e.g. '14 days ago', '30 days ago', or an integer 'Days ago' column) rather than using absolute dates, making the table readable without needing to know the reference date.",
       "passed": false,
-      "evidence": "ticketsInRollingWindow table uses absolute dates: 'Ticket exactly at boundary | 2024-04-04 | [2024-03-05] | 1' and 'Ticket just outside boundary | 2024-04-04 | [2024-03-04] | 0' instead of relative notation like '30 days ago' or '31 days ago'"
+      "evidence": "ticketsInRollingWindow uses absolute dates '2024-04-04', '2024-03-05', '2024-03-04', not relative notation like '30 days ago'"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": true,
+      "evidence": "Four separate @TableTest methods address: discount ladder, rolling window counting, price calculation, and eligibility classification"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
+      "passed": false,
+      "evidence": "reisDiscountTier has 11 rows with unnecessary row splits: 5% tier in 2 rows, 40% tier in 2 rows; could reduce to 9 rows (one per tier)"
     }
   ],
-  "assertions_passed": 12,
-  "assertions_total": 18,
-  "pass_rate": 0.6666666666666666
+  "assertions_passed": 14,
+  "assertions_total": 20,
+  "pass_rate": 0.7
 }

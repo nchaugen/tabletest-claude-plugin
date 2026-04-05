@@ -4,64 +4,64 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "@TableTest(\"\"\"\n        Scenario                               | Tags"
+      "evidence": "@TableTest(\"\"\" Scenario | Tags | Category | Filtered?..."
     },
     {
       "id": "list-syntax-correct",
       "text": "List values in the table use bracket syntax like [tech:java, biz:sales, dev:ci] — not comma-separated strings without brackets.",
       "passed": true,
-      "evidence": "[tech:java, biz:sales, dev:ci], [biz:sales], [], [\"biz:hr|recruiting\", tech:go], [tech:go], [\"tech:[ci]\"]"
+      "evidence": "All list columns use bracket syntax: [tech:java, biz:sales, dev:ci], [biz:sales], [], [\"biz:hr|recruiting\", tech:go]"
     },
     {
       "id": "empty-list-explicit",
       "text": "Empty list input uses [] (not a blank cell, which represents null). The distinction between empty list and null is preserved.",
       "passed": true,
-      "evidence": "empty list returns empty list | [] ... and null category returns all tags | ... | (blank cell) | ..."
+      "evidence": "Row 'empty list returns empty list | [] |' uses explicit []; row 'null category returns all tags | ... | | ...' uses blank cell for null"
     },
     {
       "id": "special-chars-quoted",
-      "text": "Values containing pipes (|) or brackets are properly quoted or escaped so they don't conflict with table syntax.",
-      "passed": true,
-      "evidence": "pipe in biz tag preserved for business | [\"biz:hr|recruiting\", tech:go] | business | [\"biz:hr|recruiting\"] and brackets in tech tag preserved | [\"tech:[ci]\", biz:sales] | tech | [\"tech:[ci]\"]"
+      "text": "Values containing pipes (|), brackets, or colons (:) are properly quoted (e.g. \"tech:java\") so they don't conflict with table syntax. Colons without quoting would be mis-interpreted as map key:value entries.",
+      "passed": false,
+      "evidence": "[tech:java, biz:sales, dev:ci] and [\"biz:hr|recruiting\", tech:go] show colons unquoted. Response states: 'elements containing | or [] are quoted' - omits colons"
     },
     {
       "id": "scenario-column-present",
       "text": "Table has a scenario/description column as the leftmost column",
       "passed": true,
-      "evidence": "Scenario | Tags | Category | Filtered? (Scenario is leftmost column)"
+      "evidence": "First column header: 'Scenario | Tags | Category | Filtered?'"
     },
     {
       "id": "has-question-mark-column",
       "text": "At least one output column name ends with '?' (e.g. 'Filtered tags?' or 'Result?')",
       "passed": true,
-      "evidence": "Filtered?"
+      "evidence": "Column header 'Filtered?' ends with question mark"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method body contains no if or switch statements",
       "passed": true,
-      "evidence": "void shouldFilterTagsByCategory(List<String> tags, String category, List<String> filtered) {\n        assertEquals(filtered, filter.filterTags(tags, category));\n    }"
+      "evidence": "Method body: assertEquals(filtered, filter.filterTags(tags, category)); - single statement, no conditionals"
     },
     {
       "id": "annotation-order",
       "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
       "passed": true,
-      "evidence": "@DisplayName(\"Tag filtering by category\")\n    @Description(\"\"\"\n        Open: behaviour for unknown category values (not \"tech\" or \"business\")\n        is unspecified. Prefix matching is assumed to be case-sensitive.\n        \"\"\")\n    @TableTest(\"\"\"..."
+      "evidence": "@DisplayName, @Description, @TableTest appear in exact required order"
     },
     {
       "id": "has-descriptive-title",
       "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
       "passed": true,
-      "evidence": "@DisplayName(\"Tag filtering by category\") and void shouldFilterTagsByCategory(...)"
+      "evidence": "@DisplayName(\"Tag filtering by category\") provides clear descriptive title"
     },
     {
       "id": "description-uses-textblock",
       "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
       "passed": true,
-      "evidence": "@Description(\"\"\"\n        Open: behaviour for unknown category values (not \"tech\" or \"business\")\n        is unspecified. Prefix matching is assumed to be case-sensitive.\n        \"\"\")"
+      "evidence": "@Description(\"\"\" Open: behaviour for unknown category... \"\"\") uses triple-quote text block"
     }
   ],
-  "assertions_passed": 10,
+  "assertions_passed": 9,
   "assertions_total": 10,
-  "pass_rate": 1
+  "pass_rate": 0.9
 }
