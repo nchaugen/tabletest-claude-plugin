@@ -1,0 +1,1 @@
+Multiple @TableTest methods separating: item operations (add/remove), coupon application (validity and replacement using before/after columns), cart total (coupon type effects on price), and checkout (stock verification). Rows independently executable. Business-language columns. Test data visible. Single assertion per method.

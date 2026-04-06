@@ -46,6 +46,10 @@
     {
       "id": "separates-availability-and-cost",
       "text": "Shipping method availability and shipping cost are in separate tables"
+    },
+    {
+      "id": "blank-output-for-na",
+      "text": "When a shipping method is unavailable (e.g. Overnight outside UK/Ireland), the output clearly indicates non-applicability — either via a blank cost cell in a combined table, or by the availability table showing 'No'/unavailable and the cost table omitting those combinations entirely. Filler text like 'N/A', '-', or '0' is not used for unavailable outcomes."
     }
   ]
 }

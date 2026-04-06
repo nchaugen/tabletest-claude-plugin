@@ -20,6 +20,18 @@
       "text": "Values containing pipes (|), brackets, or colons (:) are properly quoted (e.g. \"tech:java\") so they don't conflict with table syntax. Colons without quoting would be mis-interpreted as map key:value entries."
     },
     {
+      "id": "set-syntax-correct",
+      "text": "Set<String> values in the table use curly brace syntax like {tech, dev} — not bracket syntax [tech, dev] which is for lists. The distinction between Set and List types is preserved in the table notation."
+    },
+    {
+      "id": "newline-in-cell",
+      "text": "Cell values containing newlines use \\n escaping — not literal line breaks that would break the table row structure."
+    },
+    {
+      "id": "pipe-quoted",
+      "text": "Values containing pipe characters (|) are quoted so they don't conflict with the markdown table column separator. For example, a tag like 'biz:hr|recruiting' must be quoted."
+    },
+    {
       "id": "scenario-column-present",
       "text": "Table has a scenario/description column as the leftmost column"
     },

@@ -1,0 +1,85 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"...Scenario...Tags...Category...\"\"\") appears twice"
+    },
+    {
+      "id": "list-syntax-correct",
+      "text": "List values in the table use bracket syntax like [tech:java, biz:sales, dev:ci] — not comma-separated strings without brackets",
+      "passed": true,
+      "evidence": "[tech:java, biz:sales, dev:ci] and [] used consistently in table"
+    },
+    {
+      "id": "empty-list-explicit",
+      "text": "Empty list input uses [] (not a blank cell, which represents null). The distinction between empty list and null is preserved",
+      "passed": true,
+      "evidence": "Empty input list rows show | [] | not blank cells"
+    },
+    {
+      "id": "special-chars-quoted",
+      "text": "Values containing pipes (|), brackets, or colons (:) are properly quoted (e.g. \"tech:java\") so they don't conflict with table syntax",
+      "passed": false,
+      "evidence": "Unquoted tech:java, biz:sales, dev:ci contain colons; assertion example shows \"tech:java\" quoted"
+    },
+    {
+      "id": "set-syntax-correct",
+      "text": "Set<String> values in the table use curly brace syntax like {tech, dev} — not bracket syntax [tech, dev]",
+      "passed": true,
+      "evidence": "{tech, dev} and {biz} used for Set parameters in second table"
+    },
+    {
+      "id": "newline-in-cell",
+      "text": "Cell values containing newlines use \\n escaping — not literal line breaks that would break the table row structure",
+      "passed": true,
+      "evidence": "\"tech:java\\\\nEnterprise Edition\" uses escaped newline in table"
+    },
+    {
+      "id": "pipe-quoted",
+      "text": "Values containing pipe characters (|) are quoted so they don't conflict with the markdown table column separator",
+      "passed": true,
+      "evidence": "\"biz:hr|recruiting\" is quoted in pipe tag row"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column labeled 'Scenario' with entries like 'Tech keeps tech: and dev:'"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Filtered tags?' or 'Result?')",
+      "passed": true,
+      "evidence": "Both tables have 'Filtered?' column as output column"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "Methods contain only stream().map() and assertEquals(); no conditionals"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order",
+      "passed": true,
+      "evidence": "@DisplayName then @Description then @TableTest on both methods"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title",
+      "passed": true,
+      "evidence": "@DisplayName(\"Filter by named category\") and @DisplayName(\"Filter by required...\")"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +",
+      "passed": true,
+      "evidence": "@Description uses triple quotes (\"\"\"...\"\"\") for multi-line text"
+    }
+  ],
+  "assertions_passed": 12,
+  "assertions_total": 13,
+  "pass_rate": 0.9230769230769231
+}

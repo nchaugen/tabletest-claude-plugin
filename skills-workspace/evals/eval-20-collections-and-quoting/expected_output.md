@@ -1,1 +1,1 @@
-A @TableTest using [] syntax for list values, [] for empty lists (not blank), proper quoting for values containing pipes or brackets, and null category as blank cell.
+A @TableTest using [] syntax for list values, {} syntax for Set values (distinct from value set notation), [] for empty lists (not blank), proper quoting for values containing pipes or brackets, \n escaping for newlines in cell values, and null category/requiredCategories as blank cells.

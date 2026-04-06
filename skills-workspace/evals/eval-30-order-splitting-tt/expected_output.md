@@ -1,0 +1,1 @@
+Multiple @TableTest methods for five concerns: fulfillment method, delivery address, availability, warehouse allocation, companion products. Each method contains all output columns for its concern. Business-language column names. Scenario names describe conditions. Warehouse allocation uses scalar quantity.

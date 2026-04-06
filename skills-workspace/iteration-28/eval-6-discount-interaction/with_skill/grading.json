@@ -1,0 +1,49 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "Multiple markdown tables present: '| Scenario | Order Quantity | Loyalty Member | Bulk Discount | Loyalty Discount | Discount Applied? |' and others"
+    },
+    {
+      "id": "does-not-invent-resolution",
+      "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved",
+      "passed": true,
+      "evidence": "Both apply row shows '**?**' in Discount Applied column; text states 'The last row is where the team needs to decide'"
+    },
+    {
+      "id": "covers-both-discounts-applying",
+      "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)",
+      "passed": true,
+      "evidence": "'Both apply — **???**' row: Order Quantity 50, Loyalty Member yes, Bulk Discount 10%, Loyalty Discount 5%"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note",
+      "passed": true,
+      "evidence": "'Step 3 — Questions to resolve with the team' with three numbered questions: 'Which stacking rule (if any)?' and 'Is there a cap?'"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Column header 'Discount Applied?' ends with '?'; data cell in that column contains '**?**'"
+    },
+    {
+      "id": "extreme-discount-row",
+      "text": "Table includes at least one row with a high combined discount (e.g. large order + top loyalty tier) that would force a decision about whether a cap applies — making the cap question concrete, not theoretical.",
+      "passed": true,
+      "evidence": "Third table 'Both hit the cap' row: 15% bulk + 10% loyalty = 25%, capped at 20%"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column in main tables is 'Scenario' with entries like 'No discounts apply', 'Bulk only', 'Loyalty only', 'Both apply'"
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 7,
+  "pass_rate": 1
+}
