@@ -1,0 +1,85 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains at least one markdown table (using | column | syntax)",
+      "passed": true,
+      "evidence": "| Scenario | Name | Email | Valid? | Validation Error? |"
+    },
+    {
+      "id": "validation-rules-covered",
+      "text": "Email validation and name-required scenarios are present — at least one row for invalid email and one for missing name.",
+      "passed": true,
+      "evidence": "Missing name | | alice@example.com | no | Name is required; Invalid email — no @ symbol"
+    },
+    {
+      "id": "blank-for-absent-optional",
+      "text": "Dietary requirements and/or accessibility needs use blank cells when the attendee has not provided them (genuinely absent) — not 'N/A' or 'none'.",
+      "passed": false,
+      "evidence": "Rows mention 'With dietary requirements' and 'With accessibility needs' but table has no Dietary/Accessibility columns to show blank values"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column name ends with '?' (e.g. 'Accepted?', 'Price?')",
+      "passed": true,
+      "evidence": "Valid?, Validation Error?, Discount?, Final Price? all end with ?"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('Missing email', 'Early-bird single attendee') — not outcomes ('Rejected', 'Discounted').",
+      "passed": true,
+      "evidence": "Missing name, Missing email, Invalid email, Group discount only, Just below group threshold"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The discount stacking ambiguity (early-bird + group) is surfaced as an open question — not silently resolved.",
+      "passed": true,
+      "evidence": "1. Do early-bird and group discounts stack? Three common options — which fits your intent?"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "| Scenario | ... | is the first column in both Table 1 and Table 2"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules.",
+      "passed": true,
+      "evidence": "Table 1: Registration Validation ... Table 2: Discount Calculation"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
+      "passed": true,
+      "evidence": "Table 1 has 9 rows for validation scenarios; Table 2 has 7 rows for discount rules; no cross-concerns mixed"
+    },
+    {
+      "id": "separates-validation-and-pricing",
+      "text": "Input validation rules and pricing/discount calculation are in separate tables",
+      "passed": true,
+      "evidence": "Table 1: Registration Validation ... Table 2: Discount Calculation (distinct sections)"
+    },
+    {
+      "id": "descriptive-registration-date",
+      "text": "Registration date uses descriptive values (e.g. 'before cutoff', 'on cutoff', 'after cutoff') rather than raw dates",
+      "passed": true,
+      "evidence": "Before Cutoff column uses yes/no values instead of raw dates like 2026-05-01"
+    },
+    {
+      "id": "no-redundant-policy-columns",
+      "text": "If registration date uses descriptive values like 'before cutoff', the cutoff date is not also present as a separate column.",
+      "passed": false,
+      "evidence": "Table has both 'Before Cutoff' column (descriptive) AND 'Early-Bird Cutoff (Policy)' column (2026-05-01 date)"
+    },
+    {
+      "id": "group-size-policy-as-column",
+      "text": "The minimum group size threshold appears as a policy column (e.g. 'Min group size (policy)') — surfacing this as a configurable business rule.",
+      "passed": true,
+      "evidence": "Min Group Size (Policy) column with value 5 present in Table 2"
+    }
+  ],
+  "assertions_passed": 11,
+  "assertions_total": 13,
+  "pass_rate": 0.8461538461538461
+}

@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains at least one markdown table",
+      "passed": true,
+      "evidence": "Response contains two markdown tables: 'Table 1: Order Status Transition' and 'Table 2: Return Request Eligibility'"
+    },
+    {
+      "id": "cancellation-coverage",
+      "text": "Table covers cancellation rules — includes rows for states where cancellation is allowed and where it is not",
+      "passed": true,
+      "evidence": "Table 1 includes: 'Cancel before confirmation' (yes), 'Cancel after confirmation' (yes), 'Cannot cancel after dispatch' (no)"
+    },
+    {
+      "id": "return-window-addressed",
+      "text": "The 30-day return window rule is addressed — either as a threshold column, a separate table, or flagged as an open question",
+      "passed": true,
+      "evidence": "Table 2 has explicit 'Return Window (Policy)' column showing '30 days' with test cases at days 15, 30, 31, 90"
+    },
+    {
+      "id": "value-set-or-multiple-states",
+      "text": "Uses value sets {PENDING, CONFIRMED} or equivalent to express 'regardless of which starting state' for cases where a rule holds across states",
+      "passed": true,
+      "evidence": "Table 1 row 6 uses {SHIPPED, DELIVERED} and row 7 uses {PENDING, CONFIRMED, SHIPPED} to show rules across states"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Both tables have output columns: 'Allowed?' and 'Return Allowed?' both end with question marks"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Both Table 1 and Table 2 have 'Scenario' as the first/leftmost column"
+    },
+    {
+      "id": "row-independence",
+      "text": "Each row is independently verifiable — no row references a prior row's outcome. Each row specifies its own starting state and expected result.",
+      "passed": true,
+      "evidence": "Each row specifies complete context: scenario, starting state(s), and expected outcome with no cross-row references"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules.",
+      "passed": true,
+      "evidence": "Response states 'Two concerns are visible here...I'd suggest two tables' — Table 1 for transitions, Table 2 for returns"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
+      "passed": true,
+      "evidence": "Table 1 has 9 focused rows on transitions; Table 2 has 6 focused rows on return eligibility—no redundant permutations"
+    },
+    {
+      "id": "separates-transitions-and-returns",
+      "text": "Status transition rules and return eligibility rules are in separate tables",
+      "passed": true,
+      "evidence": "Table 1 titled 'Order Status Transition'; Table 2 titled 'Return Request Eligibility'—clearly separated"
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 10,
+  "pass_rate": 1
+}

@@ -1,0 +1,49 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "| Scenario | Order Value | Bulk Discount | Loyalty Discount | Discount Applied? | Final Price? | Notes |"
+    },
+    {
+      "id": "does-not-invent-resolution",
+      "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved",
+      "passed": true,
+      "evidence": "25%?, 15%?, 20%? marked as **disputed** in Notes column; questions asked but not answered"
+    },
+    {
+      "id": "covers-both-discounts-applying",
+      "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)",
+      "passed": true,
+      "evidence": "Rows 4-6 all show both Bulk Discount (10%) and Loyalty Discount (15%) non-zero"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note",
+      "passed": true,
+      "evidence": "\"Questions to bring to the team:\" section with 4 explicit questions; **disputed** note on ambiguous rows"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "\"Final Price?\" column header and cells like \"£150.00?\", \"£170.00?\", \"£160.00?\""
+    },
+    {
+      "id": "extreme-discount-row",
+      "text": "Table includes at least one row with a high combined discount (e.g. large order + top loyalty tier) that would force a decision about whether a cap applies — making the cap question concrete, not theoretical.",
+      "passed": false,
+      "evidence": "Highest combined discount is 25% on £200 order with 15% loyalty; numbers are modest, not extreme enough to force urgent cap decision"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column is \"Scenario\" with entries like \"No discounts apply\", \"Bulk only\", \"Loyalty only\""
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 7,
+  "pass_rate": 0.8571428571428571
+}

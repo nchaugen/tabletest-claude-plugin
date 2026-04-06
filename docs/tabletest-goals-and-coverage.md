@@ -1,5 +1,7 @@
 # TableTest: Skill Goals & Eval Coverage
 
+Last updated: 2026-04-06
+
 ## Purpose
 
 The tabletest skill helps write and convert JUnit tests using the TableTest library.
@@ -8,7 +10,8 @@ It applies in multiple contexts:
 - **From requirements** — natural-language feature descriptions with no existing code
 - **From existing code** — production code that needs test coverage
 - **From existing tests** — JUnit `@Test` methods, JUnit parameterized tests, Groovy
-  Spock Framework tests, or other Java/Kotlin test frameworks to rewrite as TableTests
+  Spock Framework tests, Kotest, TestNG, or other Java/Kotlin test frameworks to rewrite
+  as TableTests
 
 Regardless of starting point, the skill guides analysis of the domain logic (the same
 analysis as spec-by-example), then expresses the results as valid `@TableTest` code
@@ -82,132 +85,172 @@ the agent cannot reliably trigger both skills together.
 
 ---
 
-## Goal → Category → Coverage Mapping
+## Eval Inventory
+
+| Eval | Domain | Starting Point | Key Assertions | Iter 27 |
+|------|--------|---------------|----------------|---------|
+| 1 — convert-repetitive-tests | Generic | Existing `@Test` methods | format, scenario naming, setup | 100% |
+| 2 — parse-dates | Date parsing | Requirements | null/blank, type conversion, empty string | 100% |
+| 3 — dependency-setup | Build config | Project setup | groupId, artifactId, scope, JUnit version | 100% |
+| 7 — permission-check | Permissions | Requirements | value sets, row count, format | 100% |
+| 8 — money-parse | Currency parsing | Requirements | null/blank, exceptions, format | 100% |
+| 9 — bonus-contractor-structure | Payroll rules | Requirements | value sets, rule coverage, format | 100% |
+| 14 — weekly-pay | Payroll calc | Requirements | traceability, boundaries, decomposition, format | 79% |
+| 15 — reis-discount | Discount tiers | Requirements | decomposition, boundaries, type converter, format | 75% |
+| 18 — convert-from-code | Insurance | Existing code | black-box, observable I/O, decomposition | 86% |
+| 19 — convert-from-parameterized | Generic | `@ParameterizedTest` | format, scenario naming | 100% |
+| 20 — collections-and-quoting | Collections | Requirements | list syntax, empty list, special chars, format | 90% |
+| 22 — event-registration-tt | Event registration | Requirements | validation, blank/value-set, decomposition, optional fields | 80% |
+| 23 — loan-approval-tt | Loan approval | Requirements | thresholds, decomposition, domain values | 64% |
+| 25 — convert-from-spock | Insurance | Spock framework | map/list syntax, type converter, decomposition | 67% |
+| 26 — convert-from-kotest | Insurance | Kotest framework | map/list syntax, type converter, no Kotest syntax | 80% |
+| 27 — convert-from-testng | Insurance | TestNG framework | map/list syntax, decomposition, no TestNG artifacts | 93% |
+| 28 — convert-from-methodsource | Insurance | `@MethodSource` | map/list syntax, decomposition, no MethodSource artifacts | 87% |
+
+---
+
+## Goal → Coverage Mapping
 
 ### Goal 1: Clarify known rules
 
-| Category | Testable Aspects | Coverage | Gaps |
-|----------|-----------------|----------|------|
-| **Depth of scenarios** (T9) | Boundary conditions, combined scenarios, error cases, all rule branches | **Reasonable** — evals 8,9,14,15 cover boundaries, errors, branches | Combined/interaction scenarios: only eval 14 |
-| **Stateful features** | Row independence, state as before/action/after | Not covered in tabletest evals | **Gap** — no tabletest eval involves stateful domain |
+| Category | Testable Aspects | Coverage | Notes |
+|----------|-----------------|----------|-------|
+| **Depth of scenarios** | Boundary conditions, combined scenarios, error cases, all rule branches | **Strong** — evals 8, 9, 14, 15, 22, 23 cover boundaries, errors, branches | Combined/interaction scenarios: evals 14, 15 |
+| **Stateful features** | Row independence, state as before/action/after | Not covered | **Gap** — no tabletest eval involves stateful domain |
 
 **Starting-point coverage:**
 
 | Starting Point | Eval(s) | Notes |
 |---------------|---------|-------|
-| From requirements | 7 (permissions), 8 (money parse), 9 (bonus), 14 (weekly pay), 15 (reis discount) | Well represented |
-| From existing tests | 1 (convert repetitive tests) | Single eval |
-| From existing code | _none_ | **Gap** — no eval presents production code to test |
-| From parameterized/Spock tests | _none_ | **Gap** — no eval presents non-TableTest parameterized tests |
+| From requirements | 7, 8, 9, 14, 15, 22, 23 | Well represented (7 evals) |
+| From existing tests | 1, 19 | Two evals — `@Test` and `@ParameterizedTest` |
+| From existing code | 18 | Single eval; 86% pass rate |
+| From other frameworks | 25 (Spock), 26 (Kotest), 27 (TestNG), 28 (MethodSource) | **Strong** — 4 evals, 67-93% pass rates |
 
 ### Goal 2: Surface unknown rules
 
-| Category | Testable Aspects | Coverage | Gaps |
-|----------|-----------------|----------|------|
-| **Open questions** | `@Description` surfacing open questions | `description-if-present-adds-information` in 5+ evals — **partial** | No assertion specifically checks for open questions in tabletest output |
+| Category | Testable Aspects | Coverage | Notes |
+|----------|-----------------|----------|-------|
+| **Open questions** | `@Description` surfacing open questions | **Partial** — `description-if-present-adds-information` in 10+ evals; eval 22 has `validation-includes-optional-fields` | No assertion specifically checks for open-question identification |
 
 This is primarily a spec-by-example goal but applies when tabletest starts from
-requirements. Current tabletest evals don't present ambiguous requirements.
+requirements. Current tabletest evals don't present deeply ambiguous requirements.
 
 ### Goal 3: Specify precisely
 
-| Category | Testable Aspects | Coverage | Gaps |
-|----------|-----------------|----------|------|
-| **Value sets** (T7) | `{...}` for irrelevant inputs; correct semantics; row reduction | **Reasonable** — evals 7, 9, 14, 15 | — |
-| **Blank cells** | Blank for null/absent; not 0 or defaults for optional inputs | `null-as-blank-cell` in 2, 8; `1.6-readability-empty-cells` in 14 — **partial** | **Blank vs value set distinction** not tested |
-| **Boundaries** | Threshold values visible; boundary rows | `1.3-depth-overtime-boundary` in 14 — **weak** | Only 1 eval tests boundary precision |
+| Category | Testable Aspects | Coverage | Notes |
+|----------|-----------------|----------|-------|
+| **Value sets** | `{...}` for irrelevant inputs; correct semantics; row reduction | **Strong** — evals 7, 9, 15, 25, 26, 27, 28 | `uses-value-sets` in 6 evals |
+| **Blank cells** | Blank for null/absent; not 0 or defaults for optional | **Reasonable** — `null-as-blank-cell` in 2, 8; `1.6-readability-empty-cells` in 14 (fails); `blank-for-absent-optional` in 22 | 14's empty-cells assertion unreliable |
+| **Boundaries** | Threshold values visible; boundary rows | **Reasonable** — `1.3-depth-overtime-boundary` in 14; `2.3-depth-tier-boundaries`, `2.4-depth-rolling-window-boundary` in 15; `threshold-as-column` in 23 | Eval 23 threshold assertion fails |
 
 ### Goal 4: Separate concerns
 
-| Category | Testable Aspects | Coverage | Gaps |
-|----------|-----------------|----------|------|
-| **Decomposition** (T8) | Separate tables per concern; all outputs of same concern in one table | `2.1-decomposition-concern-separation` in eval 15 — **weak** (23% pass) | Only 1 eval; **all-outputs-in-one-table** untested |
-| **Rules vs arithmetic** | Tables focus on rules, arithmetic minimal | _none_ | **Gap** — zero assertions |
-| **Logic type matching** (T8.3) | Decision/parsing/transformation tables structured differently | _none_ | **Gap** |
+| Category | Testable Aspects | Coverage | Notes |
+|----------|-----------------|----------|-------|
+| **Decomposition** | Separate tables per concern | **Partial (breadth Strong, reliability Partial)** — `concerns-decomposed` in evals 14, 18, 22, 23, 25, 27, 28; dedicated assertions in 14, 15, 18, 22, 23 | Fails in 5 of 7 evals with `concerns-decomposed` (14, 18, 23, 25, 27, 28) |
+| **Rules vs arithmetic** | Tables focus on rules, arithmetic minimal | `separates-classification-and-calculation` in 14 (fails) | **Weak** — single assertion, unreliable |
+| **Logic type matching** | Decision/parsing/transformation structured differently | _none_ | **Gap** |
 
 ### Goal 5: Design tables at the right abstraction level
 
-| Category | Testable Aspects | Coverage | Gaps |
-|----------|-----------------|----------|------|
-| **Black-box design** (T8.2) | Observable I/O, not internal flags | _none_ | **Gap** — zero assertions; critical when starting from code |
-| **Exception columns** (T4) | `Throws?` column, not hardcoded exceptions | `exception-has-expected-column` in 8, 14 — **reasonable** | — |
-| **Traceability columns** (T5.4) | Intermediate results visible | `1.1-traceability-columns` in 14 — **weak** | Only 1 eval |
-| **Complete outputs** (T5.5) | All outputs of same concern in one table | _none_ | **Gap** |
+| Category | Testable Aspects | Coverage | Notes |
+|----------|-----------------|----------|-------|
+| **Black-box design** | Observable I/O, not internal flags | **Reasonable** — `black-box-columns`, `observable-io-only` in eval 18 (pass) | Single eval but both assertions pass reliably |
+| **Exception columns** | `Throws?` column, not hardcoded exceptions | **Reasonable** — `exception-has-expected-column` in 8; `1.2-error-has-expected-column` in 14; `exception-cases-handled` in 8 | — |
+| **Traceability columns** | Intermediate results visible | **Weak** — `1.1-traceability-columns` in 14 (fails) | Only 1 eval, unreliable |
+| **Complete outputs** | All outputs of same concern in one table | _none_ | **Gap** |
 
 ### Goal 6: Express data readably and concisely
 
-| Category | Testable Aspects | Coverage | Gaps |
-|----------|-----------------|----------|------|
-| **Concrete domain values** (T6.1) | Not abstract codes or booleans | Implied only — **weak** | No direct assertion |
-| **Domain terminology** (T6.2) | Column names use domain terms | _none_ | **Gap** |
-| **Output traceability** (T6.4) | Expected values derivable from inputs | `1.8-correctness-expected-values` in 14 — **weak** | Only 1 eval |
-| **TypeConverter for readability** (T3) | Readable table values via `@TypeConverter` | `type-conversion-addressed` in 2, `2.12` in 15 — **reasonable** | — |
-| **Table width/conciseness** | Avoiding overly wide tables | _none_ | **Gap** — no assertion checks this |
+| Category | Testable Aspects | Coverage | Notes |
+|----------|-----------------|----------|-------|
+| **Concrete domain values** | Not abstract codes or booleans | **Reasonable** — `concrete-domain-values` in 23; `2.6-readability-human-readable-values` in 15 (fails) | Eval 15 assertion unreliable |
+| **Domain terminology** | Column names use domain terms | **Reasonable** — `business-language-columns` in evals 18, 22, 23, 25, 26, 27, 28 | Eval 25 fails this assertion |
+| **Output traceability** | Expected values derivable from inputs | **Weak** — `1.8-correctness-expected-values` in 14 | Only 1 eval |
+| **TypeConverter for readability** | Readable table values via `@TypeConverter` | **Reasonable** — `type-conversion-addressed` in 2; `2.12-format-typeconverter` in 15 (fails); `options-type-converter` in 25, 26, 27, 28 | Evals 25, 26 fail type-converter assertion |
+| **Table width/conciseness** | Avoiding overly wide tables | _none_ | **Gap** |
 
 ### Goal 7: Use correct TableTest syntax
 
-| Category | Testable Aspects | Coverage | Gaps |
-|----------|-----------------|----------|------|
-| **Has @TableTest** (T1.1) | Annotation present | 5+ evals — **strong** | — |
-| **Null as blank** (T2.1) | Blank cells for null | Evals 2, 8 — **reasonable** | — |
-| **Empty string** (T2.2) | `''` for empty strings | _none_ | **Gap** |
-| **Quoting** (T2.3) | Quotes for pipes, brackets | _none_ | **Gap** |
-| **Collections** (T2.4) | `[]` for lists, `{}` for sets, `[:]` for empty map | _none_ | **Gap** |
-| **Value set syntax** (T7.1) | `{...}` notation | Evals 7, 9, 15 — **reasonable** | — |
-| **Scenario column** (T5.1) | Leftmost, not mapped unless `@Scenario` | Evals 1, 7, 9 — **reasonable** | — |
-| **`?` suffix** (T5.2) | On output columns, suffix not prefix | Evals 1, 8 — **reasonable** | — |
+| Category | Testable Aspects | Coverage | Notes |
+|----------|-----------------|----------|-------|
+| **Has @TableTest** | Annotation present | **Strong** — all 17 evals | — |
+| **Null as blank** | Blank cells for null | **Reasonable** — evals 2, 8 | — |
+| **Empty string** | `''` for empty strings | **Weak** — `empty-string-uses-quotes` in eval 2 | Single eval |
+| **Quoting** | Quotes for pipes, brackets | **Weak** — `special-chars-quoted` in eval 20 (fails) | Single eval, unreliable |
+| **List syntax** | `[]` for lists | **Reasonable** — `list-syntax-correct` in 20; `dimensions-as-list` in 25, 26, 27, 28 | — |
+| **Map syntax** | Map representation | **Partial** — `options-as-map` in 25, 26, 27, 28 | Fails in 25, 26, 28 |
+| **Set syntax `{}`** | Sets distinct from value sets | _none_ | **Gap** |
+| **Newline `\n`** | Escaped newlines in cells | _none_ | **Gap** |
+| **Value set syntax** | `{...}` notation | **Strong** — evals 7, 9, 15, 25, 26, 27, 28 | — |
+| **Scenario column** | Leftmost, not mapped unless `@Scenario` | **Strong** — all 14 conversion evals | — |
+| **`?` suffix** | On output columns | **Strong** — all 14 conversion evals | — |
 
 ### Goal 8: Keep method bodies clean
 
-| Category | Testable Aspects | Coverage | Gaps |
-|----------|-----------------|----------|------|
-| **No if/switch** (T1.6) | Clean method body | Evals 1, 7, 8, 9, 14 — **well covered** | — |
-| **TypeConverter extracts logic** (T3.2) | Conversion in `@TypeConverter`, not inline | Evals 2, 15 — **reasonable** | — |
-| **Uniform assertions** (T1.9) | Single assertion pattern across rows | Eval 1 — **weak** | Only 1 eval |
+| Category | Testable Aspects | Coverage | Notes |
+|----------|-----------------|----------|-------|
+| **No if/switch** | Clean method body | **Strong** — all 14 conversion evals | — |
+| **TypeConverter extracts logic** | Conversion in `@TypeConverter`, not inline | **Reasonable** — evals 2, 15, 25, 26, 27, 28 | Evals 25, 26 fail |
+| **Uniform assertions** | Single assertion pattern across rows | **Weak** — `single-assertion-in-method` in eval 1 | Only 1 eval |
 
 ### Goal 9: Document through annotations
 
-| Category | Testable Aspects | Coverage | Gaps |
-|----------|-----------------|----------|------|
-| **@DisplayName** (T1.3) | Descriptive method name or annotation | 7+ evals — **well covered** | — |
-| **@Description quality** (T1.4) | Adds context beyond table, not restatement | 7+ evals — **well covered** | — |
-| **Scenario naming** (T6.3) | Conditions, not outcomes | Eval 14 — **weak** | Only 1 tabletest eval checks this |
+| Category | Testable Aspects | Coverage | Notes |
+|----------|-----------------|----------|-------|
+| **@DisplayName** | Descriptive section header | **Strong** — 14+ evals | — |
+| **@Description quality** | Adds context beyond table, not restatement | **Strong** — 10+ evals with `description-if-present-adds-information`; eval 22 has `description-no-irrelevant-information` (fails) | — |
+| **Scenario naming** | Conditions, not outcomes | **Reasonable** — `scenario-names-describe-conditions` in evals 9, 18, 22, 23, 25, 26, 27, 28 | Eval 23 fails this assertion |
 
 ### Goal 10: Follow annotation conventions
 
-| Category | Testable Aspects | Coverage | Gaps |
-|----------|-----------------|----------|------|
-| **Annotation order** (T1.2) | `@DisplayName` → `@Description` → `@TableTest` | 7+ evals — **well covered** | — |
-| **Text block** (T1.5) | `@Description` uses `"""` | 7+ evals — **well covered** | — |
+| Category | Testable Aspects | Coverage | Notes |
+|----------|-----------------|----------|-------|
+| **Annotation order** | `@DisplayName` → `@Description` → `@TableTest` | **Strong** — 14+ evals | Eval 8 also has `annotation-order-strict` |
+| **Text block** | `@Description` uses `"""` | **Strong** — 14+ evals | — |
 
 ### Goal 11: Manage dependencies correctly
 
-| Category | Testable Aspects | Coverage | Gaps |
-|----------|-----------------|----------|------|
-| **Dependency coordinates** (T10.1) | Correct groupId and artifactId | Eval 3 — **well covered** | — |
-| **JUnit version** (T10.2) | Flag < 5.11 | Eval 3 — **covered** | — |
+| Category | Testable Aspects | Coverage | Notes |
+|----------|-----------------|----------|-------|
+| **Dependency coordinates** | Correct groupId and artifactId | **Strong** — eval 3 (100%) | — |
+| **JUnit version** | Flag < 5.11 | **Strong** — eval 3 (100%) | — |
 
 ### Goal 12: Assess test shape
 
-| Category | Testable Aspects | Coverage | Gaps |
-|----------|-----------------|----------|------|
-| **When to use @Test** (T10.3) | Trivial impl, complex setup, redundant coverage | _none_ | **Gap** — hard to test; needs eval where @Test is better answer |
+| Category | Testable Aspects | Coverage | Notes |
+|----------|-----------------|----------|-------|
+| **When to use @Test** | Trivial impl, complex setup, redundant coverage | _none_ | **Gap** — needs eval where `@Test` is the better answer |
 
 ---
 
 ## Gap Summary by Priority
 
-| Priority | Gap | Goals Blocked | Current State | What's Needed |
-|----------|-----|--------------|---------------|---------------|
-| **P1** | Black-box design | 5 (Abstraction level) | Zero assertions | Eval presenting internal code — assert table uses observable I/O not internal flags |
-| **P2** | Rules vs arithmetic separation | 4 (Separate concerns) | Zero assertions | Eval with decision rules + calculation — assert tables focus on rules |
-| **P3** | Blank vs value set semantics | 3 (Precision), 7 (Syntax) | No assertion distinguishing them | Eval with absent AND irrelevant inputs — assert correct blank vs `{...}` usage |
-| **P4** | Table syntax: empty strings, quoting, collections | 7 (Syntax) | Zero assertions each | Eval requiring `''`, quoted values, collection syntax — structural assertions |
-| **P5** | Starting from existing code | 1 (Clarify rules), 5 (Abstraction) | No eval | New eval with production code as input |
-| **P6** | Domain terminology in columns | 6 (Readable data) | Zero assertions | Add `business-language-columns` equivalent to tabletest evals |
-| **P7** | Traceability columns | 5 (Abstraction level), 6 (Readable data) | 1 eval | Add to more evals with multi-step logic |
-| **P8** | All outputs of same concern in one table | 4 (Separate concerns), 5 (Abstraction) | Zero assertions | Eval with multiple outputs from one operation |
-| **P9** | Starting from parameterized/Spock tests | — | No eval | New eval with Spock or `@ParameterizedTest` input |
-| **P10** | Decomposition (multiple tables) | 4 (Separate concerns) | 1 eval at 23% | Diagnose: skill improvement or better eval design needed |
-| **P11** | Scenario naming (conditions not outcomes) | 9 (Documentation) | 1 eval | Add assertion to more evals |
-| **P12** | Assess test shape (@Test vs @TableTest) | 12 (Test shape) | No eval | Eval where @Test is the correct answer — hard to design |
+| Priority | Gap | Goals | Current State | What's Needed |
+|----------|-----|-------|---------------|---------------|
+| **P1** | Concern decomposition reliability | 4 | Present in 7 evals but fails in 5 (14, 18, 23, 25, 27, 28) | Skill improvement — breadth is sufficient, pass rate is not |
+| **P2** | Rules vs arithmetic separation | 4 | 1 assertion (`separates-classification-and-calculation` in 14), fails | Skill improvement + add to more evals |
+| **P3** | Map syntax (`options-as-map`) | 7 | 4 evals (25-28), fails in 3 (25, 26, 28) | Skill improvement — assertions exist, reliability needed |
+| **P4** | Special-char quoting | 7 | 1 eval (20), fails | Skill improvement or eval adjustment |
+| **P5** | Table width/conciseness | 6 | Zero assertions | New assertion in existing evals |
+| **P6** | Set syntax `{}`, newline `\n` | 7 | Zero assertions each | New eval or extend eval 20 |
+| **P7** | All outputs of same concern in one table | 4, 5 | Zero assertions | Add assertion to multi-output evals |
+| **P8** | Traceability columns | 5, 6 | 1 eval (14), fails | Skill improvement + add to more evals |
+| **P9** | Stateful domain | 1 | No eval | New eval with stateful domain |
+| **P10** | Assess test shape (`@Test` vs `@TableTest`) | 12 | No eval | Eval where `@Test` is correct answer — hard to design |
+| **P11** | Uniform assertions | 8 | 1 eval | Add assertion to more evals |
+
+## Closed Gaps (since last update)
+
+| Gap | Status | How Closed |
+|-----|--------|------------|
+| Starting from existing code | **Covered** — eval 18 (86%) | Eval 18 — convert-from-code |
+| Starting from parameterized/Spock tests | **Strong** — evals 19, 25, 26, 27, 28 | Five evals covering `@ParameterizedTest`, Spock, Kotest, TestNG, `@MethodSource` |
+| Black-box design | **Reasonable** — eval 18 | `black-box-columns` and `observable-io-only` assertions pass |
+| Domain terminology in columns | **Reasonable** — `business-language-columns` in 7 evals | Previously zero assertions |
+| Empty string syntax | **Weak** — eval 2 | `empty-string-uses-quotes` assertion (was listed as Gap) |
+| Collection syntax (lists) | **Reasonable** — evals 20, 25-28 | `list-syntax-correct`, `dimensions-as-list` |
+| Scenario naming | **Reasonable** — 8 evals | Previously only eval 14; now evals 9, 18, 22, 23, 25-28 |
+| Boundary testing | **Reasonable** — evals 14, 15, 23 | Previously single eval |
+| Concrete domain values | **Reasonable** — evals 15, 23 | Previously no direct assertion |

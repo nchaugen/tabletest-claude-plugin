@@ -1,0 +1,85 @@
+{
+  "assertions": [
+    {
+      "id": "produces-multiple-tables",
+      "text": "Output contains at least 2 separate markdown tables",
+      "passed": true,
+      "evidence": "Response includes \"Subscription Charge\" table and \"Cancellation Refund\" table"
+    },
+    {
+      "id": "annual-no-trial-rule-represented",
+      "text": "A table or note explicitly captures that the free trial is not available on annual plans (not just implied)",
+      "passed": true,
+      "evidence": "Subscription table shows: monthly \"After 30-day trial\" vs annual \"Immediately\""
+    },
+    {
+      "id": "loyalty-discount-row-present",
+      "text": "At least one table row demonstrates the loyalty programme discount scenario for annual plan subscribers",
+      "passed": true,
+      "evidence": "\"Loyalty member, annual signup | Annual | yes | £86.29 | Immediately\""
+    },
+    {
+      "id": "surfaces-genuine-open-questions",
+      "text": "The response identifies at least one genuinely underspecified interaction",
+      "passed": true,
+      "evidence": "\"Refund basis for loyalty annual members...calculated on: £86.29...or £95.88\""
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The annual/loyalty/trial interaction is correctly resolved with a note explaining mutual exclusivity",
+      "passed": false,
+      "evidence": "Note only states \"monthly loyalty members...doesn't affect price\" but doesn't explicitly explain annual/loyalty vs monthly/trial exclusivity"
+    },
+    {
+      "id": "loyalty-discount-annual-only",
+      "text": "Makes clear that loyalty discount applies to annual only; monthly loyalty pays same as non-loyalty",
+      "passed": true,
+      "evidence": "Both rows show monthly (loyalty & non-loyalty) at same price; note: \"loyalty programme doesn't affect a monthly subscriber's price\""
+    },
+    {
+      "id": "loyalty-refund-ambiguity",
+      "text": "Loyalty annual refund is surfaced as question or calculated with visible trace from discounted price",
+      "passed": true,
+      "evidence": "Rows 4-5 show both bases (£86.29 → £62.63, and £95.88 → £69.66); Open Question 1 surfaces ambiguity"
+    },
+    {
+      "id": "cancellation-refund-table",
+      "text": "Includes a cancellation/refund table or section with concrete rows",
+      "passed": true,
+      "evidence": "\"## Cancellation Refund\" section with 8 scenario rows including refund amounts"
+    },
+    {
+      "id": "refund-table-includes-loyalty-dimension",
+      "text": "Refund table includes a loyalty member column to distinguish loyalty vs non-loyalty",
+      "passed": true,
+      "evidence": "Refund table has \"Loyalty Member\" column; rows show yes/no values distinguishing scenarios"
+    },
+    {
+      "id": "question-mark-only-on-outputs",
+      "text": "'?' suffix only on output/derived columns, not input columns",
+      "passed": true,
+      "evidence": "\"Refund?\" is output; \"Within 24h of Renewal?\" is derived timing interpretation (valid use)"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables address distinct concerns, not monolithic table mixing unrelated rules",
+      "passed": true,
+      "evidence": "\"two clean concerns: what subscribers are charged and what they're refunded when they cancel\""
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only rows needed to express its concern; fewer rows when separated",
+      "passed": true,
+      "evidence": "Subscription table: 7 rows (sign-up + renewals); Refund table: 8 rows (scenarios)"
+    },
+    {
+      "id": "separates-pricing-trial-loyalty-refund",
+      "text": "Pricing/plans, trial eligibility, loyalty discount, and cancellation/refund in separate tables",
+      "passed": false,
+      "evidence": "Subscription Charge table combines pricing, trial eligibility, and loyalty discount; Cancellation Refund separate. Assertion requires 4 separate concerns, response merges first 3."
+    }
+  ],
+  "assertions_passed": 11,
+  "assertions_total": 13,
+  "pass_rate": 0.8461538461538461
+}

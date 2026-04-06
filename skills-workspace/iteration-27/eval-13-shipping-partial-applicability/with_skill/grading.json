@@ -1,0 +1,73 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "| Scenario | Shipping Method | Order Value | Destination | Free Express Threshold (Policy) | Cost? |"
+    },
+    {
+      "id": "express-split-by-uk-free-tier",
+      "text": "Express shipping is split into at least two cases distinguishing the UK free tier (UK, order £50+, free) from the paid tier. The split is driven by the UK-only free threshold rule.",
+      "passed": true,
+      "evidence": "Express | £50.00 | UK | £50.00 | £0.00 (free) vs Express | {£50.00, £75.00} | {Ireland, International} | £50.00 | £9.99 (paid)"
+    },
+    {
+      "id": "express-uses-value-sets",
+      "text": "Express rows use value sets to consolidate cases with the same outcome — e.g. non-UK destinations at/above threshold in one row (such as {Ireland, Other} or {Ireland, International}), or UK at/above threshold in one row ({£50, £75}). Not enumerated as separate rows per destination or per order value when the result is identical. Any reasonable label for non-UK/Ireland destinations is acceptable (International, Other, Rest of World, etc.).",
+      "passed": false,
+      "evidence": "Separate rows for 'Express | £50.00 | UK | £50.00 | £0.00' and 'Express | £75.00 | UK | £50.00 | £0.00' should consolidate to {£50, £75}"
+    },
+    {
+      "id": "overnight-grouped",
+      "text": "Overnight UK and Ireland are in one row using a value set ({UK, Ireland}) — not separate rows, since both have the same cost and availability.",
+      "passed": false,
+      "evidence": "'Overnight to UK' and 'Overnight to Ireland' are separate rows, not consolidated in one row with {UK, Ireland}"
+    },
+    {
+      "id": "standard-destination-value-set-or-blank",
+      "text": "Standard shipping destination uses a value set covering all options (e.g. {UK, Ireland, International} or {UK, Ireland, Other}) or is blank/absent — either approach is valid since destination is irrelevant to the cost. Any reasonable label for non-UK/Ireland destinations is acceptable.",
+      "passed": true,
+      "evidence": "Standard | {£10.00, £100.00} | {UK, Ireland, International} | | £3.99"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Column header: 'Cost?'"
+    },
+    {
+      "id": "concrete-domain-values",
+      "text": "Cell values use concrete domain terms (e.g. 'Standard', 'Express', 'UK', '£3.99') — not abstract codes or raw booleans like 'true', 'false', 'TYPE_1', '1'.",
+      "passed": true,
+      "evidence": "Values include '£3.99', '£9.99', 'UK', 'Ireland', 'Express', 'Standard', 'Overnight', 'Not available'"
+    },
+    {
+      "id": "blank-vs-value-set-correct",
+      "text": "Value sets (not blanks) are used for irrelevant inputs — e.g. Standard shipping destination uses a value set like {UK, Ireland, International} because destination exists but doesn't affect the cost. Blanks are reserved for genuinely absent/N/A inputs. The distinction between 'irrelevant to this rule' (value set) and 'not applicable' (blank) is correct.",
+      "passed": true,
+      "evidence": "Policy column blank for 'Standard' and 'Overnight' rows (N/A), filled with '£50.00' for Express rows (policy setting)"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": false,
+      "evidence": "Author states 'Two distinct concerns here: what shipping options are available, and what they cost' but only one table is provided"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
+      "passed": false,
+      "evidence": "'Overnight not available internationally' provides availability info, unnecessary in cost table if availability was separated"
+    },
+    {
+      "id": "separates-availability-and-cost",
+      "text": "Shipping method availability and shipping cost are in separate tables",
+      "passed": false,
+      "evidence": "Single table 'Shipping Cost Calculation' contains both costs ('£14.99') and availability ('Not available') in Cost column"
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 11,
+  "pass_rate": 0.5454545454545454
+}

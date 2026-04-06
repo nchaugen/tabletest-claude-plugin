@@ -1,0 +1,61 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains at least one markdown table (using | column | syntax)",
+      "passed": true,
+      "evidence": "Table with markdown format: | Scenario | Weekday Hours | ... | Pay? |"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column name ends with '?'",
+      "passed": true,
+      "evidence": "Column header 'Pay?' ends with question mark"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe work patterns or conditions — not outcomes",
+      "passed": true,
+      "evidence": "'Standard week, exactly at threshold', 'One hour over overtime threshold'"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language — not code identifiers",
+      "passed": true,
+      "evidence": "'Weekday Hours', 'Sunday Hours', 'Hourly Rate', 'Pay?' are business language"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Leftmost table column is 'Scenario'"
+    },
+    {
+      "id": "overtime-boundary-covered",
+      "text": "Overtime threshold boundary (40 hours) covered with threshold and above",
+      "passed": true,
+      "evidence": "Rows with 40, 41, and 50 weekday hours cover boundary and above"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables addressing distinct concerns — not one monolithic table",
+      "passed": false,
+      "evidence": "Response contains single 'starting table' with rate selection and pay combined"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only rows needed — no unnecessary permutations",
+      "passed": false,
+      "evidence": "Rows like 'Weekday (under threshold) plus Sunday' combine multiple concerns"
+    },
+    {
+      "id": "separates-classification-and-calculation",
+      "text": "Rate categorisation and pay calculation are in separate tables",
+      "passed": false,
+      "evidence": "Single table combines hours classification and pay calculation in one table"
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 9,
+  "pass_rate": 0.6666666666666666
+}
