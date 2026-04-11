@@ -1,0 +1,85 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains at least one markdown table (using | column | syntax)",
+      "passed": true,
+      "evidence": "| Scenario | Name | Email | Valid? | Error? | and | Scenario | Registration Date | Group Size | Cutoff Date (Policy) | Min Group Size (Policy) | Discount? |"
+    },
+    {
+      "id": "validation-rules-covered",
+      "text": "Email validation and name-required scenarios are present — at least one row for invalid email and one for missing name.",
+      "passed": true,
+      "evidence": "| Name is missing | | alice@example.com | no | Name is required | and | Email has no @ symbol | Alice Smith | aliceexample.com | no | Invalid email format |"
+    },
+    {
+      "id": "blank-for-absent-optional",
+      "text": "Dietary requirements and/or accessibility needs use blank cells when the attendee has not provided them (genuinely absent) — not 'N/A' or 'none'.",
+      "passed": false,
+      "evidence": "Dietary and accessibility columns are completely absent from both tables; response asks 'Dietary requirements and accessibility needs don't appear in the output columns' but does not demonstrate blank cells as required."
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column name ends with '?' (e.g. 'Accepted?', 'Price?')",
+      "passed": true,
+      "evidence": "| Valid? | and | Discount? | column headers both end with question marks"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('Missing email', 'Early-bird single attendee') — not outcomes ('Rejected', 'Discounted').",
+      "passed": true,
+      "evidence": "Scenarios like 'Name is missing', 'Email has no @ symbol', 'Early-bird only', 'Group at exact threshold' describe input states/conditions, not outcomes"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The discount stacking ambiguity (early-bird + group) is surfaced as an open question — not silently resolved.",
+      "passed": true,
+      "evidence": "**1. Do discounts stack?** (Row: \"Both early-bird and group\") with explicit comparison table showing three options marked with ?"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Both Table 1 and Table 2 begin with | Scenario | as the first column"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules.",
+      "passed": true,
+      "evidence": "Table 1: Registration Validation and Table 2: Discount Rules are separate with distinct columns and concerns"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
+      "passed": false,
+      "evidence": "Table 1 contains both 'Typical valid registration' and 'All fields provided' rows—both show identical data (Alice Smith, alice@example.com, yes) making one row redundant"
+    },
+    {
+      "id": "separates-validation-and-pricing",
+      "text": "Input validation rules and pricing/discount calculation are in separate tables",
+      "passed": true,
+      "evidence": "Table 1: Registration Validation covers name/email validation; Table 2: Discount Rules covers pricing logic"
+    },
+    {
+      "id": "descriptive-registration-date",
+      "text": "Registration date uses descriptive values (e.g. 'before cutoff', 'on cutoff', 'after cutoff') rather than raw dates — making the table readable without knowing the actual cutoff date.",
+      "passed": false,
+      "evidence": "Registration Date column contains raw dates: 2026-06-20, 2026-06-01, 2026-06-15 instead of descriptive values like 'before cutoff' or 'after cutoff'"
+    },
+    {
+      "id": "no-redundant-policy-columns",
+      "text": "If registration date uses descriptive values like 'before cutoff', the cutoff date is not also present as a separate column (it's already encoded in the description). Numeric policy thresholds like min group size are acceptable as columns since they are configuration values worth discussing with business experts.",
+      "passed": true,
+      "evidence": "Since raw dates are used for registration date (not descriptive), including 'Cutoff Date (Policy)' and 'Min Group Size (Policy)' as separate policy columns is acceptable per the assertion rules"
+    },
+    {
+      "id": "group-size-policy-as-column",
+      "text": "The minimum group size threshold appears as a policy column (e.g. 'Min group size (policy)') — surfacing this as a configurable business rule, not just implied by the boundary rows.",
+      "passed": true,
+      "evidence": "| Min Group Size (Policy) | column present in Table 2 with explicit value 5 shown in every row"
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 13,
+  "pass_rate": 0.7692307692307693
+}

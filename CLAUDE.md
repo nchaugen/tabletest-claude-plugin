@@ -21,48 +21,67 @@ The `.github/workflows/release.yml` workflow triggers on version tags and create
 
 ## Eval Framework
 
-Skills are validated via a benchmark in `skills-workspace/`:
+Skills are validated via per-skill evals with variant comparison support:
 
 ```
-evals/
-  eval-X-name/
-    prompt.md             ← user prompt sent to Claude
-    expected_output.md    ← criteria for grading
-    eval.json             ← metadata: id, slug, skill, assertions, timeout_ms?
-iteration-N/
-  benchmark.json          ← aggregated pass rates and token counts
-  eval-review.md          ← human-readable report with regression detection
-  eval-X-name/
-    with_skill/           ← run with current skill active
-      outputs/            ← model's actual output files
-      grading.json        ← assertion pass/fail with evidence
-      timing.json         ← duration_ms and total_tokens
-    no_skill/             ← baseline without skill (--baseline or --baseline-only)
-      ...same structure
+evals/                           ← test definitions, per skill
+  tabletest/
+    eval-X-name/
+      prompt.md                  ← user prompt sent to Claude
+      expected_output.md         ← criteria for grading
+      eval.json                  ← metadata: id, slug, skill, assertions, timeout_ms?
+  spec-by-example/
+    eval-X-name/
+
+iterations/                      ← results, per skill
+  tabletest/
+    iteration-N/
+      benchmark.json             ← aggregated pass rates and token counts
+      eval-review.md             ← human-readable report with regression detection
+      eval-X-name/
+        with_skill/
+          outputs/               ← model's actual output files
+          grading.json           ← assertion pass/fail with evidence
+          timing.json            ← duration_ms and total_tokens
+    minimal/                     ← variant results (independent iteration numbering)
+      iteration-1/
+
+skill-variants/                  ← experimental skill files (never shipped)
+  tabletest/
+    minimal/
+      SKILL.md                   ← stripped-down skill variant
 ```
 
-**Running evals:** Use `scripts/run-evals.js`.
+**Running evals:** Use `scripts/run-evals.js`. The `--skill` flag is required.
 
 ```bash
-node scripts/run-evals.js --iteration N              # run all evals
-node scripts/run-evals.js --iteration N --evals 1,2  # run specific evals
-node scripts/run-evals.js --iteration N --baseline      # run both with and without skill
-node scripts/run-evals.js --iteration N --baseline-only  # run without skill only
+node scripts/run-evals.js --skill tabletest --iteration N
+node scripts/run-evals.js --skill tabletest --iteration N --evals 1,2
+node scripts/run-evals.js --skill tabletest --iteration N --baseline
+node scripts/run-evals.js --skill tabletest --iteration N --baseline-only
 ```
 
-**Regression detection:** The script compares with_skill scores against the previous iteration's benchmark.json and flags any assertion that passed before but fails now.
+**Skill variants:** Test minimized or modified skill files against evals.
+
+```bash
+node scripts/run-evals.js --skill tabletest --variant minimal --iteration 1
+node scripts/run-evals.js --skill tabletest --variant minimal --iteration 1 --compare-official
+```
+
+**Regression detection:** The script compares scores against the previous iteration's benchmark.json (within the same variant) and flags any assertion that regressed. With `--compare-official`, it also compares variant results against the latest official benchmark.
 
 ### Contamination Protocol
 
-`docs/` contains ideal answer tables and spec documents describing eval strategy and known weaknesses. `skills-workspace/iteration-*/` directories contain prior model responses to the same eval prompts. Each eval's `eval.json` and `expected_output.md` contain assertions and grading criteria that describe the exact expected output structure. `README.md`, `CLAUDE.md`, and `CHANGELOG.md` describe eval strategy and project context. Agents exploring the codebase during eval runs could discover and use any of these, invalidating results.
+`docs/` contains ideal answer tables and spec documents describing eval strategy and known weaknesses. `iterations/` directories contain prior model responses to the same eval prompts. Each eval's `eval.json` and `expected_output.md` contain assertions and grading criteria. `README.md`, `CLAUDE.md`, and `CHANGELOG.md` describe eval strategy and project context. Agents exploring the codebase during eval runs could discover and use any of these, invalidating results.
 
-**The `run-evals.js` script enforces this automatically** — it creates a git worktree and removes contaminating files. Git tools are disallowed at runtime (`--disallowedTools "Bash(git:*)"`) so agents cannot recover deleted files from history.
+**The `run-evals.js` script enforces this automatically** — it creates a git worktree and removes contaminating files (`docs/`, `iterations/`, `skill-variants/`, project markdown files, eval answer keys). Git tools are disallowed at runtime (`--disallowedTools "Bash(git:*)"`) so agents cannot recover deleted files from history.
 
 **If running evals manually** (without the script), you must:
 1. Create a worktree: `git worktree add /tmp/eval-run`
 2. Remove docs: `rm -rf /tmp/eval-run/docs`
 3. Remove project files: `rm -f /tmp/eval-run/{README,CLAUDE,CHANGELOG}.md`
-4. Remove prior iterations: `rm -rf /tmp/eval-run/skills-workspace/iteration-*`
-5. Remove eval answer keys: `find /tmp/eval-run/skills-workspace/evals -name eval.json -o -name expected_output.md | xargs rm -f`
-6. Run evals from the worktree with `--disallowedTools "Bash(git:*)"`
-7. Clean up: `git worktree remove /tmp/eval-run`
+4. Remove prior iterations: `rm -rf /tmp/eval-run/iterations`
+5. Remove skill variants: `rm -rf /tmp/eval-run/skill-variants`
+6. Remove eval answer keys: `find /tmp/eval-run/evals -name eval.json -o -name expected_output.md | xargs rm -f`
+7. Run evals from the worktree with `--disallowedTools "Bash(git:*)"`
+8. Clean up: `git worktree remove /tmp/eval-run`

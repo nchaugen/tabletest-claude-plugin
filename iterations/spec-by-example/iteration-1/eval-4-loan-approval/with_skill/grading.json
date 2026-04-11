@@ -1,0 +1,85 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table (using | column | syntax)",
+      "passed": true,
+      "evidence": "| Scenario | Applicant Age | Min Credit Score (Policy) | Credit Score | Income Status | Approved? | Rejection Reason? |"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column name ends with '?' (e.g. 'Eligible?' or 'Approved?')",
+      "passed": true,
+      "evidence": "Column headers include \"Approved?\" and \"Rejection Reason?\" both ending with ?"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language — no implementation terms like 'creditScore', 'isEligible', 'boolean', 'int'",
+      "passed": true,
+      "evidence": "Columns: \"Applicant Age\", \"Min Credit Score (Policy)\", \"Credit Score\", \"Income Status\" — all business terms"
+    },
+    {
+      "id": "senior-threshold-row",
+      "text": "Table includes at least one row specifically for the senior applicant (65+) threshold scenario",
+      "passed": true,
+      "evidence": "\"Senior applicant, credit in senior band | 65\" and \"Senior, exactly at senior threshold | 65\""
+    },
+    {
+      "id": "missing-income-marked-open",
+      "text": "The missing income scenario is represented — either as a row with an open/uncertain expected value (?, TBD, or blank) or as an explicit open question note",
+      "passed": true,
+      "evidence": "\"Standard adult, income info missing | 40 | 650 | 720 | _missing_ | ? | **Open: reject, or allow...**\""
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('Senior applicant at threshold') not outcomes ('Approved')",
+      "passed": true,
+      "evidence": "Scenarios like \"Standard adult, credit below threshold\" and \"Age boundary — just below senior\" describe test conditions"
+    },
+    {
+      "id": "threshold-values-visible",
+      "text": "The policy thresholds (650 for standard, 600 for senior) appear as concrete values in the Credit Score column — not just described in prose. The reader can see the boundary values in the table rows.",
+      "passed": true,
+      "evidence": "\"Standard adult, exactly at threshold | 40 | 650 | 650\" and \"Senior, exactly at senior threshold | 65 | 600 | 600\""
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Leftmost column is \"Scenario\" with descriptions like \"Standard adult, strong credit, stable income\""
+    },
+    {
+      "id": "threshold-as-column",
+      "text": "Policy thresholds (650/600 credit scores) appear in a dedicated policy column (e.g. 'Credit threshold') separate from the applicant's actual credit score column. The reader sees both the threshold and the score, making the comparison explicit.",
+      "passed": true,
+      "evidence": "\"Min Credit Score (Policy)\" column shows 650/600 values, separate from \"Credit Score\" column showing actual scores like 720, 620"
+    },
+    {
+      "id": "concrete-domain-values",
+      "text": "Cell values use concrete domain terms (e.g. '65', '700', 'Stable', 'yes', 'no') — not abstract codes or raw booleans like 'true', 'false', 'CATEGORY_A', '1'.",
+      "passed": true,
+      "evidence": "Uses \"Stable\", \"Unstable\", \"yes\", \"no\", \"?\" and numeric ages/scores; no \"true\"/\"false\" booleans"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": false,
+      "evidence": "Single 14-row table mixes age boundaries, credit score rules, and income status—three distinct concerns per domain"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
+      "passed": false,
+      "evidence": "One monolithic table with rows testing same concerns (income) across different ages/scores: \"Standard adult, unstable...\", \"Senior...unstable...\""
+    },
+    {
+      "id": "separates-age-credit-income",
+      "text": "Age boundary policy, credit score categorisation, and income status are separated into distinct tables, with a final table combining these for the expected verdict",
+      "passed": false,
+      "evidence": "All three concerns combined in single table; should be 4 separate tables per instructions but uses one monolithic table"
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 13,
+  "pass_rate": 0.7692307692307693
+}

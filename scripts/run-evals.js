@@ -4,8 +4,10 @@ const { execSync, spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
-const EVALS_DIR = "skills-workspace/evals";
-const WORKSPACE_PATH = "skills-workspace";
+function evalsDir(skill) { return `evals/${skill}`; }
+function iterationsDir(skill) { return `iterations/${skill}`; }
+function variantSkillDir(skill, variant) { return `skill-variants/${skill}/${variant}`; }
+function variantIterationsDir(skill, variant) { return `iterations/${skill}/${variant}`; }
 
 function loadEvalsFromDir(evalsDir) {
   const entries = fs.readdirSync(evalsDir).filter(e => e.startsWith("eval-"));
@@ -79,6 +81,9 @@ function parseEvalIds(str) {
 function parseArgs(argv) {
   const args = {
     iteration: null,
+    skill: null,
+    variant: null,
+    compareOfficial: false,
     evals: null,       // null = all, or array of ids
     baseline: false,
     baselineOnly: false,
@@ -93,6 +98,15 @@ function parseArgs(argv) {
     switch (argv[i]) {
       case "--iteration":
         args.iteration = parseInt(argv[++i], 10);
+        break;
+      case "--skill":
+        args.skill = argv[++i];
+        break;
+      case "--variant":
+        args.variant = argv[++i];
+        break;
+      case "--compare-official":
+        args.compareOfficial = true;
         break;
       case "--evals":
         args.evals = parseEvalIds(argv[++i]);
@@ -124,17 +138,30 @@ function parseArgs(argv) {
     }
   }
 
-  if (!args.iteration) {
-    console.error("Usage: node scripts/run-evals.js --iteration N [options]");
+  if (!args.iteration || !args.skill) {
+    console.error("Usage: node scripts/run-evals.js --skill SKILL --iteration N [options]");
     console.error("Options:");
+    console.error("  --skill SKILL       Skill to evaluate (required: tabletest, spec-by-example)");
+    console.error("  --variant NAME      Run a skill variant instead of the official skill");
+    console.error("  --compare-official   Compare variant results against latest official benchmark");
     console.error("  --evals 1,2,3       Run specific evals (supports ranges: 1-13)");
     console.error("  --baseline          Also run without skill");
     console.error("  --baseline-only     Run without skill only (no with_skill)");
     console.error("  --model MODEL       Model to use (default: sonnet)");
     console.error("  --grading-model M   Model for grading (default: haiku)");
-  console.error("  --grading-suffix S  Write grading to grading-S.json instead of grading.json");
-  console.error("  --parallel N        Max parallel evals (default: 4)");
+    console.error("  --grading-suffix S  Write grading to grading-S.json instead of grading.json");
+    console.error("  --parallel N        Max parallel evals (default: 4)");
     console.error("  --grade-only        Re-grade existing outputs");
+    process.exit(1);
+  }
+
+  if (args.variant && !args.skill) {
+    console.error("Error: --variant requires --skill");
+    process.exit(1);
+  }
+
+  if (args.compareOfficial && !args.variant) {
+    console.error("Error: --compare-official requires --variant");
     process.exit(1);
   }
 
@@ -155,28 +182,39 @@ async function main() {
     encoding: "utf-8",
   }).trim();
 
-  let evals = loadEvalsFromDir(path.join(repoRoot, EVALS_DIR));
+  let evals = loadEvalsFromDir(path.join(repoRoot, evalsDir(args.skill)));
   if (args.evals) {
     evals = evals.filter((e) => args.evals.includes(e.id));
   }
 
-  const iterationDir = path.join(
-    repoRoot,
-    WORKSPACE_PATH,
-    `iteration-${args.iteration}`
-  );
+  // Determine iteration directory based on variant
+  const iterBase = args.variant
+    ? variantIterationsDir(args.skill, args.variant)
+    : iterationsDir(args.skill);
+  const iterationDir = path.join(repoRoot, iterBase, `iteration-${args.iteration}`);
   fs.mkdirSync(iterationDir, { recursive: true });
 
   // Set up log file (sync writes so output survives crashes)
   logFile = path.join(iterationDir, "run.log");
   fs.appendFileSync(logFile, `\n--- Run started at ${new Date().toISOString()} ---\n`);
 
+  const label = args.variant ? `variant=${args.variant}` : "official";
   log(
-    `\nEval run: iteration ${args.iteration}, ${evals.length} evals, model ${args.model}`
+    `\nEval run: ${args.skill} (${label}), iteration ${args.iteration}, ${evals.length} evals, model ${args.model}`
   );
 
-  const worktreePath = (args.gradeOnly || args.baselineOnly) ? null : setupWorktree(repoRoot, "skill");
-  const baselineWorktreePath = (!args.gradeOnly && (args.baseline || args.baselineOnly)) ? setupWorktree(repoRoot, "baseline") : null;
+  // Validate variant directory exists
+  if (args.variant) {
+    const variantDir = path.join(repoRoot, variantSkillDir(args.skill, args.variant));
+    if (!fs.existsSync(path.join(variantDir, "SKILL.md"))) {
+      console.error(`Error: Variant skill file not found: ${path.join(variantDir, "SKILL.md")}`);
+      process.exit(1);
+    }
+  }
+
+  const worktreeMode = args.variant || "skill";
+  const worktreePath = (args.gradeOnly || args.baselineOnly) ? null : setupWorktree(repoRoot, worktreeMode, args);
+  const baselineWorktreePath = (!args.gradeOnly && (args.baseline || args.baselineOnly)) ? setupWorktree(repoRoot, "baseline", args) : null;
 
   try {
     if (!args.gradeOnly) {
@@ -184,8 +222,9 @@ async function main() {
     }
     await gradeResponses(evals, iterationDir, args);
     const benchmark = aggregateResults(evals, iterationDir, args);
-    const previousBenchmark = loadPreviousBenchmark(repoRoot, args.iteration);
-    generateReport(benchmark, previousBenchmark, iterationDir, args);
+    const previousBenchmark = loadPreviousBenchmark(repoRoot, args);
+    const officialBenchmark = args.compareOfficial ? loadOfficialBenchmark(repoRoot, args.skill) : null;
+    generateReport(benchmark, previousBenchmark, officialBenchmark, iterationDir, args);
     log("\nDone. Results in:", iterationDir);
   } finally {
     if (worktreePath) {
@@ -198,7 +237,7 @@ async function main() {
   }
 }
 
-function setupWorktree(repoRoot, mode = "skill") {
+function setupWorktree(repoRoot, mode = "skill", args = {}) {
   const branch = `eval-${mode}-${Date.now()}`;
   const worktreePath = path.join(
     require("os").tmpdir(),
@@ -228,38 +267,80 @@ function setupWorktree(repoRoot, mode = "skill") {
   }
 
   // Eval definitions: remove eval.json and expected_output.md (answer keys), keep prompt.md (input)
-  const evalsDir = path.join(worktreePath, EVALS_DIR);
-  if (fs.existsSync(evalsDir)) {
-    for (const entry of fs.readdirSync(evalsDir)) {
-      if (!entry.startsWith("eval-")) continue;
-      const dir = path.join(evalsDir, entry);
-      for (const file of ["eval.json", "expected_output.md"]) {
-        const p = path.join(dir, file);
-        if (fs.existsSync(p)) fs.rmSync(p);
+  const wtEvalsDir = path.join(worktreePath, "evals");
+  if (fs.existsSync(wtEvalsDir)) {
+    for (const skillDir of fs.readdirSync(wtEvalsDir)) {
+      const skillEvalsDir = path.join(wtEvalsDir, skillDir);
+      if (!fs.statSync(skillEvalsDir).isDirectory()) continue;
+      for (const entry of fs.readdirSync(skillEvalsDir)) {
+        if (!entry.startsWith("eval-")) continue;
+        const dir = path.join(skillEvalsDir, entry);
+        for (const file of ["eval.json", "expected_output.md"]) {
+          const p = path.join(dir, file);
+          if (fs.existsSync(p)) fs.rmSync(p);
+        }
       }
     }
     removals.push("eval definitions (eval.json + expected_output.md)");
   }
 
   // Prior iteration outputs (model answers to the same prompts)
-  const workspaceDir = path.join(worktreePath, "skills-workspace");
-  if (fs.existsSync(workspaceDir)) {
-    for (const entry of fs.readdirSync(workspaceDir)) {
-      if (entry.startsWith("iteration-")) {
-        fs.rmSync(path.join(workspaceDir, entry), { recursive: true });
-        removals.push(entry);
-      }
-    }
+  const iterDir = path.join(worktreePath, "iterations");
+  if (fs.existsSync(iterDir)) {
+    fs.rmSync(iterDir, { recursive: true });
+    removals.push("iterations/");
   }
 
-  // Baseline: also remove skill files so the agent can't discover them
+  // Skill variants (so agent can't discover other variants)
+  const variantsDir = path.join(worktreePath, "skill-variants");
+  if (fs.existsSync(variantsDir)) {
+    fs.rmSync(variantsDir, { recursive: true });
+    removals.push("skill-variants/");
+  }
+
+  // Legacy skills-workspace (if still present)
+  const legacyDir = path.join(worktreePath, "skills-workspace");
+  if (fs.existsSync(legacyDir)) {
+    fs.rmSync(legacyDir, { recursive: true });
+    removals.push("skills-workspace/");
+  }
+
+  // Baseline: remove skill files so the agent can't discover them
   if (mode === "baseline") {
     const skillsDir = path.join(worktreePath, "skills");
     if (fs.existsSync(skillsDir)) { fs.rmSync(skillsDir, { recursive: true }); removals.push("skills/"); }
   }
 
+  // Variant: swap the skill files with variant content
+  if (args.variant && mode !== "baseline") {
+    applyVariant(worktreePath, args.skill, path.join(repoRoot, variantSkillDir(args.skill, args.variant)));
+    removals.push(`applied variant: ${args.variant}`);
+  }
+
   log(`  Removed for isolation: ${removals.join(", ")}`);
   return worktreePath;
+}
+
+function applyVariant(worktreePath, skillName, variantSourceDir) {
+  const skillDir = path.join(worktreePath, "skills", skillName);
+
+  // Remove existing skill content
+  if (fs.existsSync(skillDir)) {
+    for (const entry of fs.readdirSync(skillDir)) {
+      fs.rmSync(path.join(skillDir, entry), { recursive: true });
+    }
+  } else {
+    fs.mkdirSync(skillDir, { recursive: true });
+  }
+
+  // Copy variant files into skill directory
+  for (const entry of fs.readdirSync(variantSourceDir)) {
+    fs.cpSync(
+      path.join(variantSourceDir, entry),
+      path.join(skillDir, entry),
+      { recursive: true }
+    );
+  }
 }
 
 function cleanupWorktree(worktreePath) {
@@ -657,7 +738,7 @@ function aggregateResults(evals, iterationDir, args) {
   if (args.baseline && !args.baselineOnly) configs.push("no_skill");
 
   const benchmark = {
-    skill_name: "tabletest + spec-by-example",
+    skill_name: args.variant ? `${args.skill} (${args.variant})` : args.skill,
     iteration: args.iteration,
     model: args.model,
     timestamp: new Date().toISOString(),
@@ -757,12 +838,11 @@ function aggregateResults(evals, iterationDir, args) {
   return benchmark;
 }
 
-function loadPreviousBenchmark(repoRoot, currentIteration) {
-  const prevDir = path.join(
-    repoRoot,
-    WORKSPACE_PATH,
-    `iteration-${currentIteration - 1}`
-  );
+function loadPreviousBenchmark(repoRoot, args) {
+  const iterBase = args.variant
+    ? variantIterationsDir(args.skill, args.variant)
+    : iterationsDir(args.skill);
+  const prevDir = path.join(repoRoot, iterBase, `iteration-${args.iteration - 1}`);
   const prevPath = path.join(prevDir, "benchmark.json");
 
   if (!fs.existsSync(prevPath)) {
@@ -770,6 +850,30 @@ function loadPreviousBenchmark(repoRoot, currentIteration) {
   }
 
   return JSON.parse(fs.readFileSync(prevPath, "utf-8"));
+}
+
+function loadOfficialBenchmark(repoRoot, skill) {
+  // Find the latest official iteration with a benchmark
+  const officialDir = path.join(repoRoot, iterationsDir(skill));
+  if (!fs.existsSync(officialDir)) return null;
+
+  const iterations = fs.readdirSync(officialDir)
+    .filter(e => e.startsWith("iteration-") && fs.statSync(path.join(officialDir, e)).isDirectory())
+    .sort((a, b) => {
+      const numA = parseInt(a.split("-")[1], 10);
+      const numB = parseInt(b.split("-")[1], 10);
+      return numB - numA; // descending — latest first
+    });
+
+  for (const iter of iterations) {
+    const benchPath = path.join(officialDir, iter, "benchmark.json");
+    if (fs.existsSync(benchPath)) {
+      const benchmark = JSON.parse(fs.readFileSync(benchPath, "utf-8"));
+      benchmark._iterationName = iter;
+      return benchmark;
+    }
+  }
+  return null;
 }
 
 function detectRegressions(benchmark, previousBenchmark) {
@@ -791,9 +895,9 @@ function detectRegressions(benchmark, previousBenchmark) {
     const prevEval = prevByEvalNum[evalNum];
     if (!prevEval) continue;
 
-    const currResult = evalEntry.results.with_skill || evalEntry.results.no_skill;
+    const currResult = evalEntry.results.with_skill || evalEntry.results.no_skill || Object.values(evalEntry.results)[0];
     // Fallback chain for backward compat with baseline-only and iterations 1-3
-    const prevResult = prevEval.results.with_skill || prevEval.results.no_skill || prevEval.results.old_skill;
+    const prevResult = prevEval.results.with_skill || prevEval.results.no_skill || prevEval.results.old_skill || Object.values(prevEval.results)[0];
     if (!currResult || !prevResult) continue;
 
     const prevFailed = new Set(prevResult.failed_assertions || []);
@@ -821,7 +925,7 @@ function detectRegressions(benchmark, previousBenchmark) {
   return { regressions, improvements };
 }
 
-function generateReport(benchmark, previousBenchmark, iterationDir, args) {
+function generateReport(benchmark, previousBenchmark, officialBenchmark, iterationDir, args) {
   const { regressions, improvements } = detectRegressions(
     benchmark,
     previousBenchmark
@@ -829,7 +933,8 @@ function generateReport(benchmark, previousBenchmark, iterationDir, args) {
   const configs = args.baselineOnly ? ["no_skill"] : ["with_skill"];
   if (args.baseline && !args.baselineOnly) configs.push("no_skill");
 
-  let md = `# Eval Review — Iteration ${args.iteration}\n\n`;
+  const label = args.variant ? `${args.skill} variant=${args.variant}` : args.skill;
+  let md = `# Eval Review — ${label}, Iteration ${args.iteration}\n\n`;
   md += `**Model:** ${args.model} · **Date:** ${new Date().toISOString().split("T")[0]} · **Evals:** ${benchmark.evals.length}\n\n`;
 
   // Summary
@@ -880,11 +985,11 @@ function generateReport(benchmark, previousBenchmark, iterationDir, args) {
 
     for (const evalEntry of benchmark.evals) {
       const evalNum = String(evalEntry.id.match(/eval-(\d+)/)?.[1]);
-      const curr = evalEntry.results.with_skill || evalEntry.results.no_skill;
-      const prev = prevByEvalNum[evalNum]?.results?.with_skill || prevByEvalNum[evalNum]?.results?.no_skill || prevByEvalNum[evalNum]?.results?.old_skill;
+      const curr = evalEntry.results.with_skill || evalEntry.results.no_skill || Object.values(evalEntry.results)[0];
+      const prev = prevByEvalNum[evalNum]?.results?.with_skill || prevByEvalNum[evalNum]?.results?.no_skill || prevByEvalNum[evalNum]?.results?.old_skill || Object.values(prevByEvalNum[evalNum]?.results || {})[0];
 
       // Also check timing.json for timed-out evals
-      const currConfig = evalEntry.results.with_skill ? "with_skill" : "no_skill";
+      const currConfig = Object.keys(evalEntry.results)[0] || "with_skill";
       const timingPath = path.join(iterationDir, evalEntry.id, currConfig, "timing.json");
       let timedOut = false;
       if (fs.existsSync(timingPath)) {
@@ -933,6 +1038,79 @@ function generateReport(benchmark, previousBenchmark, iterationDir, args) {
         }
       }
       md += `\n`;
+    }
+  }
+
+  // Cross-comparison with official benchmark (when --compare-official)
+  if (officialBenchmark && args.variant) {
+    const officialLabel = officialBenchmark._iterationName || "official";
+    md += `## Variant vs Official (${officialLabel})\n\n`;
+
+    // Summary comparison
+    const variantSummary = benchmark.summary.with_skill || benchmark.summary.no_skill;
+    const officialSummary = officialBenchmark.summary?.with_skill || officialBenchmark.summary?.no_skill;
+    if (variantSummary && officialSummary) {
+      md += `| Source | Pass Rate | Tokens | Cost |\n`;
+      md += `|--------|-----------|--------|------|\n`;
+      md += `| ${args.variant} (iter ${args.iteration}) | ${variantSummary.assertions_passed}/${variantSummary.assertions_total} (${(variantSummary.pass_rate * 100).toFixed(1)}%) | ${variantSummary.total_tokens} | $${(variantSummary.total_cost_usd || 0).toFixed(4)} |\n`;
+      md += `| official (${officialLabel}) | ${officialSummary.assertions_passed}/${officialSummary.assertions_total} (${(officialSummary.pass_rate * 100).toFixed(1)}%) | ${officialSummary.total_tokens} | $${(officialSummary.total_cost_usd || 0).toFixed(4)} |\n`;
+      md += `\n`;
+    }
+
+    // Per-assertion diff
+    const officialByEvalNum = {};
+    for (const e of officialBenchmark.evals) {
+      const match = e.id.match(/eval-(\d+)/);
+      if (match) officialByEvalNum[match[1]] = e;
+    }
+
+    const loadBearing = [];
+    md += `### Per-Assertion Comparison\n\n`;
+    md += `| Eval | Assertion | official | ${args.variant} |\n`;
+    md += `|------|-----------|----------|${"—".repeat(args.variant.length + 2)}|\n`;
+
+    for (const evalEntry of benchmark.evals) {
+      const evalNum = String(evalEntry.id.match(/eval-(\d+)/)?.[1]);
+      const officialEval = officialByEvalNum[evalNum];
+      if (!officialEval) continue;
+
+      const currResult = evalEntry.results.with_skill || evalEntry.results.no_skill;
+      const offResult = officialEval.results?.with_skill || officialEval.results?.no_skill || officialEval.results?.old_skill;
+      if (!currResult || !offResult) continue;
+
+      const currFailed = new Set(currResult.failed_assertions || []);
+      const offFailed = new Set(offResult.failed_assertions || []);
+
+      // Get all assertion IDs from grading
+      const gradingPath = path.join(iterationDir, evalEntry.id, Object.keys(evalEntry.results)[0], "grading.json");
+      let allAssertions = [];
+      if (fs.existsSync(gradingPath)) {
+        const grading = JSON.parse(fs.readFileSync(gradingPath, "utf-8"));
+        allAssertions = grading.assertions.map(a => a.id);
+      }
+
+      for (const aid of allAssertions) {
+        const offPass = !offFailed.has(aid);
+        const currPass = !currFailed.has(aid);
+        if (offPass !== currPass) {
+          md += `| ${evalEntry.id} | ${aid} | ${offPass ? "pass" : "FAIL"} | ${currPass ? "pass" : "FAIL"} |\n`;
+          if (offPass && !currPass) {
+            loadBearing.push({ eval: evalEntry.id, assertion: aid });
+          }
+        }
+      }
+    }
+    md += `\n`;
+
+    if (loadBearing.length > 0) {
+      md += `### Load-Bearing Assertions\n\n`;
+      md += `Assertions that pass with official skill but fail with ${args.variant} variant:\n\n`;
+      for (const lb of loadBearing) {
+        md += `- ${lb.eval}: \`${lb.assertion}\`\n`;
+      }
+      md += `\n`;
+    } else {
+      md += `No load-bearing assertions found — variant matches official on all comparable assertions.\n\n`;
     }
   }
 

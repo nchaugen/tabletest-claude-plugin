@@ -1,0 +1,61 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains at least one markdown table (using | column | syntax)",
+      "passed": true,
+      "evidence": "| Scenario | Weekday Hours | Sunday Hours | Holiday Hours |..."
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column name ends with '?' (e.g. 'Pay?', 'Rate?')",
+      "passed": true,
+      "evidence": "Column headers include 'Pay?' and 'Error?'"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe work patterns or conditions ('Part-time weekday', 'Full week with overtime', 'Sunday shift') — not outcomes ('Gets overtime', 'Double pay').",
+      "passed": true,
+      "evidence": "Scenarios: 'Standard week, at overtime threshold', 'Heavy overtime week', 'Sunday shift only'"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language (e.g. 'Weekday hours', 'Sunday hours', 'Hourly rate', 'Weekly pay?') — not code identifiers.",
+      "passed": true,
+      "evidence": "'Weekday Hours', 'Sunday Hours', 'Holiday Hours', 'Hourly Rate', 'Pay?'"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "'Scenario' is the first column header"
+    },
+    {
+      "id": "overtime-boundary-covered",
+      "text": "The overtime threshold boundary (40 hours) is covered with at least a value at the threshold and one above.",
+      "passed": true,
+      "evidence": "Rows show 'Standard week, at overtime threshold | 40' and 'One hour over overtime threshold | 41'"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": false,
+      "evidence": "Only one table '**Weekly Pay Calculation**' present; expected output specifies 'Multiple markdown tables'"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
+      "passed": false,
+      "evidence": "Single 11-row table mixes classification and calculation concerns without separation"
+    },
+    {
+      "id": "separates-classification-and-calculation",
+      "text": "Payable hours categorisation (1x regular, 1.5x overtime, 2x Sunday/holiday) and pay calculation (hours × rate) are in separate tables",
+      "passed": false,
+      "evidence": "Weekday/Sunday/Holiday Hours columns and Pay? column in same table"
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 9,
+  "pass_rate": 0.6666666666666666
+}

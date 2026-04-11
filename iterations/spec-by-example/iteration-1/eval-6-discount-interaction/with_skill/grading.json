@@ -1,0 +1,49 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "Response contains a markdown table with pipe delimiters, headers, and 9 data rows"
+    },
+    {
+      "id": "does-not-invent-resolution",
+      "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved",
+      "passed": true,
+      "evidence": "Rows 4–7 show four candidate rules (additive, higher-only, compounded, capped) with note 'The team picks one, and the other rows are deleted'"
+    },
+    {
+      "id": "covers-both-discounts-applying",
+      "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)",
+      "passed": true,
+      "evidence": "Rows 4-7 titled 'Both apply' with Order Value £600, Bulk Discount 15%, Loyalty Member yes, Loyalty Discount 10%"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note",
+      "passed": true,
+      "evidence": "Columns end with '?', multiple cells contain '?', and 'Open questions to resolve:' section lists Combination rule, Cap, and Bulk threshold"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Column headers 'Final Discount %?' and 'Final Price?' both end with '?'"
+    },
+    {
+      "id": "extreme-discount-row",
+      "text": "Table includes at least one row with a high combined discount (e.g. large order + top loyalty tier) that would force a decision about whether a cap applies — making the cap question concrete, not theoretical.",
+      "passed": true,
+      "evidence": "Row 4 shows £600 order with both 15% bulk + 10% loyalty = 25% combined discount, forcing cap decision"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Leftmost column is 'Scenario' with descriptions: 'No discounts apply', 'Bulk only', 'Loyalty only', etc."
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 7,
+  "pass_rate": 1
+}

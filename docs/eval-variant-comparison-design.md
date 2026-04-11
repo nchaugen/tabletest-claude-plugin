@@ -1,6 +1,6 @@
 # Eval Variant Comparison — Design Notes
 
-Status: draft / not yet implemented
+Status: implemented (see run-evals.js --variant and --compare-official)
 
 ## Problem
 

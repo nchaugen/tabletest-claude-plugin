@@ -1,0 +1,85 @@
+{
+  "assertions": [
+    {
+      "id": "produces-multiple-tables",
+      "text": "Output contains at least 2 separate markdown tables",
+      "passed": true,
+      "evidence": "Response includes Subscription Pricing table, Cancellation Refund table, and two additional tables in Open Questions section"
+    },
+    {
+      "id": "annual-no-trial-rule-represented",
+      "text": "A table or note explicitly captures that the free trial is not available on annual plans",
+      "passed": true,
+      "evidence": "Subscription Pricing table shows 'New annual subscriber | Annual | no | none' and 'New annual loyalty subscriber | Annual | yes | none' with Trial Period? = none"
+    },
+    {
+      "id": "loyalty-discount-row-present",
+      "text": "At least one table row demonstrates the loyalty programme discount scenario for annual plan subscribers",
+      "passed": true,
+      "evidence": "'New annual loyalty subscriber | Annual | yes | none | £86.29 | £86.29/year' and 'Cancel mid-year, loyalty annual | Annual | yes | Active | 100 | 365 days | no | £62.65'"
+    },
+    {
+      "id": "surfaces-genuine-open-questions",
+      "text": "The response identifies at least one genuinely underspecified interaction",
+      "passed": true,
+      "evidence": "'If a subscriber on the monthly trial switches to annual before day 30, several things are unclear... Are the unused 15 trial days forfeited, or credited? Is the annual charge applied immediately at switch, or at day 30?'"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The annual/loyalty/trial interaction is correctly resolved with a note explaining mutual exclusivity",
+      "passed": false,
+      "evidence": "Note states 'loyalty membership does not affect monthly pricing or trial eligibility — the discount is annual-only' but does not explicitly state 'annual gets no trial, monthly gets no loyalty discount' or declare them mutually exclusive"
+    },
+    {
+      "id": "loyalty-discount-annual-only",
+      "text": "Makes clear that the loyalty discount applies to the annual plan only",
+      "passed": true,
+      "evidence": "Note: 'The `{yes, no}` on monthly rows makes explicit that loyalty membership does not affect monthly pricing or trial eligibility — the discount is annual-only.'"
+    },
+    {
+      "id": "loyalty-refund-ambiguity",
+      "text": "The loyalty annual subscriber's prorated cancellation refund is calculated from the discounted price with visible trace",
+      "passed": true,
+      "evidence": "'£62.65 = (265/365) × £86.29. The loyalty discount affects the annual refund because it changes what was actually paid.'"
+    },
+    {
+      "id": "cancellation-refund-table",
+      "text": "Includes a cancellation/refund table or section with concrete rows",
+      "passed": true,
+      "evidence": "Cancellation Refund table with 6 rows: Cancel during trial, Cancel mid-month, Cancel within 24h, Cancel mid-year standard, Cancel mid-year loyalty, Cancel within 24h annual renewal"
+    },
+    {
+      "id": "refund-table-includes-loyalty-dimension",
+      "text": "The cancellation/refund table includes a loyalty member column to distinguish loyalty vs non-loyalty annual refund rows",
+      "passed": true,
+      "evidence": "'Cancel mid-year, standard annual | Annual | no | ... | £69.61' and 'Cancel mid-year, loyalty annual | Annual | yes | ... | £62.65'"
+    },
+    {
+      "id": "question-mark-only-on-outputs",
+      "text": "The '?' suffix is only used on output or derived columns, not input columns",
+      "passed": false,
+      "evidence": "Cancellation Refund table has 'Within 24h of Renewal Charge' (derived/interpreted) without '?', while Open Questions table has 'Within 24h of First Monthly Charge?' with '?' — inconsistent application"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables address distinct concerns, not one monolithic table",
+      "passed": true,
+      "evidence": "Subscription Pricing table addresses pricing/trial/loyalty setup; Cancellation Refund table addresses refund logic; Open Questions address edge cases — separate concerns"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules",
+      "passed": true,
+      "evidence": "Subscription Pricing: 3 rows (monthly, annual, annual-loyalty); Cancellation Refund: 6 rows covering plan types and loyalty status without permutation bloat"
+    },
+    {
+      "id": "separates-pricing-trial-loyalty-refund",
+      "text": "Pricing/plans, trial eligibility, loyalty discount applicability, and cancellation/refund are in separate tables",
+      "passed": false,
+      "evidence": "Subscription Pricing table bundles pricing, trial eligibility (Trial Period? column), and loyalty discount applicability (Loyalty Member column with different charges) into one table; only separated from cancellation/refund"
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 13,
+  "pass_rate": 0.7692307692307693
+}

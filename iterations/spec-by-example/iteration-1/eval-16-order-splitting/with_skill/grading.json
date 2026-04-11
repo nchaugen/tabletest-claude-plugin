@@ -1,0 +1,121 @@
+{
+  "assertions": [
+    {
+      "id": "3.1a-concern-fulfillment-method",
+      "text": "Fulfillment method splitting is represented as its own table — items with different fulfillment types (store pickup vs home delivery) cannot share a shipment.",
+      "passed": false,
+      "evidence": "Fulfillment type is a column in 'Order Split Groups' table mixed with availability and addresses. Expected output specifies five distinct tables, but response provides three, combining concerns."
+    },
+    {
+      "id": "3.1b-concern-delivery-address",
+      "text": "Delivery address splitting is represented as its own table — items going to different addresses must be in separate shipments.",
+      "passed": false,
+      "evidence": "Delivery Addresses is a column in 'Order Split Groups' mixed with fulfillment type and availability. Expected five tables with each concern separate; response combines three concerns in one table."
+    },
+    {
+      "id": "3.1c-concern-availability",
+      "text": "Availability splitting is represented as its own table — in-stock items ship immediately, backordered/pre-ordered items ship when available.",
+      "passed": false,
+      "evidence": "Availability is a column in 'Order Split Groups' mixed with fulfillment and addresses. Expected structure calls for five distinct tables; response has only three tables mixing unrelated concerns."
+    },
+    {
+      "id": "3.1d-concern-warehouse-allocation",
+      "text": "Warehouse allocation (minimising shipments) is represented as its own table — choosing which warehouses to ship from to minimise total shipment count.",
+      "passed": true,
+      "evidence": "Separate 'Warehouse Selection — Minimising Shipments' table dedicated to this concern with scenarios like 'Two-warehouse solution preferred over three'."
+    },
+    {
+      "id": "3.1e-concern-companion-products",
+      "text": "Companion product grouping is represented as its own table — paired items (e.g. camera body and lens) should ship together from the same location when possible.",
+      "passed": true,
+      "evidence": "Separate 'Companion Products — Keeping Items Together' table with 9 scenarios dedicated to companion pairing logic."
+    },
+    {
+      "id": "3.2-depth-fulfillment-scenarios",
+      "text": "Fulfillment table covers at least: all items for home delivery, all items for store pickup, and a mix of delivery and pickup items.",
+      "passed": true,
+      "evidence": "Order Split Groups includes 'Simple order, all ready' (home only), 'All items for store pickup', and 'Pickup and delivery in same order' (mixed)."
+    },
+    {
+      "id": "3.3-depth-delivery-address-scenarios",
+      "text": "Delivery address table covers at least: all items to the same address, and items to different addresses.",
+      "passed": true,
+      "evidence": "Order Split Groups includes rows with 'Delivery Addresses: 1' (same address throughout) and 'Two delivery addresses, all in stock' plus 'Two delivery addresses, all deferred'."
+    },
+    {
+      "id": "3.4-depth-availability-scenarios",
+      "text": "Availability table covers at least: all items in stock, a mix of in-stock and pre-order/backorder, and two backordered/pre-ordered items with different dates. Pre-order and backorder are recognised as equivalent for splitting semantics — either by comment, note, or by including both with the same rules.",
+      "passed": true,
+      "evidence": "Covers all-stock ('Simple order, all ready'), mixes (In-stock + backordered rows), and different dates ('Both deferred but different dates, same destination: Backordered (week 2) + pre-order (week 6)')."
+    },
+    {
+      "id": "3.5-depth-warehouse-scenarios",
+      "text": "Warehouse allocation table covers at least: single warehouse has full quantity, multi-warehouse split needed, fewer-warehouse split preferred over more warehouses, and cannot fulfill (insufficient total stock).",
+      "passed": true,
+      "evidence": "Warehouse table includes 'Single warehouse fully satisfies', 'Two-warehouse solution preferred over three', 'Three warehouses required', and 'Insufficient total stock — cannot fulfill'."
+    },
+    {
+      "id": "3.6-depth-companion-scenarios",
+      "text": "Companion table covers at least: single warehouse has both companions, unavoidable split (no warehouse has both but both are available), and fulfillment not possible (one companion not available anywhere).",
+      "passed": false,
+      "evidence": "Nine scenarios in Companion table cover co-location and unavoidable split ('Companions only available at separate warehouses'), but no scenario shows one companion completely unavailable."
+    },
+    {
+      "id": "3.7-readability-scenario-names",
+      "text": "Scenario names describe the business situation (e.g. 'Consolidate: two beats three', 'Everything at one warehouse') — not 'Test case 2'.",
+      "passed": true,
+      "evidence": "All scenarios use descriptive business language: 'Simple order, all ready', 'Two-warehouse solution preferred over three', 'Non-companion only at a second warehouse'."
+    },
+    {
+      "id": "3.8-readability-item-property-mapping",
+      "text": "Trigger tables represent multi-item orders where each item has its own fulfillment type, address, and availability. The notation makes the item-to-property mapping unambiguous — not value sets like {delivery, pickup} which lose which item has which property.",
+      "passed": false,
+      "evidence": "Order Split Groups row 'Pickup and delivery in same order' shows 'Fulfillment Types: Home Delivery, Store Pickup' without mapping which items have which type. Ambiguous which item has pickup vs delivery."
+    },
+    {
+      "id": "3.9-readability-scalar-column",
+      "text": "Warehouse allocation table uses a scalar count column (e.g. 'Qty ordered') not item lists, when product identity doesn't matter for the logic.",
+      "passed": true,
+      "evidence": "Warehouse Selection table uses 'Quantity Needed' column with scalars: '6 shirts', '9 shirts', not itemized lists."
+    },
+    {
+      "id": "3.10-readability-business-language",
+      "text": "Column names use business/domain language (e.g. 'Shipments?' not 'Result?', 'Warehouse stock' not 'inventory_map'). The tables read as a specification a product person could review.",
+      "passed": true,
+      "evidence": "Uses 'Shipments?', 'Warehouse Inventory', 'Companions Together?', 'Fulfillment Types', 'Delivery Addresses' — all domain-appropriate language."
+    },
+    {
+      "id": "3.11-readability-output-column-question-mark",
+      "text": "Output/expected columns end with '?' (e.g. 'Shipments?', 'Groups?') to distinguish them from input columns.",
+      "passed": true,
+      "evidence": "All output columns use question marks: 'Shipments?', 'Selected Warehouses?', 'Companions Together?', 'Split Reasons?'."
+    },
+    {
+      "id": "3.12-correctness-valid-assignments",
+      "text": "Inventory assignments are physically valid: items are only assigned to locations that have them. Shipment counts match the assignments shown.",
+      "passed": true,
+      "evidence": "Warehouse table example 'Two-warehouse solution (exact)' shows Philadelphia: 3 + Washington: 3 = 6 needed = 2 shipments. All assignments mathematically consistent and feasible."
+    },
+    {
+      "id": "3.13-depth-open-questions",
+      "text": "Multiple open questions are surfaced across the tables — ambiguities, edge cases, or product decisions that the requirements don't fully specify.",
+      "passed": true,
+      "evidence": "Surfaces three open questions: '1. Availability grouping...distinct dates produce distinct shipments?', '2. Store pickup count...two stores = two shipments?', '3. Warehouse tie-breaking...secondary rule?'"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": false,
+      "evidence": "Order Split Groups mixes fulfillment type, availability, and delivery address in one 13-row table. Expected output specifies five distinct tables; response provides three with first one combining three concerns."
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
+      "passed": false,
+      "evidence": "Order Split Groups has 13 rows combining fulfillment, availability, and address concerns (e.g. 'All splits in one order'). Combining concerns creates unnecessary permutations that would be eliminated by separate tables."
+    }
+  ],
+  "assertions_passed": 12,
+  "assertions_total": 19,
+  "pass_rate": 0.631578947368421
+}
