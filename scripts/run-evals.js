@@ -413,36 +413,30 @@ async function generateResponses(evals, worktreePath, iterationDir, args) {
     `\nGenerating responses (parallel=${args.parallel})...`
   );
 
-  const jobs = [];
-  for (const evalDef of evals) {
-    jobs.push({ evalDef, config: "with_skill", cwd: worktreePath });
-  }
-
-  const totalJobs = jobs.length;
+  const totalJobs = evals.length;
   let completedJobs = 0;
   const startTime = Date.now();
 
-  for (let i = 0; i < jobs.length; i += args.parallel) {
-    const batch = jobs.slice(i, i + args.parallel);
+  for (let i = 0; i < evals.length; i += args.parallel) {
+    const batch = evals.slice(i, i + args.parallel);
     const batchNum = Math.floor(i / args.parallel) + 1;
-    const totalBatches = Math.ceil(jobs.length / args.parallel);
+    const totalBatches = Math.ceil(evals.length / args.parallel);
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(0);
     log(`  [batch ${batchNum}/${totalBatches}, ${completedJobs}/${totalJobs} done, ${elapsed}s elapsed]`);
 
     await Promise.all(
-      batch.map(({ evalDef, config, cwd }) =>
-        generateOne(evalDef, config, cwd, iterationDir, args.model)
+      batch.map((evalDef) =>
+        generateOne(evalDef, worktreePath, iterationDir, args.model)
       )
     );
     completedJobs += batch.length;
   }
 }
 
-async function generateOne(evalDef, config, worktreePath, iterationDir, model) {
+async function generateOne(evalDef, worktreePath, iterationDir, model) {
   const evalDir = path.join(
     iterationDir,
-    `eval-${evalDef.id}-${evalDef.slug}`,
-    config
+    `eval-${evalDef.id}-${evalDef.slug}`
   );
   fs.mkdirSync(path.join(evalDir, "outputs"), { recursive: true });
 
@@ -549,11 +543,10 @@ ${evalDef.expected_output}
 ${response}`;
 }
 
-async function gradeOne(evalDef, config, iterationDir, model, gradingSuffix = null) {
+async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null) {
   const evalDir = path.join(
     iterationDir,
-    `eval-${evalDef.id}-${evalDef.slug}`,
-    config
+    `eval-${evalDef.id}-${evalDef.slug}`
   );
   const responsePath = path.join(evalDir, "outputs", "response.md");
 
@@ -677,19 +670,13 @@ async function gradeOne(evalDef, config, iterationDir, model, gradingSuffix = nu
 async function gradeResponses(evals, iterationDir, args) {
   log(`\nGrading responses (model=${args.gradingModel}, parallel=${args.parallel})...`);
 
-  const jobs = [];
-  for (const evalDef of evals) {
-    jobs.push({ evalDef, config: "with_skill" });
-  }
-
-  for (let i = 0; i < jobs.length; i += args.parallel) {
-    const batch = jobs.slice(i, i + args.parallel);
+  for (let i = 0; i < evals.length; i += args.parallel) {
+    const batch = evals.slice(i, i + args.parallel);
     await Promise.all(
-      batch.map(({ evalDef, config }) =>
-        gradeOne(evalDef, config, iterationDir, args.gradingModel, args.gradingSuffix).catch((err) => {
+      batch.map((evalDef) =>
+        gradeOne(evalDef, iterationDir, args.gradingModel, args.gradingSuffix).catch((err) => {
           logError(`  ✗ Eval ${evalDef.id} — GRADING FAILED: ${err.message}`);
-          // Write grading error details for debugging
-          const errDir = path.join(iterationDir, `eval-${evalDef.id}-${evalDef.slug}`, config);
+          const errDir = path.join(iterationDir, `eval-${evalDef.id}-${evalDef.slug}`);
           if (fs.existsSync(errDir)) {
             fs.writeFileSync(
               path.join(errDir, "error.log"),
@@ -702,9 +689,20 @@ async function gradeResponses(evals, iterationDir, args) {
     );
   }
 }
-function aggregateResults(evals, iterationDir, args) {
-  const configs = ["with_skill"];
+// Unwrap results from old benchmark format (results.with_skill) or new flat format
+function unwrapResults(evalEntry) {
+  if (!evalEntry || !evalEntry.results) return null;
+  if (evalEntry.results.assertions_passed !== undefined) return evalEntry.results;
+  return evalEntry.results.with_skill || evalEntry.results.no_skill || evalEntry.results.old_skill || Object.values(evalEntry.results)[0] || null;
+}
 
+function unwrapSummary(benchmark) {
+  if (!benchmark || !benchmark.summary) return null;
+  if (benchmark.summary.assertions_passed !== undefined) return benchmark.summary;
+  return benchmark.summary.with_skill || benchmark.summary.no_skill || Object.values(benchmark.summary)[0] || null;
+}
+
+function aggregateResults(evals, iterationDir, args) {
   const benchmark = {
     skill_name: args.variant ? `${args.skill} (${args.variant})` : args.skill,
     iteration: args.iteration,
@@ -716,6 +714,11 @@ function aggregateResults(evals, iterationDir, args) {
 
   const regradedEntries = [];
   for (const evalDef of evals) {
+    const evalDir = path.join(
+      iterationDir,
+      `eval-${evalDef.id}-${evalDef.slug}`
+    );
+
     const evalEntry = {
       id: `eval-${evalDef.id}-${evalDef.slug}`,
       name: evalDef.slug.replace(/-/g, " "),
@@ -723,34 +726,26 @@ function aggregateResults(evals, iterationDir, args) {
       results: {},
     };
 
-    for (const config of configs) {
-      const evalDir = path.join(
-        iterationDir,
-        `eval-${evalDef.id}-${evalDef.slug}`,
-        config
-      );
+    const gradingPath = path.join(evalDir, "grading.json");
+    const timingPath = path.join(evalDir, "timing.json");
 
-      const gradingPath = path.join(evalDir, "grading.json");
-      const timingPath = path.join(evalDir, "timing.json");
+    if (fs.existsSync(gradingPath)) {
+      const grading = JSON.parse(fs.readFileSync(gradingPath, "utf-8"));
+      const timing = fs.existsSync(timingPath)
+        ? JSON.parse(fs.readFileSync(timingPath, "utf-8"))
+        : {};
 
-      if (fs.existsSync(gradingPath)) {
-        const grading = JSON.parse(fs.readFileSync(gradingPath, "utf-8"));
-        const timing = fs.existsSync(timingPath)
-          ? JSON.parse(fs.readFileSync(timingPath, "utf-8"))
-          : {};
-
-        evalEntry.results[config] = {
-          assertions_passed: grading.assertions_passed,
-          assertions_total: grading.assertions_total,
-          pass_rate: grading.pass_rate,
-          failed_assertions: grading.assertions
-            .filter((a) => !a.passed)
-            .map((a) => a.id),
-          total_tokens: timing.total_tokens || 0,
-          duration_ms: timing.duration_ms || 0,
-          cost_usd: timing.cost_usd || 0,
-        };
-      }
+      evalEntry.results = {
+        assertions_passed: grading.assertions_passed,
+        assertions_total: grading.assertions_total,
+        pass_rate: grading.pass_rate,
+        failed_assertions: grading.assertions
+          .filter((a) => !a.passed)
+          .map((a) => a.id),
+        total_tokens: timing.total_tokens || 0,
+        duration_ms: timing.duration_ms || 0,
+        cost_usd: timing.cost_usd || 0,
+      };
     }
 
     regradedEntries.push(evalEntry);
@@ -770,31 +765,29 @@ function aggregateResults(evals, iterationDir, args) {
     benchmark.evals = regradedEntries;
   }
 
-  // Compute summaries per config
-  for (const config of configs) {
-    const results = benchmark.evals
-      .map((e) => e.results[config])
-      .filter(Boolean);
+  // Compute summary
+  const results = benchmark.evals
+    .map((e) => unwrapResults(e))
+    .filter(Boolean);
 
-    benchmark.summary[config] = {
-      assertions_passed: results.reduce(
-        (sum, r) => sum + r.assertions_passed,
-        0
-      ),
-      assertions_total: results.reduce(
-        (sum, r) => sum + r.assertions_total,
-        0
-      ),
-      pass_rate:
-        results.reduce((sum, r) => sum + r.assertions_total, 0) > 0
-          ? results.reduce((sum, r) => sum + r.assertions_passed, 0) /
-            results.reduce((sum, r) => sum + r.assertions_total, 0)
-          : 0,
-      total_tokens: results.reduce((sum, r) => sum + r.total_tokens, 0),
-      total_duration_ms: results.reduce((sum, r) => sum + r.duration_ms, 0),
-      total_cost_usd: results.reduce((sum, r) => sum + r.cost_usd, 0),
-    };
-  }
+  benchmark.summary = {
+    assertions_passed: results.reduce(
+      (sum, r) => sum + r.assertions_passed,
+      0
+    ),
+    assertions_total: results.reduce(
+      (sum, r) => sum + r.assertions_total,
+      0
+    ),
+    pass_rate:
+      results.reduce((sum, r) => sum + r.assertions_total, 0) > 0
+        ? results.reduce((sum, r) => sum + r.assertions_passed, 0) /
+          results.reduce((sum, r) => sum + r.assertions_total, 0)
+        : 0,
+    total_tokens: results.reduce((sum, r) => sum + r.total_tokens, 0),
+    total_duration_ms: results.reduce((sum, r) => sum + r.duration_ms, 0),
+    total_cost_usd: results.reduce((sum, r) => sum + r.cost_usd, 0),
+  };
 
   fs.writeFileSync(
     path.join(iterationDir, "benchmark.json"),
@@ -863,9 +856,8 @@ function detectRegressions(benchmark, previousBenchmark) {
     const prevEval = prevByEvalNum[evalNum];
     if (!prevEval) continue;
 
-    const currResult = evalEntry.results.with_skill || evalEntry.results.no_skill || Object.values(evalEntry.results)[0];
-    // Fallback chain for backward compat with baseline-only and iterations 1-3
-    const prevResult = prevEval.results.with_skill || prevEval.results.no_skill || prevEval.results.old_skill || Object.values(prevEval.results)[0];
+    const currResult = unwrapResults(evalEntry);
+    const prevResult = unwrapResults(prevEval);
     if (!currResult || !prevResult) continue;
 
     const prevFailed = new Set(prevResult.failed_assertions || []);
@@ -898,17 +890,14 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
     benchmark,
     previousBenchmark
   );
-  const configs = ["with_skill"];
-
   const label = args.variant ? `${args.skill} variant=${args.variant}` : args.skill;
   let md = `# Eval Review — ${label}, Iteration ${args.iteration}\n\n`;
   md += `**Model:** ${args.model} · **Date:** ${new Date().toISOString().split("T")[0]} · **Evals:** ${benchmark.evals.length}\n\n`;
 
   // Summary
   md += `## Summary\n\n`;
-  for (const config of configs) {
-    const s = benchmark.summary[config];
-    if (!s) continue;
+  const s = unwrapSummary(benchmark);
+  if (s) {
     md += `${s.assertions_passed}/${s.assertions_total} (${(s.pass_rate * 100).toFixed(1)}%)`;
     md += ` · ${s.total_tokens} tokens · ${(s.total_duration_ms / 1000).toFixed(1)}s`;
     if (s.total_cost_usd > 0) md += ` · $${s.total_cost_usd.toFixed(4)}`;
@@ -952,12 +941,11 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
 
     for (const evalEntry of benchmark.evals) {
       const evalNum = String(evalEntry.id.match(/eval-(\d+)/)?.[1]);
-      const curr = evalEntry.results.with_skill || evalEntry.results.no_skill || Object.values(evalEntry.results)[0];
-      const prev = prevByEvalNum[evalNum]?.results?.with_skill || prevByEvalNum[evalNum]?.results?.no_skill || prevByEvalNum[evalNum]?.results?.old_skill || Object.values(prevByEvalNum[evalNum]?.results || {})[0];
+      const curr = unwrapResults(evalEntry);
+      const prev = unwrapResults(prevByEvalNum[evalNum]);
 
       // Also check timing.json for timed-out evals
-      const currConfig = Object.keys(evalEntry.results)[0] || "with_skill";
-      const timingPath = path.join(iterationDir, evalEntry.id, currConfig, "timing.json");
+      const timingPath = path.join(iterationDir, evalEntry.id, "timing.json");
       let timedOut = false;
       if (fs.existsSync(timingPath)) {
         const t = JSON.parse(fs.readFileSync(timingPath, "utf-8"));
@@ -979,33 +967,30 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
   // Per-eval breakdown
   md += `## Per-Eval Results\n\n`;
   for (const evalEntry of benchmark.evals) {
-    for (const config of configs) {
-      const result = evalEntry.results[config];
-      if (!result) continue;
+    const result = unwrapResults(evalEntry);
+    if (!result) continue;
 
-      const status = result.pass_rate === 1 ? "✅" : "⚠️";
-      md += `### ${status} Eval ${evalEntry.id}\n\n`;
-      md += `**${result.assertions_passed}/${result.assertions_total}** · ${result.total_tokens} tokens · ${result.duration_ms}ms\n\n`;
+    const status = result.pass_rate === 1 ? "✅" : "⚠️";
+    md += `### ${status} Eval ${evalEntry.id}\n\n`;
+    md += `**${result.assertions_passed}/${result.assertions_total}** · ${result.total_tokens} tokens · ${result.duration_ms}ms\n\n`;
 
-      // Load grading for evidence
-      const gradingPath = path.join(
-        iterationDir,
-        evalEntry.id,
-        config,
-        "grading.json"
-      );
-      if (fs.existsSync(gradingPath)) {
-        const grading = JSON.parse(fs.readFileSync(gradingPath, "utf-8"));
-        for (const a of grading.assertions) {
-          const mark = a.passed ? "✅" : "❌";
-          md += `- ${mark} **${a.id}**: ${a.text}\n`;
-          if (!a.passed && a.evidence) {
-            md += `  > ${a.evidence}\n`;
-          }
+    // Load grading for evidence
+    const gradingPath = path.join(
+      iterationDir,
+      evalEntry.id,
+      "grading.json"
+    );
+    if (fs.existsSync(gradingPath)) {
+      const grading = JSON.parse(fs.readFileSync(gradingPath, "utf-8"));
+      for (const a of grading.assertions) {
+        const mark = a.passed ? "✅" : "❌";
+        md += `- ${mark} **${a.id}**: ${a.text}\n`;
+        if (!a.passed && a.evidence) {
+          md += `  > ${a.evidence}\n`;
         }
       }
-      md += `\n`;
     }
+    md += `\n`;
   }
 
   // Cross-comparison with official benchmark (when --compare-official)
@@ -1014,8 +999,8 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
     md += `## Variant vs Official (${officialLabel})\n\n`;
 
     // Summary comparison
-    const variantSummary = benchmark.summary.with_skill || benchmark.summary.no_skill;
-    const officialSummary = officialBenchmark.summary?.with_skill || officialBenchmark.summary?.no_skill;
+    const variantSummary = unwrapSummary(benchmark);
+    const officialSummary = unwrapSummary(officialBenchmark);
     if (variantSummary && officialSummary) {
       md += `| Source | Pass Rate | Tokens | Cost |\n`;
       md += `|--------|-----------|--------|------|\n`;
@@ -1041,15 +1026,15 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
       const officialEval = officialByEvalNum[evalNum];
       if (!officialEval) continue;
 
-      const currResult = evalEntry.results.with_skill || evalEntry.results.no_skill;
-      const offResult = officialEval.results?.with_skill || officialEval.results?.no_skill || officialEval.results?.old_skill;
+      const currResult = unwrapResults(evalEntry);
+      const offResult = unwrapResults(officialEval);
       if (!currResult || !offResult) continue;
 
       const currFailed = new Set(currResult.failed_assertions || []);
       const offFailed = new Set(offResult.failed_assertions || []);
 
       // Get all assertion IDs from grading
-      const gradingPath = path.join(iterationDir, evalEntry.id, Object.keys(evalEntry.results)[0], "grading.json");
+      const gradingPath = path.join(iterationDir, evalEntry.id, "grading.json");
       let allAssertions = [];
       if (fs.existsSync(gradingPath)) {
         const grading = JSON.parse(fs.readFileSync(gradingPath, "utf-8"));

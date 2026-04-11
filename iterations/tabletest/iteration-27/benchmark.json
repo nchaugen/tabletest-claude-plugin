@@ -9,15 +9,13 @@
       "name": "convert repetitive tests",
       "skill": "tabletest",
       "results": {
-        "with_skill": {
-          "assertions_passed": 10,
-          "assertions_total": 10,
-          "pass_rate": 1,
-          "failed_assertions": [],
-          "total_tokens": 67108,
-          "duration_ms": 21578,
-          "cost_usd": 0.1629618
-        }
+        "assertions_passed": 10,
+        "assertions_total": 10,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 67108,
+        "duration_ms": 21578,
+        "cost_usd": 0.1629618
       }
     },
     {
@@ -25,15 +23,13 @@
       "name": "parse dates",
       "skill": "tabletest",
       "results": {
-        "with_skill": {
-          "assertions_passed": 13,
-          "assertions_total": 13,
-          "pass_rate": 1,
-          "failed_assertions": [],
-          "total_tokens": 112865,
-          "duration_ms": 64463,
-          "cost_usd": 0.2363145
-        }
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 112865,
+        "duration_ms": 64463,
+        "cost_usd": 0.2363145
       }
     },
     {
@@ -41,15 +37,13 @@
       "name": "dependency setup",
       "skill": "tabletest",
       "results": {
-        "with_skill": {
-          "assertions_passed": 4,
-          "assertions_total": 4,
-          "pass_rate": 1,
-          "failed_assertions": [],
-          "total_tokens": 103483,
-          "duration_ms": 11579,
-          "cost_usd": 0.16603710000000002
-        }
+        "assertions_passed": 4,
+        "assertions_total": 4,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 103483,
+        "duration_ms": 11579,
+        "cost_usd": 0.16603710000000002
       }
     },
     {
@@ -57,20 +51,18 @@
       "name": "loan approval",
       "skill": "spec-by-example",
       "results": {
-        "with_skill": {
-          "assertions_passed": 9,
-          "assertions_total": 13,
-          "pass_rate": 0.6923076923076923,
-          "failed_assertions": [
-            "threshold-as-column",
-            "concerns-decomposed",
-            "minimal-rows-per-concern",
-            "separates-age-credit-income"
-          ],
-          "total_tokens": 66673,
-          "duration_ms": 32346,
-          "cost_usd": 0.17077545
-        }
+        "assertions_passed": 9,
+        "assertions_total": 13,
+        "pass_rate": 0.6923076923076923,
+        "failed_assertions": [
+          "threshold-as-column",
+          "concerns-decomposed",
+          "minimal-rows-per-concern",
+          "separates-age-credit-income"
+        ],
+        "total_tokens": 66673,
+        "duration_ms": 32346,
+        "cost_usd": 0.17077545
       }
     },
     {
@@ -78,15 +70,13 @@
       "name": "order transitions",
       "skill": "spec-by-example",
       "results": {
-        "with_skill": {
-          "assertions_passed": 10,
-          "assertions_total": 10,
-          "pass_rate": 1,
-          "failed_assertions": [],
-          "total_tokens": 67381,
-          "duration_ms": 43786,
-          "cost_usd": 0.08714055
-        }
+        "assertions_passed": 10,
+        "assertions_total": 10,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 67381,
+        "duration_ms": 43786,
+        "cost_usd": 0.08714055
       }
     },
     {
@@ -94,17 +84,15 @@
       "name": "discount interaction",
       "skill": "spec-by-example",
       "results": {
-        "with_skill": {
-          "assertions_passed": 6,
-          "assertions_total": 7,
-          "pass_rate": 0.8571428571428571,
-          "failed_assertions": [
-            "extreme-discount-row"
-          ],
-          "total_tokens": 65454,
-          "duration_ms": 19820,
-          "cost_usd": 0.05854695
-        }
+        "assertions_passed": 6,
+        "assertions_total": 7,
+        "pass_rate": 0.8571428571428571,
+        "failed_assertions": [
+          "extreme-discount-row"
+        ],
+        "total_tokens": 65454,
+        "duration_ms": 19820,
+        "cost_usd": 0.05854695
       }
     },
     {
@@ -112,15 +100,13 @@
       "name": "permission check",
       "skill": "tabletest",
       "results": {
-        "with_skill": {
-          "assertions_passed": 11,
-          "assertions_total": 11,
-          "pass_rate": 1,
-          "failed_assertions": [],
-          "total_tokens": 108161,
-          "duration_ms": 36327,
-          "cost_usd": 0.1065834
-        }
+        "assertions_passed": 11,
+        "assertions_total": 11,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 108161,
+        "duration_ms": 36327,
+        "cost_usd": 0.1065834
       }
     },
     {
@@ -128,15 +114,13 @@
       "name": "money parse",
       "skill": "tabletest",
       "results": {
-        "with_skill": {
-          "assertions_passed": 13,
-          "assertions_total": 13,
-          "pass_rate": 1,
-          "failed_assertions": [],
-          "total_tokens": 118583,
-          "duration_ms": 320471,
-          "cost_usd": 0.17737874999999997
-        }
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 118583,
+        "duration_ms": 320471,
+        "cost_usd": 0.17737874999999997
       }
     },
     {
@@ -144,15 +128,13 @@
       "name": "bonus contractor structure",
       "skill": "tabletest",
       "results": {
-        "with_skill": {
-          "assertions_passed": 11,
-          "assertions_total": 11,
-          "pass_rate": 1,
-          "failed_assertions": [],
-          "total_tokens": 109012,
-          "duration_ms": 51272,
-          "cost_usd": 0.11861205
-        }
+        "assertions_passed": 11,
+        "assertions_total": 11,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 109012,
+        "duration_ms": 51272,
+        "cost_usd": 0.11861205
       }
     },
     {
@@ -160,24 +142,22 @@
       "name": "subscription billing",
       "skill": "spec-by-example",
       "results": {
-        "with_skill": {
-          "assertions_passed": 8,
-          "assertions_total": 16,
-          "pass_rate": 0.5,
-          "failed_assertions": [
-            "tables-have-distinct-concerns",
-            "output-columns-have-question-marks",
-            "24h-boundary-near-boundary",
-            "eligibility-separate-from-amount",
-            "question-mark-only-on-outputs",
-            "refund-table-shows-proportion",
-            "rules-separate-from-arithmetic",
-            "concerns-decomposed"
-          ],
-          "total_tokens": 70183,
-          "duration_ms": 87546,
-          "cost_usd": 0.12769350000000002
-        }
+        "assertions_passed": 8,
+        "assertions_total": 16,
+        "pass_rate": 0.5,
+        "failed_assertions": [
+          "tables-have-distinct-concerns",
+          "output-columns-have-question-marks",
+          "24h-boundary-near-boundary",
+          "eligibility-separate-from-amount",
+          "question-mark-only-on-outputs",
+          "refund-table-shows-proportion",
+          "rules-separate-from-arithmetic",
+          "concerns-decomposed"
+        ],
+        "total_tokens": 70183,
+        "duration_ms": 87546,
+        "cost_usd": 0.12769350000000002
       }
     },
     {
@@ -185,18 +165,16 @@
       "name": "subscription loyalty trial",
       "skill": "spec-by-example",
       "results": {
-        "with_skill": {
-          "assertions_passed": 11,
-          "assertions_total": 13,
-          "pass_rate": 0.8461538461538461,
-          "failed_assertions": [
-            "open-question-surfaced",
-            "separates-pricing-trial-loyalty-refund"
-          ],
-          "total_tokens": 70364,
-          "duration_ms": 88099,
-          "cost_usd": 0.12542415
-        }
+        "assertions_passed": 11,
+        "assertions_total": 13,
+        "pass_rate": 0.8461538461538461,
+        "failed_assertions": [
+          "open-question-surfaced",
+          "separates-pricing-trial-loyalty-refund"
+        ],
+        "total_tokens": 70364,
+        "duration_ms": 88099,
+        "cost_usd": 0.12542415
       }
     },
     {
@@ -204,21 +182,19 @@
       "name": "shipping partial applicability",
       "skill": "spec-by-example",
       "results": {
-        "with_skill": {
-          "assertions_passed": 6,
-          "assertions_total": 11,
-          "pass_rate": 0.5454545454545454,
-          "failed_assertions": [
-            "express-uses-value-sets",
-            "overnight-grouped",
-            "concerns-decomposed",
-            "minimal-rows-per-concern",
-            "separates-availability-and-cost"
-          ],
-          "total_tokens": 69709,
-          "duration_ms": 83850,
-          "cost_usd": 0.12134925
-        }
+        "assertions_passed": 6,
+        "assertions_total": 11,
+        "pass_rate": 0.5454545454545454,
+        "failed_assertions": [
+          "express-uses-value-sets",
+          "overnight-grouped",
+          "concerns-decomposed",
+          "minimal-rows-per-concern",
+          "separates-availability-and-cost"
+        ],
+        "total_tokens": 69709,
+        "duration_ms": 83850,
+        "cost_usd": 0.12134925
       }
     },
     {
@@ -226,20 +202,18 @@
       "name": "weekly pay",
       "skill": "tabletest",
       "results": {
-        "with_skill": {
-          "assertions_passed": 15,
-          "assertions_total": 19,
-          "pass_rate": 0.7894736842105263,
-          "failed_assertions": [
-            "1.1-traceability-columns",
-            "1.5-depth-error-edge-cases",
-            "1.6-readability-empty-cells",
-            "separates-classification-and-calculation"
-          ],
-          "total_tokens": 170186,
-          "duration_ms": 207228,
-          "cost_usd": 0.3295878
-        }
+        "assertions_passed": 15,
+        "assertions_total": 19,
+        "pass_rate": 0.7894736842105263,
+        "failed_assertions": [
+          "1.1-traceability-columns",
+          "1.5-depth-error-edge-cases",
+          "1.6-readability-empty-cells",
+          "separates-classification-and-calculation"
+        ],
+        "total_tokens": 170186,
+        "duration_ms": 207228,
+        "cost_usd": 0.3295878
       }
     },
     {
@@ -247,21 +221,19 @@
       "name": "reis discount",
       "skill": "tabletest",
       "results": {
-        "with_skill": {
-          "assertions_passed": 15,
-          "assertions_total": 20,
-          "pass_rate": 0.75,
-          "failed_assertions": [
-            "2.1-decomposition-concern-separation",
-            "2.6-readability-human-readable-values",
-            "2.12-format-typeconverter",
-            "2.17-zone-irrelevance-visible",
-            "2.21-readability-relative-time"
-          ],
-          "total_tokens": 223772,
-          "duration_ms": 413788,
-          "cost_usd": 0.5048501999999999
-        }
+        "assertions_passed": 15,
+        "assertions_total": 20,
+        "pass_rate": 0.75,
+        "failed_assertions": [
+          "2.1-decomposition-concern-separation",
+          "2.6-readability-human-readable-values",
+          "2.12-format-typeconverter",
+          "2.17-zone-irrelevance-visible",
+          "2.21-readability-relative-time"
+        ],
+        "total_tokens": 223772,
+        "duration_ms": 413788,
+        "cost_usd": 0.5048501999999999
       }
     },
     {
@@ -269,17 +241,15 @@
       "name": "order splitting",
       "skill": "spec-by-example",
       "results": {
-        "with_skill": {
-          "assertions_passed": 18,
-          "assertions_total": 19,
-          "pass_rate": 0.9473684210526315,
-          "failed_assertions": [
-            "3.6-depth-companion-scenarios"
-          ],
-          "total_tokens": 77037,
-          "duration_ms": 181142,
-          "cost_usd": 0.22572660000000003
-        }
+        "assertions_passed": 18,
+        "assertions_total": 19,
+        "pass_rate": 0.9473684210526315,
+        "failed_assertions": [
+          "3.6-depth-companion-scenarios"
+        ],
+        "total_tokens": 77037,
+        "duration_ms": 181142,
+        "cost_usd": 0.22572660000000003
       }
     },
     {
@@ -287,15 +257,13 @@
       "name": "shopping cart",
       "skill": "spec-by-example",
       "results": {
-        "with_skill": {
-          "assertions_passed": 18,
-          "assertions_total": 18,
-          "pass_rate": 1,
-          "failed_assertions": [],
-          "total_tokens": 74187,
-          "duration_ms": 135499,
-          "cost_usd": 0.18255495000000002
-        }
+        "assertions_passed": 18,
+        "assertions_total": 18,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 74187,
+        "duration_ms": 135499,
+        "cost_usd": 0.18255495000000002
       }
     },
     {
@@ -303,18 +271,16 @@
       "name": "convert from code",
       "skill": "tabletest",
       "results": {
-        "with_skill": {
-          "assertions_passed": 12,
-          "assertions_total": 14,
-          "pass_rate": 0.8571428571428571,
-          "failed_assertions": [
-            "concerns-decomposed",
-            "separates-decision-and-premium"
-          ],
-          "total_tokens": 194698,
-          "duration_ms": 122827,
-          "cost_usd": 0.240465
-        }
+        "assertions_passed": 12,
+        "assertions_total": 14,
+        "pass_rate": 0.8571428571428571,
+        "failed_assertions": [
+          "concerns-decomposed",
+          "separates-decision-and-premium"
+        ],
+        "total_tokens": 194698,
+        "duration_ms": 122827,
+        "cost_usd": 0.240465
       }
     },
     {
@@ -322,15 +288,13 @@
       "name": "convert from parameterized",
       "skill": "tabletest",
       "results": {
-        "with_skill": {
-          "assertions_passed": 8,
-          "assertions_total": 8,
-          "pass_rate": 1,
-          "failed_assertions": [],
-          "total_tokens": 104360,
-          "duration_ms": 24157,
-          "cost_usd": 0.08736000000000001
-        }
+        "assertions_passed": 8,
+        "assertions_total": 8,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 104360,
+        "duration_ms": 24157,
+        "cost_usd": 0.08736000000000001
       }
     },
     {
@@ -338,17 +302,15 @@
       "name": "collections and quoting",
       "skill": "tabletest",
       "results": {
-        "with_skill": {
-          "assertions_passed": 9,
-          "assertions_total": 10,
-          "pass_rate": 0.9,
-          "failed_assertions": [
-            "special-chars-quoted"
-          ],
-          "total_tokens": 158341,
-          "duration_ms": 123444,
-          "cost_usd": 0.21264330000000004
-        }
+        "assertions_passed": 9,
+        "assertions_total": 10,
+        "pass_rate": 0.9,
+        "failed_assertions": [
+          "special-chars-quoted"
+        ],
+        "total_tokens": 158341,
+        "duration_ms": 123444,
+        "cost_usd": 0.21264330000000004
       }
     },
     {
@@ -356,18 +318,16 @@
       "name": "event registration sbe",
       "skill": "spec-by-example",
       "results": {
-        "with_skill": {
-          "assertions_passed": 11,
-          "assertions_total": 13,
-          "pass_rate": 0.8461538461538461,
-          "failed_assertions": [
-            "blank-for-absent-optional",
-            "no-redundant-policy-columns"
-          ],
-          "total_tokens": 66758,
-          "duration_ms": 35079,
-          "cost_usd": 0.08210144999999999
-        }
+        "assertions_passed": 11,
+        "assertions_total": 13,
+        "pass_rate": 0.8461538461538461,
+        "failed_assertions": [
+          "blank-for-absent-optional",
+          "no-redundant-policy-columns"
+        ],
+        "total_tokens": 66758,
+        "duration_ms": 35079,
+        "cost_usd": 0.08210144999999999
       }
     },
     {
@@ -375,20 +335,18 @@
       "name": "event registration tt",
       "skill": "tabletest",
       "results": {
-        "with_skill": {
-          "assertions_passed": 16,
-          "assertions_total": 20,
-          "pass_rate": 0.8,
-          "failed_assertions": [
-            "descriptive-registration-date",
-            "cutoff-date-column-if-literal-dates",
-            "description-no-irrelevant-information",
-            "discount-column-preferred"
-          ],
-          "total_tokens": 178842,
-          "duration_ms": 276937,
-          "cost_usd": 0.40172625000000006
-        }
+        "assertions_passed": 16,
+        "assertions_total": 20,
+        "pass_rate": 0.8,
+        "failed_assertions": [
+          "descriptive-registration-date",
+          "cutoff-date-column-if-literal-dates",
+          "description-no-irrelevant-information",
+          "discount-column-preferred"
+        ],
+        "total_tokens": 178842,
+        "duration_ms": 276937,
+        "cost_usd": 0.40172625000000006
       }
     },
     {
@@ -396,21 +354,19 @@
       "name": "loan approval tt",
       "skill": "tabletest",
       "results": {
-        "with_skill": {
-          "assertions_passed": 9,
-          "assertions_total": 14,
-          "pass_rate": 0.6428571428571429,
-          "failed_assertions": [
-            "threshold-as-column",
-            "scenario-names-describe-conditions",
-            "concerns-decomposed",
-            "minimal-rows-per-concern",
-            "separates-age-credit-income"
-          ],
-          "total_tokens": 209546,
-          "duration_ms": 132225,
-          "cost_usd": 0.25975335
-        }
+        "assertions_passed": 9,
+        "assertions_total": 14,
+        "pass_rate": 0.6428571428571429,
+        "failed_assertions": [
+          "threshold-as-column",
+          "scenario-names-describe-conditions",
+          "concerns-decomposed",
+          "minimal-rows-per-concern",
+          "separates-age-credit-income"
+        ],
+        "total_tokens": 209546,
+        "duration_ms": 132225,
+        "cost_usd": 0.25975335
       }
     },
     {
@@ -418,19 +374,17 @@
       "name": "weekly pay sbe",
       "skill": "spec-by-example",
       "results": {
-        "with_skill": {
-          "assertions_passed": 6,
-          "assertions_total": 9,
-          "pass_rate": 0.6666666666666666,
-          "failed_assertions": [
-            "concerns-decomposed",
-            "minimal-rows-per-concern",
-            "separates-classification-and-calculation"
-          ],
-          "total_tokens": 68158,
-          "duration_ms": 58657,
-          "cost_usd": 0.10226895000000001
-        }
+        "assertions_passed": 6,
+        "assertions_total": 9,
+        "pass_rate": 0.6666666666666666,
+        "failed_assertions": [
+          "concerns-decomposed",
+          "minimal-rows-per-concern",
+          "separates-classification-and-calculation"
+        ],
+        "total_tokens": 68158,
+        "duration_ms": 58657,
+        "cost_usd": 0.10226895000000001
       }
     },
     {
@@ -438,21 +392,19 @@
       "name": "convert from spock",
       "skill": "tabletest",
       "results": {
-        "with_skill": {
-          "assertions_passed": 10,
-          "assertions_total": 15,
-          "pass_rate": 0.6666666666666666,
-          "failed_assertions": [
-            "options-as-map",
-            "options-type-converter",
-            "concerns-decomposed",
-            "numeric-types-correct",
-            "business-language-columns"
-          ],
-          "total_tokens": 265980,
-          "duration_ms": 209532,
-          "cost_usd": 0.39484305
-        }
+        "assertions_passed": 10,
+        "assertions_total": 15,
+        "pass_rate": 0.6666666666666666,
+        "failed_assertions": [
+          "options-as-map",
+          "options-type-converter",
+          "concerns-decomposed",
+          "numeric-types-correct",
+          "business-language-columns"
+        ],
+        "total_tokens": 265980,
+        "duration_ms": 209532,
+        "cost_usd": 0.39484305
       }
     },
     {
@@ -460,19 +412,17 @@
       "name": "convert from kotest",
       "skill": "tabletest",
       "results": {
-        "with_skill": {
-          "assertions_passed": 12,
-          "assertions_total": 15,
-          "pass_rate": 0.8,
-          "failed_assertions": [
-            "options-as-map",
-            "options-type-converter",
-            "no-kotest-syntax"
-          ],
-          "total_tokens": 210373,
-          "duration_ms": 206410,
-          "cost_usd": 0.3374392500000001
-        }
+        "assertions_passed": 12,
+        "assertions_total": 15,
+        "pass_rate": 0.8,
+        "failed_assertions": [
+          "options-as-map",
+          "options-type-converter",
+          "no-kotest-syntax"
+        ],
+        "total_tokens": 210373,
+        "duration_ms": 206410,
+        "cost_usd": 0.3374392500000001
       }
     },
     {
@@ -480,17 +430,15 @@
       "name": "convert from testng",
       "skill": "tabletest",
       "results": {
-        "with_skill": {
-          "assertions_passed": 14,
-          "assertions_total": 15,
-          "pass_rate": 0.9333333333333333,
-          "failed_assertions": [
-            "concerns-decomposed"
-          ],
-          "total_tokens": 164842,
-          "duration_ms": 190565,
-          "cost_usd": 0.28829535
-        }
+        "assertions_passed": 14,
+        "assertions_total": 15,
+        "pass_rate": 0.9333333333333333,
+        "failed_assertions": [
+          "concerns-decomposed"
+        ],
+        "total_tokens": 164842,
+        "duration_ms": 190565,
+        "cost_usd": 0.28829535
       }
     },
     {
@@ -498,29 +446,25 @@
       "name": "convert from methodsource",
       "skill": "tabletest",
       "results": {
-        "with_skill": {
-          "assertions_passed": 13,
-          "assertions_total": 15,
-          "pass_rate": 0.8666666666666667,
-          "failed_assertions": [
-            "options-as-map",
-            "concerns-decomposed"
-          ],
-          "total_tokens": 133727,
-          "duration_ms": 202502,
-          "cost_usd": 0.31570515000000005
-        }
+        "assertions_passed": 13,
+        "assertions_total": 15,
+        "pass_rate": 0.8666666666666667,
+        "failed_assertions": [
+          "options-as-map",
+          "concerns-decomposed"
+        ],
+        "total_tokens": 133727,
+        "duration_ms": 202502,
+        "cost_usd": 0.31570515000000005
       }
     }
   ],
   "summary": {
-    "with_skill": {
-      "assertions_passed": 298,
-      "assertions_total": 356,
-      "pass_rate": 0.8370786516853933,
-      "total_tokens": 3329783,
-      "total_duration_ms": 3381129,
-      "total_cost_usd": 5.6241381
-    }
+    "assertions_passed": 298,
+    "assertions_total": 356,
+    "pass_rate": 0.8370786516853933,
+    "total_tokens": 3329783,
+    "total_duration_ms": 3381129,
+    "total_cost_usd": 5.6241381
   }
 }

@@ -39,10 +39,9 @@ iterations/                      ← results, per skill
       benchmark.json             ← aggregated pass rates and token counts
       eval-review.md             ← human-readable report with regression detection
       eval-X-name/
-        with_skill/
-          outputs/               ← model's actual output files
-          grading.json           ← assertion pass/fail with evidence
-          timing.json            ← duration_ms and total_tokens
+        outputs/               ← model's actual output files
+        grading.json           ← assertion pass/fail with evidence
+        timing.json            ← duration_ms and total_tokens
     minimal/                     ← variant results (independent iteration numbering)
       iteration-1/
 

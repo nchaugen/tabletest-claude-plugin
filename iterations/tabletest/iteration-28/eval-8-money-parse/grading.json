@@ -1,0 +1,85 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest annotation appears twice in the code, on both test methods"
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell in the valid inputs @TableTest table",
+      "passed": true,
+      "evidence": "Row 'Null input' has empty Input and Result? cells; explanation confirms 'Blank Input cell → null'"
+    },
+    {
+      "id": "exception-has-expected-column",
+      "text": "The exception/invalid-input table has an expected column specifying exception type per row",
+      "passed": true,
+      "evidence": "Second table includes 'Throws?' column with 'java.lang.IllegalArgumentException' per row"
+    },
+    {
+      "id": "exception-cases-handled",
+      "text": "The exception cases (empty string, letters-only, negative) are handled",
+      "passed": true,
+      "evidence": "All three cases in second table: 'Empty string' (''), 'Letters only' (abc), 'Negative value' (-5.00)"
+    },
+    {
+      "id": "result-column-with-question-mark",
+      "text": "Valid inputs have a result column name ending with '?'",
+      "passed": true,
+      "evidence": "First table column named 'Result?' with question mark suffix"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "Method bodies contain only 'assertEquals(result, parse(input))' and 'assertThrows(throws_, ...)'"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or clear method name",
+      "passed": true,
+      "evidence": "Both methods have @DisplayName: 'Parse valid input' and 'Reject invalid input'"
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description is present, it adds context beyond table rows",
+      "passed": true,
+      "evidence": "@Description is absent; assertion permits omission when table conveys all context"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName, @Description, @TableTest",
+      "passed": true,
+      "evidence": "Both methods follow @DisplayName → @TableTest order (no @Description present)"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description present and longer than one line, uses text block not concatenation",
+      "passed": true,
+      "evidence": "@Description is absent; assertion passes when @Description is absent"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables address distinct concerns, not one monolithic table",
+      "passed": true,
+      "evidence": "Two separate @TableTest methods: valid parsing vs exception cases; response explains 'Two tables because assertion logic differs'"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only necessary rows to express its concern's rules",
+      "passed": true,
+      "evidence": "Valid table: 3 rows (standard, boundary, null); invalid table: 3 rows (empty, letters, negative)"
+    },
+    {
+      "id": "separates-valid-and-invalid",
+      "text": "Valid cases and error cases are in separate @TableTest methods",
+      "passed": true,
+      "evidence": "'shouldParseValidInput' contains valid/null cases; 'shouldRejectInvalidInput' contains exception cases"
+    }
+  ],
+  "assertions_passed": 13,
+  "assertions_total": 13,
+  "pass_rate": 1
+}

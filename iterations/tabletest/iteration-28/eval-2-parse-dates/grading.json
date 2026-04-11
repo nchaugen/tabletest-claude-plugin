@@ -1,0 +1,85 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\" Scenario | Input | Result? ... ) and @TableTest(\"\"\" Scenario | Input | Throws? ...) both present"
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell (not the string 'null') in the table",
+      "passed": true,
+      "evidence": "Null input row shows: 'Null input   |            |' with blank input cell"
+    },
+    {
+      "id": "exception-handled-cleanly",
+      "text": "The empty string / exception case is handled — either via a Throws? column, assertThrows inside the method, or a separate @TableTest — rather than being silently omitted",
+      "passed": true,
+      "evidence": "Separate @TableTest method 'rejectsInvalidInput' with Throws? column and assertThrows"
+    },
+    {
+      "id": "localdate-result-column",
+      "text": "There is a result column typed as LocalDate (or using a string representation that maps to LocalDate)",
+      "passed": true,
+      "evidence": "Result? column contains ISO format dates '2024-01-15' which JUnit converts to LocalDate"
+    },
+    {
+      "id": "type-conversion-addressed",
+      "text": "The response addresses type conversion for non-trivial column types — either by providing a @TypeConverter/converter method, or by using a representation that leverages built-in conversion (e.g., FQCN for Class<?>, ISO format for LocalDate)",
+      "passed": true,
+      "evidence": "Response states: 'ISO format...which JUnit converts automatically' and 'fully-qualified class name...for JUnit's built-in Class<?> conversion'"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'dateParsing' → 'Date Parsing'). Not a generic name like 'test1' or 'testMethod'.",
+      "passed": true,
+      "evidence": "Method names: 'parsesValidFormats' and 'rejectsInvalidInput' are descriptive, not generic"
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description is present, it provides context beyond what the table rows already express — such as where/when the rule applies, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context (e.g. supported date formats are visible as table rows).",
+      "passed": true,
+      "evidence": "@Description is omitted, which is acceptable per rule; table rows clearly convey all context"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Only @TableTest annotations present; no ordering violations"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description is absent, satisfying the 'passes if absent' condition"
+    },
+    {
+      "id": "empty-string-uses-quotes",
+      "text": "Empty string input uses quoted syntax (e.g. '' or \"\") in the table — not a blank cell, which represents null. The distinction between empty string and null is preserved.",
+      "passed": true,
+      "evidence": "Empty string row shows: 'Empty string | '' | java.lang.IllegalArgumentException' with '' syntax"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": true,
+      "evidence": "Two separate @TableTest methods: parsesValidFormats (valid cases) and rejectsInvalidInput (exceptions)"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
+      "passed": true,
+      "evidence": "First table: 4 rows for valid formats; second table: 1 row for exceptions; no unnecessary rows"
+    },
+    {
+      "id": "separates-valid-and-invalid",
+      "text": "Valid parsing cases and error/exception cases are in separate @TableTest methods",
+      "passed": true,
+      "evidence": "parsesValidFormats contains valid cases; rejectsInvalidInput contains exception case in separate method"
+    }
+  ],
+  "assertions_passed": 13,
+  "assertions_total": 13,
+  "pass_rate": 1
+}
