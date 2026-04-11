@@ -85,8 +85,6 @@ function parseArgs(argv) {
     variant: null,
     compareOfficial: false,
     evals: null,       // null = all, or array of ids
-    baseline: false,
-    baselineOnly: false,
     model: "sonnet",
     gradingModel: "haiku",
     gradingSuffix: null,
@@ -110,12 +108,6 @@ function parseArgs(argv) {
         break;
       case "--evals":
         args.evals = parseEvalIds(argv[++i]);
-        break;
-      case "--baseline":
-        args.baseline = true;
-        break;
-      case "--baseline-only":
-        args.baselineOnly = true;
         break;
       case "--model":
         args.model = argv[++i];
@@ -145,8 +137,6 @@ function parseArgs(argv) {
     console.error("  --variant NAME      Run a skill variant instead of the official skill");
     console.error("  --compare-official   Compare variant results against latest official benchmark");
     console.error("  --evals 1,2,3       Run specific evals (supports ranges: 1-13)");
-    console.error("  --baseline          Also run without skill");
-    console.error("  --baseline-only     Run without skill only (no with_skill)");
     console.error("  --model MODEL       Model to use (default: sonnet)");
     console.error("  --grading-model M   Model for grading (default: haiku)");
     console.error("  --grading-suffix S  Write grading to grading-S.json instead of grading.json");
@@ -213,12 +203,11 @@ async function main() {
   }
 
   const worktreeMode = args.variant || "skill";
-  const worktreePath = (args.gradeOnly || args.baselineOnly) ? null : setupWorktree(repoRoot, worktreeMode, args);
-  const baselineWorktreePath = (!args.gradeOnly && (args.baseline || args.baselineOnly)) ? setupWorktree(repoRoot, "baseline", args) : null;
+  const worktreePath = args.gradeOnly ? null : setupWorktree(repoRoot, worktreeMode, args);
 
   try {
     if (!args.gradeOnly) {
-      await generateResponses(evals, worktreePath, baselineWorktreePath, iterationDir, args);
+      await generateResponses(evals, worktreePath, iterationDir, args);
     }
     await gradeResponses(evals, iterationDir, args);
     const benchmark = aggregateResults(evals, iterationDir, args);
@@ -229,9 +218,6 @@ async function main() {
   } finally {
     if (worktreePath) {
       cleanupWorktree(worktreePath);
-    }
-    if (baselineWorktreePath) {
-      cleanupWorktree(baselineWorktreePath);
     }
     logFile = null;
   }
@@ -305,14 +291,8 @@ function setupWorktree(repoRoot, mode = "skill", args = {}) {
     removals.push("skills-workspace/");
   }
 
-  // Baseline: remove skill files so the agent can't discover them
-  if (mode === "baseline") {
-    const skillsDir = path.join(worktreePath, "skills");
-    if (fs.existsSync(skillsDir)) { fs.rmSync(skillsDir, { recursive: true }); removals.push("skills/"); }
-  }
-
   // Variant: swap the skill files with variant content
-  if (args.variant && mode !== "baseline") {
+  if (args.variant) {
     applyVariant(worktreePath, args.skill, path.join(repoRoot, variantSkillDir(args.skill, args.variant)));
     removals.push(`applied variant: ${args.variant}`);
   }
@@ -428,20 +408,14 @@ function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 60
   });
 }
 
-async function generateResponses(evals, worktreePath, baselineWorktreePath, iterationDir, args) {
-  const configs = args.baselineOnly ? ["no_skill"] : ["with_skill"];
-  if (args.baseline && !args.baselineOnly) configs.push("no_skill");
-
+async function generateResponses(evals, worktreePath, iterationDir, args) {
   log(
-    `\nGenerating responses (${configs.join(", ")}, parallel=${args.parallel})...`
+    `\nGenerating responses (parallel=${args.parallel})...`
   );
 
   const jobs = [];
   for (const evalDef of evals) {
-    for (const config of configs) {
-      const cwd = config === "no_skill" ? baselineWorktreePath : worktreePath;
-      jobs.push({ evalDef, config, cwd });
-    }
+    jobs.push({ evalDef, config: "with_skill", cwd: worktreePath });
   }
 
   const totalJobs = jobs.length;
@@ -478,20 +452,20 @@ async function generateOne(evalDef, config, worktreePath, iterationDir, model) {
     try {
       const existing = JSON.parse(fs.readFileSync(timingPath, "utf-8"));
       if (existing.duration_ms != null && !existing.error) {
-        log(`  ⏭ Eval ${evalDef.id} [${config}] — already completed, skipping`);
+        log(`  ⏭ Eval ${evalDef.id} — already completed, skipping`);
         return;
       }
     } catch { /* re-run if timing.json is corrupt */ }
   }
 
-  log(`  Running eval ${evalDef.id} (${evalDef.slug}) [${config}]...`);
+  log(`  Running eval ${evalDef.id} (${evalDef.slug})...`);
 
   try {
     const result = await runClaude({
       prompt: evalDef.prompt,
       model,
       cwd: worktreePath,
-      pluginDir: config === "with_skill" ? worktreePath : undefined,
+      pluginDir: worktreePath,
       timeoutMs: evalDef.timeout_ms,
     });
 
@@ -530,10 +504,10 @@ async function generateOne(evalDef, config, worktreePath, iterationDir, model) {
     }
 
     log(
-      `  ✓ Eval ${evalDef.id} [${config}] — ${timing.total_tokens} tokens, ${timing.duration_ms}ms`
+      `  ✓ Eval ${evalDef.id} — ${timing.total_tokens} tokens, ${timing.duration_ms}ms`
     );
   } catch (err) {
-    logError(`  ✗ Eval ${evalDef.id} [${config}] — ${err.message}`);
+    logError(`  ✗ Eval ${evalDef.id} — ${err.message}`);
     // Write error details for debugging
     let errorLog = `${new Date().toISOString()}\n${err.message}\n${err.stack || ""}\n`;
     if (err.stderr) errorLog += `\n--- stderr ---\n${err.stderr}\n`;
@@ -584,17 +558,17 @@ async function gradeOne(evalDef, config, iterationDir, model, gradingSuffix = nu
   const responsePath = path.join(evalDir, "outputs", "response.md");
 
   if (!fs.existsSync(responsePath)) {
-    log(`  Skipping eval ${evalDef.id} [${config}] — no response`);
+    log(`  Skipping eval ${evalDef.id} — no response`);
     return;
   }
 
   const response = fs.readFileSync(responsePath, "utf-8");
   if (response.startsWith("ERROR:")) {
-    log(`  Skipping eval ${evalDef.id} [${config}] — generation error`);
+    log(`  Skipping eval ${evalDef.id} — generation error`);
     return;
   }
 
-  log(`  Grading eval ${evalDef.id} (${evalDef.slug}) [${config}]...`);
+  log(`  Grading eval ${evalDef.id} (${evalDef.slug})...`);
 
   const gradingPrompt = buildGradingPrompt(evalDef, response);
 
@@ -696,21 +670,16 @@ async function gradeOne(evalDef, config, iterationDir, model, gradingSuffix = nu
 
   const status = grading.pass_rate === 1 ? "✓" : "✗";
   log(
-    `  ${status} Eval ${evalDef.id} [${config}] — ${grading.assertions_passed}/${grading.assertions_total}`
+    `  ${status} Eval ${evalDef.id} — ${grading.assertions_passed}/${grading.assertions_total}`
   );
 }
 
 async function gradeResponses(evals, iterationDir, args) {
-  const configs = args.baselineOnly ? ["no_skill"] : ["with_skill"];
-  if (args.baseline && !args.baselineOnly) configs.push("no_skill");
-
   log(`\nGrading responses (model=${args.gradingModel}, parallel=${args.parallel})...`);
 
   const jobs = [];
   for (const evalDef of evals) {
-    for (const config of configs) {
-      jobs.push({ evalDef, config });
-    }
+    jobs.push({ evalDef, config: "with_skill" });
   }
 
   for (let i = 0; i < jobs.length; i += args.parallel) {
@@ -718,7 +687,7 @@ async function gradeResponses(evals, iterationDir, args) {
     await Promise.all(
       batch.map(({ evalDef, config }) =>
         gradeOne(evalDef, config, iterationDir, args.gradingModel, args.gradingSuffix).catch((err) => {
-          logError(`  ✗ Eval ${evalDef.id} [${config}] — GRADING FAILED: ${err.message}`);
+          logError(`  ✗ Eval ${evalDef.id} — GRADING FAILED: ${err.message}`);
           // Write grading error details for debugging
           const errDir = path.join(iterationDir, `eval-${evalDef.id}-${evalDef.slug}`, config);
           if (fs.existsSync(errDir)) {
@@ -734,8 +703,7 @@ async function gradeResponses(evals, iterationDir, args) {
   }
 }
 function aggregateResults(evals, iterationDir, args) {
-  const configs = args.baselineOnly ? ["no_skill"] : ["with_skill"];
-  if (args.baseline && !args.baselineOnly) configs.push("no_skill");
+  const configs = ["with_skill"];
 
   const benchmark = {
     skill_name: args.variant ? `${args.skill} (${args.variant})` : args.skill,
@@ -930,8 +898,7 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
     benchmark,
     previousBenchmark
   );
-  const configs = args.baselineOnly ? ["no_skill"] : ["with_skill"];
-  if (args.baseline && !args.baselineOnly) configs.push("no_skill");
+  const configs = ["with_skill"];
 
   const label = args.variant ? `${args.skill} variant=${args.variant}` : args.skill;
   let md = `# Eval Review — ${label}, Iteration ${args.iteration}\n\n`;
@@ -942,7 +909,7 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
   for (const config of configs) {
     const s = benchmark.summary[config];
     if (!s) continue;
-    md += `**${config}:** ${s.assertions_passed}/${s.assertions_total} (${(s.pass_rate * 100).toFixed(1)}%)`;
+    md += `${s.assertions_passed}/${s.assertions_total} (${(s.pass_rate * 100).toFixed(1)}%)`;
     md += ` · ${s.total_tokens} tokens · ${(s.total_duration_ms / 1000).toFixed(1)}s`;
     if (s.total_cost_usd > 0) md += ` · $${s.total_cost_usd.toFixed(4)}`;
     md += `\n\n`;
@@ -1017,7 +984,7 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
       if (!result) continue;
 
       const status = result.pass_rate === 1 ? "✅" : "⚠️";
-      md += `### ${status} Eval ${evalEntry.id} [${config}]\n\n`;
+      md += `### ${status} Eval ${evalEntry.id}\n\n`;
       md += `**${result.assertions_passed}/${result.assertions_total}** · ${result.total_tokens} tokens · ${result.duration_ms}ms\n\n`;
 
       // Load grading for evidence
