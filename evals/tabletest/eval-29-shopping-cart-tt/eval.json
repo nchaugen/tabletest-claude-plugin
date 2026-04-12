@@ -76,8 +76,12 @@
       "text": "TypeConverter methods are used to convert map/string table values into domain objects (e.g. Map → Cart, Map → InventoryService, map → Coupon). Test method bodies contain only arrange-act-assert — no object construction from raw table values."
     },
     {
-      "id": "coupon-as-map-column",
-      "text": "Coupon data uses a single map column (e.g. [type: PERCENTAGE, value: 10]) with a @TypeConverter, rather than separate sparse columns for coupon type, value, and target product."
+      "id": "coupon-as-single-column",
+      "text": "Coupon data is expressed in a single column with a @TypeConverter — not spread across separate sparse columns for coupon type, value, and target product. The column format may be map syntax (e.g. [type: PERCENTAGE, value: 10]) or readable shorthand (e.g. '20% cart', '$5 off', '50% off widget')."
+    },
+    {
+      "id": "uses-standard-map-syntax",
+      "text": "Columns representing maps (e.g. cart contents, product catalogue, inventory levels) use standard TableTest map syntax — [k: v, k2: v2] for entries and [:] for empty map — not a custom bracket notation. Custom string-parsing TypeConverters are not needed for data that maps naturally to Map<String, X>."
     },
     {
       "id": "description-not-redundant-with-scenarios",
