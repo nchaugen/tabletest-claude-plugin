@@ -84,6 +84,7 @@ function parseArgs(argv) {
     skill: null,
     variant: null,
     compareOfficial: false,
+    compareIteration: null,
     evals: null,       // null = all, or array of ids
     model: "sonnet",
     gradingModel: "haiku",
@@ -106,6 +107,9 @@ function parseArgs(argv) {
         break;
       case "--compare-official":
         args.compareOfficial = true;
+        break;
+      case "--compare-iteration":
+        args.compareIteration = parseInt(argv[++i], 10);
         break;
       case "--evals":
         args.evals = parseEvalIds(argv[++i]);
@@ -139,6 +143,7 @@ function parseArgs(argv) {
     console.error("Options:");
     console.error("  --skill SKILL       Skill to evaluate (required: tabletest, spec-by-example)");
     console.error("  --variant NAME      Run a skill variant instead of the official skill");
+    console.error("  --compare-iteration N Compare against iteration N instead of the previous one");
     console.error("  --compare-official   Compare variant results against latest official benchmark");
     console.error("  --evals 1,2,3       Run specific evals (supports ranges: 1-13)");
     console.error("  --model MODEL       Model to use (default: sonnet)");
@@ -824,7 +829,8 @@ function loadPreviousBenchmark(repoRoot, args) {
   const iterBase = args.variant
     ? variantIterationsDir(args.skill, args.variant)
     : iterationsDir(args.skill);
-  const prevDir = path.join(repoRoot, iterBase, `iteration-${args.iteration - 1}`);
+  const compareIter = args.compareIteration != null ? args.compareIteration : args.iteration - 1;
+  const prevDir = path.join(repoRoot, iterBase, `iteration-${compareIter}`);
   const prevPath = path.join(prevDir, "benchmark.json");
 
   if (!fs.existsSync(prevPath)) {
@@ -962,8 +968,9 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
   }
 
   // Regression summary
+  const compareIter = args.compareIteration != null ? args.compareIteration : args.iteration - 1;
   if (previousBenchmark) {
-    md += `## Delta vs Iteration ${args.iteration - 1}\n\n`;
+    md += `## Delta vs Iteration ${compareIter}\n\n`;
     if (regressions.length === 0 && improvements.length === 0) {
       md += `No changes.\n\n`;
     } else {
@@ -986,7 +993,7 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
 
   // Resource comparison with previous iteration
   if (previousBenchmark) {
-    md += `## Resource Comparison vs Iteration ${args.iteration - 1}\n\n`;
+    md += `## Resource Comparison vs Iteration ${compareIter}\n\n`;
     md += `| Eval | Pass Rate | Prev | Tokens | Prev | Time(s) | Prev |\n`;
     md += `|------|-----------|------|--------|------|---------|------|\n`;
 

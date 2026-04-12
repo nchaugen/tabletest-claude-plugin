@@ -56,6 +56,7 @@ skill-variants/                  ← experimental skill files (never shipped)
 ```bash
 node scripts/run-evals.js --skill tabletest --iteration N
 node scripts/run-evals.js --skill tabletest --iteration N --evals 1,2
+node scripts/run-evals.js --skill tabletest --iteration N --compare-iteration M
 ```
 
 **Skill variants:** Test minimized or modified skill files against evals.
