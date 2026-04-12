@@ -22,8 +22,9 @@ function extractTableTestMethodBodies(content) {
     const after = content.slice(match.index);
 
     // Find the opening brace of the method body (after parameter list)
-    // Look for pattern: returnType methodName(params) {
-    const methodMatch = after.match(/(?:void|boolean|int|long|double|float|String|[A-Z]\w*(?:<[^>]*>)?)\s+(\w+)\s*\([^)]*\)\s*(?:throws\s+[^{]*)?\{/);
+    // Java: returnType methodName(params) {
+    // Kotlin: fun methodName(params) {  or  fun methodName(params): ReturnType {
+    const methodMatch = after.match(/(?:fun|void|boolean|int|long|double|float|String|[A-Z]\w*(?:<[^>]*>)?)\s+(\w+)\s*\([^)]*\)\s*(?::\s*\S+\s*)?(?:throws\s+[^{]*)?\{/);
     if (!methodMatch) continue;
 
     const braceStart = match.index + after.indexOf(methodMatch[0]) + methodMatch[0].length - 1;
@@ -369,6 +370,32 @@ const checkers = {
       passed: !found,
       evidence: found ? "Found @MethodSource" : "No @MethodSource found",
     };
+  },
+
+  "has-tabletest-dependency": ({ fileContent, allFiles }) => {
+    // Check build files for tabletest-junit dependency with correct version
+    const buildFiles = (allFiles || []).filter(f =>
+      f.path === "pom.xml" || f.path === "build.gradle" || f.path === "build.gradle.kts"
+    );
+    if (buildFiles.length === 0) {
+      // Fall back to checking fileContent (response.md) for build file snippets
+      const hasArtifact = /tabletest-junit/.test(fileContent);
+      const hasVersion = /1\.2\.1/.test(fileContent);
+      if (hasArtifact && hasVersion) {
+        return { passed: true, evidence: "Found tabletest-junit:1.2.1 in response" };
+      }
+      return { passed: false, evidence: "No build file found in outputs and no tabletest-junit reference in response" };
+    }
+    const content = buildFiles.map(f => f.content).join('\n');
+    const hasArtifact = /tabletest-junit/.test(content);
+    const hasVersion = /1\.2\.1/.test(content);
+    if (hasArtifact && hasVersion) {
+      return { passed: true, evidence: "Build file contains tabletest-junit:1.2.1" };
+    }
+    if (hasArtifact) {
+      return { passed: false, evidence: "Build file references tabletest-junit but not version 1.2.1" };
+    }
+    return { passed: false, evidence: "Build file does not contain tabletest-junit dependency" };
   },
 };
 

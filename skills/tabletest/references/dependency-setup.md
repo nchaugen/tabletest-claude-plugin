@@ -1,6 +1,6 @@
 # Dependency and Import Setup
 
-Prefer the version already used in the project. If adding a new dependency, check Maven Central and replace `VERSION`.
+Prefer the version already used in the project. If adding a new dependency, use the latest version shown below.
 
 ## Maven
 
@@ -8,7 +8,7 @@ Prefer the version already used in the project. If adding a new dependency, chec
 <dependency>
     <groupId>org.tabletest</groupId>
     <artifactId>tabletest-junit</artifactId>
-    <version>VERSION</version>
+    <version>1.2.1</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -16,7 +16,7 @@ Prefer the version already used in the project. If adding a new dependency, chec
 ## Gradle
 
 ```groovy
-testImplementation "org.tabletest:tabletest-junit:VERSION"
+testImplementation "org.tabletest:tabletest-junit:1.2.1"
 ```
 
 ## Imports

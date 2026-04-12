@@ -78,6 +78,21 @@
       "id": "no-groovy-syntax",
       "text": "Output contains no Groovy or Spock syntax: no def, where:, expect:, given:, GString interpolation (#variable), Spock assertions (thrown(), old()), or Groovy list literals ([] as Set).",
       "type": "deterministic"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle.kts) includes org.tabletest:tabletest-junit:1.2.1 as a test dependency",
+      "type": "deterministic"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "type": "build"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The generated tests pass when executed against ShippingCostCalculator",
+      "type": "build"
     }
   ]
 }

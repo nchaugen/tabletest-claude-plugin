@@ -52,6 +52,21 @@
       "id": "description-uses-textblock",
       "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
       "type": "deterministic"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (pom.xml) includes org.tabletest:tabletest-junit:1.2.1 as a test dependency",
+      "type": "deterministic"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "type": "build"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The generated tests pass when executed against DiscountService",
+      "type": "build"
     }
   ]
 }

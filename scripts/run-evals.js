@@ -5,6 +5,63 @@ const fs = require("fs");
 const path = require("path");
 const { checkers } = require("./assertions");
 
+function findFiles(dir, pattern) {
+  const results = [];
+  if (!fs.existsSync(dir)) return results;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...findFiles(full, pattern));
+    } else if (pattern.test(entry.name)) {
+      results.push(full);
+    }
+  }
+  return results;
+}
+
+function runBuildCheck(worktreePath) {
+  const hasPom = fs.existsSync(path.join(worktreePath, "pom.xml"));
+  const hasGradle = fs.existsSync(path.join(worktreePath, "build.gradle"))
+    || fs.existsSync(path.join(worktreePath, "build.gradle.kts"));
+
+  if (!hasPom && !hasGradle) return null;
+
+  const result = { compiles: false, tests_pass: null, compile_output: "", test_output: "" };
+
+  // Detect Kotlin test files to choose the right compile task
+  const hasKotlinTests = findFiles(
+    path.join(worktreePath, "src", "test"),
+    /\.kt$/
+  ).length > 0;
+
+  try {
+    if (hasPom) {
+      execSync("mvn compile test-compile -q", { cwd: worktreePath, stdio: "pipe", timeout: 120000 });
+    } else {
+      const compileTask = hasKotlinTests ? "compileTestKotlin" : "compileTestJava";
+      execSync(`gradle ${compileTask} -q`, { cwd: worktreePath, stdio: "pipe", timeout: 120000 });
+    }
+    result.compiles = true;
+  } catch (err) {
+    result.compile_output = (err.stderr || err.stdout || "").toString().slice(0, 2000);
+    return result;
+  }
+
+  try {
+    if (hasPom) {
+      execSync("mvn test -q", { cwd: worktreePath, stdio: "pipe", timeout: 120000 });
+    } else {
+      execSync("gradle test -q", { cwd: worktreePath, stdio: "pipe", timeout: 120000 });
+    }
+    result.tests_pass = true;
+  } catch (err) {
+    result.tests_pass = false;
+    result.test_output = (err.stderr || err.stdout || "").toString().slice(0, 2000);
+  }
+
+  return result;
+}
+
 function evalsDir(skill) { return `evals/${skill}`; }
 function iterationsDir(skill) { return `iterations/${skill}`; }
 function variantSkillDir(skill, variant) { return `skill-variants/${skill}/${variant}`; }
@@ -22,6 +79,7 @@ function loadEvalsFromDir(evalsDir) {
     const meta = JSON.parse(fs.readFileSync(path.join(dir, "eval.json"), "utf-8"));
     meta.prompt = fs.readFileSync(path.join(dir, "prompt.md"), "utf-8").replace(/\n$/, "");
     meta.expected_output = fs.readFileSync(path.join(dir, "expected_output.md"), "utf-8").replace(/\n$/, "");
+    meta.sourceDir = dir;
     return meta;
   });
 }
@@ -412,6 +470,7 @@ function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 60
     const args = ["--print", "--output-format", "stream-json", "--verbose", "--model", model];
 
     args.push("--disallowedTools", "Bash(git:*)");
+    args.push("--dangerously-skip-permissions");
     args.push("--no-session-persistence", "--setting-sources", "");
 
     if (pluginDir) {
@@ -516,12 +575,36 @@ async function generateOne(evalDef, worktreePath, iterationDir, model) {
 
   log(`  Running eval ${evalDef.id} (${evalDef.slug})...`);
 
+  // Use a per-eval working directory if project scaffolding exists, otherwise use worktree root
+  const projectDir = path.join(evalDef.sourceDir, "project");
+  const hasProject = fs.existsSync(projectDir);
+  const agentCwd = hasProject
+    ? path.join(worktreePath, `eval-${evalDef.id}-work`)
+    : worktreePath;
+
+  if (hasProject) {
+    fs.mkdirSync(agentCwd, { recursive: true });
+    // Copy skill files so the agent can discover them
+    const skillsDir = path.join(worktreePath, "skills");
+    if (fs.existsSync(skillsDir)) {
+      fs.cpSync(skillsDir, path.join(agentCwd, "skills"), { recursive: true });
+    }
+    // Copy plugin manifest
+    const pluginDir = path.join(worktreePath, ".claude-plugin");
+    if (fs.existsSync(pluginDir)) {
+      fs.cpSync(pluginDir, path.join(agentCwd, ".claude-plugin"), { recursive: true });
+    }
+    // Copy project scaffolding
+    fs.cpSync(projectDir, agentCwd, { recursive: true });
+    log(`    Copied project scaffolding to ${path.basename(agentCwd)}/`);
+  }
+
   try {
     const result = await runClaude({
       prompt: evalDef.prompt,
       model,
-      cwd: worktreePath,
-      pluginDir: worktreePath,
+      cwd: agentCwd,
+      pluginDir: agentCwd,
       timeoutMs: evalDef.timeout_ms,
     });
 
@@ -559,6 +642,43 @@ async function generateOne(evalDef, worktreePath, iterationDir, model) {
       );
     }
 
+    // Collect generated test files from agent working directory
+    const testDir = path.join(agentCwd, "src", "test");
+    const testFiles = findFiles(testDir, /\.(java|kt)$/);
+    for (const tf of testFiles) {
+      const rel = path.relative(agentCwd, tf);
+      const dest = path.join(evalDir, "outputs", rel);
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.cpSync(tf, dest);
+    }
+    if (testFiles.length > 0) {
+      log(`    Collected ${testFiles.length} test file(s) to outputs/`);
+    }
+
+    // Collect build files from agent working directory (for dependency assertions)
+    for (const buildFile of ["pom.xml", "build.gradle", "build.gradle.kts"]) {
+      const src = path.join(agentCwd, buildFile);
+      if (fs.existsSync(src)) {
+        fs.cpSync(src, path.join(evalDir, "outputs", buildFile));
+      }
+    }
+
+    // Run build verification if project scaffolding was present
+    if (hasProject) {
+      const buildResult = runBuildCheck(agentCwd);
+      if (buildResult) {
+        fs.writeFileSync(
+          path.join(evalDir, "outputs", "build-result.json"),
+          JSON.stringify(buildResult, null, 2),
+          "utf-8"
+        );
+        const buildStatus = buildResult.compiles
+          ? (buildResult.tests_pass ? "compiles + tests pass" : buildResult.tests_pass === false ? "compiles, tests fail" : "compiles")
+          : "compile failed";
+        log(`    Build: ${buildStatus}`);
+      }
+    }
+
     log(
       `  ✓ Eval ${evalDef.id} — ${timing.total_tokens} tokens, ${timing.duration_ms}ms`
     );
@@ -584,13 +704,26 @@ async function generateOne(evalDef, worktreePath, iterationDir, model) {
       JSON.stringify({ error: err.message }, null, 2),
       "utf-8"
     );
+  } finally {
+    // Clean up per-eval working directory
+    if (hasProject && fs.existsSync(agentCwd)) {
+      fs.rmSync(agentCwd, { recursive: true });
+    }
   }
 }
 
-function buildGradingPrompt(evalDef, response) {
+function buildGradingPrompt(evalDef, response, generatedFiles) {
   const assertionsList = evalDef.assertions
     .map((a) => `- [${a.id}] ${a.text}`)
     .join("\n");
+
+  let filesSection = "";
+  if (generatedFiles && generatedFiles.length > 0) {
+    const fileBlocks = generatedFiles.map(f =>
+      `### ${f.path}\n\`\`\`\n${f.content}\n\`\`\``
+    ).join("\n\n");
+    filesSection = `\n\n## Generated Files\n\nThe agent wrote these files (grade against these, not the conversational response):\n\n${fileBlocks}`;
+  }
 
   return `## Assertions
 
@@ -598,7 +731,7 @@ ${assertionsList}
 
 ## Expected Output Description
 
-${evalDef.expected_output}
+${evalDef.expected_output}${filesSection}
 
 ## Model Response
 
@@ -615,7 +748,7 @@ function loadOutputFiles(evalDir) {
       const full = path.join(dir, entry);
       if (fs.statSync(full).isDirectory()) {
         walk(full);
-      } else if (entry.endsWith(".java") || entry.endsWith(".kt")) {
+      } else if (entry.endsWith(".java") || entry.endsWith(".kt") || entry === "pom.xml" || entry === "build.gradle" || entry === "build.gradle.kts") {
         files.push({ path: path.relative(outputsDir, full), content: fs.readFileSync(full, "utf-8") });
       }
     }
@@ -759,7 +892,7 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null) {
   let llmResults = [];
   if (llmAssertions.length > 0) {
     const llmEvalDef = { ...evalDef, assertions: llmAssertions };
-    const gradingPrompt = buildGradingPrompt(llmEvalDef, response);
+    const gradingPrompt = buildGradingPrompt(llmEvalDef, response, allFiles);
     const gradingText = await gradeViaApi(GRADING_SYSTEM_PROMPT, gradingPrompt, model);
 
     const llmGrading = parseLlmGrading(gradingText);
