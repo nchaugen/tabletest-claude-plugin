@@ -1,0 +1,85 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Two @TableTest annotations present in the code"
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell in the valid inputs @TableTest table",
+      "passed": true,
+      "evidence": "Null input     |       | (blank cell between pipes)"
+    },
+    {
+      "id": "exception-has-expected-column",
+      "text": "The exception/invalid-input table has an expected column specifying the exception type per row",
+      "passed": true,
+      "evidence": "Scenario        | Input   | Throws? (column with per-row exception types)"
+    },
+    {
+      "id": "exception-cases-handled",
+      "text": "The exception cases (empty string, letters-only, negative) are handled",
+      "passed": true,
+      "evidence": "All three cases in second table: Empty string, Letters only, Negative value with assertThrows"
+    },
+    {
+      "id": "result-column-with-question-mark",
+      "text": "Valid inputs have a result column name ending with '?'",
+      "passed": true,
+      "evidence": "Scenario       | Input | Result? (column named Result?)"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "Both methods contain only assertEquals/assertThrows calls, no control flow"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title",
+      "passed": true,
+      "evidence": "@DisplayName(\"Parse valid and null inputs\") and @DisplayName(\"Reject invalid inputs\")"
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description is present, it provides context beyond what the table rows already express",
+      "passed": true,
+      "evidence": "No @Description annotation present; assertion states omission acceptable when table conveys all context"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest",
+      "passed": true,
+      "evidence": "@DisplayName immediately followed by @TableTest in both methods"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and longer than a single short line, it uses text block",
+      "passed": true,
+      "evidence": "No @Description present; passes when @Description is absent"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables are used, each addressing a distinct concern",
+      "passed": true,
+      "evidence": "Two @TableTest methods: parsesValidAndNullInputs (returns value/null) and rejectsInvalidInput (throws)"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules",
+      "passed": true,
+      "evidence": "3 rows per table minimum coverage without unnecessary permutations"
+    },
+    {
+      "id": "separates-valid-and-invalid",
+      "text": "Valid parsing cases and error/exception cases are in separate @TableTest methods",
+      "passed": true,
+      "evidence": "parsesValidAndNullInputs and rejectsInvalidInput are separate methods"
+    }
+  ],
+  "assertions_passed": 13,
+  "assertions_total": 13,
+  "pass_rate": 1
+}

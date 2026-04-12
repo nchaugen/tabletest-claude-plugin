@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest('''...''')' annotations present in both methods     },     {       'id': 'null-as-blank-cell',       'text': 'Null input is represented as a blank cell (not the string 'null') in the table',       'passed': true,       'evidence': 'Null input    |            |' shows blank cell in input column     },     {       'id': 'exception-handled-cleanly',       'text': 'The empty string / exception case is handled cleanly',       'passed': true,       'evidence': 'Separate @TableTest method 'rejectsInvalidInputs' with Throws? column and assertThrows call"
+    },
+    {
+      "id": "localdate-result-column",
+      "text": "There is a result column typed as LocalDate",
+      "passed": true,
+      "evidence": "void parsesDateStrings(String input, LocalDate result) with Result? column"
+    },
+    {
+      "id": "type-conversion-addressed",
+      "text": "Response addresses type conversion for non-trivial column types",
+      "passed": true,
+      "evidence": "Expected `LocalDate` values can all be written in ISO format (`2024-01-15`) — JUnit's built-in conversion handles this"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has a clear, descriptive title",
+      "passed": true,
+      "evidence": "@DisplayName('Parse date strings') and @DisplayName('Reject invalid inputs')"
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description present, it adds context beyond table rows; omission is acceptable",
+      "passed": true,
+      "evidence": "No @Description present; acceptable per rule since table conveys all context"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName, @Description, @TableTest",
+      "passed": true,
+      "evidence": "Both methods follow @DisplayName then @TableTest order (no @Description)"
+    },
+    {
+      "id": "empty-string-uses-quotes",
+      "text": "Empty string input uses quoted syntax ('') not blank cell",
+      "passed": true,
+      "evidence": "Empty string  | ''    | java.lang.IllegalArgumentException"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods address distinct concerns",
+      "passed": true,
+      "evidence": "Two separate methods: parsesDateStrings (valid) and rejectsInvalidInputs (exceptions)"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only rows needed to express its concern",
+      "passed": true,
+      "evidence": "First table: 4 rows (format variants + null); second table: 1 exception row"
+    },
+    {
+      "id": "separates-valid-and-invalid",
+      "text": "Valid parsing cases and error cases in separate @TableTest methods",
+      "passed": true,
+      "evidence": "parsesDateStrings handles valid inputs; rejectsInvalidInputs in separate method"
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 10,
+  "pass_rate": 1
+}

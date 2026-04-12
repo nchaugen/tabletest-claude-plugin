@@ -1,0 +1,103 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest('''...''')' appears multiple times with table specifications     },     {       'id': 'concerns-decomposed',       'text': 'Multiple @TableTest methods are used, each addressing a distinct concern',       'passed': true,       'evidence': 'shouldAddItemToCart, shouldRemoveItemFromCart, shouldApplyCoupon, shouldCalculateCartTotal, shouldValidateInventoryAtCheckout - five separate methods"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each @TableTest has only the rows needed to express its concern's rules",
+      "passed": true,
+      "evidence": "Add: 3 rows, Remove: 4 rows, Coupon: 6 rows, Checkout: 5 rows, Total: 7 rows - none combinatorial"
+    },
+    {
+      "id": "separates-item-coupon-total-checkout",
+      "text": "Item operations, coupon, cart total, and checkout are in separate @TableTest methods",
+      "passed": true,
+      "evidence": "shouldAddItemToCart/Remove, shouldApplyCoupon, shouldCalculateCartTotal, shouldValidateInventoryAtCheckout"
+    },
+    {
+      "id": "rows-independently-executable",
+      "text": "Each table row is independently executable with its own preconditions",
+      "passed": true,
+      "evidence": "Each row specifies input columns (Cart before, Active coupon, etc.) without depending on prior results"
+    },
+    {
+      "id": "coupon-before-after-columns",
+      "text": "Coupon application table uses before/after columns",
+      "passed": true,
+      "evidence": "Input: 'Active coupon', Output: 'Active coupon after?' in shouldApplyCoupon table"
+    },
+    {
+      "id": "coupon-validity-not-coupon-types",
+      "text": "Coupon application table tests validity and replacement, not coupon type effects",
+      "passed": true,
+      "evidence": "@Description states 'Coupon type behaviour (PERCENT / FIXED / PRODUCT arithmetic) is covered in shouldCalculateCartTotal'"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Each table begins with 'Scenario' as the first column"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?'",
+      "passed": true,
+      "evidence": "Multiple columns: 'Cart after?', 'Message?', 'Active coupon after?', 'Success?', 'Total?'"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions, not outcomes",
+      "passed": true,
+      "evidence": "'Add to empty cart', 'Replace active coupon', 'One item short' - describe preconditions, not results"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language, not code identifiers",
+      "passed": true,
+      "evidence": "'Product', 'Qty', 'Catalogue', 'Cart', 'Message' instead of productId, result, etc."
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "All five test methods contain only CartResult/result setup and assertThat() calls, no conditionals"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in correct order: @DisplayName, @Description, @TableTest",
+      "passed": true,
+      "evidence": "shouldApplyCoupon, shouldValidateInventoryAtCheckout, shouldCalculateCartTotal all follow @DisplayName, @Description, @TableTest order"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has descriptive title via @DisplayName or method name",
+      "passed": true,
+      "evidence": "All methods have @DisplayName (e.g., 'Apply coupon to cart') or camelCase names (shouldAddItemToCart)"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description present and long, uses text block (triple quotes), not concatenation",
+      "passed": true,
+      "evidence": "All @Description uses triple-quoted strings: @Description('''...''')"
+    },
+    {
+      "id": "single-assertion-in-method",
+      "text": "Each method has single, uniform assertion pattern applied to all rows",
+      "passed": true,
+      "evidence": "shouldApplyCoupon applies same assertions (success, message, coupon code) to all 6 rows uniformly"
+    },
+    {
+      "id": "test-data-visible",
+      "text": "Product prices, coupon rules visible in table; reader can trace inputs to outputs",
+      "passed": true,
+      "evidence": "Catalogue column shows prices [WIDGET: 10.00], Coupon column shows types, @Description lists coupon codes"
+    }
+  ],
+  "assertions_passed": 16,
+  "assertions_total": 16,
+  "pass_rate": 1
+}

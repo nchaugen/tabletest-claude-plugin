@@ -1,0 +1,145 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Multiple @TableTest(...) annotations present in all three test methods"
+    },
+    {
+      "id": "validation-rules-covered",
+      "text": "Email validation and name-required error scenarios are present — at least one row for invalid email and one for missing name.",
+      "passed": true,
+      "evidence": "Rows include 'Null name' with blank name, and 'Email missing @', 'Email missing domain part', 'Email missing local part'"
+    },
+    {
+      "id": "blank-for-absent-optional",
+      "text": "Dietary requirements and/or accessibility needs use blank cells (null) when not provided — not 'N/A' or 'none'.",
+      "passed": true,
+      "evidence": "In acceptsOptionalFields table: 'Both optional fields null' row shows blank cells for both columns"
+    },
+    {
+      "id": "blank-vs-value-set-correct",
+      "text": "When testing pricing rules, irrelevant inputs use value sets or representative values — not blanks.",
+      "passed": true,
+      "evidence": "Pricing table uses {1, 4} and {5, 10} value sets for groupSize; optional fields not shown as columns"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "All three tables have 'Scenario' as the first column"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?'",
+      "passed": true,
+      "evidence": "Pricing table has 'Price?' column; validation table has 'Error?' column"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language, not code identifiers.",
+      "passed": true,
+      "evidence": "Columns: Scenario, Dietary Requirements, Accessibility Needs, Name, Email, Error?, Registration Date, Group Size, Price?"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions, not outcomes.",
+      "passed": true,
+      "evidence": "Examples: 'Null name', 'Early-bird only', 'Group discount only' describe input conditions, not outcomes like '20% off'"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "All three method bodies contain only register() call and assertions; no control flow"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName, @Description, @TableTest",
+      "passed": true,
+      "evidence": "All three methods follow the order: @DisplayName, @Description(\"...\"), @TableTest(...)"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either @DisplayName or descriptive method name",
+      "passed": true,
+      "evidence": "All three methods have @DisplayName: 'Optional fields...', 'Validation rejects...', 'Pricing applies...'"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and longer than one line, use text block (triple quotes), not concatenation.",
+      "passed": true,
+      "evidence": "All @Description annotations use triple-quoted strings: @Description(\\\"\\\"\\\"...\\\"\\\"\\\")"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables address distinct concerns, not one monolithic table.",
+      "passed": true,
+      "evidence": "Three separate methods: acceptsOptionalFields, rejectsInvalidInputs, appliesDiscount"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only rows needed to express its concern's rules.",
+      "passed": true,
+      "evidence": "Optional fields: 4 rows; Validation: 6 rows with boundary conditions; Pricing: 7 rows with key boundaries"
+    },
+    {
+      "id": "separates-validation-and-pricing",
+      "text": "Input validation and pricing are in separate @TableTest methods",
+      "passed": true,
+      "evidence": "rejectsInvalidInputs method tests validation; appliesDiscount method tests pricing"
+    },
+    {
+      "id": "validation-includes-optional-fields",
+      "text": "Validation @TableTest includes Dietary Requirements and Accessibility Needs columns, not hardcoded as null.",
+      "passed": false,
+      "evidence": "Validation method hardcodes optional fields: 'null, null, LocalDate.of(2025, 4, 1), 1'. Separate table used instead."
+    },
+    {
+      "id": "descriptive-registration-date",
+      "text": "Registration date uses descriptive values (e.g. 'before cutoff'), not raw date literals like '2025-02-28'.",
+      "passed": false,
+      "evidence": "Table includes literal dates: '2025-03-01' and '2025-02-28' alongside descriptive values"
+    },
+    {
+      "id": "cutoff-date-column-if-literal-dates",
+      "text": "If literal dates used, early-bird cutoff date appears as separate policy column",
+      "passed": false,
+      "evidence": "Literal dates present ('2025-02-28', '2025-03-01') but no cutoff-date column; cutoff only in @Description"
+    },
+    {
+      "id": "description-no-irrelevant-information",
+      "text": "@Description does not restate discount rules already visible in table or list fixed input values.",
+      "passed": false,
+      "evidence": "Restates rules: 'Early-bird: 20% off...', 'Group: 15% off...' and lists values: 'name is \"Alice Smith\"...'"
+    },
+    {
+      "id": "discount-column-preferred",
+      "text": "Output is 'Discount?' not 'Price?'; or if 'Price?' used, both 'Base price' and 'Price?' columns present.",
+      "passed": false,
+      "evidence": "Uses 'Price?' column without 'Base price' column; base price (£100) only in @Description"
+    },
+    {
+      "id": "single-assertion-in-method",
+      "text": "Each @TableTest method has a single, uniform assertion pattern for all rows.",
+      "passed": true,
+      "evidence": "Each method applies same assertions uniformly: acceptsOptionalFields uses assertTrue(isAccepted()); rejectsInvalidInputs checks both isAccepted and error"
+    },
+    {
+      "id": "optional-fields-has-expected-column",
+      "text": "Optional-fields table includes output/expectation column asserting acceptance",
+      "passed": false,
+      "evidence": "acceptsOptionalFields table has no output column; only columns: Scenario, Dietary Requirements, Accessibility Needs"
+    },
+    {
+      "id": "description-no-redundant-field-values",
+      "text": "Scenario names do not redundantly include specific field values visible in table columns.",
+      "passed": true,
+      "evidence": "Scenario names describe conditions ('Null name', 'Early-bird only') without listing specific values like 'name: Alice, email: alice@...'"
+    }
+  ],
+  "assertions_passed": 17,
+  "assertions_total": 23,
+  "pass_rate": 0.7391304347826086
+}

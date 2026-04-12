@@ -1,0 +1,115 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\" Scenario | Items | Shipment count?\" appears in all 5 test methods"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing all splitting rules.",
+      "passed": true,
+      "evidence": "Five separate methods: partitionsByFulfillmentType, partitionsByDeliveryAddress, separatesImmediateFromDelayedItems, minimisesShipmentCountAcrossWarehouses, coLocatesCompanionProducts"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each @TableTest has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
+      "passed": true,
+      "evidence": "Each table has 4-7 focused rows; e.g., fulfillment has 4 rows, delivery address has 4 rows, none mixing unrelated scenarios"
+    },
+    {
+      "id": "concern-fulfillment-method",
+      "text": "Fulfillment method splitting is represented as its own @TableTest — items with different fulfillment types (store pickup vs home delivery) cannot share a shipment.",
+      "passed": true,
+      "evidence": "partitionsByFulfillmentType() method with scenario 'One DELIVERY one PICKUP' → 2 shipments"
+    },
+    {
+      "id": "concern-delivery-address",
+      "text": "Delivery address splitting is represented as its own @TableTest — items going to different addresses must be in separate shipments.",
+      "passed": true,
+      "evidence": "partitionsByDeliveryAddress() method with scenario 'Different addresses' → 2 shipments"
+    },
+    {
+      "id": "concern-availability",
+      "text": "Availability splitting is represented as its own @TableTest — in-stock items ship immediately, backordered/pre-ordered items ship when available.",
+      "passed": true,
+      "evidence": "separatesImmediateFromDelayedItems() method showing IN_STOCK vs BACKORDERED in 'Immediate items?' and 'Delayed items?' columns"
+    },
+    {
+      "id": "concern-warehouse-allocation",
+      "text": "Warehouse allocation (minimising shipments) is represented as its own @TableTest — choosing which warehouses to ship from to minimise total shipment count.",
+      "passed": true,
+      "evidence": "minimisesShipmentCountAcrossWarehouses() method with scenario 'Optimal 2 beats naive 3'"
+    },
+    {
+      "id": "concern-companion-products",
+      "text": "Companion product grouping is represented as its own @TableTest — paired items (e.g. camera body and lens) should ship together from the same location when possible.",
+      "passed": true,
+      "evidence": "coLocatesCompanionProducts() method with 'Together?' output column and scenarios like 'Both companions at one warehouse'"
+    },
+    {
+      "id": "all-outputs-same-table",
+      "text": "Each @TableTest method includes all output columns for its concern in the same table — e.g. warehouse allocation includes both the assignment and shipment count, not split across methods. All outputs of the same concern belong together.",
+      "passed": true,
+      "evidence": "partitionsByFulfillmentType has 'Shipment count?' and 'Fulfillment types?' in same @TableTest; separatesImmediateFromDelayedItems has 'Immediate items?' and 'Delayed items?' together"
+    },
+    {
+      "id": "scalar-quantity-for-warehouse",
+      "text": "Warehouse allocation table uses scalar quantity columns (e.g. 'Qty ordered') not item lists, when product identity doesn't matter for the logic.",
+      "passed": true,
+      "evidence": "minimisesShipmentCountAcrossWarehouses uses simple product identifiers [a,b,c] with implicit qty 1; comment states 'one unit each'"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "'Scenario' appears as the leftmost column in all five @TableTest tables"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Shipments?', 'Groups?')",
+      "passed": true,
+      "evidence": "Multiple output columns end with '?': 'Shipment count?', 'Fulfillment types?', 'Immediate items?', 'Delayed items?', 'Together?'"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe the business situation (e.g. 'Consolidate: two beats three', 'Everything at one warehouse') — not 'Test case 2'.",
+      "passed": true,
+      "evidence": "Scenarios like 'Optimal 2 beats naive 3', 'Both companions at one warehouse', 'In-stock with backordered' describe conditions"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use business/domain language (e.g. 'Shipments?' not 'Result?', 'Warehouse stock' not 'inventory_map'). The tables read as a specification a product person could review.",
+      "passed": true,
+      "evidence": "Columns like 'Shipment count?', 'Fulfillment types?', 'Warehouse stock', 'Together?' use business terminology"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "All five test methods contain only setup, method calls, and assertions; no control flow statements"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "All five methods follow @DisplayName → @Description → @TableTest order consistently"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "@DisplayName annotations: 'Partition by fulfillment type', 'Choose warehouses to minimise shipment count'"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "All @Description annotations use triple-quoted text blocks: @Description(\"\"\"...\"\"\")"
+    }
+  ],
+  "assertions_passed": 18,
+  "assertions_total": 18,
+  "pass_rate": 1
+}

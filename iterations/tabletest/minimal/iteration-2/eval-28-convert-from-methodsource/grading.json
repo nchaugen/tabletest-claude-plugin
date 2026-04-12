@@ -1,0 +1,97 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"...Scenario | Zone | Weight (kg) | Carrier | Cost?\""
+    },
+    {
+      "id": "options-as-map",
+      "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column",
+      "passed": false,
+      "evidence": "Fragile | Insured value | Handling columns are separate with individual cells, not [fragile: true, insuredValue: 500] format"
+    },
+    {
+      "id": "options-type-converter",
+      "text": "A @TypeConverter method is present that accepts Map<String, String> and returns PackageOptions",
+      "passed": false,
+      "evidence": "Only @TypeConverter shown is for ShippingZone; no Map→PackageOptions converter present"
+    },
+    {
+      "id": "dimensions-as-list",
+      "text": "Dimensions are represented as a [L, W, H] list in the table",
+      "passed": true,
+      "evidence": "Dimensions | ... | [70, 50, 10] | ... | [120, 5, 5]"
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX}",
+      "passed": true,
+      "evidence": "EU express medium | EU/express | 3.0 | {DHL, UPS, FEDEX} | 12.00"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods exist, each addressing a distinct concern",
+      "passed": true,
+      "evidence": "Three @TableTest methods: baseShippingRate, dimensionBasedAdjustments, packageOptionSurcharges"
+    },
+    {
+      "id": "numeric-types-correct",
+      "text": "Weight and cost use BigDecimal; dimensions use Integer or int",
+      "passed": true,
+      "evidence": "BigDecimal weight, List<Integer> dimensions, BigDecimal cost in signatures"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Each table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "All three tables start with Scenario column"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions, not outcomes or generic labels",
+      "passed": true,
+      "evidence": "EU express light, Dimensional weight applies, Fragile and insured"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?'",
+      "passed": true,
+      "evidence": "All three tables have Cost? as output column"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain language, not code identifiers",
+      "passed": true,
+      "evidence": "Weight (kg), Zone, Dimensions, Insured value, Cost?"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method bodies contain no if or switch statements",
+      "passed": false,
+      "evidence": "packageOptionSurcharges has: if (insuredValue != null) ... if (handling != null)"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName, @Description, @TableTest",
+      "passed": true,
+      "evidence": "All three methods: @DisplayName...@Description...@TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Each test method has descriptive @DisplayName or method name",
+      "passed": true,
+      "evidence": "@DisplayName(\"Base shipping rate by zone and weight\")"
+    },
+    {
+      "id": "no-methodsource-artifacts",
+      "text": "Output contains no @MethodSource, Stream<Arguments>, or Jupiter params",
+      "passed": true,
+      "evidence": "Imports only tabletest.junit.*; no @MethodSource or params imports found"
+    }
+  ],
+  "assertions_passed": 12,
+  "assertions_total": 15,
+  "pass_rate": 0.8
+}

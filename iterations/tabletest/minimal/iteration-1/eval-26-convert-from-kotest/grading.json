@@ -1,0 +1,97 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"...\"\"\")\nfun calculatesBaseRate(...)"
+    },
+    {
+      "id": "options-as-map",
+      "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column",
+      "passed": false,
+      "evidence": "Scenario | Fragile | Insured Value | Handling | Cost? — three separate columns, not collapsed"
+    },
+    {
+      "id": "options-type-converter",
+      "text": "A @TypeConverter method is present that accepts Map<String, String> and returns PackageOptions",
+      "passed": false,
+      "evidence": "\"No custom `@TypeConverter` needed\" — method is absent from code"
+    },
+    {
+      "id": "dimensions-as-list",
+      "text": "Dimensions are represented as a [L, W, H] list in the table",
+      "passed": true,
+      "evidence": "Dims | [20, 15, 10] | ... | [70, 50, 10] | ... | [120, 5, 5]"
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX}",
+      "passed": true,
+      "evidence": "Carrier | {DHL, UPS, FEDEX} | 12.00 in first table"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods exist, each addressing a distinct concern",
+      "passed": true,
+      "evidence": "Four distinct methods: calculatesBaseRate, appliesDimensionalWeightOverride, appliesPackageOptionSurcharges, appliesOversizeSurcharge"
+    },
+    {
+      "id": "numeric-types-correct",
+      "text": "Weight and cost parameters use BigDecimal; Dimensions use Integer or int",
+      "passed": true,
+      "evidence": "weight: BigDecimal, expectedCost: BigDecimal, dims: List<Int>"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Each table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "All four tables: \"Scenario | Region...\" or \"Scenario | Actual Weight...\" etc."
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions, not outcomes or generic labels",
+      "passed": true,
+      "evidence": "\"EU standard light\", \"Volume exceeds actual weight\", \"Fragile\", \"One oversized side\""
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?'",
+      "passed": true,
+      "evidence": "Cost? appears as rightmost column in all tables"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain language, not code identifiers",
+      "passed": true,
+      "evidence": "Weight (kg), Dims, Carrier, Fragile, Insured Value — not weightKg, dims, etc."
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method bodies contain no if or switch statements",
+      "passed": false,
+      "evidence": "appliesPackageOptionSurcharges has: if (fragile) isFragile = true; insuredValue?.let {...}"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName, @Description, @TableTest",
+      "passed": true,
+      "evidence": "@DisplayName(...) @Description(...) @TableTest(...) for all four methods"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Each test method has a @DisplayName annotation with a clear, descriptive title",
+      "passed": true,
+      "evidence": "@DisplayName(\"Base shipping rate by zone, speed, weight, and carrier\")"
+    },
+    {
+      "id": "no-kotest-syntax",
+      "text": "Output contains no Kotest syntax (no shouldBe, forAll, row(), etc.)",
+      "passed": false,
+      "evidence": "import io.kotest.matchers.shouldBe and shouldBe expectedCost used throughout"
+    }
+  ],
+  "assertions_passed": 11,
+  "assertions_total": 15,
+  "pass_rate": 0.7333333333333333
+}
