@@ -1,0 +1,79 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest('''...''')' appears twice in the code     },     {       'id': 'null-as-blank-cell',       'text': 'Null input is represented as a blank cell (not the string 'null') in the table',       'passed': true,       'evidence': 'Null input row shows blank cells: 'Null input   |            |'"
+    },
+    {
+      "id": "exception-handled-cleanly",
+      "text": "The empty string / exception case is handled — either via a Throws? column, assertThrows inside the method, or a separate @TableTest",
+      "passed": true,
+      "evidence": "Separate @TableTest method 'rejectsInvalidInput' with Throws? column"
+    },
+    {
+      "id": "localdate-result-column",
+      "text": "There is a result column typed as LocalDate (or using a string representation that maps to LocalDate)",
+      "passed": true,
+      "evidence": "Result? column with ISO format dates (2024-01-15) and parameter 'LocalDate expected'"
+    },
+    {
+      "id": "type-conversion-addressed",
+      "text": "The response addresses type conversion for non-trivial column types",
+      "passed": true,
+      "evidence": "'No `@TypeConverter` needed'... JUnit's built-in converters handle ISO format and FQCN"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title",
+      "passed": true,
+      "evidence": "Methods named 'parsesDate' and 'rejectsInvalidInput' are descriptive"
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description is present, it provides context beyond what the table rows already express",
+      "passed": true,
+      "evidence": "@Description is absent; acceptable per assertion rule 'omit if table conveys all context'"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest",
+      "passed": true,
+      "evidence": "Only @TableTest annotation present, no ordering conflicts"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block",
+      "passed": true,
+      "evidence": "@Description is absent, passes per rule"
+    },
+    {
+      "id": "empty-string-uses-quotes",
+      "text": "Empty string input uses quoted syntax (e.g. '' or \"\") in the table",
+      "passed": true,
+      "evidence": "Empty string row shows: 'Empty string | ''    |'"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern",
+      "passed": true,
+      "evidence": "Two methods: parsesDate (valid cases) and rejectsInvalidInput (exceptions)"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules",
+      "passed": true,
+      "evidence": "First table: 4 format variants + null; second: 1 exception case"
+    },
+    {
+      "id": "separates-valid-and-invalid",
+      "text": "Valid parsing cases and error/exception cases are in separate @TableTest methods",
+      "passed": true,
+      "evidence": "parsesDate handles valid cases; rejectsInvalidInput separated for exceptions"
+    }
+  ],
+  "assertions_passed": 12,
+  "assertions_total": 12,
+  "pass_rate": 1
+}

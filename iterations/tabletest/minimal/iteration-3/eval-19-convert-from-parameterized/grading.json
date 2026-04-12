@@ -1,0 +1,55 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\" appears in the method annotation"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Scenario is the leftmost column with values like 'Standard address', 'No @ symbol', 'Missing local part'"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?'",
+      "passed": true,
+      "evidence": "Column header 'Valid?' appears in the table"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "Method body is single line: assertEquals(valid, validator.isValid(email));"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions not outcomes",
+      "passed": true,
+      "evidence": "Names like 'Missing local part', 'No @ symbol', 'Empty string' describe input conditions"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in correct order: @DisplayName, @Description, @TableTest",
+      "passed": true,
+      "evidence": "Only @TableTest present; no @DisplayName or @Description to violate order"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has descriptive title via @DisplayName or method name",
+      "passed": true,
+      "evidence": "Method name 'validatesEmail' is clear and descriptive"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "@Description uses text block if present and multi-line",
+      "passed": true,
+      "evidence": "@Description annotation is absent, so assertion passes per rule"
+    }
+  ],
+  "assertions_passed": 8,
+  "assertions_total": 8,
+  "pass_rate": 1
+}

@@ -1,0 +1,271 @@
+{
+  "skill_name": "tabletest (minimal)",
+  "iteration": 4,
+  "model": "sonnet",
+  "timestamp": "2026-04-12T17:23:42.223Z",
+  "evals": [
+    {
+      "id": "eval-1-convert-repetitive-tests",
+      "name": "convert repetitive tests",
+      "skill": "tabletest",
+      "results": {
+        "assertions_passed": 10,
+        "assertions_total": 10,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 44345,
+        "duration_ms": 14703,
+        "cost_usd": 0.0989799
+      }
+    },
+    {
+      "id": "eval-2-parse-dates",
+      "name": "parse dates",
+      "skill": "tabletest",
+      "results": {
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 73253,
+        "duration_ms": 34202,
+        "cost_usd": 0.1074825
+      }
+    },
+    {
+      "id": "eval-3-dependency-setup",
+      "name": "dependency setup",
+      "skill": "tabletest",
+      "results": {
+        "assertions_passed": 4,
+        "assertions_total": 4,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 44075,
+        "duration_ms": 9035,
+        "cost_usd": 0.07405215
+      }
+    },
+    {
+      "id": "eval-7-permission-check",
+      "name": "permission check",
+      "skill": "tabletest",
+      "results": {
+        "assertions_passed": 6,
+        "assertions_total": 11,
+        "pass_rate": 0.5454545454545454,
+        "failed_assertions": [
+          "uses-value-sets",
+          "fewer-than-nine-rows",
+          "no-duplicate-role-output",
+          "has-descriptive-title",
+          "scenario-names-describe-conditions"
+        ],
+        "total_tokens": 70959,
+        "duration_ms": 13760,
+        "cost_usd": 0.08637285
+      }
+    },
+    {
+      "id": "eval-8-money-parse",
+      "name": "money parse",
+      "skill": "tabletest",
+      "results": {
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 103102,
+        "duration_ms": 48262,
+        "cost_usd": 0.13127594999999997
+      }
+    },
+    {
+      "id": "eval-9-bonus-contractor-structure",
+      "name": "bonus contractor structure",
+      "skill": "tabletest",
+      "results": {
+        "assertions_passed": 10,
+        "assertions_total": 10,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 98298,
+        "duration_ms": 18505,
+        "cost_usd": 0.0978621
+      }
+    },
+    {
+      "id": "eval-14-weekly-pay",
+      "name": "weekly pay",
+      "skill": "tabletest",
+      "results": {}
+    },
+    {
+      "id": "eval-15-reis-discount",
+      "name": "reis discount",
+      "skill": "tabletest",
+      "results": {
+        "assertions_passed": 4,
+        "assertions_total": 18,
+        "pass_rate": 0.2222222222222222,
+        "failed_assertions": [
+          "2.1-decomposition-concern-separation",
+          "2.4-depth-rolling-window-boundary",
+          "2.9-correctness-value-set-tier-semantics",
+          "2.15-ticket-count-uses-value-sets",
+          "2.16-no-duplicate-tier-mapping",
+          "2.10-format-displayname",
+          "2.11-format-description",
+          "2.13-format-annotation-order",
+          "2.17-zone-irrelevance-visible",
+          "2.18-adult-senior-value-set",
+          "2.19-depth-all-tiers",
+          "2.20-readability-one-row-per-tier",
+          "2.21-readability-relative-time",
+          "minimal-rows-per-concern"
+        ],
+        "total_tokens": 45131,
+        "duration_ms": 78482,
+        "cost_usd": 0.14638740000000003
+      }
+    },
+    {
+      "id": "eval-18-convert-from-code",
+      "name": "convert from code",
+      "skill": "tabletest",
+      "results": {}
+    },
+    {
+      "id": "eval-19-convert-from-parameterized",
+      "name": "convert from parameterized",
+      "skill": "tabletest",
+      "results": {
+        "assertions_passed": 8,
+        "assertions_total": 8,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 71233,
+        "duration_ms": 11668,
+        "cost_usd": 0.10647795
+      }
+    },
+    {
+      "id": "eval-20-collections-and-quoting",
+      "name": "collections and quoting",
+      "skill": "tabletest",
+      "results": {}
+    },
+    {
+      "id": "eval-22-event-registration-tt",
+      "name": "event registration tt",
+      "skill": "tabletest",
+      "results": {}
+    },
+    {
+      "id": "eval-23-loan-approval-tt",
+      "name": "loan approval tt",
+      "skill": "tabletest",
+      "results": {}
+    },
+    {
+      "id": "eval-25-convert-from-spock",
+      "name": "convert from spock",
+      "skill": "tabletest",
+      "results": {
+        "assertions_passed": 9,
+        "assertions_total": 15,
+        "pass_rate": 0.6,
+        "failed_assertions": [
+          "options-as-map",
+          "options-type-converter",
+          "dimensions-as-list",
+          "numeric-types-correct",
+          "scenario-names-describe-conditions",
+          "no-if-switch-in-method"
+        ],
+        "total_tokens": 118507,
+        "duration_ms": 828778,
+        "cost_usd": 0.3975288
+      }
+    },
+    {
+      "id": "eval-26-convert-from-kotest",
+      "name": "convert from kotest",
+      "skill": "tabletest",
+      "results": {}
+    },
+    {
+      "id": "eval-27-convert-from-testng",
+      "name": "convert from testng",
+      "skill": "tabletest",
+      "results": {
+        "assertions_passed": 11,
+        "assertions_total": 15,
+        "pass_rate": 0.7333333333333333,
+        "failed_assertions": [
+          "options-as-map",
+          "options-type-converter",
+          "uses-value-sets",
+          "no-if-switch-in-method"
+        ],
+        "total_tokens": 171044,
+        "duration_ms": 625199,
+        "cost_usd": 0.277059
+      }
+    },
+    {
+      "id": "eval-28-convert-from-methodsource",
+      "name": "convert from methodsource",
+      "skill": "tabletest",
+      "results": {
+        "assertions_passed": 12,
+        "assertions_total": 15,
+        "pass_rate": 0.8,
+        "failed_assertions": [
+          "options-as-map",
+          "options-type-converter",
+          "no-if-switch-in-method"
+        ],
+        "total_tokens": 84912,
+        "duration_ms": 82781,
+        "cost_usd": 0.22322355
+      }
+    },
+    {
+      "id": "eval-29-shopping-cart-tt",
+      "name": "shopping cart tt",
+      "skill": "tabletest",
+      "results": {
+        "assertions_passed": 21,
+        "assertions_total": 21,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 313859,
+        "duration_ms": 621747,
+        "cost_usd": 0.9361341000000001
+      }
+    },
+    {
+      "id": "eval-30-order-splitting-tt",
+      "name": "order splitting tt",
+      "skill": "tabletest",
+      "results": {
+        "assertions_passed": 17,
+        "assertions_total": 17,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 292596,
+        "duration_ms": 585417,
+        "cost_usd": 0.84486975
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 138,
+    "assertions_total": 170,
+    "pass_rate": 0.8117647058823529,
+    "total_tokens": 1531314,
+    "total_duration_ms": 2972539,
+    "total_cost_usd": 3.5277060000000002
+  }
+}

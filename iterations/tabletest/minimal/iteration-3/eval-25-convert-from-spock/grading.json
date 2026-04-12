@@ -1,0 +1,97 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"...\") annotation present at method level"
+    },
+    {
+      "id": "options-as-map",
+      "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500]",
+      "passed": false,
+      "evidence": "Table has separate columns | fragile | insuredValue | handling | instead of single Options column"
+    },
+    {
+      "id": "options-type-converter",
+      "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions",
+      "passed": false,
+      "evidence": "No @TypeConverter present; code uses null checks (if (insuredValue != null)) instead"
+    },
+    {
+      "id": "dimensions-as-list",
+      "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns",
+      "passed": false,
+      "evidence": "Table has separate columns | length | width | height | not a single Dimensions list column"
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence",
+      "passed": true,
+      "evidence": "Last row shows {DHL, UPS, FEDEX} in carrier column for 'Same rate EU express'"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods exist, each addressing a distinct concern",
+      "passed": false,
+      "evidence": "Only one @TableTest method; one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence"
+    },
+    {
+      "id": "numeric-types-correct",
+      "text": "Weight and cost parameters use BigDecimal (not double or String). Dimensions use Integer or int.",
+      "passed": false,
+      "evidence": "Method signature shows 'double weight' and 'double cost', not BigDecimal"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Each table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Table header starts with 'Scenario |' as first column"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions not outcomes or generic labels",
+      "passed": true,
+      "evidence": "Scenarios like 'EU standard light', 'Fragile surcharge', 'Dimensional weight override' describe test conditions"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Cost?', 'Base rate?')",
+      "passed": true,
+      "evidence": "Column 'cost?' present with question mark suffix"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?')",
+      "passed": false,
+      "evidence": "insuredValue uses camelCase; fragile/insuredValue/handling are separate instead of 'Options' column; length/width/height separate instead of 'Dimensions'"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method bodies contain no if or switch statements",
+      "passed": false,
+      "evidence": "Method contains 'if (insuredValue != null)' and 'if (handling != null)' statements"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest",
+      "passed": true,
+      "evidence": "@TableTest is the only annotation, appearing in correct position"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title",
+      "passed": false,
+      "evidence": "No @DisplayName annotation; method name 'calculateShippingCost' is generic and does not describe the specific test scenarios"
+    },
+    {
+      "id": "no-groovy-syntax",
+      "text": "Output contains no Groovy or Spock syntax: no def, where:, expect:, given:, etc.",
+      "passed": true,
+      "evidence": "All code is valid Java syntax with no Groovy keywords or Spock-specific assertions"
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 15,
+  "pass_rate": 0.4666666666666667
+}

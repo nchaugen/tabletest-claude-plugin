@@ -1,0 +1,73 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"..."
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "Table uses value-set syntax (curly braces like {READ, WRITE} or {READ, WRITE, DELETE}) to express rules that hold across multiple actions",
+      "passed": false,
+      "evidence": "Table uses individual rows (ADMIN | READ | true, ADMIN | WRITE | true) instead of {READ, WRITE, DELETE}. Response states: 'Value sets could collapse ADMIN's rows into one...but explicit rows...'"
+    },
+    {
+      "id": "fewer-than-nine-rows",
+      "text": "Table has fewer than 9 data rows (does not enumerate every role/action combination individually)",
+      "passed": false,
+      "evidence": "9 data rows listed: Admin can read through Guest cannot delete—exactly 9 combinations for 3 roles × 3 actions, not fewer"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "Method body: assertEquals(allowed, permissions.canPerform(role, action));"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Leftmost column is Scenario with values 'Admin can read', 'Admin can write', etc."
+    },
+    {
+      "id": "no-duplicate-role-output",
+      "text": "No two rows share both the same Role value and the same boolean output",
+      "passed": false,
+      "evidence": "Rows 1–3 all have ADMIN | true; rows 4–5 have USER | true; rows 8–9 have GUEST | false. Multiple duplicates violate consolidation rule."
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a descriptive method name (not generic like 'test1' or 'canPerform')",
+      "passed": false,
+      "evidence": "Method name is canPerform, which the assertion explicitly lists as a bad example: 'Not a generic name like...canPerform'"
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description is present, it provides context beyond what the table rows already express",
+      "passed": true,
+      "evidence": "@Description annotation is absent; assertion passes when absent"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest",
+      "passed": true,
+      "evidence": "Only @TableTest is present; correct order maintained"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and text is longer than one line, it uses a text block (triple-quoted string), not string concatenation",
+      "passed": true,
+      "evidence": "@Description annotation is absent; assertion passes when absent"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('Admin performs any action', 'Guest reads') — not outcomes ('Allowed', 'Denied')",
+      "passed": false,
+      "evidence": "Scenarios embed outcome modalities: 'Admin can read', 'User cannot delete', 'Guest cannot write'—'can' and 'cannot' encode expected outcomes rather than pure conditions"
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 11,
+  "pass_rate": 0.5454545454545454
+}

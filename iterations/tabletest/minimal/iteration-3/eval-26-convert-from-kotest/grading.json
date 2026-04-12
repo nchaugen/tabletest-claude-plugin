@@ -1,0 +1,97 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\" appears twice in the code, delimiting table rows"
+    },
+    {
+      "id": "options-as-map",
+      "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:].",
+      "passed": false,
+      "evidence": "Second table has three separate columns: | Fragile | Insured value | Handling | not one map column"
+    },
+    {
+      "id": "options-type-converter",
+      "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.",
+      "passed": false,
+      "evidence": "No @TypeConverter method in code; response notes 'no @TypeConverter needed'"
+    },
+    {
+      "id": "dimensions-as-list",
+      "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns",
+      "passed": true,
+      "evidence": "Dims column shows: [20, 15, 10], [30, 20, 15], [70, 50, 10], etc."
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence, rather than duplicating rows per carrier",
+      "passed": true,
+      "evidence": "First table row 6: 'EU express medium | ... | {DHL, UPS, FEDEX} | 12.00'"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence",
+      "passed": true,
+      "evidence": "Two methods: 'base shipping cost by zone and weight' and 'surcharges on EU standard package'"
+    },
+    {
+      "id": "numeric-types-correct",
+      "text": "Weight and cost parameters use BigDecimal (not double or String). Dimensions use Integer or int.",
+      "passed": true,
+      "evidence": "weight: BigDecimal, dims: List<Int>, expectedCost: BigDecimal in signatures"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Each table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Both tables start with | Scenario | column listing test conditions"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1').",
+      "passed": true,
+      "evidence": "Examples: 'EU standard light', 'Fragile surcharge', 'Hazmat handling' describe conditions"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Cost?', 'Base rate?')",
+      "passed": true,
+      "evidence": "'Expected cost?' column in both tables"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')",
+      "passed": false,
+      "evidence": "'Dims' used instead of 'Dimensions' (code abbreviation, not domain language)"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method bodies contain no if or switch statements",
+      "passed": true,
+      "evidence": "Method bodies use only assignments and safe-call operators (?.let), no if/switch"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Second method: @Description then @TableTest; first method: @TableTest only (correct order)"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "Methods: `base shipping cost by zone and weight`, `surcharges on EU standard package`"
+    },
+    {
+      "id": "no-kotest-syntax",
+      "text": "Output contains no Kotest syntax: no forAll, row(), withData, shouldBe, context(), FunSpec, or Kotest imports.",
+      "passed": false,
+      "evidence": "shouldBe expectedCost appears in both test methods (Kotest matcher syntax)"
+    }
+  ],
+  "assertions_passed": 11,
+  "assertions_total": 15,
+  "pass_rate": 0.7333333333333333
+}

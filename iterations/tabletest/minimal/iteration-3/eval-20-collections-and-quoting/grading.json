@@ -1,0 +1,85 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\" appears in all four test methods"
+    },
+    {
+      "id": "list-syntax-correct",
+      "text": "List values in the table use bracket syntax like [tech:java, biz:sales, dev:ci] — not comma-separated strings without brackets.",
+      "passed": true,
+      "evidence": "[\"tech:java\", \"biz:sales\", \"dev:ci\"] and [] syntax used consistently"
+    },
+    {
+      "id": "empty-list-explicit",
+      "text": "Empty list input uses [] (not a blank cell, which represents null). The distinction between empty list and null is preserved.",
+      "passed": true,
+      "evidence": "Row \"empty input\" shows [] for empty list; \"null category, no filter\" shows blank cell"
+    },
+    {
+      "id": "special-chars-quoted",
+      "text": "Values containing pipes (|), brackets, or colons (:) are properly quoted (e.g. \"tech:java\") so they don't conflict with table syntax. Colons without quoting would be mis-interpreted as map key:value entries.",
+      "passed": true,
+      "evidence": "\"tech:java\", \"biz:hr|recruiting\", \"tech:[java]\" all properly quoted"
+    },
+    {
+      "id": "set-syntax-correct",
+      "text": "Set<String> values in the table use curly brace syntax like {tech, dev} — not bracket syntax [tech, dev] which is for lists. The distinction between Set and List types is preserved in the table notation.",
+      "passed": true,
+      "evidence": "{tech, dev}, {biz}, {tech} use curly braces; Lists use []"
+    },
+    {
+      "id": "newline-in-cell",
+      "text": "Cell values containing newlines use \\n escaping — not literal line breaks that would break the table row structure.",
+      "passed": true,
+      "evidence": "\"tech:java\\nEnterprise Edition\" uses \\n escaping in table"
+    },
+    {
+      "id": "pipe-quoted",
+      "text": "Values containing pipe characters (|) are quoted so they don't conflict with the markdown table column separator. For example, a tag like 'biz:hr|recruiting' must be quoted.",
+      "passed": true,
+      "evidence": "\"biz:hr|recruiting\" is quoted to escape pipe character"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "All four tables have \"Scenario\" as the leftmost column"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Filtered tags?' or 'Result?')",
+      "passed": true,
+      "evidence": "\"Filtered?\" column present in all four tables"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "All methods contain only assertEquals and replace calls, no if/switch"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "preservesSpecialCharacters has @Description before @TableTest, correct order"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "Method names: filtersByCategory, filtersByRequiredCategories, combinesFilters are descriptive"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses triple-quoted text block, not string concatenation"
+    }
+  ],
+  "assertions_passed": 13,
+  "assertions_total": 13,
+  "pass_rate": 1
+}

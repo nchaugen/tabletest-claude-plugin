@@ -1,0 +1,67 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"...\"\"\")"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?'",
+      "passed": true,
+      "evidence": "Discount? column header"
+    },
+    {
+      "id": "has-three-data-rows",
+      "text": "Table has exactly 3 data rows (GOLD, SILVER, BRONZE)",
+      "passed": true,
+      "evidence": "Gold customer | GOLD | 20; Silver customer | SILVER | 10; Bronze customer | BRONZE | 0"
+    },
+    {
+      "id": "single-assertion-in-method",
+      "text": "Test method body contains only one assertEquals",
+      "passed": true,
+      "evidence": "assertEquals(discount, discountService.calculate(tier, 100))"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "Method body contains only assertEquals call, no control flow"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario column as leftmost column",
+      "passed": true,
+      "evidence": "Scenario is the leftmost column header"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Method name reads as descriptive title when converted",
+      "passed": true,
+      "evidence": "calculatesDiscountByTier converts to 'Calculates Discount By Tier'"
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description present, adds context beyond table rows",
+      "passed": true,
+      "evidence": "\"Purchase amount is 100 for all scenarios\" documents fixed value not in table"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations in order: @DisplayName, @Description, @TableTest",
+      "passed": true,
+      "evidence": "@Description appears before @TableTest (no @DisplayName present)"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description longer than one line, uses text block",
+      "passed": true,
+      "evidence": "@Description text is single short line, no block needed"
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 10,
+  "pass_rate": 1
+}

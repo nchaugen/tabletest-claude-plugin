@@ -299,7 +299,7 @@ A converter method will be used when it:
 4. Returns an object of the target parameter type
 5. **Is the only `@TypeConverter` method matching the above criteria in the class**
 
-There is no specific naming pattern required, but `parse<TypeName>` (e.g., `parseLocalDate`, `parseMoney`) is conventional.
+There is no specific naming pattern required, but `parse<TypeName>` (e.g., `parseLocalDate`, `parseDuration`) is conventional.
 
 ### One Converter Per Target Type
 
@@ -396,6 +396,51 @@ Splitting forces the reader to cross-reference multiple tables to understand one
 
 Separate tests are appropriate when testing a **different concern** of the same operation (e.g., path normalization vs. priority resolution) or a different method entirely. Even when testing a single API method, decompose concerns into separate `@TableTest` methods using default values for irrelevant inputs. Separate tables reduce rows by avoiding unnecessary permutations — and the table count guides implementation: five concern tables suggest five functions.
 
+### Separate Rules from Arithmetic
+
+Tables should specify the interesting decisions — classifications, eligibility rules, tier lookups, state transitions — not test that multiplication works.
+
+**Good decomposition** — separate the rule from the calculation:
+
+Table 1 — the rule (which bracket?):
+```
+Scenario          | Taxable Income | Filing Status | Bracket?   | Rate?
+Bottom bracket    | 15000          | Single        | 10%        | 0.10
+Middle bracket    | 55000          | Single        | 22%        | 0.22
+Joint middle      | 55000          | Joint         | 12%        | 0.12
+```
+
+Table 2 — the arithmetic (what does the taxpayer owe?):
+```
+Scenario       | Income | Rate | Deduction | Tax Owed?
+No deduction   | 50000  | 0.22 |           | 11000.00
+With deduction | 50000  | 0.22 | 5000      | 9900.00
+```
+
+### Frame Stateful Features as Rules
+
+When a feature involves state (queues, workflows, inventories), frame each row as a state transition rule:
+
+```
+Scenario              | Board Before             | Action              | Board After?                  | Message?
+Assign first task     | [TODO: Deploy v2]        | assign Deploy v2    | [IN_PROGRESS: Deploy v2]      | Assigned
+Complete task         | [IN_PROGRESS: Deploy v2] | complete Deploy v2  | [DONE: Deploy v2]             | Completed
+Complete unknown task | [TODO: Deploy v2]        | complete Hotfix     | [TODO: Deploy v2]             | Not found
+```
+
+Each row is independent: given this state, when this action happens, expect this result. **Include before and after columns** — even when the prompt describes the operation procedurally.
+
+### Decompose When You See These Signs
+
+**If you cannot name a behaviour without using "and", it is two concerns** — split them. Each concern becomes its own `@TableTest` method.
+
+Other signs that concerns are mixed:
+- Some rows need columns that other rows leave blank throughout
+- Scenario names require qualifiers like "...for eligibility" vs "...for pricing"
+- The table has two groups of output columns that never both apply in the same row
+
+**Missing concern:** An input to one rule is itself derived from raw data. The derivation has its own edge cases and needs boundary testing in a separate table. The rule table then takes the derived value as a direct input column, not the raw data. Two tables, not one.
+
 ### Match Table Structure to the Logic Being Tested
 
 The type of logic under test determines what each row should represent:
@@ -412,7 +457,7 @@ End expectation columns with `?` **suffix** to signal which columns are outputs 
 
 Examples: `Valid?`, `Formatted?`, `Result?`, `Throws?`, `Expected?`
 
-**Prefer the rule's direct output.** Use `Discount?` over `Price?` — the discount is what the rule decides; verifying the price requires knowing the base price. If you use a derived value like price, include the base as a column so readers can trace it. Input columns never have `?` suffixes — including yes/no flag columns that describe scenario state.
+**Prefer the rule's direct output.** Use `Fee?` over `Total?` — the fee is what the rule decides; verifying the total requires knowing the base amount. If you use a derived value like total, include the base as a column so readers can trace it. Input columns never have `?` suffixes — including yes/no flag columns that describe scenario state.
 
 **Common mistake** — `?` as prefix instead of suffix:
 ```
@@ -678,163 +723,9 @@ void resolves_values(String input, String resolved) {
 
 ## Workflow
 
-Pre-formed table designs tend to miss value sets, traceability columns, and concern separation. Even if you've already explored the codebase or sketched a structure, run through the Design Phase below — it often surfaces design improvements that aren't obvious until you work through the steps.
+**Budget your reasoning.** If concerns are already listed in the prompt, use them directly — don't re-derive what's already stated. If you find yourself re-analyzing the same concern, stop and write code. Working code you can revise beats perfect analysis that times out.
 
-### Design Phase (Before Writing Code)
-
-Resist the urge to start coding immediately. The approach depends on what you are starting from:
-
-**From existing code or tests** (there is code to trace or tests to convert):
-1. **Trace the logic**: Map decision trees, loops, or state transitions. Identify what actually varies between scenarios — this directly determines your columns.
-2. **Sketch the table**: What inputs vary? What outputs do you observe? How many scenarios do you need?
-3. **Show a mockup** with 2-3 rows before implementing — agree on column structure, naming, and coverage first:
-   ```
-   | Scenario        | orgId | featureId | version | Feature Toggles | Query Count? | Result?
-   | Specific match  | O     | F         | V       | [O:F:V: true]   | 1            | true
-   | Wild version    | O     | F         | V       | [O:F:*: true]   | 2            | true
-   ```
-
-**From natural-language requirements** (the prompt describes a feature, not existing code):
-Follow the Requirements to Tables workflow below.
-
-### Requirements to Tables
-
-Use this workflow when writing tests from natural-language requirements, vague feature descriptions, or when it is not clear how to decompose the behaviour into tables.
-
-**Your deliverable is a Java test class with `@TableTest` methods.** Do not output markdown tables. Do not stop for user feedback between steps. Work through every step below, then write the Java class directly as your final output.
-
-Each step is an analysis step that shapes the table structure. You do not output anything until step 9, where you write the complete Java `@TableTest` class.
-
-#### Step 1. Name Each Concern
-
-Identify the distinct behaviours in the requirement. Name each one as a verb phrase:
-- "Assess water quality"
-- "Determine parking zone"
-- "Check voter eligibility"
-
-**If you cannot name a behaviour without using "and", it is two concerns** — split them. Each concern becomes a candidate for its own `@TableTest` method.
-
-Signs that concerns are mixed:
-- Some rows need columns that other rows leave blank throughout
-- Scenario names require qualifiers like "...for eligibility" vs "...for pricing"
-- The table has two groups of output columns that never both apply in the same row
-
-**Signs of a missing concern:** An input to one rule is itself derived from raw data. The derivation has its own edge cases and needs boundary testing in a separate table. The rule table then takes the derived value as a direct input column, not the raw data. Two tables, not one.
-
-#### Step 2. Find the First Example
-
-For each concern, start with the simplest, most obvious case:
-- What does a typical successful case look like?
-- What are the concrete values — not abstractions, but real numbers, names, dates?
-
-Write this as the first data row. Column naming can be rough at this stage.
-
-#### Step 3. Probe for Variations
-
-Work through these systematically:
-
-**Different outcomes** — what makes the decision go the other way?
-- "What makes the answer change from yes to no?"
-
-**Boundary conditions** — where exactly do rules trigger?
-- Include rows at the threshold, just above, and just below
-- When a boundary is ambiguous (inclusive vs exclusive?), add rows on both sides AND mark the expected output as an open question
-
-**Special cases** — situations that may surprise:
-- "What is a common misunderstanding about this behaviour?"
-
-**Absent inputs** — what happens when information is not provided?
-- "Is there a sensible default, or does absence cause rejection?"
-
-#### Step 4. Probe for Irrelevant Inputs
-
-When one input clearly does not affect the outcome, use a value set to express "regardless of":
-
-```
-Scenario                        | Customer Age | Car Category       | Eligible?
-Underage regardless of category | 17           | {Economy, Premium} | no
-```
-
-Check every input dimension mentioned in the requirements. If the requirement says "regardless of X", X must appear as a column with a value set — omitting it silently hides the assertion that X is irrelevant.
-
-**Value sets for identical entity types:** When two categories follow identical rules (e.g. `{Manager, Director}` both have the same expense approval limit), express them as a value set in one row rather than separate rows.
-
-#### Step 5. Separate Rules from Arithmetic
-
-Tables should specify the interesting decisions — classifications, eligibility rules, tier lookups, state transitions — not test that multiplication works.
-
-**Good decomposition** — separate the rule from the calculation:
-
-Table 1 — the rule (which tier?):
-```
-Scenario       | Weight | Zone     | Category?  | Surcharge?
-Light domestic | 0.5    | Domestic | Standard   | none
-Heavy domestic | 12     | Domestic | Oversize   | 5.00
-```
-
-Table 2 — the arithmetic (what does it cost?):
-```
-Scenario       | Base rate | Surcharge | Total?
-No surcharge   | 10.00     |           | 10.00
-With surcharge | 10.00     | 5.00      | 15.00
-```
-
-#### Step 6. Frame Stateful Features as Rules
-
-When a feature involves state (playlists, queues, workflows), frame each row as a state transition rule:
-
-```
-Scenario              | Playlist before  | Action         | Playlist after?  | Message?
-Add to empty playlist | []               | add Revolver   | [Revolver x1]    | Added
-Remove last item      | [Revolver x1]    | remove Revolver| []               | Removed
-Remove unknown item   | [Revolver x1]    | remove Abbey   | [Revolver x1]    | Not found
-```
-
-Each row is independent: given this state, when this action happens, expect this result. **Include before and after columns** — even when the prompt describes the operation procedurally.
-
-#### Step 7. Make Thresholds Visible
-
-When a rule depends on a threshold or limit, include it as a column — even when the value is constant across every row:
-
-```
-Scenario            | Customer Age | Max Age (Policy) | Eligible?
-Standard customer   | 30           | 75               | yes
-At the limit        | 75           | 75               | yes
-Just over the limit | 76           | 75               | no
-```
-
-A constant column often signals configuration. Ask: "Under what circumstances would this value differ?"
-
-#### Step 8. Note What Is Still Open
-
-Not everything needs to be resolved before coding. Note open questions internally — they will go in `@Description` annotations in the Java code (step 9), not in a separate markdown section.
-
-**Do not silently resolve ambiguities.** When two interpretations of a rule are plausible, note both as an open question rather than picking one.
-
-#### Step 9. Write the `@TableTest` Code
-
-This is the only step that produces output. Everything above was analysis. Write the complete Java test class now — each concern becomes a `@TableTest` method. Follow the Table Design section above for syntax and the Quality Checks below for verification.
-
-For each `@TableTest` method:
-- Add `@DisplayName` with a clear title derived from the concern name (step 1)
-- Add `@Description` with context the table alone cannot convey — fixed values, formulas, domain context, or open questions from step 8
-- Use `@TypeConverter` methods for any human-readable values that need conversion
-- Follow annotation order: `@DisplayName` → `@Description` → `@TableTest`
-
-**Do not present markdown tables for review.** Go directly to the Java code. Open questions from step 8 belong in `@Description` annotations inside the code.
-
-##### Final checklist
-
-- [ ] Each concern has its own `@TableTest` method with a clear name
-- [ ] Boundary values are tested at the threshold (not just mid-range values)
-- [ ] Value sets group same-outcome values where applicable
-- [ ] Rules and arithmetic are in separate `@TableTest` methods
-- [ ] Stateful features use before/action/after columns
-- [ ] Policy thresholds are visible as columns
-- [ ] Open questions are in `@Description`, not silently resolved
-- [ ] Each row is independently executable — no row depends on a prior row
-- [ ] `@DisplayName`, `@Description`, `@TableTest` annotations in correct order
-- [ ] `@TypeConverter` methods handle any non-standard type conversions
+**Write incrementally.** For multi-concern features, write one `@TableTest` method at a time using the Write tool. Don't attempt to generate the entire test class in a single response — each method written is a checkpoint that can't be lost to a timeout.
 
 ### Converting Existing Tests
 

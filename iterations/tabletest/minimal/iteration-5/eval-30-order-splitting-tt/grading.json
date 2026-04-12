@@ -1,0 +1,109 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest('''...''')' appears on all five test methods     },     {       'id': 'concerns-decomposed',       'text': 'Multiple @TableTest methods are used, each addressing a distinct concern',       'passed': true,       'evidence': 'Five methods: shouldSeparateByFulfillmentType, shouldSeparateByDeliveryAddress, shouldShipInStockItemsImmediately, shouldMinimiseShipmentCountAcrossWarehouses, shouldKeepCompanionProductsTogether"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each @TableTest has only the rows needed to express its concern's rules",
+      "passed": true,
+      "evidence": "Fulfillment:4 rows, Address:4 rows, Availability:5 rows, Warehouse:4 rows, Companion:4 rows"
+    },
+    {
+      "id": "concern-fulfillment-method",
+      "text": "Fulfillment method splitting is represented as its own @TableTest",
+      "passed": true,
+      "evidence": "shouldSeparateByFulfillmentType tests [DELIVERY, PICKUP] separation"
+    },
+    {
+      "id": "concern-delivery-address",
+      "text": "Delivery address splitting is represented as its own @TableTest",
+      "passed": true,
+      "evidence": "shouldSeparateByDeliveryAddress tests addr1, addr2, addr3 combinations"
+    },
+    {
+      "id": "concern-availability",
+      "text": "Availability splitting is represented as its own @TableTest",
+      "passed": true,
+      "evidence": "shouldShipInStockItemsImmediately tests IN_STOCK, BACKORDERED, PRE_ORDER"
+    },
+    {
+      "id": "concern-warehouse-allocation",
+      "text": "Warehouse allocation is represented as its own @TableTest",
+      "passed": true,
+      "evidence": "shouldMinimiseShipmentCountAcrossWarehouses tests W1, W2 combinations"
+    },
+    {
+      "id": "concern-companion-products",
+      "text": "Companion product grouping is represented as its own @TableTest",
+      "passed": true,
+      "evidence": "shouldKeepCompanionProductsTogether encodes companions via 5th field /cam"
+    },
+    {
+      "id": "all-outputs-same-table",
+      "text": "Each @TableTest includes all output columns for its concern",
+      "passed": true,
+      "evidence": "Warehouse test has [Shipment count?, Warehouses used?] in one table"
+    },
+    {
+      "id": "scalar-quantity-for-warehouse",
+      "text": "Warehouse allocation uses scalar quantity, not item lists",
+      "passed": true,
+      "evidence": "Inventory format 'W1/p1/5/IN_STOCK' and Order 'p1/1' are scalars"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has scenario column as leftmost column",
+      "passed": true,
+      "evidence": "All tables begin with '| Scenario |'"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Shipment count?, Fulfillment types?, Immediate products?, Delayed products?, Warehouses used?, Together?"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe business situations",
+      "passed": true,
+      "evidence": "'One warehouse covers all', 'Full warehouse preferred over partial', 'In-stock not held for backordered'"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use business/domain language",
+      "passed": true,
+      "evidence": "Shipment count?, Warehouses used?, Fulfillment types?, Together? — domain terms"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "Methods use assertEquals() and for-each loops, but no if/switch"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations in order: @DisplayName, @Description, @TableTest",
+      "passed": true,
+      "evidence": "All five methods follow @DisplayName, @Description, @TableTest order"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has @DisplayName or clear method name",
+      "passed": true,
+      "evidence": "@DisplayName('Fulfillment type partitioning') + shouldSeparateByFulfillmentType"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "Multi-line @Description uses text block, not concatenation",
+      "passed": true,
+      "evidence": "Companion products uses @Description(\\\\'\\\\'\\\\'...\\\\'\\\\'\\\\')"
+    }
+  ],
+  "assertions_passed": 17,
+  "assertions_total": 17,
+  "pass_rate": 1
+}
