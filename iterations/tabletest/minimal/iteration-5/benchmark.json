@@ -1,8 +1,8 @@
 {
   "skill_name": "tabletest (minimal)",
-  "iteration": 4,
+  "iteration": 5,
   "model": "sonnet",
-  "timestamp": "2026-04-12T17:23:42.223Z",
+  "timestamp": "2026-04-12T21:06:51.593Z",
   "evals": [
     {
       "id": "eval-1-convert-repetitive-tests",
@@ -51,15 +51,14 @@
       "name": "permission check",
       "skill": "tabletest",
       "results": {
-        "assertions_passed": 6,
+        "assertions_passed": 7,
         "assertions_total": 11,
-        "pass_rate": 0.5454545454545454,
+        "pass_rate": 0.6363636363636364,
         "failed_assertions": [
           "uses-value-sets",
           "fewer-than-nine-rows",
           "no-duplicate-role-output",
-          "has-descriptive-title",
-          "scenario-names-describe-conditions"
+          "has-descriptive-title"
         ],
         "total_tokens": 70959,
         "duration_ms": 13760,
@@ -85,8 +84,8 @@
       "name": "bonus contractor structure",
       "skill": "tabletest",
       "results": {
-        "assertions_passed": 10,
-        "assertions_total": 10,
+        "assertions_passed": 11,
+        "assertions_total": 11,
         "pass_rate": 1,
         "failed_assertions": [],
         "total_tokens": 98298,
@@ -105,9 +104,9 @@
       "name": "reis discount",
       "skill": "tabletest",
       "results": {
-        "assertions_passed": 4,
+        "assertions_passed": 5,
         "assertions_total": 18,
-        "pass_rate": 0.2222222222222222,
+        "pass_rate": 0.2777777777777778,
         "failed_assertions": [
           "2.1-decomposition-concern-separation",
           "2.4-depth-rolling-window-boundary",
@@ -117,7 +116,6 @@
           "2.10-format-displayname",
           "2.11-format-description",
           "2.13-format-annotation-order",
-          "2.17-zone-irrelevance-visible",
           "2.18-adult-senior-value-set",
           "2.19-depth-all-tiers",
           "2.20-readability-one-row-per-tier",
@@ -133,7 +131,21 @@
       "id": "eval-18-convert-from-code",
       "name": "convert from code",
       "skill": "tabletest",
-      "results": {}
+      "results": {
+        "assertions_passed": 13,
+        "assertions_total": 18,
+        "pass_rate": 0.7222222222222222,
+        "failed_assertions": [
+          "business-language-columns",
+          "annotation-order",
+          "separates-decision-and-premium",
+          "description-no-internals",
+          "depth-decision-boundaries"
+        ],
+        "total_tokens": 132531,
+        "duration_ms": 164099,
+        "cost_usd": 0.32121659999999996
+      }
     },
     {
       "id": "eval-19-convert-from-parameterized",
@@ -153,13 +165,35 @@
       "id": "eval-20-collections-and-quoting",
       "name": "collections and quoting",
       "skill": "tabletest",
-      "results": {}
+      "results": {
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 67181,
+        "duration_ms": 364887,
+        "cost_usd": 0.4182918
+      }
     },
     {
       "id": "eval-22-event-registration-tt",
       "name": "event registration tt",
       "skill": "tabletest",
-      "results": {}
+      "results": {
+        "assertions_passed": 18,
+        "assertions_total": 23,
+        "pass_rate": 0.782608695652174,
+        "failed_assertions": [
+          "validation-includes-optional-fields",
+          "description-no-irrelevant-information",
+          "discount-column-preferred",
+          "optional-fields-has-expected-column",
+          "description-no-redundant-field-values"
+        ],
+        "total_tokens": 225990,
+        "duration_ms": 296552,
+        "cost_usd": 0.37089120000000003
+      }
     },
     {
       "id": "eval-23-loan-approval-tt",
@@ -180,7 +214,7 @@
           "options-type-converter",
           "dimensions-as-list",
           "numeric-types-correct",
-          "scenario-names-describe-conditions",
+          "business-language-columns",
           "no-if-switch-in-method"
         ],
         "total_tokens": 118507,
@@ -199,14 +233,15 @@
       "name": "convert from testng",
       "skill": "tabletest",
       "results": {
-        "assertions_passed": 11,
+        "assertions_passed": 10,
         "assertions_total": 15,
-        "pass_rate": 0.7333333333333333,
+        "pass_rate": 0.6666666666666666,
         "failed_assertions": [
           "options-as-map",
           "options-type-converter",
           "uses-value-sets",
-          "no-if-switch-in-method"
+          "no-if-switch-in-method",
+          "annotation-order"
         ],
         "total_tokens": 171044,
         "duration_ms": 625199,
@@ -218,13 +253,14 @@
       "name": "convert from methodsource",
       "skill": "tabletest",
       "results": {
-        "assertions_passed": 12,
+        "assertions_passed": 11,
         "assertions_total": 15,
-        "pass_rate": 0.8,
+        "pass_rate": 0.7333333333333333,
         "failed_assertions": [
           "options-as-map",
           "options-type-converter",
-          "no-if-switch-in-method"
+          "no-if-switch-in-method",
+          "annotation-order"
         ],
         "total_tokens": 84912,
         "duration_ms": 82781,
@@ -251,9 +287,11 @@
       "skill": "tabletest",
       "results": {
         "assertions_passed": 17,
-        "assertions_total": 17,
-        "pass_rate": 1,
-        "failed_assertions": [],
+        "assertions_total": 18,
+        "pass_rate": 0.9444444444444444,
+        "failed_assertions": [
+          "concerns-decomposed"
+        ],
         "total_tokens": 292596,
         "duration_ms": 585417,
         "cost_usd": 0.84486975
@@ -261,11 +299,11 @@
     }
   ],
   "summary": {
-    "assertions_passed": 138,
-    "assertions_total": 170,
-    "pass_rate": 0.8117647058823529,
-    "total_tokens": 1531314,
-    "total_duration_ms": 2972539,
-    "total_cost_usd": 3.5277060000000002
+    "assertions_passed": 183,
+    "assertions_total": 226,
+    "pass_rate": 0.8097345132743363,
+    "total_tokens": 1957016,
+    "total_duration_ms": 3798077,
+    "total_cost_usd": 4.6381056
   }
 }

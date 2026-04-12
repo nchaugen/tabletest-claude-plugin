@@ -4,91 +4,91 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "@TableTest(\"\"\"...\"\"\")\n    void calculateShippingCost(...)"
+      "evidence": "@TableTest(\"\"\"\\n        Scenario                    | Region | Service..."
     },
     {
       "id": "options-as-map",
-      "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns",
+      "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:].",
       "passed": false,
-      "evidence": "Table has three separate columns: | Fragile | Insured Value | Handling |, not a single Options map column"
+      "evidence": "Options kept as three separate columns: '| Fragile | Insured Value | Handling |' with mostly blank cells, not collapsed into single map column"
     },
     {
       "id": "options-type-converter",
-      "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions",
+      "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.",
       "passed": false,
-      "evidence": "No @TypeConverter method present; options constructed manually in test body with if statements"
+      "evidence": "No @TypeConverter method present. Options are constructed manually in method body: 'if (Boolean.TRUE.equals(fragile)) opts.setFragile(true);'"
     },
     {
       "id": "dimensions-as-list",
-      "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate columns",
+      "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns",
       "passed": true,
-      "evidence": "| Dimensions   | ... | [20, 15, 10] | ... | [30, 20, 15] |"
+      "evidence": "Dimensions column uses list format: '| [20, 15, 10] |' and parameter 'List<Integer> dimensions'"
     },
     {
       "id": "uses-value-sets",
-      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence",
+      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence, rather than duplicating rows per carrier",
       "passed": true,
-      "evidence": "Same rate all carriers | ... | {DHL, UPS, FEDEX} | 12.00"
+      "evidence": "One row uses value set: 'Same rate all carriers | EU | express | 3.0 | [30, 20, 15] |         |               |          | {DHL, UPS, FEDEX} | 12.00'"
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table",
+      "text": "Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence",
       "passed": false,
-      "evidence": "Only one @TableTest method; all 15 rows (base rates, surcharges, dimensional weight, carrier equivalence) in single table"
+      "evidence": "Only one @TableTest method present. Single table mixes base rates (rows 1–8), dimensional weight (row 9), surcharges (rows 10–13), and carrier equivalence (row 14)"
     },
     {
       "id": "numeric-types-correct",
       "text": "Weight and cost parameters use BigDecimal (not double or String). Dimensions use Integer or int.",
       "passed": true,
-      "evidence": "void calculateShippingCost(..., BigDecimal weight, List<Integer> dimensions, ..., BigDecimal expected)"
+      "evidence": "Parameters: 'BigDecimal weight, List<Integer> dimensions, ... BigDecimal expected' and method signature uses these types"
     },
     {
       "id": "scenario-column-present",
       "text": "Each table has a scenario/description column as the leftmost column",
       "passed": true,
-      "evidence": "Scenario | Region | Service | ... (Scenario is leftmost column)"
+      "evidence": "First column is 'Scenario' with values like 'EU standard light', 'EU express medium', etc."
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions — not outcomes or generic labels",
+      "text": "Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1').",
       "passed": true,
-      "evidence": "EU standard light, Fragile surcharge, Dimensional weight override, Hazmat handling, Oversize surcharge"
+      "evidence": "Scenario names describe conditions: 'EU standard light', 'Fragile surcharge', 'Dimensional weight override', 'Oversize surcharge'"
     },
     {
       "id": "has-question-mark-column",
       "text": "At least one output column name ends with '?' (e.g. 'Cost?', 'Base rate?')",
       "passed": true,
-      "evidence": "| Cost? (rightmost column header)"
+      "evidence": "Column header: '| Cost?' as the rightmost column"
     },
     {
       "id": "business-language-columns",
-      "text": "Column names use domain language — not code identifiers",
+      "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')",
       "passed": true,
-      "evidence": "Region, Service, Weight, Dimensions, Fragile, Insured Value, Handling, Carrier, Cost? (plain English, not camelCase)"
+      "evidence": "Column headers use business language: 'Scenario', 'Region', 'Service', 'Weight', 'Dimensions', 'Fragile', 'Insured Value', 'Handling', 'Carrier', 'Cost?'"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method bodies contain no if or switch statements",
       "passed": false,
-      "evidence": "if (Boolean.TRUE.equals(fragile)) opts.setFragile(true);\n        if (insuredValue != null)...\n        if (handling != null)..."
+      "evidence": "Method body contains if statements: 'if (Boolean.TRUE.equals(fragile))...', 'if (insuredValue != null)...', 'if (handling != null)...'"
     },
     {
       "id": "annotation-order",
-      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
       "passed": true,
-      "evidence": "@TableTest annotation present with no prior @DisplayName or @Description"
+      "evidence": "Only @TableTest annotation present on method, no @DisplayName or @Description to order"
     },
     {
       "id": "has-descriptive-title",
-      "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear descriptive title",
+      "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
       "passed": false,
-      "evidence": "Method named calculateShippingCost with no @DisplayName; name doesn't describe test scenarios being executed"
+      "evidence": "Method name 'calculateShippingCost' is generic. No @DisplayName annotation present to provide descriptive title"
     },
     {
       "id": "no-testng-artifacts",
-      "text": "Output contains no TestNG syntax: no @DataProvider, @Test(dataProvider=...), Object[][], or TestNG imports",
+      "text": "Output contains no TestNG syntax: no @DataProvider, @Test(dataProvider=...), Object[][], or TestNG imports (org.testng.*).",
       "passed": true,
-      "evidence": "Imports use org.junit.jupiter.api and org.tabletest.junit; no org.testng.* imports present"
+      "evidence": "Only imports from 'org.junit.jupiter' and 'org.tabletest.junit'; no TestNG imports or @DataProvider present"
     }
   ],
   "assertions_passed": 10,

@@ -6,63 +6,78 @@
   "assertions": [
     {
       "id": "has-tabletest-annotation",
-      "text": "Output contains a @TableTest annotation"
+      "text": "Output contains a @TableTest annotation",
+      "type": "deterministic"
     },
     {
       "id": "options-as-map",
-      "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:]."
+      "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:].",
+      "type": "llm"
     },
     {
       "id": "options-type-converter",
-      "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys."
+      "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.",
+      "type": "llm"
     },
     {
       "id": "dimensions-as-list",
-      "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns"
+      "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns",
+      "type": "llm"
     },
     {
       "id": "uses-value-sets",
-      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence, rather than duplicating rows per carrier"
+      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence, rather than duplicating rows per carrier",
+      "type": "deterministic"
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence"
+      "text": "Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence",
+      "type": "llm"
     },
     {
       "id": "numeric-types-correct",
-      "text": "Weight and cost parameters use BigDecimal (not double or String). Dimensions use Integer or int."
+      "text": "Weight and cost parameters use BigDecimal (not double or String). Dimensions use Integer or int.",
+      "type": "llm"
     },
     {
       "id": "scenario-column-present",
-      "text": "Each table has a scenario/description column as the leftmost column"
+      "text": "Each table has a scenario/description column as the leftmost column",
+      "type": "deterministic"
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1')."
+      "text": "Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1').",
+      "type": "llm"
     },
     {
       "id": "has-question-mark-column",
-      "text": "At least one output column name ends with '?' (e.g. 'Cost?', 'Base rate?')"
+      "text": "At least one output column name ends with '?' (e.g. 'Cost?', 'Base rate?')",
+      "type": "deterministic"
     },
     {
       "id": "business-language-columns",
-      "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')"
+      "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')",
+      "type": "llm"
     },
     {
       "id": "no-if-switch-in-method",
-      "text": "Test method bodies contain no if or switch statements"
+      "text": "Test method bodies contain no if or switch statements",
+      "type": "deterministic"
     },
     {
       "id": "annotation-order",
-      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order."
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "type": "deterministic"
     },
     {
       "id": "has-descriptive-title",
-      "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case."
+      "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "type": "llm"
     },
     {
       "id": "no-groovy-syntax",
-      "text": "Output contains no Groovy or Spock syntax: no def, where:, expect:, given:, GString interpolation (#variable), Spock assertions (thrown(), old()), or Groovy list literals ([] as Set)."
+      "text": "Output contains no Groovy or Spock syntax: no def, where:, expect:, given:, GString interpolation (#variable), Spock assertions (thrown(), old()), or Groovy list literals ([] as Set).",
+      "type": "deterministic"
     }
   ]
 }

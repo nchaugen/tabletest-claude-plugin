@@ -4,61 +4,61 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "@TableTest(\"\"\"..."
+      "evidence": "Found @TableTest annotation"
     },
     {
       "id": "has-question-mark-column",
       "text": "Table has at least one column name ending with '?' (e.g. 'Discount?' or 'Expected?')",
       "passed": true,
-      "evidence": "| Discount?"
+      "evidence": "Question-mark columns: Discount?"
     },
     {
       "id": "has-three-data-rows",
       "text": "Table has exactly 3 data rows (GOLD, SILVER, BRONZE)",
       "passed": true,
-      "evidence": "Gold customer | GOLD..., Silver customer | SILVER..., Bronze customer | BRONZE..."
+      "evidence": "Found 3 data row(s)"
     },
     {
       "id": "single-assertion-in-method",
       "text": "Test method body contains only one assertEquals (or equivalent assertion) — not three",
       "passed": true,
-      "evidence": "assertEquals(discount, discountService.calculate(tier, amount));"
+      "evidence": "1 method(s) each have at most 1 assertion"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method body contains no if or switch statements",
       "passed": true,
-      "evidence": "Method body contains only single assertEquals call, no conditionals"
+      "evidence": "1 method(s) checked — no if/switch/ternary"
     },
     {
       "id": "scenario-column-present",
       "text": "Table has a scenario/description column as the leftmost column",
       "passed": true,
-      "evidence": "Scenario | tier | amount | Discount? (Scenario is leftmost)"
+      "evidence": "First column(s): \"Scenario\""
     },
     {
       "id": "has-descriptive-title",
       "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case",
       "passed": true,
-      "evidence": "void calculatesDiscountByTier(...) reads as 'Calculates Discount By Tier'"
+      "evidence": "void calculatesDiscountByTier(...) - converts to 'Calculates Discount By Tier', a clear descriptive title"
     },
     {
       "id": "description-if-present-adds-information",
-      "text": "If @Description is present, it provides context beyond what the table rows already express. It is acceptable to omit @Description if the table already conveys all relevant context.",
+      "text": "If @Description is present, it provides context beyond what the table rows already express",
       "passed": true,
-      "evidence": "@Description is absent; table fully conveys context (acceptable per rule)"
+      "evidence": "No @Description annotation is present in the response. The table includes all necessary context (Scenario, tier, amount, Discount?), making omission acceptable per the rule"
     },
     {
       "id": "annotation-order",
       "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
       "passed": true,
-      "evidence": "Only @TableTest present; no violations of annotation order"
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
     },
     {
       "id": "description-uses-textblock",
-      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string). Passes if @Description is absent.",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
       "passed": true,
-      "evidence": "@Description is absent, so assertion passes per rule"
+      "evidence": "No @Description present — passes by default"
     }
   ],
   "assertions_passed": 10,

@@ -4,61 +4,61 @@
       "id": "1.2-error-has-expected-column",
       "text": "The error/rejection table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row — rather than hardcoding the exception type in @Description or the method name.",
       "passed": true,
-      "evidence": "shouldRejectNegativeRate table has 'Throws?' column with values 'IllegalArgumentException' per row"
+      "evidence": "negativeRateRejected table has 'Throws?' column with 'IllegalArgumentException' values per row"
     },
     {
       "id": "1.3-depth-overtime-boundary",
       "text": "Overtime threshold boundary is covered: at least a value at the threshold (40) and just above (41 or similar). Not just values well below and well above.",
       "passed": true,
-      "evidence": "shouldCalculateWeekdayPay has 'At threshold | 40' and 'One hour overtime | 41'"
+      "evidence": "weekdayOvertimeThreshold table includes 'Exactly at limit | 40' and 'One hour over limit | 41'"
     },
     {
       "id": "1.4-depth-combined-scenario",
       "text": "A combined scenario is present: a row with weekday + Sunday + holiday hours, testing the composition of all hour types.",
-      "passed": true,
-      "evidence": "shouldCalculateWeeklyPay has 'All types with overtime | 45 | 8 | 4' row"
+      "passed": false,
+      "evidence": "combinedWeeklyPay table has no row with all three hour types (weekday, Sunday, holiday) >0. 'Overtime and Sunday' has holiday=0, 'Regular with holiday' has Sunday=0"
     },
     {
       "id": "1.5-depth-error-edge-cases",
       "text": "Error/edge cases covered: at least negative hours (floored at zero) and negative or missing rate (rejected).",
       "passed": false,
-      "evidence": "Negative rate covered ('Negative rate' and 'Just negative' rows), but no rows testing negative hours or flooring logic"
+      "evidence": "Negative rate is tested but negative hours are not. No test row with negative weekday/Sunday/holiday hours"
     },
     {
       "id": "1.6-readability-empty-cells",
       "text": "Sunday and Holiday hour columns use empty cells (not 0) when those inputs are not relevant to a scenario — making it easier to spot which rows involve weekend/holiday hours. This is a readability preference; parameter types should be Integer (not int) to support null from blank cells.",
       "passed": false,
-      "evidence": "shouldCalculateWeekdayPay row 'No hours | 0 | 20.00 | 0.00' uses explicit 0, not empty cell; parameters are 'int' not 'Integer'"
+      "evidence": "weekdayOvertimeThreshold and doubleTimeRates use explicit 0 values instead of empty cells; parameters are primitive int not Integer"
     },
     {
       "id": "1.7-readability-scenario-names",
       "text": "Scenario names describe work patterns (e.g. 'Part-time', 'Five hours overtime', 'Full Sunday shift') — not 'Test case 1' or expected outcomes.",
       "passed": true,
-      "evidence": "Scenarios use descriptive names: 'No hours', 'Under threshold', 'All types with overtime', 'Negative rate'"
+      "evidence": "Scenarios like 'Below overtime limit', 'Overtime and Sunday', 'Regular with holiday' describe work patterns"
     },
     {
       "id": "1.8-correctness-expected-values",
       "text": "Expected values in intermediate and total columns are arithmetically correct for every row, consistent with the formulas in @Description.",
       "passed": false,
-      "evidence": "'Sunday and holiday | 0 | 4 | 4' expects $320, but 2× (4+4) × $20 = $320 is correct only if both are 2×; 'All types with overtime | 45 | 8 | 4' expects $1430 but (40×20)+(5×30)+(8×40)+(4×40)=$1430 assumes holiday is 2× not matching stated 2× multiplier clarity"
+      "evidence": "combinedWeeklyPay 'Overtime and Sunday' row: 50h weekday + 8h Sunday at rate 10.00 expects 710, but calculation shown is unclear; formulae not documented in @Description"
     },
     {
       "id": "1.9-correctness-value-set-semantics",
       "text": "Value sets are only used where all values in the set produce the same expected result (e.g. any rate × 0 = 0). Not used where results would differ.",
       "passed": true,
-      "evidence": "No value sets (comma-separated) used in the tables; each cell contains single values"
+      "evidence": "No value sets used in response; each row has explicit scalar values"
     },
     {
       "id": "1.10-format-displayname",
       "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
       "passed": true,
-      "evidence": "All three methods have @DisplayName: 'Weekday pay: regular and overtime hours', 'Weekly pay with Sunday and holiday hours', 'Reject negative hourly rate'"
+      "evidence": "Methods like weekdayOvertimeThreshold, doubleTimeRates, combinedWeeklyPay read as clear descriptive titles"
     },
     {
       "id": "1.11-format-description",
-      "text": "@Description is present on at least the pay calculation method and provides context beyond what the table rows already express — such as the overtime threshold (40 hours), premium multipliers (Sunday 2×, Holiday 2.5×), or other fixed assumptions not visible in the table. Does NOT merely restate the column names or summarise what the rows show.",
-      "passed": true,
-      "evidence": "shouldCalculateWeekdayPay comment: 'Overtime threshold: 40 hours. Hours up to 40 → 1× rate; hours above 40 → 1.5× rate'; shouldCalculateWeeklyPay: 'Sunday and holiday hours are always paid at 2× the base rate'"
+      "text": "@Description is present on at least the pay calculation method and provides context beyond what the table rows already express — such as the overtime threshold (40 hours), premium multipliers (Sunday 2×, Holiday 2.5×), or other fixed assumptions not visible in the table.",
+      "passed": false,
+      "evidence": "@Description mentions fixed rate/hours but never states the overtime threshold (40h), Sunday multiplier (2×), or Holiday multiplier values"
     },
     {
       "id": "1.12-format-annotation-order",
@@ -75,41 +75,41 @@
     {
       "id": "1.14-depth-zero-rate",
       "text": "A row where the hourly rate is zero, showing that pay is zero regardless of hours worked. This is a distinct edge case from negative rate (which is rejected).",
-      "passed": true,
-      "evidence": "shouldCalculateWeeklyPay has 'Zero rate | 40 | 8 | 4 | 0.00 | 0.00' row"
+      "passed": false,
+      "evidence": "No test row with rate=0.00. 'Zero hours' row has rate=25.00, not rate=0.00"
     },
     {
       "id": "1.15-format-clean-method",
       "text": "The test method body contains no if/ternary null-handling or parsing logic. Null-to-default conversion (e.g. blank Sunday hours → 0) is handled via a @TypeConverter method or a private helper, keeping the test method limited to arrange/act/assert.",
       "passed": true,
-      "evidence": "Test methods contain only: calculator.calculate(...), assertEquals(...), or assertThrows(...); no if/ternary logic"
+      "evidence": "All test method bodies contain only assertEquals or assertThrows; no null-handling or parsing logic present"
     },
     {
       "id": "business-language-columns",
       "text": "Column names use domain/business language (e.g. 'Weekday hours', 'Sunday hours', 'Hourly rate', 'Weekly pay?') — not implementation terms like 'weekdayHrs', 'int', 'param1'.",
       "passed": true,
-      "evidence": "Columns named: 'Weekday hrs', 'Sunday hrs', 'Holiday hrs', 'Rate', 'Pay?', 'Throws?' (business language)"
+      "evidence": "Columns use 'Weekday Hours', 'Sunday Hours', 'Holiday Hours', 'Rate', 'Weekly Pay?', 'Throws?'"
     },
     {
       "id": "concerns-decomposed",
       "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
       "passed": true,
-      "evidence": "Three separate @TableTest methods: weekday pay, weekly pay with all hour types, error/rejection cases"
+      "evidence": "Four separate @TableTest methods: weekdayOvertimeThreshold, doubleTimeRates, combinedWeeklyPay, negativeRateRejected"
     },
     {
       "id": "minimal-rows-per-concern",
       "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
       "passed": true,
-      "evidence": "shouldCalculateWeekdayPay: 5 focused rows on threshold; shouldCalculateWeeklyPay: 9 rows covering combinations; shouldRejectNegativeRate: 2 boundary rows"
+      "evidence": "weekdayOvertimeThreshold has 5 rows, doubleTimeRates has 3 rows; each focused on a single concern"
     },
     {
       "id": "separates-classification-and-calculation",
       "text": "Payable hours categorisation (1x regular, 1.5x overtime, 2x Sunday/holiday) and pay calculation (hours × rate) are in separate @TableTest methods",
       "passed": false,
-      "evidence": "No separate table for hour classification; both classification (overtime at 40 threshold) and calculation are tested together in shouldCalculateWeekdayPay and shouldCalculateWeeklyPay"
+      "evidence": "No table explicitly classifies hours into 1x/1.5x/2x categories; all tables mix classification and calculation"
     }
   ],
-  "assertions_passed": 14,
+  "assertions_passed": 11,
   "assertions_total": 18,
-  "pass_rate": 0.7777777777777778
+  "pass_rate": 0.6111111111111112
 }

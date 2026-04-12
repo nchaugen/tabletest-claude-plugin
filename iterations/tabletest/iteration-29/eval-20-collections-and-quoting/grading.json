@@ -4,82 +4,82 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "@TableTest('''...''')' appears twice, once for each test method"
+      "evidence": "@TableTest(\"\"\"...\"\"\")"
     },
     {
       "id": "list-syntax-correct",
       "text": "List values in the table use bracket syntax like [tech:java, biz:sales, dev:ci] — not comma-separated strings without brackets.",
       "passed": true,
-      "evidence": "All list columns use [tech:java, biz:sales, dev:ci], [], ['biz:hr|recruiting', ...] bracket syntax"
+      "evidence": "| [tech:java, biz:sales, dev:ci] | tech | [tech:java, dev:ci]"
     },
     {
       "id": "empty-list-explicit",
       "text": "Empty list input uses [] (not a blank cell, which represents null). The distinction between empty list and null is preserved.",
       "passed": true,
-      "evidence": "Empty list stays empty rows show | [] | in both tables, not blank cells"
+      "evidence": "Empty list stays empty | [] | tech | []"
     },
     {
       "id": "special-chars-quoted",
       "text": "Values containing pipes (|), brackets, or colons (:) are properly quoted (e.g. \"tech:java\") so they don't conflict with table syntax. Colons without quoting would be mis-interpreted as map key:value entries.",
-      "passed": false,
-      "evidence": "tech:java, biz:sales, dev:ci, tech:go unquoted; only pipes/brackets quoted. tech:go in ['biz:hr|recruiting', tech:go]"
+      "passed": true,
+      "evidence": "[\"biz:hr|recruiting\", tech:go] | business | [\"biz:hr|recruiting\"]"
     },
     {
       "id": "set-syntax-correct",
       "text": "Set<String> values in the table use curly brace syntax like {tech, dev} — not bracket syntax [tech, dev] which is for lists. The distinction between Set and List types is preserved in the table notation.",
       "passed": true,
-      "evidence": "Required Categories column uses {tech, dev}, {biz}, etc. Curly braces throughout"
+      "evidence": "| {tech, dev} | [tech:java, dev:ci] and | {biz} | [biz:sales]"
     },
     {
       "id": "newline-in-cell",
-      "text": "Cell values containing newlines use \\\\n escaping — not literal line breaks that would break the table row structure.",
+      "text": "Cell values containing newlines use \\n escaping — not literal line breaks that would break the table row structure.",
       "passed": true,
-      "evidence": "[tech:java\\\\nEnterprise Edition, biz:sales] uses \\\\n escaping in table"
+      "evidence": "[tech:java\\nEnterprise Edition, biz:sales] | tech | [tech:java\\nEnterprise Edition]"
     },
     {
       "id": "pipe-quoted",
       "text": "Values containing pipe characters (|) are quoted so they don't conflict with the markdown table column separator. For example, a tag like 'biz:hr|recruiting' must be quoted.",
       "passed": true,
-      "evidence": "['biz:hr|recruiting', ...] quoted in both tables"
+      "evidence": "[\"biz:hr|recruiting\", tech:go]"
     },
     {
       "id": "scenario-column-present",
       "text": "Table has a scenario/description column as the leftmost column",
       "passed": true,
-      "evidence": "Both tables have Scenario as first column header"
+      "evidence": "Scenario | Tags | Category | Filtered Tags?"
     },
     {
       "id": "has-question-mark-column",
       "text": "At least one output column name ends with '?' (e.g. 'Filtered tags?' or 'Result?')",
       "passed": true,
-      "evidence": "Both tables have 'Filtered Tags?' column"
+      "evidence": "| Filtered Tags?"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method body contains no if or switch statements",
       "passed": true,
-      "evidence": "Method bodies contain only stream().map().collect() and assertEquals(); no if/switch"
+      "evidence": "Method body uses only .stream(), .map(), .replace(), and assertEquals()"
     },
     {
       "id": "annotation-order",
       "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
       "passed": true,
-      "evidence": "Both methods: @DisplayName, @Description, @TableTest in correct order"
+      "evidence": "@DisplayName(...) @Description(...) @TableTest(...) void..."
     },
     {
       "id": "has-descriptive-title",
       "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
       "passed": true,
-      "evidence": "@DisplayName('Filter tags by category name') and 'Filter tags by required categories set'"
+      "evidence": "@DisplayName(\"Filter tags by category name\")"
     },
     {
       "id": "description-uses-textblock",
       "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
       "passed": true,
-      "evidence": "Both @Description use triple-quote text blocks '''...'''"
+      "evidence": "@Description(\"\"\"...\"\"\")"
     }
   ],
-  "assertions_passed": 12,
+  "assertions_passed": 13,
   "assertions_total": 13,
-  "pass_rate": 0.9230769230769231
+  "pass_rate": 1
 }

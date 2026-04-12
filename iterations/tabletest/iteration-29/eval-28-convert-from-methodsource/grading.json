@@ -4,31 +4,31 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "@TableTest(\"\"\"\" appears twice in the code"
+      "evidence": "@TableTest(\"\"\" Scenario | Region | Service | Weight | Dimensions..."
     },
     {
       "id": "options-as-map",
-      "text": "Package options are collapsed into a single map column like [fragile: true, insuredValue: 500]",
+      "text": "Package options collapsed into a single map column like [fragile: true, insuredValue: 500]",
       "passed": false,
-      "evidence": "Surcharges table has three separate columns: 'Fragile | Insured value | Handling' with blank cells"
+      "evidence": "Options are split into three separate columns: Fragile, Insured value, Handling — not collapsed into a map"
     },
     {
       "id": "options-type-converter",
       "text": "A @TypeConverter method is present that accepts Map<String, String> and returns PackageOptions",
       "passed": false,
-      "evidence": "Response explicitly states 'No `@TypeConverter` needed' and no such method appears"
+      "evidence": "No @TypeConverter method present. Author states 'No `@TypeConverter` needed'"
     },
     {
       "id": "dimensions-as-list",
       "text": "Dimensions are represented as a [L, W, H] list in the table",
       "passed": true,
-      "evidence": "Dimensions shown as [20, 15, 10], [30, 20, 15], [70, 50, 10], etc."
+      "evidence": "Dimensions shown as lists: [20, 15, 10], [30, 20, 15], [70, 50, 10], etc."
     },
     {
       "id": "uses-value-sets",
       "text": "At least one table uses value set syntax {DHL, UPS, FEDEX}",
       "passed": true,
-      "evidence": "Value set {DHL, UPS, FEDEX} appears in Carrier column"
+      "evidence": "Row shows 'EU express medium' with Carrier column: {DHL, UPS, FEDEX}"
     },
     {
       "id": "concerns-decomposed",
@@ -38,57 +38,57 @@
     },
     {
       "id": "numeric-types-correct",
-      "text": "Weight and cost use BigDecimal; dimensions use Integer or int",
+      "text": "Weight and cost use BigDecimal, dimensions use Integer or int",
       "passed": true,
-      "evidence": "BigDecimal weight, BigDecimal cost, List<Integer> dimensions"
+      "evidence": "Parameters: BigDecimal weight, List<Integer> dimensions, BigDecimal cost"
     },
     {
       "id": "scenario-column-present",
       "text": "Each table has a scenario/description column as the leftmost column",
       "passed": true,
-      "evidence": "'Scenario' appears as first column in both tables"
+      "evidence": "First column in both tables is 'Scenario' with entries like 'EU standard light'"
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions, not outcomes",
+      "text": "Scenario names describe conditions, not outcomes or generic labels",
       "passed": true,
-      "evidence": "Examples: 'EU standard light', 'Hazmat handling', 'Oversize'"
+      "evidence": "'EU standard light', 'EU express medium', 'Fragile and insured' describe conditions"
     },
     {
       "id": "has-question-mark-column",
       "text": "At least one output column name ends with '?'",
       "passed": true,
-      "evidence": "'Cost?' column appears in both tables"
+      "evidence": "Column named 'Cost?' appears in both tables"
     },
     {
       "id": "business-language-columns",
       "text": "Column names use domain language, not code identifiers",
       "passed": true,
-      "evidence": "Columns: Region, Service, Weight, Dimensions, Carrier, Cost?"
+      "evidence": "Columns: Region, Service, Weight, Dimensions, Carrier, Cost — domain-focused"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method bodies contain no if or switch statements",
       "passed": false,
-      "evidence": "shouldApplySurcharges contains: if (Boolean.TRUE.equals(fragile))..."
+      "evidence": "shouldApplySurcharges contains: if (Boolean.TRUE.equals(fragile)) and if (insuredValue != null) and if (handling != null)"
     },
     {
       "id": "annotation-order",
-      "text": "Annotations in order: @DisplayName, @Description, @TableTest",
+      "text": "Annotations appear in order: @DisplayName, @Description, @TableTest",
       "passed": true,
-      "evidence": "Second method shows @DisplayName, @Description, @TableTest in order"
+      "evidence": "Surcharges method shows: @DisplayName, @Description, @TableTest in that order"
     },
     {
       "id": "has-descriptive-title",
-      "text": "Each method has @DisplayName with clear descriptive title",
+      "text": "Each test method has @DisplayName or clear method name",
       "passed": true,
-      "evidence": "@DisplayName(\"Base shipping rate by zone, weight, and carrier\")"
+      "evidence": "@DisplayName('Base shipping rate...') and @DisplayName('Surcharges applied...')"
     },
     {
       "id": "no-methodsource-artifacts",
-      "text": "Output contains no @MethodSource or parameterized test artifacts",
+      "text": "Output contains no @MethodSource, Stream, Arguments.of, or parameterized imports",
       "passed": true,
-      "evidence": "No @MethodSource, Stream<Arguments>, or parameterized imports found"
+      "evidence": "No @MethodSource, Stream<Arguments>, or org.junit.jupiter.params imports present"
     }
   ],
   "assertions_passed": 12,

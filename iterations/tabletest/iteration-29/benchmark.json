@@ -2,7 +2,7 @@
   "skill_name": "tabletest",
   "iteration": 29,
   "model": "sonnet",
-  "timestamp": "2026-04-12T12:30:24.276Z",
+  "timestamp": "2026-04-12T21:02:28.333Z",
   "evals": [
     {
       "id": "eval-1-convert-repetitive-tests",
@@ -23,10 +23,11 @@
       "name": "parse dates",
       "skill": "tabletest",
       "results": {
-        "assertions_passed": 12,
+        "assertions_passed": 11,
         "assertions_total": 13,
-        "pass_rate": 0.9230769230769231,
+        "pass_rate": 0.8461538461538461,
         "failed_assertions": [
+          "empty-string-uses-quotes",
           "separates-valid-and-invalid"
         ],
         "total_tokens": 75285,
@@ -69,10 +70,12 @@
       "name": "money parse",
       "skill": "tabletest",
       "results": {
-        "assertions_passed": 13,
+        "assertions_passed": 12,
         "assertions_total": 13,
-        "pass_rate": 1,
-        "failed_assertions": [],
+        "pass_rate": 0.9230769230769231,
+        "failed_assertions": [
+          "null-as-blank-cell"
+        ],
         "total_tokens": 105414,
         "duration_ms": 57680,
         "cost_usd": 0.15950685
@@ -97,13 +100,14 @@
       "name": "weekly pay",
       "skill": "tabletest",
       "results": {
-        "assertions_passed": 15,
+        "assertions_passed": 14,
         "assertions_total": 18,
-        "pass_rate": 0.8333333333333334,
+        "pass_rate": 0.7777777777777778,
         "failed_assertions": [
           "1.5-depth-error-edge-cases",
           "1.6-readability-empty-cells",
-          "1.11-format-description"
+          "1.8-correctness-expected-values",
+          "separates-classification-and-calculation"
         ],
         "total_tokens": 194257,
         "duration_ms": 210180,
@@ -142,10 +146,11 @@
       "name": "convert from code",
       "skill": "tabletest",
       "results": {
-        "assertions_passed": 12,
+        "assertions_passed": 11,
         "assertions_total": 18,
-        "pass_rate": 0.6666666666666666,
+        "pass_rate": 0.6111111111111112,
         "failed_assertions": [
+          "scenario-names-describe-conditions",
           "concerns-decomposed",
           "minimal-rows-per-concern",
           "separates-decision-and-premium",
@@ -177,12 +182,10 @@
       "name": "collections and quoting",
       "skill": "tabletest",
       "results": {
-        "assertions_passed": 12,
+        "assertions_passed": 13,
         "assertions_total": 13,
-        "pass_rate": 0.9230769230769231,
-        "failed_assertions": [
-          "special-chars-quoted"
-        ],
+        "pass_rate": 1,
+        "failed_assertions": [],
         "total_tokens": 166154,
         "duration_ms": 229310,
         "cost_usd": 0.39463335
@@ -193,14 +196,15 @@
       "name": "event registration tt",
       "skill": "tabletest",
       "results": {
-        "assertions_passed": 19,
+        "assertions_passed": 18,
         "assertions_total": 23,
-        "pass_rate": 0.8260869565217391,
+        "pass_rate": 0.782608695652174,
         "failed_assertions": [
           "descriptive-registration-date",
           "cutoff-date-column-if-literal-dates",
           "description-no-irrelevant-information",
-          "discount-column-preferred"
+          "discount-column-preferred",
+          "description-no-redundant-field-values"
         ],
         "total_tokens": 82502,
         "duration_ms": 223338,
@@ -212,12 +216,11 @@
       "name": "loan approval tt",
       "skill": "tabletest",
       "results": {
-        "assertions_passed": 10,
+        "assertions_passed": 11,
         "assertions_total": 16,
-        "pass_rate": 0.625,
+        "pass_rate": 0.6875,
         "failed_assertions": [
           "threshold-as-column",
-          "scenario-names-describe-conditions",
           "concerns-decomposed",
           "minimal-rows-per-concern",
           "separates-age-credit-income",
@@ -233,16 +236,19 @@
       "name": "convert from spock",
       "skill": "tabletest",
       "results": {
-        "assertions_passed": 9,
-        "assertions_total": 15,
-        "pass_rate": 0.6,
+        "assertions_passed": 8,
+        "assertions_total": 17,
+        "pass_rate": 0.47058823529411764,
         "failed_assertions": [
           "options-as-map",
           "options-type-converter",
           "dimensions-as-list",
           "concerns-decomposed",
           "numeric-types-correct",
-          "no-if-switch-in-method"
+          "no-if-switch-in-method",
+          "has-descriptive-title",
+          "compiles",
+          "tests-pass"
         ],
         "total_tokens": 104664,
         "duration_ms": 127739,
@@ -312,12 +318,10 @@
       "name": "shopping cart tt",
       "skill": "tabletest",
       "results": {
-        "assertions_passed": 20,
+        "assertions_passed": 21,
         "assertions_total": 21,
-        "pass_rate": 0.9523809523809523,
-        "failed_assertions": [
-          "uses-standard-map-syntax"
-        ],
+        "pass_rate": 1,
+        "failed_assertions": [],
         "total_tokens": 323713,
         "duration_ms": 838606,
         "cost_usd": 1.12846365
@@ -331,9 +335,9 @@
     }
   ],
   "summary": {
-    "assertions_passed": 203,
-    "assertions_total": 257,
-    "pass_rate": 0.7898832684824902,
+    "assertions_passed": 200,
+    "assertions_total": 259,
+    "pass_rate": 0.7722007722007722,
     "total_tokens": 2197638,
     "total_duration_ms": 2711478,
     "total_cost_usd": 4.706229800000001

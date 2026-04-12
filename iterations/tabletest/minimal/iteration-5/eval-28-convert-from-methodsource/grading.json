@@ -4,94 +4,94 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "@TableTest(\"\"\"...\"\"\") appears twice in the code (lines in calculatesBaseShippingCost and appliesSurcharges)"
+      "evidence": "@TableTest(\"\"\" Scenario | Region | Service..."
     },
     {
       "id": "options-as-map",
-      "text": "Package options are collapsed into a single map column like [fragile: true, insuredValue: 500]",
+      "text": "Package options collapsed into single map column like [fragile: true, insuredValue: 500]",
       "passed": false,
-      "evidence": "appliesSurcharges table shows three separate columns: Fragile | Insured Value | Handling, not collapsed into a map"
+      "evidence": "Options appear as separate columns: 'Fragile | Insured Value | Handling' with individual values, not collapsed map format"
     },
     {
       "id": "options-type-converter",
-      "text": "A @TypeConverter method is present that accepts Map<String, String> and returns PackageOptions",
+      "text": "A @TypeConverter method present accepting Map<String, String> returning PackageOptions",
       "passed": false,
-      "evidence": "No @TypeConverter method found. Code uses manual opts.setFragile/setInsuredValue/setHandling calls instead"
+      "evidence": "No @TypeConverter method shown; PackageOptions constructed manually with setFragile/setInsuredValue/setHandling calls"
     },
     {
       "id": "dimensions-as-list",
-      "text": "Dimensions are represented as a [L, W, H] list in the table",
+      "text": "Dimensions represented as [L, W, H] list in table",
       "passed": true,
-      "evidence": "Both tables use Dimensions column with list format: [20, 15, 10], [30, 20, 15], [70, 50, 10], etc."
+      "evidence": "Dimensions column shows '[20, 15, 10]', '[30, 20, 15]', '[70, 50, 10]' format"
     },
     {
       "id": "uses-value-sets",
       "text": "At least one table uses value set syntax {DHL, UPS, FEDEX}",
       "passed": true,
-      "evidence": "EU express medium row shows Carrier as {DHL, UPS, FEDEX} with cost 12.00"
+      "evidence": "{DHL, UPS, FEDEX} appears in 'EU express medium' row"
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple @TableTest methods exist, each addressing a distinct concern",
+      "text": "Multiple @TableTest methods exist, each addressing distinct concern",
       "passed": true,
-      "evidence": "Two methods: calculatesBaseShippingCost (base rates), appliesSurcharges (surcharges/options)"
+      "evidence": "Two methods: 'calculatesBaseShippingCost' and 'appliesSurcharges' decompose base rates from surcharges"
     },
     {
       "id": "numeric-types-correct",
-      "text": "Weight and cost use BigDecimal; Dimensions use Integer or int",
+      "text": "Weight and cost use BigDecimal; dimensions use Integer or int",
       "passed": true,
-      "evidence": "Signatures show: BigDecimal weight, List<Integer> dimensions, BigDecimal expected"
+      "evidence": "Parameters: 'BigDecimal weight', 'BigDecimal expected', 'List<Integer> dimensions'"
     },
     {
       "id": "scenario-column-present",
-      "text": "Each table has a scenario/description column as the leftmost column",
+      "text": "Each table has scenario/description column as leftmost column",
       "passed": true,
-      "evidence": "Both tables have 'Scenario' as first column (leftmost)"
+      "evidence": "First column in both tables is 'Scenario' with entries like 'EU standard light'"
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions, not outcomes or generic labels",
+      "text": "Scenario names describe conditions not outcomes or generic labels",
       "passed": true,
-      "evidence": "Examples: 'EU express light', 'Dimensional weight applies', 'Fragile surcharge' describe conditions"
+      "evidence": "'EU express light', 'Oversized with fragile' style; 'Fragile surcharge', 'Insurance surcharge' describe conditions"
     },
     {
       "id": "has-question-mark-column",
       "text": "At least one output column name ends with '?'",
       "passed": true,
-      "evidence": "Both tables have 'Cost?' as rightmost column"
+      "evidence": "Both tables have 'Cost?' as final column"
     },
     {
       "id": "business-language-columns",
-      "text": "Column names use domain language, not code identifiers",
+      "text": "Column names use domain language not code identifiers",
       "passed": true,
-      "evidence": "Columns: Region, Service, Weight, Dimensions, Carrier, Fragile, Insured Value, Handling, Cost?"
+      "evidence": "'Region', 'Service', 'Weight', 'Dimensions', 'Carrier', 'Cost?' vs camelCase identifiers"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method bodies contain no if or switch statements",
       "passed": false,
-      "evidence": "appliesSurcharges body contains: if (insuredValue != null) and if (handling != null) statements"
+      "evidence": "appliesSurcharges contains 'if (insuredValue != null)' and 'if (handling != null)' null guards"
     },
     {
       "id": "annotation-order",
-      "text": "Annotations appear in correct order: @DisplayName, @Description, @TableTest",
-      "passed": true,
-      "evidence": "Both methods show @Description then @TableTest (no @DisplayName present, order correct)"
+      "text": "Annotations in order: @DisplayName, @Description, @TableTest",
+      "passed": false,
+      "evidence": "@Description appears before @TableTest but no @DisplayName present; order is @Description then @TableTest"
     },
     {
       "id": "has-descriptive-title",
-      "text": "Each test method has descriptive @DisplayName or method name",
+      "text": "Each test method has @DisplayName or descriptive method name",
       "passed": true,
-      "evidence": "Methods named calculatesBaseShippingCost and appliesSurcharges read as clear titles"
+      "evidence": "Methods named 'calculatesBaseShippingCost' and 'appliesSurcharges' are descriptive in camelCase"
     },
     {
       "id": "no-methodsource-artifacts",
       "text": "Output contains no @MethodSource, Stream<Arguments>, Arguments.of, or parameterized imports",
       "passed": true,
-      "evidence": "No @MethodSource, Stream, Arguments.of, or org.junit.jupiter.params imports found"
+      "evidence": "No @MethodSource, Stream, Arguments.of, or org.junit.jupiter.params imports present in output"
     }
   ],
-  "assertions_passed": 12,
+  "assertions_passed": 11,
   "assertions_total": 15,
-  "pass_rate": 0.8
+  "pass_rate": 0.7333333333333333
 }

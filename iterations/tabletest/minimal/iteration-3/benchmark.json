@@ -2,7 +2,7 @@
   "skill_name": "tabletest (minimal)",
   "iteration": 3,
   "model": "sonnet",
-  "timestamp": "2026-04-12T13:31:02.398Z",
+  "timestamp": "2026-04-12T21:09:34.205Z",
   "evals": [
     {
       "id": "eval-1-convert-repetitive-tests",
@@ -23,10 +23,12 @@
       "name": "parse dates",
       "skill": "tabletest",
       "results": {
-        "assertions_passed": 13,
+        "assertions_passed": 12,
         "assertions_total": 13,
-        "pass_rate": 1,
-        "failed_assertions": [],
+        "pass_rate": 0.9230769230769231,
+        "failed_assertions": [
+          "null-as-blank-cell"
+        ],
         "total_tokens": 46136,
         "duration_ms": 47056,
         "cost_usd": 0.10715295
@@ -51,15 +53,14 @@
       "name": "permission check",
       "skill": "tabletest",
       "results": {
-        "assertions_passed": 6,
+        "assertions_passed": 7,
         "assertions_total": 11,
-        "pass_rate": 0.5454545454545454,
+        "pass_rate": 0.6363636363636364,
         "failed_assertions": [
           "uses-value-sets",
           "fewer-than-nine-rows",
           "no-duplicate-role-output",
-          "has-descriptive-title",
-          "scenario-names-describe-conditions"
+          "has-descriptive-title"
         ],
         "total_tokens": 70919,
         "duration_ms": 16621,
@@ -71,10 +72,12 @@
       "name": "money parse",
       "skill": "tabletest",
       "results": {
-        "assertions_passed": 13,
+        "assertions_passed": 12,
         "assertions_total": 13,
-        "pass_rate": 1,
-        "failed_assertions": [],
+        "pass_rate": 0.9230769230769231,
+        "failed_assertions": [
+          "has-descriptive-title"
+        ],
         "total_tokens": 74739,
         "duration_ms": 48060,
         "cost_usd": 0.1429722
@@ -115,9 +118,9 @@
         "assertions_total": 18,
         "pass_rate": 0.8333333333333334,
         "failed_assertions": [
-          "scenario-names-describe-conditions",
-          "depth-decision-boundaries",
-          "depth-premium-boundaries"
+          "annotation-order",
+          "description-no-internals",
+          "depth-decision-boundaries"
         ],
         "total_tokens": 54127,
         "duration_ms": 131888,
@@ -161,9 +164,9 @@
         "assertions_total": 23,
         "pass_rate": 0.8695652173913043,
         "failed_assertions": [
-          "scenario-names-describe-conditions",
           "description-no-irrelevant-information",
-          "discount-column-preferred"
+          "discount-column-preferred",
+          "description-no-redundant-field-values"
         ],
         "total_tokens": 94849,
         "duration_ms": 220285,
@@ -180,7 +183,7 @@
         "pass_rate": 0.875,
         "failed_assertions": [
           "threshold-as-column",
-          "separates-age-credit-income"
+          "description-no-redundant-field-values"
         ],
         "total_tokens": 103192,
         "duration_ms": 83016,
@@ -215,13 +218,14 @@
       "name": "convert from kotest",
       "skill": "tabletest",
       "results": {
-        "assertions_passed": 11,
+        "assertions_passed": 10,
         "assertions_total": 15,
-        "pass_rate": 0.7333333333333333,
+        "pass_rate": 0.6666666666666666,
         "failed_assertions": [
           "options-as-map",
           "options-type-converter",
-          "business-language-columns",
+          "no-if-switch-in-method",
+          "annotation-order",
           "no-kotest-syntax"
         ],
         "total_tokens": 56106,
@@ -234,13 +238,14 @@
       "name": "convert from testng",
       "skill": "tabletest",
       "results": {
-        "assertions_passed": 12,
+        "assertions_passed": 11,
         "assertions_total": 15,
-        "pass_rate": 0.8,
+        "pass_rate": 0.7333333333333333,
         "failed_assertions": [
           "options-as-map",
           "options-type-converter",
-          "concerns-decomposed"
+          "concerns-decomposed",
+          "annotation-order"
         ],
         "total_tokens": 52219,
         "duration_ms": 87390,
@@ -295,9 +300,9 @@
     }
   ],
   "summary": {
-    "assertions_passed": 208,
+    "assertions_passed": 205,
     "assertions_total": 239,
-    "pass_rate": 0.8702928870292888,
+    "pass_rate": 0.8577405857740585,
     "total_tokens": 1529669,
     "total_duration_ms": 2168537,
     "total_cost_usd": 4.1031408

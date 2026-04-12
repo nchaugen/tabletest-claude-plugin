@@ -88,3 +88,50 @@ Report saved: /Users/nch/tabletest/tabletest-claude-plugin/iterations/tabletest/
 
 Done. Results in: /Users/nch/tabletest/tabletest-claude-plugin/iterations/tabletest/minimal/iteration-4
 Cleaning up worktree...
+
+--- Run started at 2026-04-12T21:07:00.805Z ---
+
+Eval run: tabletest (variant=minimal), iteration 4, 19 evals, model sonnet
+
+Grading responses (model=haiku, parallel=4)...
+  Grading eval 1 (convert-repetitive-tests)...
+  Grading eval 2 (parse-dates)...
+  Grading eval 3 (dependency-setup)...
+  Grading eval 7 (permission-check)...
+  ✓ Eval 3 — 4/4
+  ✓ Eval 1 — 10/10
+  ✗ Eval 7 — 8/11
+  ✓ Eval 2 — 13/13
+  Grading eval 8 (money-parse)...
+  Grading eval 9 (bonus-contractor-structure)...
+  Grading eval 14 (weekly-pay)...
+  Grading eval 15 (reis-discount)...
+  ✗ Eval 9 — 10/11
+  ✗ Eval 8 — 12/13
+  ✗ Eval 14 — 11/18
+  ✗ Eval 15 — 6/18
+  Grading eval 18 (convert-from-code)...
+  Grading eval 19 (convert-from-parameterized)...
+  Grading eval 20 (collections-and-quoting)...
+  Grading eval 22 (event-registration-tt)...
+  ✓ Eval 19 — 8/8
+  ✓ Eval 20 — 13/13
+  ✗ Eval 18 — 15/18
+  ✗ Eval 22 — 18/23
+  Skipping eval 23 — generation error
+  Skipping eval 25 — generation error
+  Skipping eval 26 — generation error
+  Skipping eval 27 — generation error
+  Skipping eval 28 — generation error
+  Skipping eval 29 — generation error
+  Skipping eval 30 — generation error
+
+Benchmark saved: /Users/nch/tabletest/tabletest-claude-plugin/iterations/tabletest/minimal/iteration-4/benchmark.json
+Report saved: /Users/nch/tabletest/tabletest-claude-plugin/iterations/tabletest/minimal/iteration-4/eval-review.md
+
+Done. Results in: /Users/nch/tabletest/tabletest-claude-plugin/iterations/tabletest/minimal/iteration-4
+
+--- Run started at 2026-04-12T21:10:08.489Z ---
+Report saved: /Users/nch/tabletest/tabletest-claude-plugin/iterations/tabletest/minimal/iteration-4/eval-review.md
+
+Report regenerated. Results in: /Users/nch/tabletest/tabletest-claude-plugin/iterations/tabletest/minimal/iteration-4

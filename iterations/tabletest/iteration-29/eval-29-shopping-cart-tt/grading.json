@@ -4,130 +4,130 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "Multiple @TableTest annotations present in all five test methods: shouldAddItemToCart, shouldRemoveItemFromCart, shouldApplyCoupon, shouldProcessCheckout, shouldCalculateCartTotal"
+      "evidence": "@TableTest annotation appears on all 5 test methods (shouldAddItemToCart, shouldRemoveItemFromCart, etc.)"
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing item operations, coupon logic, total calculation, and checkout.",
+      "text": "Multiple @TableTest methods are used, each addressing a distinct concern",
       "passed": true,
-      "evidence": "Five separate @TableTest methods: shouldAddItemToCart (items), shouldRemoveItemFromCart (items), shouldApplyCoupon (coupons), shouldProcessCheckout (checkout), shouldCalculateCartTotal (totals)"
+      "evidence": "Five separate @TableTest methods: shouldAddItemToCart, shouldRemoveItemFromCart, shouldApplyCoupon, shouldProcessCheckout, shouldCalculateCartTotal"
     },
     {
       "id": "minimal-rows-per-concern",
-      "text": "Each @TableTest has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
+      "text": "Each @TableTest has only the rows needed to express its concern's rules",
       "passed": true,
-      "evidence": "Each table has 3-6 rows appropriate to its concern: add (3 rows), remove (3), apply coupon (6), checkout (5), calculate total (6)"
+      "evidence": "shouldAddItemToCart has 3 rows (empty, new, existing); shouldRemoveItemFromCart has 3 rows; shouldApplyCoupon has 6 rows for validity/replacement; shouldProcessCheckout has 5 rows; shouldCalculateCartTotal has 6 rows"
     },
     {
       "id": "separates-item-coupon-total-checkout",
-      "text": "Item operations (add/remove), coupon application (validity and replacement), cart total calculation (coupon type effects on price), and checkout (stock verification) are in separate @TableTest methods.",
+      "text": "Item operations, coupon application, total calculation, and checkout are in separate @TableTest methods",
       "passed": true,
-      "evidence": "shouldAddItemToCart & shouldRemoveItemFromCart (items), shouldApplyCoupon (coupons), shouldCalculateCartTotal (totals), shouldProcessCheckout (checkout)"
+      "evidence": "Separate methods: shouldAddItemToCart/shouldRemoveItemFromCart (items), shouldApplyCoupon (coupons), shouldCalculateCartTotal (total), shouldProcessCheckout (checkout)"
     },
     {
       "id": "rows-independently-executable",
-      "text": "Each table row is independently executable — no row depends on a prior row's result. The table expresses rules, not a sequential test script. Each row specifies its own preconditions (e.g. 'Cart with items' as an input column, not implied from a previous row).",
+      "text": "Each table row is independently executable with its own preconditions",
       "passed": true,
-      "evidence": "Each row specifies preconditions: add item table has 'Cart before' column for each row; apply coupon table has 'Active coupon before' column; checkout has 'Inventory' as input per row"
+      "evidence": "Each row specifies full preconditions. Example in shouldAddItemToCart: 'Add to empty cart | [] | widget | 2 | [widget:9.99]' — cart state is explicit, not implied from prior row"
     },
     {
       "id": "coupon-before-after-columns",
-      "text": "Coupon application table uses before/after columns (e.g. 'Active coupon' / 'Active coupon after?') to specify the state change when entering, replacing, or entering invalid coupon codes.",
+      "text": "Coupon application table uses before/after columns to specify state change",
       "passed": true,
-      "evidence": "shouldApplyCoupon table has 'Active coupon before' and 'Active coupon after?' columns demonstrating state change"
+      "evidence": "shouldApplyCoupon table has 'Active coupon before' and 'Active coupon after?' columns showing state transitions (e.g., 'Replace existing coupon | FLAT5 | SAVE20 | ... | SAVE20')"
     },
     {
       "id": "coupon-validity-not-coupon-types",
-      "text": "Coupon application table tests validity and replacement (valid code, expired code, nonexistent code, replacing active coupon) — not coupon type effects on price. Coupon type effects belong in the cart total table.",
+      "text": "Coupon application table tests validity and replacement, not type effects on price",
       "passed": true,
-      "evidence": "shouldApplyCoupon tests validity and replacement (expired XPIRED, nonexistent UNKNOWN, replace FLAT5→SAVE20) without testing price effects; calculateTotal table tests coupon type effects on price"
+      "evidence": "shouldApplyCoupon tests expired coupon, nonexistent code, and replacement logic. Coupon type effects (percentage vs fixed vs product-specific) are tested in shouldCalculateCartTotal, not here"
     },
     {
       "id": "scenario-column-present",
       "text": "Table has a scenario/description column as the leftmost column",
       "passed": true,
-      "evidence": "All five tables have 'Scenario' as leftmost column: 'Add to empty cart', 'Replace existing coupon', 'All items in stock', etc."
+      "evidence": "All tables have 'Scenario' as first column: 'Scenario | Cart before | Product ID | Qty | ...' etc."
     },
     {
       "id": "has-question-mark-column",
-      "text": "At least one output column name ends with '?' (e.g. 'Message?', 'Total?', 'Active coupon after?')",
+      "text": "At least one output column name ends with '?'",
       "passed": true,
-      "evidence": "All tables have output columns with '?': Message?, Cart after?, Active coupon after?, Success?, Total?"
+      "evidence": "Multiple output columns end with '?': 'Message?', 'Cart after?', 'Active coupon after?', 'Success?', 'Total?'"
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions ('Add to empty cart', 'Replace active coupon with expired') — not outcomes ('Error', 'Success').",
+      "text": "Scenario names describe conditions, not outcomes",
       "passed": true,
-      "evidence": "Scenario names describe conditions: 'Add to empty cart', 'Replace existing coupon', 'Expired coupon code', 'One item out of stock', 'Percentage off whole cart'"
+      "evidence": "Examples: 'Add to empty cart' (condition), 'Replace existing coupon' (condition), 'Expired coupon code' (condition) — not 'Success' or 'Error'"
     },
     {
       "id": "business-language-columns",
-      "text": "Column names use domain/business language (e.g. 'Product', 'Quantity', 'Message?', 'Cart total?') — not code identifiers like 'productId', 'result'.",
+      "text": "Column names use domain/business language, not code identifiers",
       "passed": true,
-      "evidence": "Columns use business language: 'Product ID', 'Qty', 'Catalogue', 'Cart before', 'Coupon code', 'Inventory', 'Success?', 'Cart total?' — not 'productId', 'result'"
+      "evidence": "Column names: 'Product ID', 'Qty', 'Cart before', 'Cart after?', 'Message?', 'Coupon', 'Total?' — not 'productId', 'quantity', 'result'"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method body contains no if or switch statements",
       "passed": true,
-      "evidence": "All test methods follow arrange-act-assert with only assertEquals calls: 'CartResult result = ShoppingCart.addItem(...); assertEquals(message, result.getMessage());'"
+      "evidence": "All test method bodies follow pure arrange-act-assert with single assertion per row. Example: 'CartResult result = ShoppingCart.addItem(...); assertEquals(...); assertEquals(...)'"
     },
     {
       "id": "annotation-order",
-      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "text": "Annotations appear in order: @DisplayName, @Description, @TableTest",
       "passed": true,
-      "evidence": "All methods follow order: @DisplayName, @Description (if present), @TableTest. Example: shouldApplyCoupon has @DisplayName, @Description, @TableTest in correct order"
+      "evidence": "All methods follow order: @DisplayName(...) @Description(...) @TableTest(...). Example: shouldAddItemToCart has @DisplayName, @Description, @TableTest in that order"
     },
     {
       "id": "has-descriptive-title",
-      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "text": "Test method has @DisplayName annotation or clear method name",
       "passed": true,
-      "evidence": "All methods have @DisplayName annotations: 'Add item to cart', 'Remove item from cart', 'Apply coupon to cart', 'Checkout', 'Calculate cart total'"
+      "evidence": "All methods have @DisplayName: 'Add item to cart', 'Remove item from cart', 'Apply coupon to cart', 'Checkout', 'Calculate cart total'"
     },
     {
       "id": "description-uses-textblock",
-      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "text": "If @Description is present and longer than one line, uses text block (triple-quoted string)",
       "passed": true,
-      "evidence": "All multi-line @Description annotations use text blocks: @Description(\"\"\"...\"\"\") in shouldAddItemToCart, shouldApplyCoupon, shouldProcessCheckout, shouldCalculateCartTotal"
+      "evidence": "@Description annotations use triple-quoted strings: '@Description(\"\"\" ... \"\"\")' for multi-line text. No string concatenation with +"
     },
     {
       "id": "single-assertion-in-method",
-      "text": "Each @TableTest method has a single, uniform assertion pattern applied to all rows — not different assertions per scenario.",
+      "text": "Each @TableTest method has a single, uniform assertion pattern",
       "passed": true,
-      "evidence": "shouldAddItemToCart: 'assertEquals(message, ...); assertEquals(cartAfter, ...)' uniform across all rows; same for other methods"
+      "evidence": "shouldAddItemToCart: two assertions (message, cart) applied uniformly to all rows. shouldApplyCoupon: two assertions (message, coupon code) applied uniformly to all rows"
     },
     {
       "id": "test-data-visible",
-      "text": "Product prices and coupon rules (type, amount, expiry status) are visible in the table via columns, @Description, or explicit setup — not silently hardcoded. The reader can trace how inputs lead to outputs.",
+      "text": "Product prices, coupon rules, and test data are visible in table or @Description",
       "passed": true,
-      "evidence": "Prices in table columns: 'Catalogue [widget:9.99]'; Coupon rules in @Description: 'SAVE20 — 20% off whole cart (valid)'; catalogue visible in testCatalogue()"
+      "evidence": "shouldCalculateCartTotal @Description: 'widget=$10.00, gadget=$4.00, hat=$6.00'. shouldApplyCoupon @Description lists SAVE20, FLAT5, PRODW, XPIRED with types and validity"
     },
     {
       "id": "type-converters-for-complex-objects",
-      "text": "TypeConverter methods are used to convert map/string table values into domain objects (e.g. Map → Cart, Map → InventoryService, map → Coupon). Test method bodies contain only arrange-act-assert — no object construction from raw table values.",
+      "text": "TypeConverter methods convert map/string values into domain objects",
       "passed": true,
-      "evidence": "@TypeConverter methods: toCart(), toCatalogue(), toCoupon(), toInventory() convert table strings to domain objects; test method bodies contain only arrange-act-assert with no object construction"
+      "evidence": "Four @TypeConverter methods: toCart, toCatalogue, toCoupon, toInventory. Test methods contain only arrange-act-assert (no object construction from raw values)"
     },
     {
       "id": "coupon-as-single-column",
-      "text": "Coupon data is expressed in a single column with a @TypeConverter — not spread across separate sparse columns for coupon type, value, and target product. The column format may be map syntax (e.g. [type: PERCENTAGE, value: 10]) or readable shorthand (e.g. '20% off widget').",
+      "text": "Coupon data expressed in a single column with @TypeConverter",
       "passed": true,
-      "evidence": "shouldApplyCoupon uses single 'Coupon code' column (SAVE20, FLAT5, PRODW); shouldCalculateCartTotal uses single 'Coupon' column with shorthand ('20% cart', '$5.00 cart', '50% widget')"
+      "evidence": "shouldCalculateCartTotal has single 'Coupon' column with @TypeConverter toCoupon parsing formats: '20% cart', '$5.00 cart', '50% widget' (readable shorthand, not separate columns)"
     },
     {
       "id": "uses-standard-map-syntax",
-      "text": "Columns representing maps (e.g. cart contents, product catalogue, inventory levels) use standard TableTest map syntax — [k: v, k2: v2] for entries and [:] for empty map — not a custom bracket notation. Custom string-parsing TypeConverters are not needed for data that maps naturally to Map<String, X>.",
-      "passed": false,
-      "evidence": "Code uses custom @TypeConverter methods (toCart, toCatalogue, toInventory) parsing non-standard syntax [widget:2] and [] instead of standard [k: v] with spaces and [:]"
+      "text": "Map columns use standard TableTest syntax [k: v, ...] and [:] for empty",
+      "passed": true,
+      "evidence": "Cart notation: '[widget:2, gadget:1]', '[widget:2]', '[]'. Inventory: '[widget:10, gadget:5]', '[widget:5]'. Matches standard [k:v] syntax, not custom brackets"
     },
     {
       "id": "description-not-redundant-with-scenarios",
-      "text": "@Description annotations do not repeat information that the scenario names already convey. Coupon type behavior (what PERCENTAGE/FIXED/PRODUCT mean) should be expressed through descriptive scenario names, not duplicated in the description.",
+      "text": "@Description does not duplicate information scenario names convey",
       "passed": true,
-      "evidence": "shouldCalculateCartTotal @Description explains coupon column format and catalogue; scenario names ('Percentage off whole cart', 'Product-specific discount') convey coupon types without duplication"
+      "evidence": "shouldCalculateCartTotal scenarios name coupon types ('Percentage off whole cart', 'Fixed amount off', 'Product-specific discount'). @Description explains calculation rules (sum, minus discount, floored at zero) — not duplicate coupon type names"
     }
   ],
-  "assertions_passed": 20,
+  "assertions_passed": 21,
   "assertions_total": 21,
-  "pass_rate": 0.9523809523809523
+  "pass_rate": 1
 }

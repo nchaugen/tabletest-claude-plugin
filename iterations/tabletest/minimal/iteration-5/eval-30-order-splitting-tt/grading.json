@@ -4,106 +4,112 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "@TableTest('''...''')' appears on all five test methods     },     {       'id': 'concerns-decomposed',       'text': 'Multiple @TableTest methods are used, each addressing a distinct concern',       'passed': true,       'evidence': 'Five methods: shouldSeparateByFulfillmentType, shouldSeparateByDeliveryAddress, shouldShipInStockItemsImmediately, shouldMinimiseShipmentCountAcrossWarehouses, shouldKeepCompanionProductsTogether"
+      "evidence": "@TableTest('''...' appears in all five test methods     },     {       'id': 'concerns-decomposed',       'text': 'Multiple @TableTest methods are used, each addressing a distinct concern',       'passed': true,       'evidence': 'Five @TableTest methods: shouldSeparateByFulfillmentType, shouldSeparateByDeliveryAddress, shouldShipInStockItemsImmediately, shouldMinimiseShipmentCountAcrossWarehouses, shouldKeepCompanionProductsTogether"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing all splitting rules.",
+      "passed": false,
+      "evidence": "Not graded"
     },
     {
       "id": "minimal-rows-per-concern",
       "text": "Each @TableTest has only the rows needed to express its concern's rules",
       "passed": true,
-      "evidence": "Fulfillment:4 rows, Address:4 rows, Availability:5 rows, Warehouse:4 rows, Companion:4 rows"
+      "evidence": "Each method has 4-5 rows: fulfillment (4), address (4), availability (5), warehouse (4), companion (4)"
     },
     {
       "id": "concern-fulfillment-method",
       "text": "Fulfillment method splitting is represented as its own @TableTest",
       "passed": true,
-      "evidence": "shouldSeparateByFulfillmentType tests [DELIVERY, PICKUP] separation"
+      "evidence": "shouldSeparateByFulfillmentType tests DELIVERY vs PICKUP separation with 'Fulfillment types?' output"
     },
     {
       "id": "concern-delivery-address",
       "text": "Delivery address splitting is represented as its own @TableTest",
       "passed": true,
-      "evidence": "shouldSeparateByDeliveryAddress tests addr1, addr2, addr3 combinations"
+      "evidence": "shouldSeparateByDeliveryAddress tests different addresses with 'Same address' through 'Two same, one different' scenarios"
     },
     {
       "id": "concern-availability",
       "text": "Availability splitting is represented as its own @TableTest",
       "passed": true,
-      "evidence": "shouldShipInStockItemsImmediately tests IN_STOCK, BACKORDERED, PRE_ORDER"
+      "evidence": "shouldShipInStockItemsImmediately with 'Immediate products?' and 'Delayed products?' columns testing IN_STOCK vs BACKORDERED/PRE_ORDER"
     },
     {
       "id": "concern-warehouse-allocation",
       "text": "Warehouse allocation is represented as its own @TableTest",
       "passed": true,
-      "evidence": "shouldMinimiseShipmentCountAcrossWarehouses tests W1, W2 combinations"
+      "evidence": "shouldMinimiseShipmentCountAcrossWarehouses with 'Shipment count?' and 'Warehouses used?' columns"
     },
     {
       "id": "concern-companion-products",
       "text": "Companion product grouping is represented as its own @TableTest",
       "passed": true,
-      "evidence": "shouldKeepCompanionProductsTogether encodes companions via 5th field /cam"
+      "evidence": "shouldKeepCompanionProductsTogether with 'Together?' boolean column testing companion group co-location"
     },
     {
       "id": "all-outputs-same-table",
-      "text": "Each @TableTest includes all output columns for its concern",
+      "text": "Each @TableTest includes all output columns for its concern in the same table",
       "passed": true,
-      "evidence": "Warehouse test has [Shipment count?, Warehouses used?] in one table"
+      "evidence": "Warehouse allocation includes both 'Shipment count?' and 'Warehouses used?' in single table; availability includes 'Immediate products?' and 'Delayed products?' together"
     },
     {
       "id": "scalar-quantity-for-warehouse",
-      "text": "Warehouse allocation uses scalar quantity, not item lists",
+      "text": "Warehouse allocation table uses scalar quantity columns",
       "passed": true,
-      "evidence": "Inventory format 'W1/p1/5/IN_STOCK' and Order 'p1/1' are scalars"
+      "evidence": "Warehouse tests use scalar format 'W1/p1/5/IN_STOCK' not item lists; inventory is 'W1/p1/5/IN_STOCK ; W1/p2/5/IN_STOCK'"
     },
     {
       "id": "scenario-column-present",
-      "text": "Table has scenario column as leftmost column",
+      "text": "Table has a scenario/description column as the leftmost column",
       "passed": true,
-      "evidence": "All tables begin with '| Scenario |'"
+      "evidence": "All tables have 'Scenario' as first column: 'Scenario | Order | Shipment count?...'"
     },
     {
       "id": "has-question-mark-column",
-      "text": "At least one output column ends with '?'",
+      "text": "At least one output column name ends with '?'",
       "passed": true,
-      "evidence": "Shipment count?, Fulfillment types?, Immediate products?, Delayed products?, Warehouses used?, Together?"
+      "evidence": "'Shipment count?' appears in multiple tables; 'Warehouses used?', 'Fulfillment types?', 'Immediate products?', 'Delayed products?', 'Together?' all end with '?'"
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe business situations",
+      "text": "Scenario names describe the business situation",
       "passed": true,
-      "evidence": "'One warehouse covers all', 'Full warehouse preferred over partial', 'In-stock not held for backordered'"
+      "evidence": "'All delivery, same address', 'One delivery, one pickup', 'Two warehouses preferred over three', 'Consolidate to warehouse with both' describe conditions"
     },
     {
       "id": "business-language-columns",
       "text": "Column names use business/domain language",
       "passed": true,
-      "evidence": "Shipment count?, Warehouses used?, Fulfillment types?, Together? — domain terms"
+      "evidence": "'Shipment count?', 'Fulfillment types?', 'Warehouses used?', 'Together?' use domain terminology not technical jargon"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method body contains no if or switch statements",
       "passed": true,
-      "evidence": "Methods use assertEquals() and for-each loops, but no if/switch"
+      "evidence": "All five test methods contain only assertEquals/assertions and no if/switch logic in the method bodies"
     },
     {
       "id": "annotation-order",
-      "text": "Annotations in order: @DisplayName, @Description, @TableTest",
+      "text": "Annotations appear in correct order: @DisplayName, @Description, @TableTest",
       "passed": true,
-      "evidence": "All five methods follow @DisplayName, @Description, @TableTest order"
+      "evidence": "shouldSeparateByFulfillmentType: '@DisplayName...@Description...@TableTest' appears in correct order; same for all other methods"
     },
     {
       "id": "has-descriptive-title",
-      "text": "Test method has @DisplayName or clear method name",
+      "text": "Test method has descriptive title via @DisplayName or method name",
       "passed": true,
-      "evidence": "@DisplayName('Fulfillment type partitioning') + shouldSeparateByFulfillmentType"
+      "evidence": "'Fulfillment type partitioning', 'Delivery address partitioning', 'Stock availability partitioning', 'Warehouse combination optimisation', 'Companion product grouping' are in @DisplayName"
     },
     {
       "id": "description-uses-textblock",
-      "text": "Multi-line @Description uses text block, not concatenation",
+      "text": "If @Description is present and longer than one line, uses text block (triple quotes)",
       "passed": true,
-      "evidence": "Companion products uses @Description(\\\\'\\\\'\\\\'...\\\\'\\\\'\\\\')"
+      "evidence": "shouldKeepCompanionProductsTogether uses @Description('''...multi-line...''') for multi-line description; single-line descriptions use regular strings"
     }
   ],
   "assertions_passed": 17,
-  "assertions_total": 17,
-  "pass_rate": 1
+  "assertions_total": 18,
+  "pass_rate": 0.9444444444444444
 }

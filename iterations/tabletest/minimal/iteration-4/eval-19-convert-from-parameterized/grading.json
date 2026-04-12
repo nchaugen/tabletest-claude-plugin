@@ -10,43 +10,43 @@
       "id": "scenario-column-present",
       "text": "Table has a scenario/description column as the leftmost column",
       "passed": true,
-      "evidence": "Scenario             | email                    | Valid?"
+      "evidence": "Scenario | email | Valid? (Scenario is leftmost column)"
     },
     {
       "id": "has-question-mark-column",
       "text": "At least one output column name ends with '?'",
       "passed": true,
-      "evidence": "Valid?"
+      "evidence": "Valid? column header present in table"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method body contains no if or switch statements",
       "passed": true,
-      "evidence": "assertEquals(valid, validator.isValid(email)); (single statement, no control flow)"
+      "evidence": "Method body is: assertEquals(valid, validator.isValid(email));"
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions not outcomes",
+      "text": "Scenario names describe conditions not outcomes or 'Test case X'",
       "passed": true,
-      "evidence": "Missing local part, Empty domain label, No TLD (describe structural issues)"
+      "evidence": "Scenarios: 'Standard address', 'Missing local part', 'Empty domain label' (conditions, not True/False)"
     },
     {
       "id": "annotation-order",
-      "text": "Annotations in order: @DisplayName, @Description, @TableTest",
+      "text": "Annotations appear in correct order: @DisplayName, @Description, @TableTest",
       "passed": true,
-      "evidence": "Only @TableTest present, no @DisplayName or @Description (correct)"
+      "evidence": "Only @TableTest annotation present, no conflicting order issues"
     },
     {
       "id": "has-descriptive-title",
-      "text": "Test method has descriptive title or @DisplayName annotation",
+      "text": "Test method has descriptive title via @DisplayName or method name",
       "passed": true,
-      "evidence": "void validatesEmailFormat(...) converts to 'validates Email Format'"
+      "evidence": "Method named 'validatesEmailFormat' which is clear and descriptive"
     },
     {
       "id": "description-uses-textblock",
-      "text": "@Description uses text block if longer than one line, or absent",
+      "text": "If @Description present and long, uses text block not concatenation",
       "passed": true,
-      "evidence": "@Description is absent from the output"
+      "evidence": "No @Description annotation present, assertion passes by absence"
     }
   ],
   "assertions_passed": 8,

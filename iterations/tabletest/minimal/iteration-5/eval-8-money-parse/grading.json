@@ -4,79 +4,79 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "@TableTest(\"\"\"...\"\"\") appears twice, in parsesInput and rejectsInvalidInput methods"
+      "evidence": "@TableTest(\"\"\"...\"\"\")"
     },
     {
       "id": "null-as-blank-cell",
       "text": "Null input is represented as a blank cell in the valid inputs @TableTest table (not the string 'null', and not as a separate @Test method). The blank cell maps to a null parameter.",
       "passed": true,
-      "evidence": "Null input row shows: 'Null input    |       |' with blank cells"
+      "evidence": "Null input row has blank cells: 'Null input    |       |' with assertEquals(null, ...)"
     },
     {
       "id": "exception-has-expected-column",
       "text": "The exception/invalid-input table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row — rather than hardcoding the exception type in @Description or the method name.",
       "passed": true,
-      "evidence": "Throws? column with java.lang.IllegalArgumentException per row"
+      "evidence": "| Throws? column with java.lang.IllegalArgumentException per row"
     },
     {
       "id": "exception-cases-handled",
       "text": "The exception cases (empty string, letters-only, negative) are handled — via a Throws? column, assertThrows in the method body, or a separate @TableTest — not silently omitted",
       "passed": true,
-      "evidence": "All three cases present: Empty string, Letters only, Negative value in rejectsInvalidInput"
+      "evidence": "rejectsInvalidInput table covers Empty string, Letters only, Negative value with assertThrows"
     },
     {
       "id": "result-column-with-question-mark",
       "text": "Valid inputs have a result column name ending with '?' (e.g. 'Money?' or 'Result?')",
       "passed": true,
-      "evidence": "Valid inputs table has Money? column"
+      "evidence": "| Money? column in parsesInput table"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method body contains no if or switch statements",
       "passed": true,
-      "evidence": "parsesInput: assertEquals(...); rejectsInvalidInput: assertThrows(...) — no conditionals"
+      "evidence": "parsesInput body is 'assertEquals(expected, parse(input));', rejectsInvalidInput is 'assertThrows(throws_, ...)'"
     },
     {
       "id": "has-descriptive-title",
       "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'moneyParsing' → 'Money Parsing'). Not a generic name like 'test1' or 'testMethod'.",
       "passed": true,
-      "evidence": "Method names: parsesInput → 'Parses Input', rejectsInvalidInput → 'Rejects Invalid Input'"
+      "evidence": "Method names 'parsesInput' and 'rejectsInvalidInput' are descriptive"
     },
     {
       "id": "description-if-present-adds-information",
       "text": "If @Description is present, it provides context beyond what the table rows already express — such as the expected currency format, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context.",
       "passed": true,
-      "evidence": "No @Description annotations present; tables convey context clearly"
+      "evidence": "No @Description present; table is self-explanatory with clear column names"
     },
     {
       "id": "annotation-order",
       "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
       "passed": true,
-      "evidence": "Only @TableTest annotations used; correct order maintained"
+      "evidence": "@TableTest appears as the only annotation before each method"
     },
     {
       "id": "description-uses-textblock",
       "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
       "passed": true,
-      "evidence": "@Description absent, so assertion passes per rules"
+      "evidence": "@Description is absent, so assertion passes by default"
     },
     {
       "id": "concerns-decomposed",
       "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
       "passed": true,
-      "evidence": "Two separate methods: parsesInput (valid) and rejectsInvalidInput (exceptions)"
+      "evidence": "Two separate @TableTest methods: parsesInput for valid cases, rejectsInvalidInput for exceptions"
     },
     {
       "id": "minimal-rows-per-concern",
       "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
       "passed": true,
-      "evidence": "Valid table: 3 rows (typical, minimum, null); Invalid table: 3 rows (empty, letters, negative)"
+      "evidence": "parsesInput: 3 rows (valid, boundary, null); rejectsInvalidInput: 3 rows (empty, letters, negative)"
     },
     {
       "id": "separates-valid-and-invalid",
       "text": "Valid parsing cases and error/exception cases are in separate @TableTest methods",
       "passed": true,
-      "evidence": "parsesInput handles valid cases; rejectsInvalidInput handles exceptions"
+      "evidence": "parsesInput for valid cases; rejectsInvalidInput for error cases"
     }
   ],
   "assertions_passed": 13,

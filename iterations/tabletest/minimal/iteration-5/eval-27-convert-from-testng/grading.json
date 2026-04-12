@@ -4,94 +4,94 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "@TableTest('''...''')' appears in baseRateByZoneAndWeight, dimensionalWeightOverride, surcharges, and carrierAgnosticPricing methods"
+      "evidence": "@TableTest(\"\"\" Scenario | Zone | Weight | Dimensions..."
     },
     {
       "id": "options-as-map",
-      "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells.",
+      "text": "Package options collapsed into single map column like [fragile: true, insuredValue: 500]",
       "passed": false,
-      "evidence": "surcharges table has three separate columns: 'Fragile | Insured Value | Handling' instead of one collapsed options map"
+      "evidence": "Surcharges table has separate columns: Fragile | Insured Value | Handling, not a map column"
     },
     {
       "id": "options-type-converter",
-      "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.",
+      "text": "A @TypeConverter method present accepting Map<String, String> returning PackageOptions",
       "passed": false,
-      "evidence": "Only @TypeConverter present is for ShippingZone; no PackageOptions converter from Map exists"
+      "evidence": "Only parseShippingZone @TypeConverter exists; no @TypeConverter for PackageOptions"
     },
     {
       "id": "dimensions-as-list",
-      "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns",
+      "text": "Dimensions represented as [L, W, H] list in table",
       "passed": true,
-      "evidence": "Dimensions column shows '[20, 15, 10]', '[30, 20, 15]' etc. as lists in all tables"
+      "evidence": "All tables show dimensions as [20, 15, 10], [30, 20, 15], etc."
     },
     {
       "id": "uses-value-sets",
-      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence, rather than duplicating rows per carrier",
+      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX} for carrier equivalence",
       "passed": false,
-      "evidence": "carrierAgnosticPricing table has three separate rows with individual Carrier values, not {DHL, UPS, FEDEX} syntax"
+      "evidence": "carrierAgnosticPricing has three separate rows (DHL, UPS, FEDEX), not collapsed with {DHL, UPS, FEDEX} syntax"
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence",
+      "text": "Multiple @TableTest methods each addressing distinct concern",
       "passed": true,
-      "evidence": "Four methods: baseRateByZoneAndWeight, dimensionalWeightOverride, surcharges, carrierAgnosticPricing"
+      "evidence": "Four @TableTest methods: baseRateByZoneAndWeight, dimensionalWeightOverride, surcharges, carrierAgnosticPricing"
     },
     {
       "id": "numeric-types-correct",
-      "text": "Weight and cost parameters use BigDecimal (not double or String). Dimensions use Integer or int.",
+      "text": "Weight and cost use BigDecimal; dimensions use Integer or int",
       "passed": true,
-      "evidence": "Signatures show 'BigDecimal weight', 'List<Integer> dimensions', 'BigDecimal cost'"
+      "evidence": "Weight: BigDecimal, Cost?: BigDecimal, Dimensions: List<Integer>"
     },
     {
       "id": "scenario-column-present",
-      "text": "Each table has a scenario/description column as the leftmost column",
+      "text": "Each table has scenario/description column as leftmost column",
       "passed": true,
-      "evidence": "All tables begin with 'Scenario |' as first column"
+      "evidence": "All tables start with 'Scenario' column: 'EU standard light', 'Large dims override weight', etc."
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1').",
+      "text": "Scenario names describe conditions, not outcomes or generic labels",
       "passed": true,
-      "evidence": "Scenarios like 'EU standard light', 'Large dims override weight', 'Fragile and insured' describe conditions"
+      "evidence": "'EU express light', 'Fragile and insured', 'Oversized with fragile' describe conditions"
     },
     {
       "id": "has-question-mark-column",
-      "text": "At least one output column name ends with '?' (e.g. 'Cost?', 'Base rate?')",
+      "text": "At least one output column name ends with '?'",
       "passed": true,
-      "evidence": "'Cost?' appears as final column header in all four @TableTest tables"
+      "evidence": "All tables have 'Cost?' column as output"
     },
     {
       "id": "business-language-columns",
-      "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')",
+      "text": "Column names use domain language, not code identifiers",
       "passed": true,
-      "evidence": "Column headers: 'Zone', 'Weight', 'Dimensions', 'Carrier', 'Cost?' use business terms, not camelCase"
+      "evidence": "'Zone', 'Weight', 'Dimensions', 'Carrier', 'Cost?' used throughout"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method bodies contain no if or switch statements",
       "passed": false,
-      "evidence": "surcharges method contains: 'if (fragile)...', 'if (insuredValue != null)...', 'if (handling != null)...'"
+      "evidence": "surcharges method contains: if (fragile) opts.setFragile(true); if (insuredValue != null)..."
     },
     {
       "id": "annotation-order",
-      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
-      "passed": true,
-      "evidence": "Only @TableTest annotations used, appearing in correct position before method signature"
+      "text": "Annotations in order: @DisplayName, @Description, @TableTest",
+      "passed": false,
+      "evidence": "No @DisplayName or @Description annotations present; only @TableTest and @TypeConverter"
     },
     {
       "id": "has-descriptive-title",
-      "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "text": "Each test method has @DisplayName or descriptive method name",
       "passed": true,
-      "evidence": "Method names: 'baseRateByZoneAndWeight', 'dimensionalWeightOverride', 'surcharges', 'carrierAgnosticPricing' are descriptive"
+      "evidence": "Method names: baseRateByZoneAndWeight, dimensionalWeightOverride, surcharges, carrierAgnosticPricing"
     },
     {
       "id": "no-testng-artifacts",
-      "text": "Output contains no TestNG syntax: no @DataProvider, @Test(dataProvider=...), Object[][], or TestNG imports (org.testng.*).",
+      "text": "Output contains no TestNG syntax (@DataProvider, @Test(dataProvider=...), Object[][], TestNG imports)",
       "passed": true,
-      "evidence": "Imports are only org.tabletest.junit and org.junit.jupiter; no org.testng.* present"
+      "evidence": "Imports use org.tabletest.junit and org.junit.jupiter.api; no org.testng.* imports"
     }
   ],
-  "assertions_passed": 11,
+  "assertions_passed": 10,
   "assertions_total": 15,
-  "pass_rate": 0.7333333333333333
+  "pass_rate": 0.6666666666666666
 }

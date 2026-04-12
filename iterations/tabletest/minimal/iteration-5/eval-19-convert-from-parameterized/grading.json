@@ -4,7 +4,7 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "@TableTest(\"\"\"...\"\"\")"
+      "evidence": "@TableTest(\"\"\" ... \"\"\")"
     },
     {
       "id": "scenario-column-present",
@@ -16,37 +16,37 @@
       "id": "has-question-mark-column",
       "text": "At least one output column name ends with '?'",
       "passed": true,
-      "evidence": "Valid? column header"
+      "evidence": "Valid? (column header ends with '?')"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method body contains no if or switch statements",
       "passed": true,
-      "evidence": "assertEquals(valid, validator.isValid(email));"
+      "evidence": "Method body: assertEquals(valid, validator.isValid(email));"
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions — not outcomes or 'Test case X'",
+      "text": "Scenario names describe conditions not outcomes or 'Test case N'",
       "passed": true,
-      "evidence": "Missing local part, Standard address, No TLD describe conditions"
+      "evidence": "'Standard address', 'Missing local part', 'Missing domain label', 'No TLD'"
     },
     {
       "id": "annotation-order",
-      "text": "Annotations appear in order: @DisplayName, @Description, @TableTest",
+      "text": "Annotations appear in correct order: @DisplayName, @Description, @TableTest",
       "passed": true,
-      "evidence": "Only @TableTest present, correct relative order maintained"
+      "evidence": "Only @TableTest present; correct order maintained"
     },
     {
       "id": "has-descriptive-title",
       "text": "Test method has descriptive title via @DisplayName or method name",
       "passed": true,
-      "evidence": "Method name: validatesEmail (reads as clear title)"
+      "evidence": "Method name 'validatesEmail' is descriptive and clear"
     },
     {
       "id": "description-uses-textblock",
-      "text": "If @Description present, uses text block not concatenation",
+      "text": "@Description uses text block (triple-quoted) not concatenation; passes if absent",
       "passed": true,
-      "evidence": "@Description not present, rule passes per specification"
+      "evidence": "@Description not present in output; assertion passes"
     }
   ],
   "assertions_passed": 8,

@@ -4,61 +4,61 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "@TableTest(\"\"\" ... \"\"\")"
+      "evidence": "Found @TableTest annotation"
     },
     {
       "id": "has-question-mark-column",
       "text": "Table has at least one column name ending with '?' (e.g. 'Discount?' or 'Expected?')",
       "passed": true,
-      "evidence": "Scenario | Customer tier | Discount?"
+      "evidence": "Question-mark columns: Discount?"
     },
     {
       "id": "has-three-data-rows",
       "text": "Table has exactly 3 data rows (GOLD, SILVER, BRONZE)",
       "passed": true,
-      "evidence": "Gold customer | GOLD | 20; Silver customer | SILVER | 10; Bronze customer | BRONZE | 0"
+      "evidence": "Found 3 data row(s)"
     },
     {
       "id": "single-assertion-in-method",
       "text": "Test method body contains only one assertEquals (or equivalent assertion) — not three",
       "passed": true,
-      "evidence": "assertEquals(discount, discountService.calculate(customerTier, 100));"
+      "evidence": "1 method(s) each have at most 1 assertion"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method body contains no if or switch statements",
       "passed": true,
-      "evidence": "Method body contains only a single assertEquals; no control flow"
+      "evidence": "1 method(s) checked — no if/switch/ternary"
     },
     {
       "id": "scenario-column-present",
       "text": "Table has a scenario/description column as the leftmost column",
       "passed": true,
-      "evidence": "Scenario | Customer tier | Discount? (Scenario is leftmost)"
+      "evidence": "First column(s): \"Scenario\""
     },
     {
       "id": "has-descriptive-title",
       "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case",
       "passed": true,
-      "evidence": "Method name 'calculatesDiscount' converts to 'Calculates Discount'"
+      "evidence": "Method name 'calculatesDiscount' converts to 'Calculates Discount', a clear descriptive title"
     },
     {
       "id": "description-if-present-adds-information",
-      "text": "If @Description is present, it provides context beyond what the table rows already express — such as fixed values shared by all rows, where/when the rule applies, or open questions",
+      "text": "If @Description is present, it provides context beyond what the table rows already express",
       "passed": true,
-      "evidence": "@Description(\"Order value is 100 for all scenarios.\") conveys fixed input"
+      "evidence": "@Description(\"Order value is 100 for all scenarios.\") documents the fixed value not shown as a column"
     },
     {
       "id": "annotation-order",
-      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
       "passed": true,
-      "evidence": "@Description ... @TableTest (correct order, no @DisplayName)"
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
     },
     {
       "id": "description-uses-textblock",
       "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
       "passed": true,
-      "evidence": "@Description text is single short line; textblock requirement N/A"
+      "evidence": "@Description uses text block or is short single-line"
     }
   ],
   "assertions_passed": 10,

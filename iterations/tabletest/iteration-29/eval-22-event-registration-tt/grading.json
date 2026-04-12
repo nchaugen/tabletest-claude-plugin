@@ -4,142 +4,142 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "Two @TableTest methods present: shouldValidateRegistration and shouldApplyPricing, each with @TableTest(...) annotation."
+      "evidence": "@TableTest(\"\"\"...\"\"\")"
     },
     {
       "id": "validation-rules-covered",
       "text": "Email validation and name-required error scenarios are present — at least one row for invalid email and one for missing name.",
       "passed": true,
-      "evidence": "Validation table includes 'Name is null' → 'Name is required' and 'Email missing @ symbol' → 'Invalid email format'."
+      "evidence": "Rows: 'Name is null', 'Email is null', 'Email missing @ symbol', 'Email with no domain part'"
     },
     {
       "id": "blank-for-absent-optional",
-      "text": "Dietary requirements and/or accessibility needs use blank cells (null) when not provided — not 'N/A' or 'none'. These are genuinely optional and absent.",
+      "text": "Dietary requirements and/or accessibility needs use blank cells (null) when not provided — not 'N/A' or 'none'.",
       "passed": true,
-      "evidence": "Validation table shows blank cells for Dietary Reqs and Accessibility columns in 'Valid, no optional fields' row."
+      "evidence": "Columns show blank cells: 'Valid, no optional fields' has empty entries for Dietary Reqs and Accessibility"
     },
     {
       "id": "blank-vs-value-set-correct",
-      "text": "When testing pricing rules, irrelevant inputs (e.g. dietary requirements don't affect price) use value sets or representative values — not blanks (which mean null). Blanks are reserved for genuinely absent/null inputs.",
+      "text": "When testing pricing rules, irrelevant inputs (e.g. dietary requirements don't affect price) use value sets or representative values — not blanks.",
       "passed": true,
-      "evidence": "Pricing table correctly omits dietary/accessibility columns entirely as they are irrelevant to pricing concern."
+      "evidence": "Pricing table passes null: 'service.register(\"John Smith\", \"john@example.com\", null, null, registrationDate, groupSize)'"
     },
     {
       "id": "scenario-column-present",
       "text": "Table has a scenario/description column as the leftmost column",
       "passed": true,
-      "evidence": "'Scenario' is the leftmost column in both validation and pricing tables."
+      "evidence": "First column in both tables: 'Scenario'"
     },
     {
       "id": "has-question-mark-column",
       "text": "At least one output column name ends with '?' (e.g. 'Result?', 'Price?')",
       "passed": true,
-      "evidence": "Multiple output columns end with ?: 'Accepted?', 'Error Message?', 'Final Price?'"
+      "evidence": "'Accepted?', 'Error Message?', 'Final Price?'"
     },
     {
       "id": "business-language-columns",
-      "text": "Column names use domain/business language (e.g. 'Name', 'Email', 'Registration date', 'Group size', 'Price?') — not code identifiers.",
+      "text": "Column names use domain/business language — not code identifiers.",
       "passed": true,
-      "evidence": "All columns use business terms: Name, Email, Dietary Reqs, Accessibility, Registration Date, Group Size, not camelCase identifiers."
+      "evidence": "'Name', 'Email', 'Dietary Reqs', 'Registration Date', 'Group Size', 'Final Price?'"
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions ('Early-bird single attendee', 'Missing name') — not outcomes ('Rejected', '20% off').",
+      "text": "Scenario names describe conditions — not outcomes.",
       "passed": true,
-      "evidence": "All scenarios describe conditions: 'Email missing @ symbol', 'Group of 5, discount applies', 'Both apply, early-bird wins'—describing inputs/situations, not results."
+      "evidence": "'Valid, no optional fields', 'Early-bird, day before cutoff', 'Group of 5, discount applies'"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method body contains no if or switch statements",
       "passed": true,
-      "evidence": "Both shouldValidateRegistration and shouldApplyPricing contain only service calls and assertions; no conditional logic."
+      "evidence": "Validation method: 'assertEquals(accepted, result.isAccepted());' with no conditionals"
     },
     {
       "id": "annotation-order",
-      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "text": "Annotations appear in order: @DisplayName, @Description, @TableTest",
       "passed": true,
-      "evidence": "Both methods use order: @DisplayName, @Description, @TableTest."
+      "evidence": "shouldValidateRegistration: '@DisplayName', '@Description(\"\"\"...\"\"\")', '@TableTest'"
     },
     {
       "id": "has-descriptive-title",
-      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "text": "Test method has either a @DisplayName annotation or a clear, descriptive method name.",
       "passed": true,
-      "evidence": "@DisplayName annotations: 'Registration validation' and 'Registration pricing' are clear, descriptive titles."
+      "evidence": "@DisplayName(\"Registration validation\") and @DisplayName(\"Registration pricing\")"
     },
     {
       "id": "description-uses-textblock",
-      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "text": "If @Description is present and longer than a single line, it uses a text block (triple-quoted string), not string concatenation.",
       "passed": true,
-      "evidence": "Both @Description annotations use triple-quoted text blocks (\"\"\"...\"\"\") for multi-line content."
+      "evidence": "@Description(\"\"\"...\"\"\")"
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "text": "Multiple tables are used, each addressing a distinct concern — validation vs pricing.",
       "passed": true,
-      "evidence": "Two separate @TableTest methods: shouldValidateRegistration (validation) and shouldApplyPricing (pricing/discounts)."
+      "evidence": "Two separate methods: 'shouldValidateRegistration' and 'shouldApplyPricing'"
     },
     {
       "id": "minimal-rows-per-concern",
-      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations.",
       "passed": true,
-      "evidence": "Validation: 8 focused rows on name/email/optional field acceptance. Pricing: 6 rows covering early-bird, group, and both discounts. No redundant permutations."
+      "evidence": "Validation has 8 rows; pricing has 6 rows — focused on boundary cases, not Cartesian product"
     },
     {
       "id": "separates-validation-and-pricing",
       "text": "Input validation and pricing/discount calculation are in separate @TableTest methods",
       "passed": true,
-      "evidence": "shouldValidateRegistration tests validation; shouldApplyPricing tests pricing. Completely separate methods."
+      "evidence": "shouldValidateRegistration and shouldApplyPricing are separate methods"
     },
     {
       "id": "validation-includes-optional-fields",
-      "text": "Validation @TableTest includes Dietary Requirements and Accessibility Needs columns, with rows showing both null (blank) and non-null values are accepted — not hardcoded as null in the method body.",
+      "text": "Validation @TableTest includes Dietary Requirements and Accessibility Needs columns, with rows showing both null and non-null values are accepted — not hardcoded as null.",
       "passed": true,
-      "evidence": "Validation table includes 'Dietary Reqs' and 'Accessibility' columns; rows show both blank (null) and values like 'Vegetarian' and 'Wheelchair', all accepted."
+      "evidence": "Validation table has columns 'Dietary Reqs' and 'Accessibility', with rows 'With dietary requirements' and 'With accessibility needs' showing non-null accepted"
     },
     {
       "id": "descriptive-registration-date",
-      "text": "Registration date uses descriptive values (e.g. 'before cutoff', 'on cutoff', 'after cutoff') with a @TypeConverter method converting to actual dates — not raw date literals like '2025-02-28'. Readability over precision.",
+      "text": "Registration date uses descriptive values with @TypeConverter, not raw date literals.",
       "passed": false,
-      "evidence": "Pricing table uses literal date values '2025-02-28', '2025-03-01', '2025-05-01' instead of descriptive terms."
+      "evidence": "Pricing table uses literal dates '2025-05-01', '2025-02-28', '2025-03-01' instead of descriptive labels like 'before cutoff'"
     },
     {
       "id": "cutoff-date-column-if-literal-dates",
-      "text": "If registration dates are literal (e.g. '2025-02-28' instead of descriptive), the early-bird cutoff date appears as a separate policy column so the reader can see both dates and verify the comparison. Passes automatically if descriptive date values are used.",
+      "text": "If registration dates are literal, the early-bird cutoff date appears as a separate policy column.",
       "passed": false,
-      "evidence": "Uses literal dates (2025-02-28, 2025-03-01) but pricing table has only 'Registration Date' column; lacks cutoff date policy column for comparison."
+      "evidence": "Literal dates used but no separate cutoff-date column; cutoff only mentioned in @Description text"
     },
     {
       "id": "description-no-irrelevant-information",
-      "text": "If @Description is present, it does not include information that is already visible in the table columns or that can be derived from the table structure — such as fixed input values that could be columns, or restating the discount rules that the rows already demonstrate.",
+      "text": "@Description does not include information already visible in table columns or derived from table structure.",
       "passed": false,
-      "evidence": "Pricing @Description restates 'Early-bird (before 2025-03-01): 20% off → £80' and 'Group (5 or more): 15% off → £85'—rules rows already demonstrate."
+      "evidence": "@Description states 'Base price is £100... Early-bird (before 2025-03-01): 20% off → £80' which restates discount rules demonstrated in rows"
     },
     {
       "id": "discount-column-preferred",
-      "text": "Output column is 'Discount?' (percentage or amount off) rather than 'Price?' — making verification simpler (discount is the rule's direct output; price requires knowing the base price). If 'Price?' is used instead, both 'Base price' and 'Price?' columns must be present so the reader can trace the calculation.",
+      "text": "Output column is 'Discount?' (percentage or amount off) rather than 'Price?' — or if 'Price?' is used, both 'Base price' and 'Price?' columns are present.",
       "passed": false,
-      "evidence": "Uses 'Final Price?' output but no 'Base price' input column in table. Base price mentioned only in @Description ('£100')."
+      "evidence": "Column is 'Final Price?' but no 'Base price' column present to trace calculation"
     },
     {
       "id": "single-assertion-in-method",
-      "text": "Each @TableTest method has a single, uniform assertion pattern applied to all rows — not different assertions per scenario. Validation checks one thing (e.g. error message or acceptance status); pricing checks one thing (e.g. discount or price). No if/switch in assertion logic.",
+      "text": "Each @TableTest method has a single, uniform assertion pattern applied to all rows.",
       "passed": true,
-      "evidence": "shouldValidateRegistration: uniform pair (assertEquals accepted, assertEquals errorMessage). shouldApplyPricing: uniform pair (assertTrue accepted, assertEquals price). No conditionals."
+      "evidence": "Validation: 'assertEquals(accepted, result.isAccepted()); assertEquals(errorMessage, result.getErrorMessage());' uniform across all rows"
     },
     {
       "id": "optional-fields-has-expected-column",
-      "text": "The optional-fields acceptance table includes an expectation/output column (e.g. 'Approved?', 'Result?', or 'Status?') asserting that each combination is accepted — not just varying inputs without any expected column.",
+      "text": "The optional-fields acceptance table includes an expectation/output column asserting that each combination is accepted.",
       "passed": true,
-      "evidence": "Validation table includes 'Accepted?' and 'Error Message?' output columns asserting acceptance for optional-field combinations."
+      "evidence": "Validation table has 'Accepted?' output column with true values for rows with optional fields"
     },
     {
       "id": "description-no-redundant-field-values",
-      "text": "Scenario descriptions do not include specific field values that are already visible in the table or that serve as 'any valid value' placeholders. Stating 'name: John, email: john@example.com, registration date: 2025-04-01' in a description adds maintenance burden without value — it suffices to say 'valid values supplied' or describe the scenario condition. Applies to all tables.",
-      "passed": true,
-      "evidence": "All scenario names describe conditions only ('Name is null', 'Both apply, early-bird wins'), never listing specific field values like 'name: John'."
+      "text": "Scenario descriptions do not include specific field values already visible in the table.",
+      "passed": false,
+      "evidence": "@Description for pricing states 'Name (\"John Smith\") and email (\"john@example.com\") are fixed valid values' — these field identities are already obvious from the test body"
     }
   ],
-  "assertions_passed": 19,
+  "assertions_passed": 18,
   "assertions_total": 23,
-  "pass_rate": 0.8260869565217391
+  "pass_rate": 0.782608695652174
 }

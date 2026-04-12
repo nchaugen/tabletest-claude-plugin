@@ -4,70 +4,70 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "@TableTest(\"\"\"...\"\"\")"
+      "evidence": "@TableTest(\"\"\"..."
     },
     {
       "id": "uses-value-sets",
       "text": "Table uses value-set syntax (curly braces like {READ, WRITE} or {READ, WRITE, DELETE}) to express rules that hold across multiple actions",
       "passed": false,
-      "evidence": "All rows use explicit single actions (READ, WRITE, DELETE), no curly braces like {READ, WRITE, DELETE}"
+      "evidence": "Table uses individual rows (ADMIN | READ | true, ADMIN | WRITE | true, etc.) without curly brace value-set syntax"
     },
     {
       "id": "fewer-than-nine-rows",
-      "text": "Table has fewer than 9 data rows (i.e. does not enumerate every role/action combination individually)",
+      "text": "Table has fewer than 9 data rows",
       "passed": false,
-      "evidence": "Exactly 9 data rows: Admin reads, Admin writes, Admin deletes, User reads, User writes, User cannot delete, Guest reads, Guest cannot write, Guest cannot delete"
+      "evidence": "Table contains exactly 9 data rows from 'Admin reads' through 'Guest cannot delete'"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method body contains no if or switch statements",
       "passed": true,
-      "evidence": "assertEquals(allowed, checker.canPerform(role, action))"
+      "evidence": "Method body is: assertEquals(allowed, checker.canPerform(role, action));"
     },
     {
       "id": "scenario-column-present",
       "text": "Table has a scenario/description column as the leftmost column",
       "passed": true,
-      "evidence": "First column header is 'Scenario' with descriptive values"
+      "evidence": "First column is 'Scenario' with values like 'Admin reads', 'User writes', etc."
     },
     {
       "id": "no-duplicate-role-output",
       "text": "No two rows share both the same Role value and the same boolean output",
       "passed": false,
-      "evidence": "ADMIN with true: 3 rows; USER with true: 2 rows; GUEST with false: 2 rows"
+      "evidence": "ADMIN | READ | true, ADMIN | WRITE | true, ADMIN | DELETE | true share Role=ADMIN and Allowed=true"
     },
     {
       "id": "has-descriptive-title",
-      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title",
       "passed": false,
-      "evidence": "Method name 'checkPermission' converts to 'Check Permission', which is generic like the disallowed example 'canPerform'"
+      "evidence": "Method is named 'checkPermission' which is generic; no @DisplayName annotation present"
     },
     {
       "id": "description-if-present-adds-information",
       "text": "If @Description is present, it provides context beyond what the table rows already express",
       "passed": true,
-      "evidence": "@Description is absent, so assertion passes per specification"
+      "evidence": "@Description is not present, and the assertion allows omission if table conveys context"
     },
     {
       "id": "annotation-order",
       "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest",
       "passed": true,
-      "evidence": "Only @TableTest present; no ordering violation"
+      "evidence": "Only @TableTest is present; no ordering violations"
     },
     {
       "id": "description-uses-textblock",
-      "text": "If @Description is present and the text is longer than a single short line, it uses a text block",
+      "text": "If @Description is present and text is longer than a single short line, it uses a text block",
       "passed": true,
-      "evidence": "@Description is absent"
+      "evidence": "@Description is not present; assertion passes if absent"
     },
     {
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions ('Admin performs any action', 'Guest reads') — not outcomes ('Allowed', 'Denied')",
-      "passed": false,
-      "evidence": "Names like 'User cannot delete' and 'Guest cannot write' describe outcomes, not conditions like 'User deletes'"
+      "passed": true,
+      "evidence": "Scenario names are 'Admin reads', 'User writes', 'Guest cannot write' describing conditions/actions"
     }
   ],
-  "assertions_passed": 6,
+  "assertions_passed": 7,
   "assertions_total": 11,
-  "pass_rate": 0.5454545454545454
+  "pass_rate": 0.6363636363636364
 }

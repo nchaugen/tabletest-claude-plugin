@@ -4,7 +4,7 @@
       "id": "flags-junit-version",
       "text": "Response explicitly flags that JUnit 5.10.0 is below the required minimum (5.11) and recommends upgrading",
       "passed": true,
-      "evidence": "The skill's pre-check requires JUnit Jupiter **5.11 or higher**, but you're on **5.10.0**. You'll need to bump that:"
+      "evidence": "The skill's pre-check requires JUnit Jupiter **5.11 or higher**, but you're on **5.10.0**. You'll need to bump that"
     },
     {
       "id": "provides-correct-groupid",

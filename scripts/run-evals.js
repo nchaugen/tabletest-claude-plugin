@@ -3,6 +3,7 @@
 const { execSync, spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+const { checkers } = require("./assertions");
 
 function evalsDir(skill) { return `evals/${skill}`; }
 function iterationsDir(skill) { return `iterations/${skill}`; }
@@ -38,6 +39,41 @@ function logError(...args) {
   const msg = args.map(a => typeof a === "string" ? a : JSON.stringify(a)).join(" ");
   console.error(msg);
   if (logFile) fs.appendFileSync(logFile, "ERROR: " + msg + "\n");
+}
+
+function resolveModel(shortName) {
+  const models = {
+    haiku: "claude-haiku-4-5-20251001",
+    sonnet: "claude-sonnet-4-6",
+    opus: "claude-opus-4-6",
+  };
+  if (models[shortName]) return models[shortName];
+  // Already a full model ID (contains a dash)
+  if (shortName.includes("-")) return shortName;
+  return shortName;
+}
+
+async function gradeViaApi(systemPrompt, userPrompt, model) {
+  const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": process.env.ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model: resolveModel(model),
+      max_tokens: 4096,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userPrompt }],
+    }),
+  });
+  if (!resp.ok) {
+    const body = await resp.text();
+    throw new Error(`Anthropic API error ${resp.status}: ${body.slice(0, 300)}`);
+  }
+  const data = await resp.json();
+  return data.content[0].text;
 }
 
 const GRADING_SYSTEM_PROMPT = `You are an eval grader. You will receive a model response and a list of assertions.
@@ -569,77 +605,91 @@ ${evalDef.expected_output}
 ${response}`;
 }
 
-async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null) {
-  const evalDir = path.join(
-    iterationDir,
-    `eval-${evalDef.id}-${evalDef.slug}`
-  );
-  const responsePath = path.join(evalDir, "outputs", "response.md");
+function loadOutputFiles(evalDir) {
+  const outputsDir = path.join(evalDir, "outputs");
+  const files = [];
+  if (!fs.existsSync(outputsDir)) return files;
 
-  if (!fs.existsSync(responsePath)) {
-    log(`  Skipping eval ${evalDef.id} — no response`);
-    return;
-  }
-
-  const response = fs.readFileSync(responsePath, "utf-8");
-  if (response.startsWith("ERROR:")) {
-    log(`  Skipping eval ${evalDef.id} — generation error`);
-    return;
-  }
-
-  log(`  Grading eval ${evalDef.id} (${evalDef.slug})...`);
-
-  const gradingPrompt = buildGradingPrompt(evalDef, response);
-
-  const result = await runClaude({
-    prompt: gradingPrompt,
-    systemPrompt: GRADING_SYSTEM_PROMPT,
-    model: model,
-    cwd: process.cwd(),
-  });
-
-  // Parse grading JSON from the response — try multiple extraction strategies
-  const gradingText = result.result || "";
-  let grading;
-
-  function extractJson(text) {
-    const start = text.indexOf("{");
-    const end = text.lastIndexOf("}");
-    if (start === -1 || end <= start) return null;
-    return text.slice(start, end + 1);
-  }
-
-  // Repair common JSON issues: unescaped quotes inside string values
-  function repairJson(text) {
-    // Fix unescaped quotes in "evidence" values — the most common failure mode.
-    // Strategy: find "evidence": "..." patterns and escape inner quotes.
-    return text.replace(/"evidence":\s*"((?:[^"\\]|\\.)*)(")((?:[^"\\]|\\.)*"[^,}\]]*)/g,
-      (match) => {
-        // Fall back to a simpler approach: find each evidence value and escape it
-        return match;
+  function walk(dir) {
+    for (const entry of fs.readdirSync(dir)) {
+      const full = path.join(dir, entry);
+      if (fs.statSync(full).isDirectory()) {
+        walk(full);
+      } else if (entry.endsWith(".java") || entry.endsWith(".kt")) {
+        files.push({ path: path.relative(outputsDir, full), content: fs.readFileSync(full, "utf-8") });
       }
-    ) || text;
-  }
-
-  // More robust repair: re-serialize by finding assertion blocks with regex
-  function repairGradingJson(text) {
-    const json = extractJson(text) || text;
-    const assertions = [];
-    // Match each assertion object, tolerant of broken evidence strings
-    const pattern = /"id"\s*:\s*"([^"]*)"[\s\S]*?"text"\s*:\s*"((?:[^"\\]|\\.)*)"[\s\S]*?"passed"\s*:\s*(true|false)[\s\S]*?"evidence"\s*:\s*"([\s\S]*?)"\s*\n?\s*[}\]]/g;
-    let m;
-    while ((m = pattern.exec(json)) !== null) {
-      assertions.push({
-        id: m[1],
-        text: m[2].replace(/\\"/g, '"'),
-        passed: m[3] === "true",
-        evidence: m[4].replace(/\\"/g, '"').replace(/"/g, "'").replace(/\n/g, " ").trim(),
-      });
     }
-    if (assertions.length === 0) return null;
-    return { assertions };
+  }
+  walk(outputsDir);
+  return files;
+}
+
+function runDeterministicAssertions(assertions, fileContent, allFiles) {
+  const results = [];
+  for (const a of assertions) {
+    const checker = checkers[a.id];
+    if (!checker) {
+      results.push({ id: a.id, text: a.text, passed: false, evidence: `No deterministic checker for "${a.id}"` });
+      continue;
+    }
+    try {
+      const result = checker({ fileContent, allFiles });
+      results.push({ id: a.id, text: a.text, passed: result.passed, evidence: result.evidence });
+    } catch (err) {
+      results.push({ id: a.id, text: a.text, passed: false, evidence: `Checker error: ${err.message}` });
+    }
+  }
+  return results;
+}
+
+function runBuildAssertions(assertions, evalDir) {
+  const buildResultPath = path.join(evalDir, "outputs", "build-result.json");
+  if (!fs.existsSync(buildResultPath)) {
+    return assertions.map(a => ({
+      id: a.id, text: a.text, passed: false, evidence: "No build-result.json found",
+    }));
   }
 
+  const buildResult = JSON.parse(fs.readFileSync(buildResultPath, "utf-8"));
+  return assertions.map(a => {
+    if (a.id === "compiles") {
+      return { id: a.id, text: a.text, passed: !!buildResult.compiles, evidence: buildResult.compiles ? "Compilation succeeded" : `Compilation failed: ${(buildResult.compile_output || "").slice(0, 200)}` };
+    }
+    if (a.id === "tests-pass") {
+      if (buildResult.tests_pass === null) {
+        return { id: a.id, text: a.text, passed: true, evidence: "Test check skipped (spec-only eval)" };
+      }
+      return { id: a.id, text: a.text, passed: !!buildResult.tests_pass, evidence: buildResult.tests_pass ? "Tests passed" : `Tests failed: ${(buildResult.test_output || "").slice(0, 200)}` };
+    }
+    return { id: a.id, text: a.text, passed: false, evidence: `Unknown build assertion "${a.id}"` };
+  });
+}
+
+function extractJson(text) {
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start === -1 || end <= start) return null;
+  return text.slice(start, end + 1);
+}
+
+function repairGradingJson(text) {
+  const json = extractJson(text) || text;
+  const assertions = [];
+  const pattern = /"id"\s*:\s*"([^"]*)"[\s\S]*?"text"\s*:\s*"((?:[^"\\]|\\.)*)"[\s\S]*?"passed"\s*:\s*(true|false)[\s\S]*?"evidence"\s*:\s*"([\s\S]*?)"\s*\n?\s*[}\]]/g;
+  let m;
+  while ((m = pattern.exec(json)) !== null) {
+    assertions.push({
+      id: m[1],
+      text: m[2].replace(/\\"/g, '"'),
+      passed: m[3] === "true",
+      evidence: m[4].replace(/\\"/g, '"').replace(/"/g, "'").replace(/\n/g, " ").trim(),
+    });
+  }
+  if (assertions.length === 0) return null;
+  return { assertions };
+}
+
+function parseLlmGrading(gradingText) {
   const parseAttempts = [
     () => JSON.parse(gradingText),
     () => {
@@ -660,25 +710,83 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null) {
   ];
   for (const attempt of parseAttempts) {
     try {
-      grading = attempt();
-      break;
+      return attempt();
     } catch {
       // try next strategy
     }
   }
-  if (!grading) {
-    throw new Error(
-      `Failed to parse grading JSON for eval ${evalDef.id}: ${gradingText.slice(0, 200)}`
-    );
+  return null;
+}
+
+async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null) {
+  const evalDir = path.join(
+    iterationDir,
+    `eval-${evalDef.id}-${evalDef.slug}`
+  );
+  const responsePath = path.join(evalDir, "outputs", "response.md");
+
+  if (!fs.existsSync(responsePath)) {
+    log(`  Skipping eval ${evalDef.id} — no response`);
+    return;
   }
 
-  // Add summary fields
-  grading.assertions_passed = grading.assertions.filter((a) => a.passed).length;
-  grading.assertions_total = grading.assertions.length;
-  grading.pass_rate =
-    grading.assertions_total > 0
-      ? grading.assertions_passed / grading.assertions_total
-      : 0;
+  const response = fs.readFileSync(responsePath, "utf-8");
+  if (response.startsWith("ERROR:")) {
+    log(`  Skipping eval ${evalDef.id} — generation error`);
+    return;
+  }
+
+  log(`  Grading eval ${evalDef.id} (${evalDef.slug})...`);
+
+  // Load generated test files for deterministic checking
+  const allFiles = loadOutputFiles(evalDir);
+  const fileContent = allFiles.length > 0
+    ? allFiles.map(f => f.content).join('\n\n')
+    : response;
+
+  // Split assertions by type
+  const deterministicAssertions = evalDef.assertions.filter(a => a.type === "deterministic");
+  const buildAssertions = evalDef.assertions.filter(a => a.type === "build");
+  const llmAssertions = evalDef.assertions.filter(a => !a.type || a.type === "llm");
+
+  // Run deterministic assertions
+  const deterministicResults = runDeterministicAssertions(deterministicAssertions, fileContent, allFiles);
+
+  // Run build assertions
+  const buildResults = runBuildAssertions(buildAssertions, evalDir);
+
+  // Run LLM assertions (if any)
+  let llmResults = [];
+  if (llmAssertions.length > 0) {
+    const llmEvalDef = { ...evalDef, assertions: llmAssertions };
+    const gradingPrompt = buildGradingPrompt(llmEvalDef, response);
+    const gradingText = await gradeViaApi(GRADING_SYSTEM_PROMPT, gradingPrompt, model);
+
+    const llmGrading = parseLlmGrading(gradingText);
+    if (!llmGrading) {
+      throw new Error(
+        `Failed to parse grading JSON for eval ${evalDef.id}: ${gradingText.slice(0, 200)}`
+      );
+    }
+    llmResults = llmGrading.assertions;
+  }
+
+  // Merge all results in original assertion order
+  const allResults = [];
+  const resultMap = {};
+  for (const r of [...deterministicResults, ...buildResults, ...llmResults]) {
+    resultMap[r.id] = r;
+  }
+  for (const a of evalDef.assertions) {
+    allResults.push(resultMap[a.id] || { id: a.id, text: a.text, passed: false, evidence: "Not graded" });
+  }
+
+  const grading = { assertions: allResults };
+  grading.assertions_passed = allResults.filter(a => a.passed).length;
+  grading.assertions_total = allResults.length;
+  grading.pass_rate = grading.assertions_total > 0
+    ? grading.assertions_passed / grading.assertions_total
+    : 0;
 
   const gradingFile = gradingSuffix ? `grading-${gradingSuffix}.json` : "grading.json";
   fs.writeFileSync(

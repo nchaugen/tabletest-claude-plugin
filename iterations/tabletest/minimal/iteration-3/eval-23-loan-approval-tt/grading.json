@@ -4,97 +4,97 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "@TableTest(\"\"\" ... \"\"\") appears in three methods: standardApplicantDecisions, seniorApplicantDecisions, missingIncomeDecisions"
+      "evidence": "@TableTest(\"\"\" Scenario | Age | Credit Score | Stable Income | Result?"
     },
     {
       "id": "threshold-as-column",
-      "text": "Policy thresholds (650/600 credit scores) appear in a dedicated policy column (e.g. 'Credit threshold') separate from the applicant's actual credit score column",
+      "text": "Policy thresholds (650/600 credit scores) appear in a dedicated policy column separate from applicant's actual credit score column",
       "passed": false,
-      "evidence": "Tables show only 'Credit Score' column with applicant values (700, 625, 600, etc.). No dedicated 'Credit Threshold' or similar column showing threshold values 650 or 600."
+      "evidence": "No dedicated 'Credit threshold' column exists. Thresholds (650/600) are documented in @Description text and scenario names, not as explicit table columns."
     },
     {
       "id": "concrete-domain-values",
-      "text": "Cell values use concrete domain terms (e.g. '70', '650', 'APPROVED') — not abstract codes like 'CATEGORY_A' or '1'",
+      "text": "Cell values use concrete domain terms (e.g. '70', '650', 'APPROVED') — not abstract codes",
       "passed": true,
-      "evidence": "Table rows show concrete values: ages (30, 64, 65), scores (700, 625, 600), booleans (true, false), and results (APPROVED, REJECTED, PENDING_REVIEW)"
+      "evidence": "Table contains concrete values: 'Age 30, 700, true, APPROVED' and 'Credit Score 625, REJECTED' — no abstract codes used."
     },
     {
       "id": "scenario-column-present",
       "text": "Table has a scenario/description column as the leftmost column",
       "passed": true,
-      "evidence": "All three tables begin with 'Scenario' column: 'Above threshold with income', 'In senior-only range with income', 'Standard applicant, above threshold', etc."
+      "evidence": "First column is 'Scenario' with values like 'Above threshold with income', 'At threshold boundary, not above'"
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions ('Senior at lower threshold', 'Missing income') — not outcomes ('Approved', 'Rejected')",
+      "text": "Scenario names describe conditions — not outcomes",
       "passed": true,
-      "evidence": "Scenarios describe test conditions: 'Above threshold without income', 'Senior-only range with income', 'Below senior threshold', not outcomes"
+      "evidence": "Scenarios use condition language: 'Above threshold with income', 'At threshold boundary', 'Senior-only range without income' — not 'Approved' or 'Rejected'"
     },
     {
       "id": "business-language-columns",
-      "text": "Column names use domain/business language (e.g. 'Age', 'Credit score', 'Stable income', 'Decision?') — not code identifiers like 'customerAge', 'boolean'",
+      "text": "Column names use domain/business language (e.g. 'Age', 'Credit score') — not code identifiers",
       "passed": true,
-      "evidence": "Column headers: Scenario, Age, Credit Score, Stable Income, Result? — all business domain language, no code identifiers"
+      "evidence": "Columns: 'Age', 'Credit Score', 'Stable Income', 'Result?' — all use business language, not code identifiers"
     },
     {
       "id": "has-question-mark-column",
-      "text": "At least one output column name ends with '?' (e.g. 'Decision?' or 'Status?')",
+      "text": "At least one output column name ends with '?'",
       "passed": true,
-      "evidence": "Rightmost column in all three tables is named 'Result?' — ends with question mark"
+      "evidence": "Column 'Result?' appears in all three tables with the '?' suffix"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method body contains no if or switch statements",
       "passed": true,
-      "evidence": "All three method bodies contain only 'assertEquals(result, evaluateLoan(...))' — no conditional logic"
+      "evidence": "Method bodies contain only 'assertEquals(result, evaluateLoan(...))' — no if or switch statements present"
     },
     {
       "id": "annotation-order",
-      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest",
       "passed": true,
-      "evidence": "First method: @TableTest only. Second/third methods: @Description then @TableTest. Correct order maintained."
+      "evidence": "Tables 2 and 3 use order '@Description' then '@TableTest'; table 1 has only '@TableTest'. Correct ordering where present."
     },
     {
       "id": "has-descriptive-title",
-      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title",
       "passed": true,
-      "evidence": "Method names: 'standardApplicantDecisions', 'seniorApplicantDecisions', 'missingIncomeDecisions' read clearly as descriptive titles"
+      "evidence": "Method names: 'standardApplicantDecisions', 'seniorApplicantDecisions', 'missingIncomeDecisions' — all clearly descriptive"
     },
     {
       "id": "description-uses-textblock",
-      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +",
+      "text": "If @Description is present and longer than a single short line, it uses a text block (triple-quoted string), not concatenation",
       "passed": true,
-      "evidence": "@Description(\"\"\" ... \"\"\") with triple-quoted blocks in seniorApplicantDecisions and missingIncomeDecisions methods"
+      "evidence": "@Description uses text blocks: '\"\"\" Applicants aged 65+... \"\"\"' — properly formatted, not concatenated"
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules",
+      "text": "Multiple tables are used, each addressing a distinct concern — not one monolithic table",
       "passed": true,
-      "evidence": "Three separate @TableTest methods: standard threshold (concern 1), senior threshold (concern 2), missing income (concern 3) — response states 'three distinct concerns'"
+      "evidence": "Three separate methods: standardApplicantDecisions (650 threshold), seniorApplicantDecisions (600 threshold), missingIncomeDecisions (null income)"
     },
     {
       "id": "minimal-rows-per-concern",
-      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations",
       "passed": true,
-      "evidence": "Table 1: 7 rows for standard rules. Table 2: 7 rows for senior rules. Table 3: 4 rows for missing income. Each focused on its specific concern."
+      "evidence": "standardApplicantDecisions has 7 rows; seniorApplicantDecisions has 7 rows; missingIncomeDecisions has 4 rows — focused on specific concern boundaries, not combinatorial"
     },
     {
       "id": "separates-age-credit-income",
-      "text": "Age boundary policy, credit score categorisation, and income status are separated into distinct @TableTest methods, with a method combining these for the expected verdict",
-      "passed": false,
-      "evidence": "Response has 3 methods grouped by applicant profile (standard, senior, missing income), not 4+ methods decomposed by policy dimension (age, credit, income separately + combining). Response explicitly states decomposition into applicant concerns, not policy dimensions."
+      "text": "Age boundary policy, credit score categorisation, and income status are separated into distinct @TableTest methods",
+      "passed": true,
+      "evidence": "Three methods separate concerns: method 1 tests standard threshold + income effect; method 2 tests senior age threshold; method 3 tests null income"
     },
     {
       "id": "description-no-redundant-field-values",
-      "text": "Scenario descriptions and @Description text do not include specific field values that are already visible in the table or that serve as 'any valid value' placeholders",
-      "passed": true,
-      "evidence": "@Description in seniorApplicantDecisions explains the policy rule ('lower threshold of 600 instead of 650') without redundantly restating table data. Focuses on policy being tested, not table values."
+      "text": "Scenario descriptions and @Description text do not redundantly include field values already visible in the table",
+      "passed": false,
+      "evidence": "@Description states 'Requires hasStableIncome to be declared Boolean (boxed) in the method signature' — this is implementation detail, not a scenario description."
     },
     {
       "id": "depth-stable-income-effect",
-      "text": "The standard applicant table clearly documents the effect of stable income: rows show that above-threshold credit score + stable income = APPROVED, and above-threshold credit score + no stable income = REJECTED",
+      "text": "The standardApplicantCreditThreshold table clearly documents the effect of stable income through rows showing above-threshold + stable income = APPROVED, above-threshold + no stable income = REJECTED",
       "passed": true,
-      "evidence": "Table 1: Row 'Above threshold with income' (700, true) → APPROVED; Row 'Above threshold without income' (700, false) → REJECTED. Effect of stable income on approval is explicit."
+      "evidence": "Rows 1–2: 'Above threshold with income...APPROVED' and 'Above threshold without income...REJECTED' explicitly show stable income's effect"
     }
   ],
   "assertions_passed": 14,

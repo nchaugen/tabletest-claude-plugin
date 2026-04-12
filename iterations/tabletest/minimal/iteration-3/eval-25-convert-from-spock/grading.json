@@ -4,91 +4,91 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "@TableTest(\"\"\"...\") annotation present at method level"
+      "evidence": "Found @TableTest annotation"
     },
     {
       "id": "options-as-map",
-      "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500]",
+      "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:].",
       "passed": false,
-      "evidence": "Table has separate columns | fragile | insuredValue | handling | instead of single Options column"
+      "evidence": "fragile | insuredValue | handling columns remain separate throughout the table; no map syntax like [fragile: true, insuredValue: 500] is used"
     },
     {
       "id": "options-type-converter",
-      "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions",
+      "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.",
       "passed": false,
-      "evidence": "No @TypeConverter present; code uses null checks (if (insuredValue != null)) instead"
+      "evidence": "No @TypeConverter method is present in the response; manual null-checks and setters are used instead"
     },
     {
       "id": "dimensions-as-list",
       "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns",
       "passed": false,
-      "evidence": "Table has separate columns | length | width | height | not a single Dimensions list column"
+      "evidence": "length | width | height columns remain separate; no [L, W, H] list syntax is used in the table"
     },
     {
       "id": "uses-value-sets",
-      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence",
+      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence, rather than duplicating rows per carrier",
       "passed": true,
-      "evidence": "Last row shows {DHL, UPS, FEDEX} in carrier column for 'Same rate EU express'"
+      "evidence": "Value set syntax found"
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple @TableTest methods exist, each addressing a distinct concern",
+      "text": "Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence",
       "passed": false,
-      "evidence": "Only one @TableTest method; one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence"
+      "evidence": "Single @TableTest method with 15 rows mixing base rates, surcharges, dimensional weight, and carrier tests"
     },
     {
       "id": "numeric-types-correct",
       "text": "Weight and cost parameters use BigDecimal (not double or String). Dimensions use Integer or int.",
       "passed": false,
-      "evidence": "Method signature shows 'double weight' and 'double cost', not BigDecimal"
+      "evidence": "double weight and double cost parameters used; dimensions use int (correct) but cost should be BigDecimal"
     },
     {
       "id": "scenario-column-present",
       "text": "Each table has a scenario/description column as the leftmost column",
       "passed": true,
-      "evidence": "Table header starts with 'Scenario |' as first column"
+      "evidence": "First column(s): \"Scenario\""
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions not outcomes or generic labels",
+      "text": "Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1').",
       "passed": true,
-      "evidence": "Scenarios like 'EU standard light', 'Fragile surcharge', 'Dimensional weight override' describe test conditions"
+      "evidence": "'EU standard light', 'EU express medium', 'Fragile surcharge', 'Insured surcharge', 'Oversize surcharge' describe conditions and concerns"
     },
     {
       "id": "has-question-mark-column",
       "text": "At least one output column name ends with '?' (e.g. 'Cost?', 'Base rate?')",
       "passed": true,
-      "evidence": "Column 'cost?' present with question mark suffix"
+      "evidence": "Question-mark columns: cost?"
     },
     {
       "id": "business-language-columns",
-      "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?')",
+      "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')",
       "passed": false,
-      "evidence": "insuredValue uses camelCase; fragile/insuredValue/handling are separate instead of 'Options' column; length/width/height separate instead of 'Dimensions'"
+      "evidence": "Columns use 'region', 'speed', 'weight', 'length', 'width', 'height', 'carrier' instead of domain language like 'Zone', 'Dimensions', 'Options'"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method bodies contain no if or switch statements",
       "passed": false,
-      "evidence": "Method contains 'if (insuredValue != null)' and 'if (handling != null)' statements"
+      "evidence": "if statement found in method body"
     },
     {
       "id": "annotation-order",
-      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
       "passed": true,
-      "evidence": "@TableTest is the only annotation, appearing in correct position"
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
     },
     {
       "id": "has-descriptive-title",
-      "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title",
+      "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
       "passed": false,
-      "evidence": "No @DisplayName annotation; method name 'calculateShippingCost' is generic and does not describe the specific test scenarios"
+      "evidence": "Method named 'calculateShippingCost' with no @DisplayName; does not describe the test's purpose clearly"
     },
     {
       "id": "no-groovy-syntax",
-      "text": "Output contains no Groovy or Spock syntax: no def, where:, expect:, given:, etc.",
+      "text": "Output contains no Groovy or Spock syntax: no def, where:, expect:, given:, GString interpolation (#variable), Spock assertions (thrown(), old()), or Groovy list literals ([] as Set).",
       "passed": true,
-      "evidence": "All code is valid Java syntax with no Groovy keywords or Spock-specific assertions"
+      "evidence": "No Groovy/Spock syntax found"
     }
   ],
   "assertions_passed": 7,

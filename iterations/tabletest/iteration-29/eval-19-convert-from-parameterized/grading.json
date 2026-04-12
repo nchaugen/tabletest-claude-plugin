@@ -4,49 +4,49 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "@TableTest annotation present before method declaration"
+      "evidence": "@TableTest(\"\"\"..."
     },
     {
       "id": "scenario-column-present",
       "text": "Table has a scenario/description column as the leftmost column",
       "passed": true,
-      "evidence": "First column header is 'Scenario' with values like 'Simple address', 'No at-sign'"
+      "evidence": "Scenario | Email | Valid? ... Simple address | user@example.com | true"
     },
     {
       "id": "has-question-mark-column",
       "text": "At least one output column name ends with '?'",
       "passed": true,
-      "evidence": "Column header 'Valid?' ends with question mark"
+      "evidence": "| Valid? ... the column header ends with '?'"
     },
     {
       "id": "no-if-switch-in-method",
       "text": "Test method body contains no if or switch statements",
       "passed": true,
-      "evidence": "Method body is only: assertEquals(valid, validator.isValid(email));"
+      "evidence": "void validatesEmailAddress(...) { assertEquals(valid, validator.isValid(email)); }"
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions, not outcomes or generic names",
+      "text": "Scenario names describe conditions not outcomes or 'Test case 1'",
       "passed": true,
-      "evidence": "Names like 'No at-sign', 'Missing local part', 'Empty label after at' describe input conditions"
+      "evidence": "'Simple address', 'Missing local part', 'No at-sign', 'Empty label after at'"
     },
     {
       "id": "annotation-order",
-      "text": "Annotations in correct order: @DisplayName, @Description, @TableTest",
+      "text": "Annotations appear in order: @DisplayName, @Description, @TableTest",
       "passed": true,
-      "evidence": "Only @TableTest present; no @DisplayName or @Description to order incorrectly"
+      "evidence": "Only @TableTest present; no @DisplayName or @Description violations"
     },
     {
       "id": "has-descriptive-title",
-      "text": "Method has descriptive title via annotation or name",
+      "text": "Test method has descriptive title via @DisplayName or method name",
       "passed": true,
-      "evidence": "Method name 'validatesEmailAddress' reads as clear descriptive title"
+      "evidence": "void validatesEmailAddress(...) - camelCase method name is descriptive"
     },
     {
       "id": "description-uses-textblock",
-      "text": "Uses text block for @Description if present and long; passes if absent",
+      "text": "If @Description present and long, uses text block not string concatenation",
       "passed": true,
-      "evidence": "No @Description annotation present in code"
+      "evidence": "@Description not present; @TableTest uses triple-quoted text block"
     }
   ],
   "assertions_passed": 8,

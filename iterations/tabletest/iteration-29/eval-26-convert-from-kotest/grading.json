@@ -4,91 +4,91 @@
       "id": "has-tabletest-annotation",
       "text": "Output contains a @TableTest annotation",
       "passed": true,
-      "evidence": "@TableTest(\"\"\" ... \"\"\")"
+      "evidence": "@TableTest(\"\"\"Scenario|Region|Speed|Weight|Dims..."
     },
     {
       "id": "options-as-map",
-      "text": "Package options collapsed into single map column",
+      "text": "Package options collapsed into a single map column like [fragile: true, insuredValue: 500]",
       "passed": false,
-      "evidence": "Fragile | Insured value | Handling appear as three separate columns"
+      "evidence": "Three separate columns (Fragile, Insured value, Handling) with mostly-blank cells; options not collapsed into map syntax [fragile: true, insuredValue: 500]"
     },
     {
       "id": "options-type-converter",
-      "text": "A @TypeConverter method present for PackageOptions",
+      "text": "A @TypeConverter method is present that accepts Map<String, String> and returns PackageOptions",
       "passed": false,
-      "evidence": "No @TypeConverter methods; options built via .apply block instead"
+      "evidence": "No @TypeConverter method present; response explicitly states 'no @TypeConverter methods needed'"
     },
     {
       "id": "dimensions-as-list",
-      "text": "Dimensions represented as [L, W, H] list",
+      "text": "Dimensions represented as a [L, W, H] list in the table",
       "passed": true,
-      "evidence": "Dims column contains [20, 15, 10], [30, 20, 15], etc."
+      "evidence": "Dims column shows '[20, 15, 10]', '[30, 20, 15]', etc."
     },
     {
       "id": "uses-value-sets",
-      "text": "At least one table uses value set syntax",
+      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX}",
       "passed": true,
-      "evidence": "Last row has {DHL, UPS, FEDEX} for Carrier column"
+      "evidence": "Last row shows Carrier column with '{DHL, UPS, FEDEX}' in 'Same rate' scenario"
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple @TableTest methods, each addressing distinct concern",
+      "text": "Multiple @TableTest methods exist, each addressing a distinct concern",
       "passed": false,
-      "evidence": "Only one @TableTest method; all rows mixed into single table"
+      "evidence": "Only one @TableTest method present (shouldCalculateShippingCost); single monolithic table mixing base rates, dimensional weight, surcharges, fragile/insured options, and carrier equivalence"
     },
     {
       "id": "numeric-types-correct",
-      "text": "Weight and cost use BigDecimal; dimensions use Integer",
+      "text": "Weight and cost parameters use BigDecimal; Dimensions use Integer or int",
       "passed": true,
-      "evidence": "weight: BigDecimal, dims: List<Int>, expectedCost: BigDecimal"
+      "evidence": "Parameters: 'weight: BigDecimal', 'expectedCost: BigDecimal', 'dims: List<Int>'"
     },
     {
       "id": "scenario-column-present",
-      "text": "Scenario column present as leftmost column",
+      "text": "Each table has a scenario/description column as the leftmost column",
       "passed": true,
-      "evidence": "Scenario | Region | Speed | ... (leftmost)"
+      "evidence": "First column is 'Scenario' with entries like 'EU standard light', 'EU standard medium'"
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions, not outcomes",
+      "text": "Scenario names describe conditions, not outcomes or generic labels",
       "passed": true,
-      "evidence": "'EU express light', 'Fragile surcharge', 'Dimensional weight override'"
+      "evidence": "Scenarios like 'EU standard light', 'Fragile surcharge', 'Oversize surcharge' describe conditions"
     },
     {
       "id": "has-question-mark-column",
       "text": "At least one output column name ends with '?'",
       "passed": true,
-      "evidence": "Expected cost?"
+      "evidence": "Column header 'Expected cost?' ends with '?'"
     },
     {
       "id": "business-language-columns",
       "text": "Column names use domain language, not code identifiers",
       "passed": true,
-      "evidence": "Scenario, Region, Speed, Weight, Dims, Handling, Carrier"
+      "evidence": "Columns: 'Scenario', 'Region', 'Speed', 'Weight', 'Dims', 'Fragile', 'Insured value', 'Handling', 'Carrier', 'Expected cost?'"
     },
     {
       "id": "no-if-switch-in-method",
-      "text": "Test method bodies contain no if or switch statements",
+      "text": "Test method body contains no if or switch statements",
       "passed": false,
-      "evidence": "if (fragile == true), if (insuredValue != null), if (handling != null)"
+      "evidence": "Method body contains 'if (fragile == true)', 'if (insuredValue != null)', 'if (handling != null)' conditionals"
     },
     {
       "id": "annotation-order",
-      "text": "Annotations in order: @DisplayName, @Description, @TableTest",
+      "text": "Annotations appear in order: @DisplayName, @Description, @TableTest",
       "passed": true,
-      "evidence": "@DisplayName(...) @TableTest(...) in correct order"
+      "evidence": "@DisplayName(...) appears before @TableTest(...) with no intervening annotations"
     },
     {
       "id": "has-descriptive-title",
-      "text": "Test method has @DisplayName or descriptive name",
+      "text": "Each test method has @DisplayName annotation or descriptive method name",
       "passed": true,
-      "evidence": "@DisplayName(\"Shipping cost calculation\")"
+      "evidence": "@DisplayName(\"Shipping cost calculation\") annotation present on method"
     },
     {
       "id": "no-kotest-syntax",
-      "text": "Output contains no Kotest syntax",
+      "text": "Output contains no Kotest syntax (forAll, row(), withData, shouldBe, etc.)",
       "passed": false,
-      "evidence": "shouldBe expectedCost (Kotest infix assertion syntax)"
+      "evidence": "Line contains 'shouldBe expectedCost' which is Kotest syntax; should use standard JUnit assertion instead"
     }
   ],
   "assertions_passed": 10,
