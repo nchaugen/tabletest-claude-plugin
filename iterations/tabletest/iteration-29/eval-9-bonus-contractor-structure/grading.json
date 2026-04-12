@@ -1,0 +1,73 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\" ... \"\"\")"
+    },
+    {
+      "id": "contractor-uses-value-set",
+      "text": "CONTRACTOR row uses a value set for Department (e.g. {SALES, ENGINEERING}) to express 'regardless of department' — not a dummy placeholder like 'ANY' or 'N/A', and not enumerated as separate rows.",
+      "passed": true,
+      "evidence": "Contractor regardless of dept | CONTRACTOR | {SALES, ENGINEERING} | 0.0"
+    },
+    {
+      "id": "four-core-rules-covered",
+      "text": "The four level×department combinations (SENIOR+SALES, SENIOR+ENGINEERING, JUNIOR+SALES, JUNIOR+ENGINEERING) are all present in the table(s)",
+      "passed": true,
+      "evidence": "Senior in Sales (SENIOR|SALES), Senior in Engineering (SENIOR|ENGINEERING), Junior in Sales (JUNIOR|SALES), Junior in Engineering (JUNIOR|ENGINEERING)"
+    },
+    {
+      "id": "expects-bonus-percentage",
+      "text": "The expected output column contains bonus percentages (e.g. 15%, 12%, 0%) — not bonus amounts. The method returns a percentage, and the table should reflect that.",
+      "passed": true,
+      "evidence": "Column header 'Bonus %?' with values 15.0, 12.0, 8.0, 5.0, 0.0 representing percentages"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "Method body: Employee employee = new Employee(...); assertEquals(...); only"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case. Not a generic name like 'test1' or 'testMethod'.",
+      "passed": true,
+      "evidence": "@DisplayName(\"Bonus percentage by level and department\")"
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description is present, it provides context beyond what the table rows already express. It is acceptable to omit @Description if the table already conveys all relevant context.",
+      "passed": true,
+      "evidence": "No @Description present; response states 'table is fully self-explanatory'"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "@DisplayName appears first, followed directly by @TableTest (no @Description)"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description is absent, so assertion passes by default"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('Senior in Sales', 'Contractor regardless of department') — not outcomes ('Gets 15%', 'No bonus').",
+      "passed": true,
+      "evidence": "All scenario names describe conditions: Senior in Sales, Senior in Engineering, Junior in Sales, Junior in Engineering, Contractor regardless of dept"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language (e.g. 'Level', 'Department', 'Bonus %') — not implementation terms like 'employeeLevel', 'deptCode', 'result'.",
+      "passed": true,
+      "evidence": "Columns: Scenario | Level | Department | Bonus %? (all business/domain language)"
+    }
+  ],
+  "assertions_passed": 11,
+  "assertions_total": 11,
+  "pass_rate": 1
+}

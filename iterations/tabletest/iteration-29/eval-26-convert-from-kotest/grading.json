@@ -1,0 +1,97 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\" ... \"\"\")"
+    },
+    {
+      "id": "options-as-map",
+      "text": "Package options collapsed into single map column",
+      "passed": false,
+      "evidence": "Fragile | Insured value | Handling appear as three separate columns"
+    },
+    {
+      "id": "options-type-converter",
+      "text": "A @TypeConverter method present for PackageOptions",
+      "passed": false,
+      "evidence": "No @TypeConverter methods; options built via .apply block instead"
+    },
+    {
+      "id": "dimensions-as-list",
+      "text": "Dimensions represented as [L, W, H] list",
+      "passed": true,
+      "evidence": "Dims column contains [20, 15, 10], [30, 20, 15], etc."
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "At least one table uses value set syntax",
+      "passed": true,
+      "evidence": "Last row has {DHL, UPS, FEDEX} for Carrier column"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods, each addressing distinct concern",
+      "passed": false,
+      "evidence": "Only one @TableTest method; all rows mixed into single table"
+    },
+    {
+      "id": "numeric-types-correct",
+      "text": "Weight and cost use BigDecimal; dimensions use Integer",
+      "passed": true,
+      "evidence": "weight: BigDecimal, dims: List<Int>, expectedCost: BigDecimal"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Scenario column present as leftmost column",
+      "passed": true,
+      "evidence": "Scenario | Region | Speed | ... (leftmost)"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions, not outcomes",
+      "passed": true,
+      "evidence": "'EU express light', 'Fragile surcharge', 'Dimensional weight override'"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?'",
+      "passed": true,
+      "evidence": "Expected cost?"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain language, not code identifiers",
+      "passed": true,
+      "evidence": "Scenario, Region, Speed, Weight, Dims, Handling, Carrier"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method bodies contain no if or switch statements",
+      "passed": false,
+      "evidence": "if (fragile == true), if (insuredValue != null), if (handling != null)"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations in order: @DisplayName, @Description, @TableTest",
+      "passed": true,
+      "evidence": "@DisplayName(...) @TableTest(...) in correct order"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has @DisplayName or descriptive name",
+      "passed": true,
+      "evidence": "@DisplayName(\"Shipping cost calculation\")"
+    },
+    {
+      "id": "no-kotest-syntax",
+      "text": "Output contains no Kotest syntax",
+      "passed": false,
+      "evidence": "shouldBe expectedCost (Kotest infix assertion syntax)"
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 15,
+  "pass_rate": 0.6666666666666666
+}

@@ -1,0 +1,115 @@
+{
+  "assertions": [
+    {
+      "id": "2.1-decomposition-concern-separation",
+      "text": "Discount ladder, and traveller eligibility are in separate tables. Rolling window counting as a third table is desirable.",
+      "passed": false,
+      "evidence": "Response provides two @TableTest methods (reisDiscountTier, discountByPassengerType). No rolling window table."
+    },
+    {
+      "id": "2.2-children-flat-discount",
+      "text": "Children's flat 20% discount is represented — either as a row in the eligibility table or a separate note.",
+      "passed": true,
+      "evidence": "Child flat discount, regardless of travel history | Child | {0, 5, 40} | 20%"
+    },
+    {
+      "id": "2.3-depth-tier-boundaries",
+      "text": "The discount ladder has multiple tiers derived from the 'every fifth trip' rule, with boundary values or value sets showing which ticket counts produce which discount. The maximum 40% discount is represented.",
+      "passed": true,
+      "evidence": "At maximum discount | 40 | 40% and tiers 0%, 5%, 10%, 15%, 20%, 25%, 30%, 35%, 40%"
+    },
+    {
+      "id": "2.4-depth-rolling-window-boundary",
+      "text": "The 30-day rolling window boundary is tested: a ticket at exactly 30 days is included, at 31 days is excluded.",
+      "passed": false,
+      "evidence": "No rolling window table present; only discount ladder and passenger type tables shown."
+    },
+    {
+      "id": "2.9-correctness-value-set-tier-semantics",
+      "text": "Value sets in the tier table contain exactly the values that produce the same discount. No cross-tier contamination.",
+      "passed": false,
+      "evidence": "Tier table lists individual trip counts (5, 9, 10, 15, etc.) in separate rows instead of value sets."
+    },
+    {
+      "id": "2.15-ticket-count-uses-value-sets",
+      "text": "The discount ladder table uses value sets for the ticket count column to group counts within the same tier (e.g. {5, 6, 7, 8, 9} or {5, 9} for min/max → 5%) — not one row per boundary value.",
+      "passed": false,
+      "evidence": "At discount threshold | 5 | 5% and Mid-tier, no step up | 9 | 5% are separate rows, not grouped."
+    },
+    {
+      "id": "2.16-no-duplicate-tier-mapping",
+      "text": "The tier-to-discount mapping is expressed once — not repeated across multiple tables.",
+      "passed": false,
+      "evidence": "Tier mapping (5→5%, 40→40%) appears in both discount tier table and passenger type table rows."
+    },
+    {
+      "id": "2.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "void reisDiscountTier(...) and void discountByPassengerType(...) are clear descriptive names."
+    },
+    {
+      "id": "2.11-format-description",
+      "text": "@Description is present on at least the class or the tier method and provides context beyond what the table rows already express.",
+      "passed": false,
+      "evidence": "Code contains only @TableTest annotations; no @Description present on class or methods."
+    },
+    {
+      "id": "2.13-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Only @TableTest annotation present; no @DisplayName or @Description to disorder."
+    },
+    {
+      "id": "2.14-format-description-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "No @Description annotation present; assertion passes by absence."
+    },
+    {
+      "id": "2.17-zone-irrelevance-visible",
+      "text": "The eligibility/passenger-type table includes a Zone column (or equivalent) with a value set to show that the discount applies regardless of zone.",
+      "passed": false,
+      "evidence": "Passenger type table columns: Scenario, Passenger Type, Trips in last 30 days, Discount? (no Zone)."
+    },
+    {
+      "id": "2.18-adult-senior-value-set",
+      "text": "Adult and senior are expressed as a value set {ADULT, SENIOR} in at least one row of the eligibility table.",
+      "passed": false,
+      "evidence": "Adult below threshold | ADULT | 4 | 0 and Senior below threshold | SENIOR | 4 | 0 are separate rows."
+    },
+    {
+      "id": "2.19-depth-all-tiers",
+      "text": "All 9 discount tiers are represented in the ladder table: 0%, 5%, 10%, 15%, 20%, 25%, 30%, 35%, and 40%.",
+      "passed": true,
+      "evidence": "First table shows 0%, 5%, 10%, 15%, 20%, 25%, 30%, 35%, 40% discounts across rows."
+    },
+    {
+      "id": "2.20-readability-one-row-per-tier",
+      "text": "Each tier in the discount ladder is expressed as a single row with a value set for ticket counts — not split across multiple rows.",
+      "passed": false,
+      "evidence": "5% tier split: At discount threshold | 5 | 5% and Mid-tier, no step up | 9 | 5%"
+    },
+    {
+      "id": "2.21-readability-relative-time",
+      "text": "The rolling window table expresses time relatively (e.g. '14 days ago', '30 days ago', or integer 'Days ago' column).",
+      "passed": false,
+      "evidence": "No rolling window table provided; only two @TableTest methods shown."
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules.",
+      "passed": false,
+      "evidence": "Response shows 'Two methods, one assertion each' with only reisDiscountTier and discountByPassengerType; rolling window missing."
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
+      "passed": false,
+      "evidence": "First table has 12 rows (No travel yet through Above maximum discount) when value sets would reduce to ~9 rows (one per tier)."
+    }
+  ],
+  "assertions_passed": 6,
+  "assertions_total": 18,
+  "pass_rate": 0.3333333333333333
+}

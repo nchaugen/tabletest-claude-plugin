@@ -1,0 +1,97 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\"...\"\"\")\n    void calculateShippingCost(...)"
+    },
+    {
+      "id": "options-as-map",
+      "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns",
+      "passed": false,
+      "evidence": "Table has three separate columns: | Fragile | Insured Value | Handling |, not a single Options map column"
+    },
+    {
+      "id": "options-type-converter",
+      "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions",
+      "passed": false,
+      "evidence": "No @TypeConverter method present; options constructed manually in test body with if statements"
+    },
+    {
+      "id": "dimensions-as-list",
+      "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate columns",
+      "passed": true,
+      "evidence": "| Dimensions   | ... | [20, 15, 10] | ... | [30, 20, 15] |"
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence",
+      "passed": true,
+      "evidence": "Same rate all carriers | ... | {DHL, UPS, FEDEX} | 12.00"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table",
+      "passed": false,
+      "evidence": "Only one @TableTest method; all 15 rows (base rates, surcharges, dimensional weight, carrier equivalence) in single table"
+    },
+    {
+      "id": "numeric-types-correct",
+      "text": "Weight and cost parameters use BigDecimal (not double or String). Dimensions use Integer or int.",
+      "passed": true,
+      "evidence": "void calculateShippingCost(..., BigDecimal weight, List<Integer> dimensions, ..., BigDecimal expected)"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Each table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "Scenario | Region | Service | ... (Scenario is leftmost column)"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions — not outcomes or generic labels",
+      "passed": true,
+      "evidence": "EU standard light, Fragile surcharge, Dimensional weight override, Hazmat handling, Oversize surcharge"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Cost?', 'Base rate?')",
+      "passed": true,
+      "evidence": "| Cost? (rightmost column header)"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain language — not code identifiers",
+      "passed": true,
+      "evidence": "Region, Service, Weight, Dimensions, Fragile, Insured Value, Handling, Carrier, Cost? (plain English, not camelCase)"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method bodies contain no if or switch statements",
+      "passed": false,
+      "evidence": "if (Boolean.TRUE.equals(fragile)) opts.setFragile(true);\n        if (insuredValue != null)...\n        if (handling != null)..."
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest",
+      "passed": true,
+      "evidence": "@TableTest annotation present with no prior @DisplayName or @Description"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear descriptive title",
+      "passed": false,
+      "evidence": "Method named calculateShippingCost with no @DisplayName; name doesn't describe test scenarios being executed"
+    },
+    {
+      "id": "no-testng-artifacts",
+      "text": "Output contains no TestNG syntax: no @DataProvider, @Test(dataProvider=...), Object[][], or TestNG imports",
+      "passed": true,
+      "evidence": "Imports use org.junit.jupiter.api and org.tabletest.junit; no org.testng.* imports present"
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 15,
+  "pass_rate": 0.6666666666666666
+}

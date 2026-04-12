@@ -1,0 +1,85 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\" appears twice in the code—once for valid input and once for invalid input tables"
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell in the valid inputs @TableTest table",
+      "passed": true,
+      "evidence": "Null input row shows \"Null input |       |\" with blank cells for Input and Result? columns"
+    },
+    {
+      "id": "exception-has-expected-column",
+      "text": "The exception/invalid-input table has an expected column specifying the exception type per row",
+      "passed": true,
+      "evidence": "Second table has 'Throws?' column with 'java.lang.IllegalArgumentException' specified per row"
+    },
+    {
+      "id": "exception-cases-handled",
+      "text": "The exception cases (empty string, letters-only, negative) are handled",
+      "passed": true,
+      "evidence": "All three cases in Throws? table: Empty string, Letters only, Negative value with assertThrows in body"
+    },
+    {
+      "id": "result-column-with-question-mark",
+      "text": "Valid inputs have a result column name ending with '?'",
+      "passed": true,
+      "evidence": "First table has column 'Result?' with question mark suffix"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "shouldParseValidInput and shouldRejectInvalidInput contain only assertion calls, no conditionals"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title",
+      "passed": true,
+      "evidence": "@DisplayName(\"Parse valid and null input\") and @DisplayName(\"Reject invalid input\") both present"
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description is present, it provides context beyond what the table rows already express",
+      "passed": true,
+      "evidence": "@Description notes 'Open: behaviour for 0.00' and 'Money.equals() must be implemented'—context not visible in table rows"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest",
+      "passed": true,
+      "evidence": "First method: @DisplayName, @Description, @TableTest. Second method: @DisplayName, @TableTest. Correct order in both"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string)",
+      "passed": true,
+      "evidence": "@Description uses \"\"\" ... \"\"\" triple-quoted text block, not string concatenation with +"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern",
+      "passed": true,
+      "evidence": "Two separate tables: 'Parse valid and null input' (assertEquals) and 'Reject invalid input' (assertThrows) with distinct assertion logic"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations",
+      "passed": true,
+      "evidence": "Valid table: 3 rows (typical, minimal, null). Invalid table: 3 rows (empty, letters, negative). Each focused without combinatorial bloat"
+    },
+    {
+      "id": "separates-valid-and-invalid",
+      "text": "Valid parsing cases and error/exception cases are in separate @TableTest methods",
+      "passed": true,
+      "evidence": "shouldParseValidInput handles valid/null; shouldRejectInvalidInput handles exceptions—in separate @TableTest methods"
+    }
+  ],
+  "assertions_passed": 13,
+  "assertions_total": 13,
+  "pass_rate": 1
+}

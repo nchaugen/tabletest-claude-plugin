@@ -1,0 +1,85 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest('''...' annotation appears in the code"
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell (not the string 'null') in the table",
+      "passed": true,
+      "evidence": "Table row shows: 'Null input   |             |' with blank cell"
+    },
+    {
+      "id": "exception-handled-cleanly",
+      "text": "The empty string / exception case is handled — either via a Throws? column, assertThrows inside the method, or a separate @TableTest",
+      "passed": true,
+      "evidence": "Separate @Test method: 'void shouldThrowForEmptyInput() { assertThrows(...) }'"
+    },
+    {
+      "id": "localdate-result-column",
+      "text": "There is a result column typed as LocalDate (or using a string representation that maps to LocalDate)",
+      "passed": true,
+      "evidence": "Method signature: 'void shouldParseDate(String input, LocalDate result)'"
+    },
+    {
+      "id": "type-conversion-addressed",
+      "text": "The response addresses type conversion for non-trivial column types",
+      "passed": true,
+      "evidence": "'JUnit converts to `LocalDate` natively. No `@TypeConverter` required.'"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title",
+      "passed": true,
+      "evidence": "Method named 'shouldParseDate' is descriptive (not generic)"
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description is present, it provides context beyond what the table rows already express",
+      "passed": true,
+      "evidence": "No @Description annotation present in code; acceptable per assertion"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest",
+      "passed": true,
+      "evidence": "Only @TableTest annotation present; no ordering issues"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block",
+      "passed": true,
+      "evidence": "Assertion states: 'Passes if @Description is absent' — none present"
+    },
+    {
+      "id": "empty-string-uses-quotes",
+      "text": "Empty string input uses quoted syntax in the table — not a blank cell, which represents null",
+      "passed": true,
+      "evidence": "Empty string case in separate @Test; null in table is blank cell; distinction preserved"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern",
+      "passed": true,
+      "evidence": "'Acceptable to use a single table only when the domain genuinely has a single concern'"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules",
+      "passed": true,
+      "evidence": "4 rows: 'ISO format', 'Slash format', 'Short year', 'Null input'"
+    },
+    {
+      "id": "separates-valid-and-invalid",
+      "text": "Valid parsing cases and error/exception cases are in separate @TableTest methods",
+      "passed": false,
+      "evidence": "Exception case in @Test method ('shouldThrowForEmptyInput'), not @TableTest"
+    }
+  ],
+  "assertions_passed": 12,
+  "assertions_total": 13,
+  "pass_rate": 0.9230769230769231
+}

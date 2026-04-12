@@ -1,0 +1,55 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest annotation present before method declaration"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column header is 'Scenario' with values like 'Simple address', 'No at-sign'"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?'",
+      "passed": true,
+      "evidence": "Column header 'Valid?' ends with question mark"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "Method body is only: assertEquals(valid, validator.isValid(email));"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions, not outcomes or generic names",
+      "passed": true,
+      "evidence": "Names like 'No at-sign', 'Missing local part', 'Empty label after at' describe input conditions"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations in correct order: @DisplayName, @Description, @TableTest",
+      "passed": true,
+      "evidence": "Only @TableTest present; no @DisplayName or @Description to order incorrectly"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Method has descriptive title via annotation or name",
+      "passed": true,
+      "evidence": "Method name 'validatesEmailAddress' reads as clear descriptive title"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "Uses text block for @Description if present and long; passes if absent",
+      "passed": true,
+      "evidence": "No @Description annotation present in code"
+    }
+  ],
+  "assertions_passed": 8,
+  "assertions_total": 8,
+  "pass_rate": 1
+}

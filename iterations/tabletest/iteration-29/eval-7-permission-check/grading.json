@@ -1,0 +1,73 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\" annotation present in code"
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "Table uses value-set syntax (curly braces like {READ, WRITE} or {READ, WRITE, DELETE}) to express rules that hold across multiple actions",
+      "passed": true,
+      "evidence": "Table contains {READ, WRITE, DELETE} for ADMIN and {WRITE, DELETE} for GUEST"
+    },
+    {
+      "id": "fewer-than-nine-rows",
+      "text": "Table has fewer than 9 data rows",
+      "passed": true,
+      "evidence": "Table has 6 data rows total"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "Method body: assertEquals(allowed, canPerform(role, action));"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column header is 'Scenario' with entries like 'Admin can perform any action'"
+    },
+    {
+      "id": "no-duplicate-role-output",
+      "text": "No two rows share both the same Role value and the same boolean output",
+      "passed": false,
+      "evidence": "Rows 'User can read' and 'User can write' both have Role=USER and Allowed?=true"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or descriptive method name",
+      "passed": true,
+      "evidence": "@DisplayName(\"Role permission checks\") annotation present"
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description is present, it provides context beyond table rows. Acceptable to omit.",
+      "passed": true,
+      "evidence": "No @Description annotation; assertion permits omission per specification"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName, @Description, @TableTest",
+      "passed": true,
+      "evidence": "Code shows @DisplayName then @TableTest (no @Description); correct order"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and longer than one line, uses text block. Passes if absent.",
+      "passed": true,
+      "evidence": "@Description is absent; assertion allows this"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions, not outcomes",
+      "passed": true,
+      "evidence": "Scenario names like 'Admin can perform any action', 'User can read' describe conditions"
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 11,
+  "pass_rate": 0.9090909090909091
+}
