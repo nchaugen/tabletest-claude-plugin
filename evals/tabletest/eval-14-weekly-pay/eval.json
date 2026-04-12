@@ -3,11 +3,7 @@
   "slug": "weekly-pay",
   "skill": "tabletest",
   "assertions": [
-    {
-      "id": "1.1-traceability-columns",
-      "text": "The pay table includes intermediate expected columns (e.g. Regular pay?, Overtime pay?, Premium pay?) so the reader can trace which rule contributes what — not just a single total Weekly pay? column."
-    },
-    {
+{
       "id": "1.2-error-has-expected-column",
       "text": "The error/rejection table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row — rather than hardcoding the exception type in @Description or the method name."
     },

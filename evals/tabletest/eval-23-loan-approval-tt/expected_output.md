@@ -1,1 +1,1 @@
-One or more @TableTest methods with policy thresholds visible as concrete input values, scenario names describing conditions, business-language columns, and concrete domain values.
+One or more @TableTest methods with policy thresholds visible as concrete input values, scenario names describing conditions, business-language columns, and concrete domain values. Descriptions should not redundantly state fixed field values visible in the table. The effect of stable income on approval must be clearly visible from table rows.

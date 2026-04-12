@@ -90,6 +90,7 @@ function parseArgs(argv) {
     gradingSuffix: null,
     parallel: 4,
     gradeOnly: false,
+    reportOnly: false,
   };
 
   for (let i = 2; i < argv.length; i++) {
@@ -124,6 +125,9 @@ function parseArgs(argv) {
       case "--grade-only":
         args.gradeOnly = true;
         break;
+      case "--report-only":
+        args.reportOnly = true;
+        break;
       default:
         console.error(`Unknown argument: ${argv[i]}`);
         process.exit(1);
@@ -142,6 +146,7 @@ function parseArgs(argv) {
     console.error("  --grading-suffix S  Write grading to grading-S.json instead of grading.json");
     console.error("  --parallel N        Max parallel evals (default: 4)");
     console.error("  --grade-only        Re-grade existing outputs");
+    console.error("  --report-only       Regenerate report from existing benchmark.json");
     process.exit(1);
   }
 
@@ -161,21 +166,9 @@ function parseArgs(argv) {
 async function main() {
   const args = parseArgs(process.argv);
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.error("Error: ANTHROPIC_API_KEY environment variable is not set.");
-    console.error("The eval script requires an API key to avoid consuming interactive plan usage.");
-    console.error("Set it with: ANTHROPIC_API_KEY=sk-... node scripts/run-evals.js ...");
-    process.exit(1);
-  }
-
   const repoRoot = execSync("git rev-parse --show-toplevel", {
     encoding: "utf-8",
   }).trim();
-
-  let evals = loadEvalsFromDir(path.join(repoRoot, evalsDir(args.skill)));
-  if (args.evals) {
-    evals = evals.filter((e) => args.evals.includes(e.id));
-  }
 
   // Determine iteration directory based on variant
   const iterBase = args.variant
@@ -187,6 +180,34 @@ async function main() {
   // Set up log file (sync writes so output survives crashes)
   logFile = path.join(iterationDir, "run.log");
   fs.appendFileSync(logFile, `\n--- Run started at ${new Date().toISOString()} ---\n`);
+
+  // Report-only mode: regenerate report from existing benchmark.json
+  if (args.reportOnly) {
+    const benchPath = path.join(iterationDir, "benchmark.json");
+    if (!fs.existsSync(benchPath)) {
+      console.error(`Error: No benchmark.json found at ${benchPath}`);
+      process.exit(1);
+    }
+    const benchmark = JSON.parse(fs.readFileSync(benchPath, "utf-8"));
+    const previousBenchmark = loadPreviousBenchmark(repoRoot, args);
+    const officialBenchmark = args.compareOfficial ? loadOfficialBenchmark(repoRoot, args.skill) : null;
+    generateReport(benchmark, previousBenchmark, officialBenchmark, iterationDir, args);
+    log("\nReport regenerated. Results in:", iterationDir);
+    logFile = null;
+    return;
+  }
+
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.error("Error: ANTHROPIC_API_KEY environment variable is not set.");
+    console.error("The eval script requires an API key to avoid consuming interactive plan usage.");
+    console.error("Set it with: ANTHROPIC_API_KEY=sk-... node scripts/run-evals.js ...");
+    process.exit(1);
+  }
+
+  let evals = loadEvalsFromDir(path.join(repoRoot, evalsDir(args.skill)));
+  if (args.evals) {
+    evals = evals.filter((e) => args.evals.includes(e.id));
+  }
 
   const label = args.variant ? `variant=${args.variant}` : "official";
   log(
@@ -814,7 +835,9 @@ function loadPreviousBenchmark(repoRoot, args) {
 }
 
 function loadOfficialBenchmark(repoRoot, skill) {
-  // Find the latest official iteration with a benchmark
+  // Merge evals from all official iterations, using the latest result for each eval.
+  // This handles partial runs (e.g. iteration-28 with only 2 evals) by filling in
+  // older results for evals not present in the latest iteration.
   const officialDir = path.join(repoRoot, iterationsDir(skill));
   if (!fs.existsSync(officialDir)) return null;
 
@@ -826,15 +849,49 @@ function loadOfficialBenchmark(repoRoot, skill) {
       return numB - numA; // descending — latest first
     });
 
+  const mergedEvals = {};
+  let latestBenchmark = null;
+
   for (const iter of iterations) {
     const benchPath = path.join(officialDir, iter, "benchmark.json");
-    if (fs.existsSync(benchPath)) {
-      const benchmark = JSON.parse(fs.readFileSync(benchPath, "utf-8"));
-      benchmark._iterationName = iter;
-      return benchmark;
+    if (!fs.existsSync(benchPath)) continue;
+
+    const benchmark = JSON.parse(fs.readFileSync(benchPath, "utf-8"));
+    if (!latestBenchmark) {
+      latestBenchmark = benchmark;
+    }
+
+    for (const evalEntry of benchmark.evals) {
+      const match = evalEntry.id.match(/eval-(\d+)/);
+      if (match && !mergedEvals[match[1]]) {
+        mergedEvals[match[1]] = { ...evalEntry, _fromIteration: iter };
+      }
     }
   }
-  return null;
+
+  if (!latestBenchmark) return null;
+
+  const mergedBenchmark = { ...latestBenchmark };
+  mergedBenchmark.evals = Object.values(mergedEvals).sort((a, b) => {
+    const numA = parseInt(a.id.match(/eval-(\d+)/)[1], 10);
+    const numB = parseInt(b.id.match(/eval-(\d+)/)[1], 10);
+    return numA - numB;
+  });
+  const iterNums = iterations.filter(i => fs.existsSync(path.join(officialDir, i, "benchmark.json"))).map(i => i.split("-")[1]);
+  mergedBenchmark._iterationName = `iterations ${iterNums.join(", ")} merged`;
+
+  // Recompute summary from merged evals
+  const results = mergedBenchmark.evals.map(e => unwrapResults(e)).filter(Boolean);
+  mergedBenchmark.summary = {
+    assertions_passed: results.reduce((s, r) => s + r.assertions_passed, 0),
+    assertions_total: results.reduce((s, r) => s + r.assertions_total, 0),
+    pass_rate: results.reduce((s, r) => s + r.assertions_passed, 0) / (results.reduce((s, r) => s + r.assertions_total, 0) || 1),
+    total_tokens: results.reduce((s, r) => s + r.total_tokens, 0),
+    total_duration_ms: results.reduce((s, r) => s + r.duration_ms, 0),
+    total_cost_usd: results.reduce((s, r) => s + (r.cost_usd || 0), 0),
+  };
+
+  return mergedBenchmark;
 }
 
 function detectRegressions(benchmark, previousBenchmark) {
@@ -998,28 +1055,88 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
     const officialLabel = officialBenchmark._iterationName || "official";
     md += `## Variant vs Official (${officialLabel})\n\n`;
 
-    // Summary comparison
-    const variantSummary = unwrapSummary(benchmark);
-    const officialSummary = unwrapSummary(officialBenchmark);
-    if (variantSummary && officialSummary) {
-      md += `| Source | Pass Rate | Tokens | Cost |\n`;
-      md += `|--------|-----------|--------|------|\n`;
-      md += `| ${args.variant} (iter ${args.iteration}) | ${variantSummary.assertions_passed}/${variantSummary.assertions_total} (${(variantSummary.pass_rate * 100).toFixed(1)}%) | ${variantSummary.total_tokens} | $${(variantSummary.total_cost_usd || 0).toFixed(4)} |\n`;
-      md += `| official (${officialLabel}) | ${officialSummary.assertions_passed}/${officialSummary.assertions_total} (${(officialSummary.pass_rate * 100).toFixed(1)}%) | ${officialSummary.total_tokens} | $${(officialSummary.total_cost_usd || 0).toFixed(4)} |\n`;
-      md += `\n`;
-    }
-
-    // Per-assertion diff
+    // Build eval lookup by number (shared across sections)
     const officialByEvalNum = {};
     for (const e of officialBenchmark.evals) {
       const match = e.id.match(/eval-(\d+)/);
       if (match) officialByEvalNum[match[1]] = e;
     }
 
+    // Per-eval resource comparison
+    const fmtDelta = (curr, off) => {
+      if (!off) return "—";
+      const pct = ((curr - off) / off * 100).toFixed(0);
+      return (pct >= 0 ? "+" : "") + pct + "%";
+    };
+
+    md += `### Per-Eval Resource Comparison\n\n`;
+    md += `| Eval | Pass (off) | Pass (var) | Tokens (off) | Tokens (var) | Tok Δ | Cost (off) | Cost (var) | Cost Δ | Time (off) | Time (var) | Time Δ |\n`;
+    md += `|------|------------|------------|--------------|--------------|-------|------------|------------|--------|------------|------------|--------|\n`;
+
+    const attentionItems = [];
+    let totOffTokens = 0, totVarTokens = 0, totOffCost = 0, totVarCost = 0, totOffTime = 0, totVarTime = 0;
+    let totOffPass = 0, totOffTotal = 0, totVarPass = 0, totVarTotal = 0;
+    let comparableCount = 0;
+
+    for (const evalEntry of benchmark.evals) {
+      const evalNum = String(evalEntry.id.match(/eval-(\d+)/)?.[1]);
+      const officialEval = officialByEvalNum[evalNum];
+      const curr = unwrapResults(evalEntry);
+      const off = officialEval ? unwrapResults(officialEval) : null;
+      if (!curr) continue;
+
+      const currPass = `${curr.assertions_passed}/${curr.assertions_total}`;
+      const offPass = off ? `${off.assertions_passed}/${off.assertions_total}` : "—";
+      const offTok = off ? String(off.total_tokens) : "—";
+      const offCost = off ? `$${off.cost_usd.toFixed(4)}` : "—";
+      const offTime = off ? `${(off.duration_ms / 1000).toFixed(1)}s` : "—";
+      const tokDelta = off ? fmtDelta(curr.total_tokens, off.total_tokens) : "—";
+      const costDelta = off ? fmtDelta(curr.cost_usd, off.cost_usd) : "—";
+      const timeDelta = off ? fmtDelta(curr.duration_ms, off.duration_ms) : "—";
+
+      md += `| ${evalEntry.id} | ${offPass} | ${currPass} | ${offTok} | ${curr.total_tokens} | ${tokDelta} | ${offCost} | $${curr.cost_usd.toFixed(4)} | ${costDelta} | ${offTime} | ${(curr.duration_ms / 1000).toFixed(1)}s | ${timeDelta} |\n`;
+
+      if (off) {
+        comparableCount++;
+        totOffTokens += off.total_tokens; totVarTokens += curr.total_tokens;
+        totOffCost += off.cost_usd; totVarCost += curr.cost_usd;
+        totOffTime += off.duration_ms; totVarTime += curr.duration_ms;
+        totOffPass += off.assertions_passed; totOffTotal += off.assertions_total;
+        totVarPass += curr.assertions_passed; totVarTotal += curr.assertions_total;
+
+        // Flag high resource usage
+        if (curr.total_tokens > off.total_tokens * 2) {
+          attentionItems.push({ eval: evalEntry.id, issue: "High tokens", details: `${curr.total_tokens} vs ${off.total_tokens} (${fmtDelta(curr.total_tokens, off.total_tokens)})` });
+        }
+        if (curr.cost_usd > off.cost_usd * 2) {
+          attentionItems.push({ eval: evalEntry.id, issue: "High cost", details: `$${curr.cost_usd.toFixed(4)} vs $${off.cost_usd.toFixed(4)} (${fmtDelta(curr.cost_usd, off.cost_usd)})` });
+        }
+      }
+    }
+
+    if (comparableCount > 0) {
+      md += `| **Totals (${comparableCount} comparable)** | **${totOffPass}/${totOffTotal}** | **${totVarPass}/${totVarTotal}** | **${totOffTokens}** | **${totVarTokens}** | **${fmtDelta(totVarTokens, totOffTokens)}** | **$${totOffCost.toFixed(4)}** | **$${totVarCost.toFixed(4)}** | **${fmtDelta(totVarCost, totOffCost)}** | **${(totOffTime / 1000).toFixed(1)}s** | **${(totVarTime / 1000).toFixed(1)}s** | **${fmtDelta(totVarTime, totOffTime)}** |\n`;
+    }
+    md += `\n`;
+
+    // Summary comparison (uses comparable totals from resource table above)
+    if (comparableCount > 0) {
+      const varOffRate = (totOffPass / totOffTotal * 100).toFixed(1);
+      const varVarRate = (totVarPass / totVarTotal * 100).toFixed(1);
+      md += `**Comparable summary (${comparableCount} evals in both):**\n\n`;
+      md += `| Source | Pass Rate | Tokens | Cost | Time |\n`;
+      md += `|--------|-----------|--------|------|------|\n`;
+      md += `| ${args.variant} (iter ${args.iteration}) | ${totVarPass}/${totVarTotal} (${varVarRate}%) | ${totVarTokens} | $${totVarCost.toFixed(4)} | ${(totVarTime / 1000).toFixed(1)}s |\n`;
+      md += `| official | ${totOffPass}/${totOffTotal} (${varOffRate}%) | ${totOffTokens} | $${totOffCost.toFixed(4)} | ${(totOffTime / 1000).toFixed(1)}s |\n`;
+      md += `| **Δ** | | **${fmtDelta(totVarTokens, totOffTokens)}** | **${fmtDelta(totVarCost, totOffCost)}** | **${fmtDelta(totVarTime, totOffTime)}** |\n`;
+      md += `\n`;
+    }
+
+    // Per-assertion diff
     const loadBearing = [];
     md += `### Per-Assertion Comparison\n\n`;
     md += `| Eval | Assertion | official | ${args.variant} |\n`;
-    md += `|------|-----------|----------|${"—".repeat(args.variant.length + 2)}|\n`;
+    md += `|------|-----------|----------|${"-".repeat(args.variant.length + 2)}|\n`;
 
     for (const evalEntry of benchmark.evals) {
       const evalNum = String(evalEntry.id.match(/eval-(\d+)/)?.[1]);
@@ -1045,7 +1162,7 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
         const offPass = !offFailed.has(aid);
         const currPass = !currFailed.has(aid);
         if (offPass !== currPass) {
-          md += `| ${evalEntry.id} | ${aid} | ${offPass ? "pass" : "FAIL"} | ${currPass ? "pass" : "FAIL"} |\n`;
+          md += `| ${evalEntry.id} | ${aid} | ${offPass ? "✅" : "❌"} | ${currPass ? "✅" : "❌"} |\n`;
           if (offPass && !currPass) {
             loadBearing.push({ eval: evalEntry.id, assertion: aid });
           }
@@ -1061,8 +1178,30 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
         md += `- ${lb.eval}: \`${lb.assertion}\`\n`;
       }
       md += `\n`;
+
+      // Add load-bearing assertions to attention items
+      const lbByEval = {};
+      for (const lb of loadBearing) {
+        if (!lbByEval[lb.eval]) lbByEval[lb.eval] = [];
+        lbByEval[lb.eval].push(lb.assertion);
+      }
+      for (const [evalId, assertions] of Object.entries(lbByEval)) {
+        attentionItems.push({ eval: evalId, issue: "Failed assertions", details: assertions.map(a => `\`${a}\``).join(", ") });
+      }
     } else {
       md += `No load-bearing assertions found — variant matches official on all comparable assertions.\n\n`;
+    }
+
+    // Attention needed summary
+    if (attentionItems.length > 0) {
+      md += `### Attention Needed\n\n`;
+      md += `Evals with failed assertions or disproportionate resource usage (>2x official):\n\n`;
+      md += `| Eval | Issue | Details |\n`;
+      md += `|------|-------|---------|\n`;
+      for (const item of attentionItems) {
+        md += `| ${item.eval} | ${item.issue} | ${item.details} |\n`;
+      }
+      md += `\n`;
     }
   }
 

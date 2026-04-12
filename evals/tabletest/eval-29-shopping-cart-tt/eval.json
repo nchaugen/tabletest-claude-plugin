@@ -70,6 +70,18 @@
     {
       "id": "test-data-visible",
       "text": "Product prices and coupon rules (type, amount, expiry status) are visible in the table via columns, @Description, or explicit setup — not silently hardcoded. The reader can trace how inputs lead to outputs."
+    },
+    {
+      "id": "type-converters-for-complex-objects",
+      "text": "TypeConverter methods are used to convert map/string table values into domain objects (e.g. Map → Cart, Map → InventoryService, map → Coupon). Test method bodies contain only arrange-act-assert — no object construction from raw table values."
+    },
+    {
+      "id": "coupon-as-map-column",
+      "text": "Coupon data uses a single map column (e.g. [type: PERCENTAGE, value: 10]) with a @TypeConverter, rather than separate sparse columns for coupon type, value, and target product."
+    },
+    {
+      "id": "description-not-redundant-with-scenarios",
+      "text": "@Description annotations do not repeat information that the scenario names already convey. Coupon type behavior (what PERCENTAGE/FIXED/PRODUCT mean) should be expressed through descriptive scenario names, not duplicated in the description."
     }
   ],
   "timeout_ms": 900000

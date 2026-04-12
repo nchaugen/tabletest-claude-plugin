@@ -286,6 +286,10 @@ void shouldParseAmount(String input, BigDecimal result) {
 }
 ```
 
+### Collapse Sparse Columns into a Map
+
+When several columns are mostly blank, consider collapsing them into a single map column (e.g. `[key: value, key: value]`) with a `@TypeConverter` to construct the target object. This is especially appropriate when the sparse columns correspond to a single parameter in the method under test. The map keeps the table compact and moves construction logic out of the test method.
+
 ### Include Traceability Columns
 
 When a table tests a pipeline (input → intermediate result → final result), include the intermediate result as an expectation column. This lets readers trace the logic step by step:
@@ -300,6 +304,8 @@ When a table tests a pipeline (input → intermediate result → final result), 
 ```
 
 The `Discount tier?` column is not strictly necessary (the test could verify only `Final price?`), but it lets the reader trace: customer + order + loyalty → discount tier → price. When a row fails, the intermediate column shows where in the pipeline the error occurred.
+
+**Guard:** Only use traceability columns for values the system under test exposes or that represent observable domain concepts. If you would need to reimplement an internal calculation in the test body to populate the column, it doesn't belong — the intermediate likely points to a separate concern that needs its own `@TableTest` method. Decompose into multiple tables instead; the intermediate becomes an output in one table and an input in the next.
 
 ### Name Scenarios Descriptively
 
@@ -479,7 +485,7 @@ After writing, verify:
 - [ ] **Correct expected values**: arithmetic in expected columns verified independently; every row's output matches the stated rules
 - [ ] **Value set semantics**: value sets only used where every value produces the same result; not used as shorthand for "test multiple values"
 - [ ] **Optional inputs blank**: columns not relevant to a scenario use blank cells (not 0 or defaults); parameter types support null
-- [ ] **Traceability columns**: intermediate expected values included where they help trace multi-step logic
+- [ ] **Traceability columns**: intermediate expected values included only when the value is observable from the public API — never reimplemented from internal logic; if you need to reimplement a formula to populate the column, decompose into separate tables instead
 - [ ] **@Description adds information**: if present, `@Description` provides context beyond what the table shows (fixed values, domain context, open questions) — not a restatement of columns or rows. Omit `@Description` if there is nothing to add.
 - [ ] **@Description uses text block**: `@Description` uses `"""` text blocks, not string concatenation with `+`
 - [ ] **Annotation order**: `@DisplayName` → `@Description` → `@TableTest` (no other order)
