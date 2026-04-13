@@ -18,21 +18,22 @@ Maven:
 <dependency>
     <groupId>org.tabletest</groupId>
     <artifactId>tabletest-junit</artifactId>
-    <version>VERSION</version>
+    <version>1.2.1</version>
     <scope>test</scope>
 </dependency>
 ```
 
 Gradle:
 ```groovy
-testImplementation "org.tabletest:tabletest-junit:VERSION"
+testImplementation "org.tabletest:tabletest-junit:1.2.1"
 ```
 
 Imports:
 ```java
 import org.tabletest.junit.TableTest;
-import org.tabletest.junit.Scenario;         // only when binding scenario column
-import org.tabletest.junit.TypeConverter;     // only for custom converter methods
+import org.tabletest.junit.Description;          // only when adding descriptive text to table
+import org.tabletest.junit.Scenario;             // only when binding scenario column
+import org.tabletest.junit.TypeConverter;        // only for custom converter methods
 import org.tabletest.junit.TypeConverterSources; // only for shared converter sources
 ```
 
@@ -715,7 +716,9 @@ void resolves_values(String input, String resolved) {
 }
 ```
 
-**Blank vs value set for irrelevant inputs**: Blank cells mean the input is genuinely absent (null). When the input exists but is irrelevant to the outcome, use a value set instead: `{UK, Ireland, Other}` for destination means "destination exists but doesn't affect this result". Don't use blanks for "doesn't matter" — blanks mean null.
+**Blank cells for irrelevant inputs**: When an input is not relevant to a scenario, use a blank cell — not `0` or a default value. Use boxed types (`Integer`, `Long`) instead of primitives so blank cells convert to `null`. Then handle null-to-default conversion in a `@TypeConverter` or helper, not in the test method body.
+
+**Blank vs value set**: Blank cells mean the input is genuinely absent (null). When the input exists but is irrelevant to the outcome, use a value set instead: `{UK, Ireland, Other}` for destination means "destination exists but doesn't affect this result". Don't use blanks for "doesn't matter" — blanks mean null.
 
 **Note**: These are syntax examples, not test design patterns. Null/empty/blank variants of an input should typically be additional rows in the test that covers the feature, not in a separate test method.
 
@@ -735,6 +738,14 @@ void resolves_values(String input, String resolved) {
 4. Align method parameters to column order; do not bind the scenario column unless annotated with `@Scenario`.
 5. Verify all rows use the same assertion logic.
 6. After building table with multiple rows, check for column consolidation opportunities (see Quality Checks).
+
+### Writing New TableTest from a Feature Description
+
+When there is no existing code (empty `src/main/java`), write the tests first — the table design drives the API shape. After the tests are written, add stub implementation code so they compile.
+
+1. **Read the feature description** and identify the rules/concerns
+2. **Write the test class** with `@TableTest` methods following the design principles in this skill
+3. **Add stub implementation** — create the class and methods referenced by the tests with signatures only (return defaults, throw `UnsupportedOperationException`, etc.). Do not implement the logic unless specifically instructed. The user may want to iterate on the test design before committing to an implementation.
 
 ### Writing New TableTest from Existing Code
 
