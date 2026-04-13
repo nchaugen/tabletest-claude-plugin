@@ -36,7 +36,7 @@
     },
     {
       "id": "numeric-types-correct",
-      "text": "Weight and cost parameters use BigDecimal (not double or String). Dimensions use Integer or int.",
+      "text": "Parameter types correspond to the ShippingCostCalculator.calculateShippingCost interface — weight, cost, and dimension types match the method signature.",
       "type": "llm"
     },
     {
@@ -73,6 +73,11 @@
       "id": "has-descriptive-title",
       "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
       "type": "llm"
+    },
+    {
+      "id": "output-is-kotlin",
+      "text": "The generated test file is written in Kotlin (.kt), not Java or Groovy. Uses Kotlin syntax: fun, val/var, Kotlin imports.",
+      "type": "deterministic"
     },
     {
       "id": "no-groovy-syntax",

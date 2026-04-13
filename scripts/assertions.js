@@ -397,6 +397,18 @@ const checkers = {
     }
     return { passed: false, evidence: "Build file does not contain tabletest-junit dependency" };
   },
+
+  "output-is-kotlin": ({ allFiles }) => {
+    const ktFiles = allFiles.filter(f => f.path.endsWith(".kt") && /src\/test\//.test(f.path));
+    const javaFiles = allFiles.filter(f => f.path.endsWith(".java") && /src\/test\//.test(f.path));
+    if (ktFiles.length > 0 && javaFiles.length === 0) {
+      return { passed: true, evidence: `Found ${ktFiles.length} Kotlin test file(s): ${ktFiles.map(f => f.path).join(", ")}` };
+    }
+    if (ktFiles.length === 0) {
+      return { passed: false, evidence: `No Kotlin test files found. Java test files: ${javaFiles.map(f => f.path).join(", ") || "none"}` };
+    }
+    return { passed: false, evidence: `Mixed output: Kotlin: ${ktFiles.map(f => f.path).join(", ")}; Java: ${javaFiles.map(f => f.path).join(", ")}` };
+  },
 };
 
 // Aliases for eval-specific prefixed assertion IDs that map to the same checker
