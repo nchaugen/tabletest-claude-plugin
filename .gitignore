@@ -2,3 +2,6 @@
 *.iml
 .DS_Store
 .java-version
+.gradle/
+build/
+target/
