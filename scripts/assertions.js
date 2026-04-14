@@ -398,6 +398,48 @@ const checkers = {
     return { passed: false, evidence: "Build file does not contain tabletest-junit dependency" };
   },
 
+  "null-as-blank-cell": ({ fileContent, allFiles }) => {
+    const content = getCheckContent(fileContent, allFiles);
+    // Check that no table data row contains literal "null" as a cell value
+    const tableTestRegex = /@TableTest\s*\(\s*(?:value\s*=\s*)?["\"]{3}([\s\S]*?)["\"]{3}\s*\)/g;
+    let match;
+    const violations = [];
+
+    while ((match = tableTestRegex.exec(content)) !== null) {
+      const tableContent = match[1];
+      const lines = tableContent.split('\n').map(l => l.trim()).filter(l => l.length > 0 && l.includes('|'));
+      // Skip header (first line), check data rows
+      for (let i = 1; i < lines.length; i++) {
+        const cells = lines[i].split('|').map(c => c.trim()).filter(c => c.length > 0);
+        // Skip first cell (scenario column), check remaining for literal "null"
+        for (let j = 1; j < cells.length; j++) {
+          if (cells[j].toLowerCase() === 'null') {
+            violations.push(`Row ${i}: cell "${cells[j]}" is literal null (should be blank)`);
+          }
+        }
+      }
+    }
+
+    return {
+      passed: violations.length === 0,
+      evidence: violations.length === 0
+        ? "No literal null values found in table data cells"
+        : violations.slice(0, 3).join("; "),
+    };
+  },
+
+  "empty-string-uses-quotes": ({ fileContent, allFiles }) => {
+    const content = getCheckContent(fileContent, allFiles);
+    // Check that at least one table cell contains "" or '' (quoted empty string)
+    const found = /\|\s*(['"])\1\s*(?:\||$)/m.test(content);
+    return {
+      passed: found,
+      evidence: found
+        ? "Found quoted empty string in table cell"
+        : "No quoted empty string ('\"\"' or \"''\") found in table cells",
+    };
+  },
+
   "output-is-kotlin": ({ allFiles }) => {
     const ktFiles = allFiles.filter(f => f.path.endsWith(".kt") && /src\/test\//.test(f.path));
     const javaFiles = allFiles.filter(f => f.path.endsWith(".java") && /src\/test\//.test(f.path));
@@ -417,6 +459,7 @@ const aliases = {
   "1.13-format-description-textblock": "description-uses-textblock",
   "2.13-format-annotation-order": "annotation-order",
   "2.14-format-description-textblock": "description-uses-textblock",
+  "result-column-with-question-mark": "has-question-mark-column",
 };
 
 for (const [alias, target] of Object.entries(aliases)) {

@@ -5,55 +5,78 @@
   "assertions": [
     {
       "id": "has-tabletest-annotation",
-      "text": "Output contains a @TableTest annotation"
+      "text": "Output contains a @TableTest annotation",
+      "type": "deterministic"
     },
     {
       "id": "list-syntax-correct",
-      "text": "List values in the table use bracket syntax like [tech:java, biz:sales, dev:ci] — not comma-separated strings without brackets."
+      "text": "List values in the table use bracket syntax like [tech:java, biz:sales, dev:ci] — not comma-separated strings without brackets.",
+      "type": "llm"
     },
     {
       "id": "empty-list-explicit",
-      "text": "Empty list input uses [] (not a blank cell, which represents null). The distinction between empty list and null is preserved."
+      "text": "Empty list input uses [] (not a blank cell, which represents null). The distinction between empty list and null is preserved.",
+      "type": "llm"
     },
     {
       "id": "special-chars-quoted",
-      "text": "Values containing pipes (|), brackets, or colons (:) are properly quoted (e.g. \"tech:java\") so they don't conflict with table syntax. Colons without quoting would be mis-interpreted as map key:value entries."
+      "text": "Values containing pipes (|), brackets, or colons (:) are properly quoted (e.g. \"tech:java\") so they don't conflict with table syntax. Colons without quoting would be mis-interpreted as map key:value entries.",
+      "type": "llm"
     },
     {
       "id": "set-syntax-correct",
-      "text": "Set<String> values in the table use curly brace syntax like {tech, dev} — not bracket syntax [tech, dev] which is for lists. The distinction between Set and List types is preserved in the table notation."
+      "text": "Set<String> values in the table use curly brace syntax like {tech, dev} — not bracket syntax [tech, dev] which is for lists. The distinction between Set and List types is preserved in the table notation.",
+      "type": "llm"
     },
     {
       "id": "newline-in-cell",
-      "text": "Cell values containing newlines use \\n escaping — not literal line breaks that would break the table row structure."
+      "text": "Cell values containing newlines use \\n escaping — not literal line breaks that would break the table row structure.",
+      "type": "llm"
     },
     {
       "id": "pipe-quoted",
-      "text": "Values containing pipe characters (|) are quoted so they don't conflict with the markdown table column separator. For example, a tag like 'biz:hr|recruiting' must be quoted."
+      "text": "Values containing pipe characters (|) are quoted so they don't conflict with the markdown table column separator. For example, a tag like 'biz:hr|recruiting' must be quoted.",
+      "type": "llm"
     },
     {
       "id": "scenario-column-present",
-      "text": "Table has a scenario/description column as the leftmost column"
+      "text": "Table has a scenario/description column as the leftmost column",
+      "type": "deterministic"
     },
     {
       "id": "has-question-mark-column",
-      "text": "At least one output column name ends with '?' (e.g. 'Filtered tags?' or 'Result?')"
+      "text": "At least one output column name ends with '?' (e.g. 'Filtered tags?' or 'Result?')",
+      "type": "deterministic"
     },
     {
       "id": "no-if-switch-in-method",
-      "text": "Test method body contains no if or switch statements"
+      "text": "Test method body contains no if or switch statements",
+      "type": "deterministic"
     },
     {
       "id": "annotation-order",
-      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order."
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "type": "deterministic"
     },
     {
       "id": "has-descriptive-title",
-      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case."
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "type": "llm"
     },
     {
       "id": "description-uses-textblock",
-      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent."
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "type": "deterministic"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit:1.2.1 as a test dependency",
+      "type": "deterministic"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "type": "build"
     }
   ]
 }
