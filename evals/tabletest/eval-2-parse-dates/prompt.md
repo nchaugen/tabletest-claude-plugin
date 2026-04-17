@@ -1,7 +1,16 @@
-I want to write a TableTest for a method that parses date strings. The method signature is:
+A Gradle Java project has been created for this feature.
 
-```java
-LocalDate parseDate(String input)
-```
+Under `src/main/java/com/example`, the project already contains a stub `DateParser` with `parseDate(String input)`. The parsing logic is not implemented yet.
 
-I want to test: ISO format (2024-01-15), slash format (15/01/2024), short year (24-01-15), null input should return null, and empty string should throw IllegalArgumentException.
+We want to write tests before implementing the parser.
+
+Write TableTests for `DateParser.parseDate(...)`.
+
+The parser should handle:
+- ISO format (`2024-01-15`)
+- Slash format (`15/01/2024`)
+- Short year (`24-01-15`)
+- null input should return null
+- empty string should throw `IllegalArgumentException`
+
+It is OK to keep a stub implementation for the parser so the tests compile, but do not implement the parsing logic yet.
