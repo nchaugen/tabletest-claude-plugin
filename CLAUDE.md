@@ -42,14 +42,17 @@ iterations/                      ← results, per skill
         outputs/               ← model's actual output files
         grading.json           ← assertion pass/fail with evidence
         timing.json            ← duration_ms and total_tokens
-    minimal/                     ← variant results (independent iteration numbering)
+    <variant-name>/              ← variant results (independent iteration numbering)
       iteration-1/
 
-skill-variants/                  ← experimental skill files (never shipped)
+skill-variants/                  ← in-development skill versions (never shipped)
   tabletest/
-    minimal/
-      SKILL.md                   ← stripped-down skill variant
+    <variant-name>/
+      SKILL.md                   ← complete skill copy (dir is absent when no version is in development)
+      references/
 ```
+
+Results directories are trimmed after each development cycle; older results live in git history (summaries) only.
 
 **Running evals:** Use `scripts/run-evals.js`. The `--skill` flag is required.
 
@@ -59,14 +62,39 @@ node scripts/run-evals.js --skill tabletest --iteration N --evals 1,2
 node scripts/run-evals.js --skill tabletest --iteration N --compare-iteration M
 ```
 
-**Skill variants:** Test minimized or modified skill files against evals.
+**Regression detection:** The script compares scores against the previous iteration's benchmark.json (within the same variant) and flags any assertion that regressed. With `--compare-official`, it also compares variant results against the latest official benchmark.
+
+### Developing a New Skill Version
+
+`skills/` is always the published version — never iterate on it directly. Develop the next version as a variant:
+
+1. Copy the **full** published skill directory (`SKILL.md` and `references/`) to `skill-variants/<skill>/next/`. The runner replaces the entire skill directory with the variant at eval time, so a partial copy silently drops the references.
+2. Iterate on the variant and benchmark it against the published baseline:
 
 ```bash
-node scripts/run-evals.js --skill tabletest --variant minimal --iteration 1
-node scripts/run-evals.js --skill tabletest --variant minimal --iteration 1 --compare-official
+node scripts/run-evals.js --skill tabletest --variant next --iteration N --compare-official
 ```
 
-**Regression detection:** The script compares scores against the previous iteration's benchmark.json (within the same variant) and flags any assertion that regressed. With `--compare-official`, it also compares variant results against the latest official benchmark.
+The eval-review.md's "Load-Bearing Assertions" and resource-comparison sections show what the change wins and loses versus published.
+
+**HEAD gotcha:** official-skill runs test the last *commit* (the eval worktree is created from HEAD), while variant files, prompts, and project scaffolding are copied from the live working tree. Variant edits take effect immediately; changes to `skills/` only after committing.
+
+### Promoting a Development Version to Published
+
+1. Replace the contents of `skills/<skill>/` with the variant; reconcile the `references/` set (delete references whose content the new SKILL.md subsumes); delete `skill-variants/<skill>/next/`.
+2. Bump the version in `.claude-plugin/plugin.json` and write a user-facing `CHANGELOG.md` entry — describe what changed for users, no variant/development terminology.
+3. Commit (`feat:`), then run one official eval iteration. Its regression report against the previous official baseline is the promotion evidence, and its `benchmark.json` becomes the new baseline.
+4. Trim results: commit `benchmark.json` + `eval-review.md` for iterations worth recording, then delete all iteration directories except the latest official baseline — the next run's regression comparison reads it from disk. Keep the baseline's gitignored `outputs/` on disk: they enable cheap re-grading when assertions change (see below). Conversation logs and outputs are never committed.
+5. Tag and release per the Release Process above.
+
+### Evolving the Eval Suite
+
+The eval suite is the measuring instrument; the skill is the subject. A score delta is only meaningful when exactly one of them changed between the two iterations being compared.
+
+- **Sequence, don't interleave.** Freeze the suite within a comparison cycle. Land eval-suite changes as their own commits (`feat(evals):`, `fix(evals):`), re-baseline the published skill against the new suite, then resume skill iteration.
+- **Re-baseline cheaply.** If only assertions or checkers changed, re-grade the baseline iteration's stored outputs with `--grade-only` — no generation cost. If prompts or project scaffolding changed, re-run the published skill for just the affected evals (`--evals ...`); `--compare-official` merges the newest result per eval across official iterations.
+- **Cross-suite regression reports are noise.** Added or renamed assertions appear as spurious regressions/improvements. Re-baseline instead of interpreting them.
+- **Fingerprint guard (automatic).** Each eval result in `benchmark.json` is stamped with a content fingerprint of its definition (`prompt.md`, `eval.json`, `expected_output.md`, `project/`). Reports compare only fingerprint-matching evals; changed evals are listed as "not comparable" and excluded from variant-vs-official totals. Benchmarks from before the guard have no fingerprints and are treated as comparable.
 
 ### Contamination Protocol
 

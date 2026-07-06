@@ -11,7 +11,31 @@ Use this skill before converting similar JUnit tests or adding a new TableTest.
 
 Before writing any TableTest code, verify two things:
 
-**Dependencies**: Check `pom.xml`/`build.gradle` for `org.tabletest:tabletest-junit` and a JUnit Jupiter version of 5.11 or higher. The TableTest groupId and artifactId are non-obvious and easy to get wrong from memory — if they're missing, read `references/dependency-setup.md` for the exact coordinates before adding anything.
+**Dependencies**: Check `pom.xml`/`build.gradle` for `org.tabletest:tabletest-junit` and a JUnit Jupiter version of 5.11 or higher. If the dependency is missing, add it:
+
+Maven:
+```xml
+<dependency>
+    <groupId>org.tabletest</groupId>
+    <artifactId>tabletest-junit</artifactId>
+    <version>1.2.1</version>
+    <scope>test</scope>
+</dependency>
+```
+
+Gradle:
+```groovy
+testImplementation "org.tabletest:tabletest-junit:1.2.1"
+```
+
+Imports:
+```java
+import org.tabletest.junit.TableTest;
+import org.tabletest.junit.Description;          // only when adding descriptive text to table
+import org.tabletest.junit.Scenario;             // only when binding scenario column
+import org.tabletest.junit.TypeConverter;        // only for custom converter methods
+import org.tabletest.junit.TypeConverterSources; // only for shared converter sources
+```
 
 **Test shape**: TableTest shines when 2+ test cases share the same setup and assertion logic and their differences can be expressed as data (inputs/outputs). A single-scenario `@TableTest` is also fine when it's part of a set of focused, single-responsibility tables (e.g., one table per syntactic feature of a parser) — the benefit is structural consistency and easy row addition later.
 
@@ -61,6 +85,7 @@ Use blank cells for `null` (reference types). Use `''` for empty strings. Use `'
 |-------------------------------|----------------------------------|
 | `\|` (pipe)                   | Quote with `"..."`               |
 | `"` or `'`                    | Quote with the other quote style |
+| `:` (colon)                   | Quote to avoid map key:value syntax |
 | Starts with `[`               | Quote to avoid list syntax       |
 | Starts with `{`               | Quote to avoid set syntax        |
 
@@ -126,7 +151,7 @@ JUnit converts many standard types automatically: primitives, `String`, `Path`, 
 
 Built-in conversion also applies to collection elements: `[com/example]` → `List<Path>`, `[Bob: 1980-03-04]` → `Map<String, LocalDate>`, `{https://claude.ai}` → `Set<URL>`.
 
-**Date format limitation**: Built-in `LocalDate`/`LocalDateTime` conversion only handles ISO 8601 format (`yyyy-MM-dd`, e.g. `2024-01-15`). Non-standard formats — slash dates (`15/01/2024`), short years (`24-01-15`), locale-specific patterns — will fail at runtime. If any column contains non-ISO date strings, read `references/type-converters.md` before finalising the table and write a `@TypeConverter` method to handle the parsing.
+**Date format limitation**: Built-in `LocalDate`/`LocalDateTime` conversion only handles ISO 8601 format (`yyyy-MM-dd`, e.g. `2024-01-15`). Non-standard formats — slash dates (`15/01/2024`), short years (`24-01-15`), locale-specific patterns — will fail at runtime. If any column contains non-ISO date strings, write a `@TypeConverter` method to handle the parsing (see Custom Type Converters section below).
 
 ```java
 @TableTest("""
@@ -138,6 +163,199 @@ void converts_class_names(String className, Path expectedPath) {
     assertThat(resolver.resolve(className)).isEqualTo(expectedPath);
 }
 ```
+
+#### Non-obvious Built-in Conversions
+
+| Table value | Parameter type | Notes |
+|---|---|---|
+| `"SECONDS"` | `TimeUnit` (any enum) | Enum name, case-sensitive |
+| `"0xF"`, `"017"` | `int`/`long` (and boxed) | Hex and octal literals work |
+| `"java.lang.Integer"` | `Class<?>` | Fully-qualified name required |
+| `"java.lang.Thread$State"` | `Class<?>` | `$` for nested classes |
+| `"byte"` | `Class<?>` | Primitive type names work |
+| `"PT3S"`, `"PT1H30M"` | `Duration` | ISO 8601 duration format |
+| `"P2M6D"` | `Period` | ISO 8601 period format |
+| `"JPY"` | `Currency` | ISO 4217 currency code |
+| `"en-US"` | `Locale` | IETF BCP 47 language tag |
+
+**Enums**: Write the enum constant name — `"SECONDS"` not `"TimeUnit.SECONDS"`. The parameter type tells JUnit which enum to use.
+
+---
+
+## Custom Type Converters
+
+When JUnit's built-in converters don't support your parameter type, add custom type converter methods annotated with `@TypeConverter`.
+
+### Prefer Built-in Conversion First
+
+JUnit can convert strings to `Class<?>` when the value is a fully-qualified class name. Write `java.lang.RuntimeException` in the table instead of `RuntimeException` plus a custom `@TypeConverter`. Only write a converter method when built-in conversion does not cover the type.
+
+### Writing Custom Converter Methods
+
+#### Java
+
+Place custom converter methods as `@TypeConverter`-annotated `public static` methods in **a public test class** or a class listed in `@TypeConverterSources`.
+
+**IMPORTANT:** The test class must be declared `public` for TableTest to discover converter methods:
+```java
+public class MyTest {  // Must be public, not package-private
+    // Converter methods here will be found
+}
+```
+
+```java
+@TableTest("""
+    Date       | Days Until?
+    today      | 0
+    tomorrow   | 1
+    """)
+void testDaysUntil(LocalDate date, int expected) {
+    assertEquals(expected, ChronoUnit.DAYS.between(LocalDate.now(), date));
+}
+
+@TypeConverter
+public static LocalDate parseLocalDate(String input) {
+    return switch (input) {
+        case "today" -> LocalDate.now();
+        case "tomorrow" -> LocalDate.now().plusDays(1);
+        default -> LocalDate.parse(input);
+    };
+}
+```
+
+#### Kotlin
+
+Two options for Kotlin:
+
+**Package-level functions** (preferred):
+```kotlin
+@TypeConverter
+fun parseLocalDate(input: String): LocalDate = when (input) {
+    "today" -> LocalDate.now()
+    "tomorrow" -> LocalDate.now().plusDays(1)
+    else -> LocalDate.parse(input)
+}
+
+class DateTest {
+    @TableTest("""
+        Date       | Days Until?
+        today      | 0
+        tomorrow   | 1
+        """)
+    fun testDaysUntil(date: LocalDate, expected: Int) {
+        assertEquals(expected, ChronoUnit.DAYS.between(LocalDate.now(), date))
+    }
+}
+```
+
+**Companion object with @JvmStatic**:
+```kotlin
+class DateTest {
+    companion object {
+        @JvmStatic
+        @TypeConverter
+        fun parseLocalDate(input: String): LocalDate = when (input) {
+            "today" -> LocalDate.now()
+            "tomorrow" -> LocalDate.now().plusDays(1)
+            else -> LocalDate.parse(input)
+        }
+    }
+}
+```
+
+**Note**: `@Nested` inner classes in Kotlin cannot have companion objects. Use package-level functions or outer class companion object instead.
+
+### Sharing Converters with @TypeConverterSources
+
+For shared converter methods across multiple test classes:
+
+```java
+@TypeConverterSources(DateConverters.class)
+class DateTest {
+    @TableTest("""
+        ...
+        """)
+    void testWithSharedConverters(LocalDate date, Duration duration) { ... }
+}
+```
+
+Kotlin — use an `object` declaration with `@JvmStatic` and `@TypeConverter`:
+```kotlin
+object DateConverters {
+    @JvmStatic
+    @TypeConverter
+    fun parseLocalDate(input: String): LocalDate = ...
+}
+
+@TypeConverterSources(DateConverters::class)
+class DateTest { ... }
+```
+
+### Converter Method Requirements
+
+A converter method will be used when it:
+1. Is annotated with `@TypeConverter`
+2. Is defined as a `public static` method in a `public class`
+3. Accepts exactly one parameter
+4. Returns an object of the target parameter type
+5. **Is the only `@TypeConverter` method matching the above criteria in the class**
+
+There is no specific naming pattern required, but `parse<TypeName>` (e.g., `parseLocalDate`, `parseDuration`) is conventional.
+
+### One Converter Per Target Type
+
+You cannot have multiple converter methods with the same return type. If two columns need different parsing for the same type, use a single converter that handles both formats, or split into columns with different types.
+
+### Handling Null Values
+
+When table cells can be blank (representing null), use boxed types instead of primitives:
+
+```java
+// WRONG - primitives cannot be null
+void test(String value, long time) { ... }  // blank cell causes error
+
+// CORRECT - use boxed type
+void test(String value, Long time) { ... }  // blank cell becomes null
+```
+
+Converter methods receive `null` for blank cells — handle this explicitly:
+```java
+@TypeConverter
+public static Long parseResponseTime(String value) {
+    if (value == null || value.isBlank()) {
+        return null;
+    }
+    if (value.startsWith("<")) {
+        return Long.valueOf(value.substring(1));
+    }
+    return Long.parseLong(value);
+}
+```
+
+### Domain-Specific Formatting
+
+Converter methods enable readable domain conventions in tables:
+
+```java
+@TableTest("""
+    Scenario     | Response Time?
+    Fast         | <50
+    Acceptable   | <150
+    Slow         | <500
+    """)
+void testResponseTime(Long maxResponseTimeMs) { ... }
+
+@TypeConverter
+public static Long parseResponseTime(String value) {
+    if (value == null || value.isBlank()) return null;
+    if (value.startsWith("<")) return Long.valueOf(value.substring(1));
+    return Long.parseLong(value);
+}
+```
+
+Other examples: `5m`/`30s` → milliseconds, `$100` → numeric, `50%` → 0.5, `10KB` → bytes.
+
+**Calendar dates**: Prefer descriptive values like `before cutoff`, `on cutoff`, `after cutoff` with a `@TypeConverter` over raw ISO dates. The reader doesn't need to mentally compare `2025-02-28` against `2025-03-01`. If raw dates are used, include the policy/cutoff date as a separate column so the reader can verify the comparison.
 
 ---
 
@@ -175,16 +393,54 @@ void resolvesWithPriority(String inputDir, String junitDir,
                           String resolvedPath, ResolutionSource source, List<String> searchLocations) { ... }
 ```
 
-```java
-// Bad — same outputs split across separate tests
-void resolvesPath(...)            // tests Resolved Path? only
-void reportsSource(...)           // tests Source? only
-void reportsSearchedLocations(...)// tests Searched Locations? only
-```
-
 Splitting forces the reader to cross-reference multiple tables to understand one behavior. If the outputs all come from the same operation and concern, they belong together.
 
-Separate tests are appropriate when testing a **different concern** of the same operation (e.g., path normalization vs. priority resolution) or a different method entirely.
+Separate tests are appropriate when testing a **different concern** of the same operation (e.g., path normalization vs. priority resolution) or a different method entirely. Even when testing a single API method, decompose concerns into separate `@TableTest` methods using default values for irrelevant inputs. Separate tables reduce rows by avoiding unnecessary permutations — and the table count guides implementation: five concern tables suggest five functions.
+
+### Separate Rules from Arithmetic
+
+Tables should specify the interesting decisions — classifications, eligibility rules, tier lookups, state transitions — not test that multiplication works.
+
+**Good decomposition** — separate the rule from the calculation:
+
+Table 1 — the rule (which bracket?):
+```
+Scenario          | Taxable Income | Filing Status | Bracket?   | Rate?
+Bottom bracket    | 15000          | Single        | 10%        | 0.10
+Middle bracket    | 55000          | Single        | 22%        | 0.22
+Joint middle      | 55000          | Joint         | 12%        | 0.12
+```
+
+Table 2 — the arithmetic (what does the taxpayer owe?):
+```
+Scenario       | Income | Rate | Deduction | Tax Owed?
+No deduction   | 50000  | 0.22 |           | 11000.00
+With deduction | 50000  | 0.22 | 5000      | 9900.00
+```
+
+### Frame Stateful Features as Rules
+
+When a feature involves state (queues, workflows, inventories), frame each row as a state transition rule:
+
+```
+Scenario              | Board Before             | Action              | Board After?                  | Message?
+Assign first task     | [TODO: Deploy v2]        | assign Deploy v2    | [IN_PROGRESS: Deploy v2]      | Assigned
+Complete task         | [IN_PROGRESS: Deploy v2] | complete Deploy v2  | [DONE: Deploy v2]             | Completed
+Complete unknown task | [TODO: Deploy v2]        | complete Hotfix     | [TODO: Deploy v2]             | Not found
+```
+
+Each row is independent: given this state, when this action happens, expect this result. **Include before and after columns** — even when the prompt describes the operation procedurally.
+
+### Decompose When You See These Signs
+
+**If you cannot name a behaviour without using "and", it is two concerns** — split them. Each concern becomes its own `@TableTest` method.
+
+Other signs that concerns are mixed:
+- Some rows need columns that other rows leave blank throughout
+- Scenario names require qualifiers like "...for eligibility" vs "...for pricing"
+- The table has two groups of output columns that never both apply in the same row
+
+**Missing concern:** An input to one rule is itself derived from raw data. The derivation has its own edge cases and needs boundary testing in a separate table. The rule table then takes the derived value as a direct input column, not the raw data. Two tables, not one.
 
 ### Match Table Structure to the Logic Being Tested
 
@@ -202,6 +458,8 @@ End expectation columns with `?` **suffix** to signal which columns are outputs 
 
 Examples: `Valid?`, `Formatted?`, `Result?`, `Throws?`, `Expected?`
 
+**Prefer the rule's direct output.** Use `Fee?` over `Total?` — the fee is what the rule decides; verifying the total requires knowing the base amount. If you use a derived value like total, include the base as a column so readers can trace it. Input columns never have `?` suffixes — including yes/no flag columns that describe scenario state.
+
 **Common mistake** — `?` as prefix instead of suffix:
 ```
 ?Source        ← WRONG
@@ -218,18 +476,18 @@ Good reasons to add `@Description`:
 - **Open questions** — decisions not yet resolved
 - **Relationship between tables** — how this table connects to others in the class
 
-Do not restate what the table already shows. If the description merely summarises the column names or row outcomes, delete it.
+Do not restate what the table already shows. If the description merely summarises the column names or row outcomes, delete it. Don't include irrelevant fixed values — "Fixed for all rows: name = 'Alice Smith'" is noise unless the name affects behaviour. Values hardcoded in the method body that affect outcomes should be columns, not description text.
 
 ```java
 // GOOD — adds context not visible in the table
 @Description("""
-    Applies to UK market only. Base salary is annual; bonus is percentage
-    of base. Open: should contractors in their notice period receive
-    a pro-rated bonus?
+    Applies to domestic flights only. Baggage weight is per piece,
+    not cumulative. Open: should frequent flyers in downgraded
+    cabins retain their original baggage allowance?
     """)
 
 // BAD — restates what the table shows
-@Description("Bonus percentage is determined by employee level and department")
+@Description("Tax bracket is determined by income range and filing status")
 ```
 
 `@DisplayName` serves as a section header in reports. `@Description` provides the explanatory text underneath. Together they make the published test report readable as documentation without the table needing to be self-explanatory on every detail.
@@ -243,18 +501,19 @@ Annotations on a `@TableTest` method must appear in this order:
 3. `@TableTest`
 
 ```java
-@DisplayName("Weekly pay calculation")
+@DisplayName("Parking fee calculation")
 @Description("""
-    Regular pay: hours × rate (up to 40 hours).
-    Overtime: 1.5× rate for hours above 40.
-    Sunday premium: 2× rate. Holiday premium: 2.5× rate.
+    First 2 hours are free. Hours 3-5 are charged at the standard rate.
+    Hours beyond 5 are charged at 2× the standard rate.
+    Weekend parking is always free regardless of duration.
     """)
 @TableTest("""
-    Scenario        | Weekday hrs | Sunday hrs | Rate  | Regular pay? | Overtime pay? | Weekly pay?
-    Standard week   | 40          |            | 20.00 | 800.00       |               | 800.00
-    Five hours OT   | 45          |            | 20.00 | 800.00       | 150.00        | 950.00
+    Scenario           | Day      | Hours | Rate  | Free hrs? | Standard hrs? | Surcharge hrs? | Total fee?
+    Within free window | Monday   | 1     | 3.00  | 1         |               |                | 0.00
+    Standard rate      | Tuesday  | 4     | 3.00  | 2         | 2             |                | 6.00
+    With surcharge     | Wednesday| 7     | 3.00  | 2         | 3             | 2              | 21.00
     """)
-void shouldCalculateWeeklyPay(...) { ... }
+void shouldCalculateParkingFee(...) { ... }
 ```
 
 ### Model Exceptions as Expected Columns
@@ -296,14 +555,14 @@ When a table tests a pipeline (input → intermediate result → final result), 
 
 ```java
 @TableTest("""
-    Scenario                    | Customer type | Order value | Loyalty years | Discount tier? | Final price?
-    New customer, small order   | Regular       | 50.00       | 0             | None           | 50.00
-    Loyal customer, small order | Regular       | 50.00       | 5             | Silver         | 45.00
-    VIP, large order            | VIP           | 200.00      | 10            | Gold           | 160.00
+    Scenario                      | Property type | Square metres | Flood zone | Risk rating? | Annual premium?
+    Small residential, safe area  | Residential   | 80            | None       | Low          | 400.00
+    Large residential, flood risk | Residential   | 200           | Zone A     | High         | 1200.00
+    Commercial, moderate risk     | Commercial    | 500           | Zone B     | Medium       | 2500.00
     """)
 ```
 
-The `Discount tier?` column is not strictly necessary (the test could verify only `Final price?`), but it lets the reader trace: customer + order + loyalty → discount tier → price. When a row fails, the intermediate column shows where in the pipeline the error occurred.
+The `Risk rating?` column is not strictly necessary (the test could verify only `Annual premium?`), but it lets the reader trace: property + area + flood zone → risk rating → premium. When a row fails, the intermediate column shows where in the pipeline the error occurred.
 
 **Guard:** Only use traceability columns for values the system under test exposes or that represent observable domain concepts. If you would need to reimplement an internal calculation in the test body to populate the column, it doesn't belong — the intermediate likely points to a separate concern that needs its own `@TableTest` method. Decompose into multiple tables instead; the intermediate becomes an output in one table and an input in the next.
 
@@ -355,6 +614,21 @@ When a value is derived from an input column (e.g., fallback path = Build Dir + 
 ```
 Here `target/junit-jupiter` is visibly derived from `Build Dir = target`.
 
+### Make Thresholds Visible
+
+When a rule depends on a threshold or limit, include it as a column — even when the value is constant across every row:
+
+```
+Scenario            | Customer Age | Max Age (Policy) | Eligible?
+Standard customer   | 30           | 75               | yes
+At the limit        | 75           | 75               | yes
+Just over the limit | 76           | 75               | no
+```
+
+Without the threshold column, the number 75 is buried in the code — the reader cannot tell from the table where the boundary is, or whether the rule is strictly greater than. Boundary rows (at the limit, just over) also become natural to add once the threshold is visible.
+
+A constant column often signals configuration. Ask: "Under what circumstances would this value differ?" The answer may reveal a second axis (e.g., the limit varies by category) that belongs as new rows or a separate table.
+
 ### Use Domain Terminology
 
 Column names should use domain or feature terminology that readers understand without knowing the implementation. Avoid parameter names, variable names, or internal API terms.
@@ -376,7 +650,7 @@ When one input takes precedence regardless of other inputs, use value sets to ex
     """)
 ```
 
-This single row generates 3 tests, all asserting `main` wins regardless of fallback state. See `references/value-sets.md` for full syntax.
+This single row generates 3 tests, all asserting `main` wins regardless of fallback state.
 
 **Value set semantics: every value must produce the same expected result.** A value set `{A, B, C}` asserts that the result is identical regardless of which value is chosen. Do not use value sets where results differ:
 
@@ -391,6 +665,54 @@ Standard week, higher rate  | 40 | 20.00 | 800.00
 // CORRECT — value set is fine when result is genuinely identical
 Zero hours | 0 | {15.00, 20.00} | 0.00
 ```
+
+#### Cartesian Product
+
+Multiple sets in the same row create a cartesian product:
+
+```java
+@TableTest("""
+    Scenario | a      | b      | Max Sum?
+    Combined | {1, 2} | {3, 4} | 6
+    """)
+void testCartesianProduct(int a, int b, int maxSum) {
+    assertTrue(a + b <= maxSum);
+}
+```
+
+This generates 4 test cases: (1,3), (1,4), (2,3), (2,4).
+
+#### "Doesn't Matter" Pattern
+
+Use value sets when a flag is irrelevant for certain scenarios:
+
+```java
+@TableTest("""
+    Scenario    | Master | Fallback      | Expected?
+    Normal flow | true   | {true, false} | success
+    Error path  | true   | true          | fallback
+    """)
+void handles_errors(boolean master, boolean fallback, String expected) { ... }
+```
+
+Row 1: Fallback flag doesn't matter when there's no error, so test both values.
+Row 2: Fallback flag is critical for error handling, so specify exact value.
+
+**Don't use value sets when scenario descriptions add context.** Email validation patterns like "missing local part", "no TLD", "missing @" each test a different structural rule — grouping them as `{@missing.com, user@.com}` loses the *why*.
+
+#### Value Sets for Tier Grouping
+
+When multiple input values produce the same output (a tier), group them into a value set:
+
+```
+Scenario   | Credit Hours         | Standing?
+Freshman   | {0, 10, 20, 29}     | Freshman
+Sophomore  | {30, 45, 59}        | Sophomore
+Junior     | {60, 75, 89}        | Junior
+Senior     | {90, 100, 120}      | Senior
+```
+
+This makes the tier structure a first-class concept — each row IS a tier.
 
 ### Null, Empty, and Blank Values
 
@@ -409,37 +731,19 @@ void resolves_values(String input, String resolved) {
 }
 ```
 
-**Note**: These are syntax examples, not test design patterns. Null/empty/blank variants of an input should typically be additional rows in the test that covers the feature, not in a separate test method. For example, if a resolver ignores blank JUnit dir values, add those as rows in the main resolution test rather than creating a separate "handles blank values" test.
+**Blank cells for irrelevant inputs**: When an input is not relevant to a scenario, use a blank cell — not `0` or a default value. Use boxed types (`Integer`, `Long`) instead of primitives so blank cells convert to `null`. Then handle null-to-default conversion in a `@TypeConverter` or helper, not in the test method body.
+
+**Blank vs value set**: Blank cells mean the input is genuinely absent (null). When the input exists but is irrelevant to the outcome, use a value set instead: `{UK, Ireland, Other}` for destination means "destination exists but doesn't affect this result". Don't use blanks for "doesn't matter" — blanks mean null.
+
+**Note**: These are syntax examples, not test design patterns. Null/empty/blank variants of an input should typically be additional rows in the test that covers the feature, not in a separate test method.
 
 ---
 
 ## Workflow
 
-Pre-formed table designs tend to miss value sets, traceability columns, and concern separation. Even if you've already explored the codebase or sketched a structure, run through the Design Phase below — it often surfaces design improvements that aren't obvious until you work through the steps.
+**Budget your reasoning.** If concerns are already listed in the prompt, use them directly — don't re-derive what's already stated. If you find yourself re-analyzing the same concern, stop and write code. Working code you can revise beats perfect analysis that times out.
 
-### Pair Programming Flow
-
-When writing TableTests with a pair, the most important habit is showing a mockup before writing any code — a 30-second table sketch prevents 5 minutes of rework. The full collaborative cadence is in `references/pair-programming.md`; read it when pairing or when the user wants a structured walkthrough.
-
-### Design Phase (Before Writing Code)
-
-Resist the urge to start coding immediately. The approach depends on what you are starting from:
-
-**From natural-language requirements** (the prompt describes a feature, not existing code):
-Skip the Pre-Check — there is no existing project to inspect.
-Read `references/requirements-to-tables.md` end-to-end and follow its workflow.
-It will guide you from requirement analysis through to a complete Java `@TableTest`
-class — your deliverable is Java code, not markdown tables.
-
-**From existing code or tests** (there is code to trace or tests to convert):
-1. **Trace the logic**: Map decision trees, loops, or state transitions. Identify what actually varies between scenarios — this directly determines your columns.
-2. **Sketch the table**: What inputs vary? What outputs do you observe? How many scenarios do you need?
-3. **Show a mockup** with 2-3 rows before implementing — agree on column structure, naming, and coverage first:
-   ```
-   | Scenario        | orgId | featureId | version | Feature Toggles | Query Count? | Result?
-   | Specific match  | O     | F         | V       | [O:F:V: true]   | 1            | true
-   | Wild version    | O     | F         | V       | [O:F:*: true]   | 2            | true
-   ```
+**Write incrementally.** For multi-concern features, write one `@TableTest` method at a time using the Write tool. Don't attempt to generate the entire test class in a single response — each method written is a checkpoint that can't be lost to a timeout.
 
 ### Converting Existing Tests
 
@@ -449,23 +753,24 @@ class — your deliverable is Java code, not markdown tables.
 4. Align method parameters to column order; do not bind the scenario column unless annotated with `@Scenario`.
 5. Verify all rows use the same assertion logic.
 6. After building table with multiple rows, check for column consolidation opportunities (see Quality Checks).
+7. Remove the original `@Test` methods the table now covers — run the tests before and after removal to confirm coverage is preserved.
 
-### Writing New TableTest
+### Writing New TableTest from a Feature Description
 
-When working from requirements (no existing code), follow `references/requirements-to-tables.md` — it covers the full workflow from analysis to Java code.
+When there is no existing code (empty `src/main/java`), write the tests first — the table design drives the API shape. After the tests are written, add stub implementation code so they compile.
 
-When working from existing code:
+1. **Read the feature description** and identify the rules/concerns
+2. **Write the test class** with `@TableTest` methods following the design principles in this skill
+3. **Add stub implementation** — create the class and methods referenced by the tests with signatures only (return defaults, throw `UnsupportedOperationException`, etc.). Do not implement the logic unless specifically instructed. The user may want to iterate on the test design before committing to an implementation.
+
+### Writing New TableTest from Existing Code
+
 1. **Understand phase**: Read the code, trace logic, identify variations
 2. **Design phase**: Sketch table structure, discuss with pair
 3. **Confirm**: Show mockup with 2-3 rows, get agreement
 4. **Implement**: Create full table with all scenarios
 5. **Run immediately**: Get fast feedback on structure and conversions
-6. **Refine**: Improve names after tests pass (see `references/incremental-development.md` for full refinement workflow)
-7. **Enhance**: Consider additional tables for other aspects (see `references/incremental-development.md` for progressive enhancement)
-
-### Refinement Phase
-
-After tests pass, improve names and structure — see `references/pair-programming.md` for the full refinement workflow. The short version: names emerge from understanding, so don't expect perfect column or scenario names on the first implementation. Replace implementation terms with domain language once the table is working.
+6. **Refine**: Improve names after tests pass — names emerge from understanding, so don't expect perfect column or scenario names on the first implementation. Replace implementation terms with domain language once the table is working.
 
 ---
 
@@ -482,6 +787,7 @@ After writing, verify:
 - [ ] **Valid syntax**: values requiring quotes are quoted, collections use correct bracket syntax, empty collections are explicit (`[]`, `{}`, `[:]`)
 - [ ] **Expectation columns present**: at least one column uses `?` suffix (not prefix)
 - [ ] **Concrete values**: expectation values are traceable to input column values where applicable
+- [ ] **Thresholds visible**: rules that depend on a threshold or limit show it as a column, with boundary rows at and just past the threshold
 - [ ] **Correct expected values**: arithmetic in expected columns verified independently; every row's output matches the stated rules
 - [ ] **Value set semantics**: value sets only used where every value produces the same result; not used as shorthand for "test multiple values"
 - [ ] **Optional inputs blank**: columns not relevant to a scenario use blank cells (not 0 or defaults); parameter types support null
@@ -500,22 +806,16 @@ After writing, verify:
 
 ## Advanced References
 
-**READ these references when the condition applies.** Do not read speculatively, but do not skip a reference whose condition matches your task.
+This skill file is complete for standard tables — do not read references speculatively. Read a reference only when its condition applies to your task.
 
-| Reference                                | When to use                                                                |
-|------------------------------------------|----------------------------------------------------------------------------|
-| `references/requirements-to-tables.md`   | Writing tests from natural-language requirements or vague feature descriptions |
-| `references/dependency-setup.md`         | Project lacks TableTest dependency                                         |
-| `references/value-sets.md`               | Multiple example inputs map to same expectation                            |
-| `references/type-converters.md`          | Custom types need parsing logic; non-ISO date formats appear in the table (`dd/MM/yyyy`, `yy-MM-dd`, etc.); or any column value won't convert automatically |
-| `references/column-design.md`            | Deciding whether to split, combine, or use maps for columns; optional input cells; cross-table consistency |
-| `references/common-patterns.md`          | Consolidating identity+status, positional fields, timing, async testing    |
-| `references/large-tables.md`             | Need comments, grouping, or external table files                           |
-| `references/example-patterns.md`         | Need inspiration for table design (business rules, boundaries, exceptions) |
-| `references/async-and-performance.md`    | Testing async/non-blocking behavior or tracking execution order            |
-| `references/provided-parameters.md`      | Using `@TempDir` or other injected parameters                              |
-| `references/table-design-advanced.md`    | Table has rows that don't fit; mixed concerns suspected; scenario names unclear |
-| `references/incremental-development.md`  | Building a complex table iteratively; learning from test failures          |
-| `references/consolidating-tests.md`      | Removing @Test methods covered by table                                    |
-| `references/testing-reveals-bugs.md`     | Test design feels wrong; suspecting implementation bug                     |
-| `references/pair-programming.md`         | Pairing with a colleague; need structured collaborative cadence            |
+| Reference                                | When to use                                                                 |
+|------------------------------------------|-----------------------------------------------------------------------------|
+| `references/type-converters.md`          | Converting wrapper types (`Optional`, `Result`/`Either`); converter methods with defaults; converter not being discovered (search order) |
+| `references/column-design.md`            | Torn between maps and separate columns; encoding composite values; column naming evolution |
+| `references/common-patterns.md`          | Consolidating identity+status, relative positions, timing thresholds, test helpers, sequence recording |
+| `references/table-design-advanced.md`    | Suspected orthogonal concerns (a column that could be `{true, false}` in every row); scenario names unclear; column sets diverging |
+| `references/large-tables.md`             | Table needs comments, grouping, or external table files                     |
+| `references/async-and-performance.md`    | Testing async/non-blocking behavior or tracking execution order             |
+| `references/provided-parameters.md`      | Using `@TempDir` or other JUnit-injected parameters                         |
+| `references/testing-reveals-bugs.md`     | Test design feels wrong; suspecting implementation bug                      |
+| `references/pair-programming.md`         | Pairing with a colleague; need structured collaborative cadence             |

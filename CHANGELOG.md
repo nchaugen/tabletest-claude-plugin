@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2026-07-06
+
+### Changed
+- **tabletest**: SKILL.md rewritten as a self-contained core file using ~20% fewer tokens
+  - Dependency coordinates, imports, custom type converters, non-obvious built-in conversions, and value-set patterns (cartesian product, "doesn't matter", tier grouping) now inlined — no reference reads needed on the standard path
+  - Table design guidance moved into the core file: separate rules from arithmetic, frame stateful features as rules, decomposition signs, colon quoting to avoid map syntax
+  - Workflow guidance for greenfield features: write tests first with stub implementations, write one `@TableTest` at a time
+  - Examples mirroring eval scenarios replaced (weekly pay → parking fee, loyalty discount → insurance premium)
+- **tabletest**: "Make Thresholds Visible" added to Table Design with matching quality check (previously only in `references/requirements-to-tables.md`)
+- **tabletest**: References pruned to niche topics with a stricter read-on-condition table; removed `dependency-setup`, `value-sets`, `requirements-to-tables`, `example-patterns`, `incremental-development`, `consolidating-tests` (content inlined or subsumed by SKILL.md); `type-converters` trimmed to search strategy, defaults, and wrapper types
+
 ## [1.3.0] - 2026-03-06
 
 ### Changed
