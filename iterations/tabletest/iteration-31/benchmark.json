@@ -1,0 +1,71 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 31,
+  "model": "sonnet",
+  "timestamp": "2026-04-12T22:23:40.428Z",
+  "evals": [
+    {
+      "id": "eval-1-convert-repetitive-tests",
+      "name": "convert repetitive tests",
+      "skill": "tabletest",
+      "results": {
+        "assertions_passed": 12,
+        "assertions_total": 13,
+        "pass_rate": 0.9230769230769231,
+        "failed_assertions": [
+          "has-tabletest-dependency"
+        ],
+        "total_tokens": 310432,
+        "duration_ms": 58592,
+        "cost_usd": 0.21148289999999997
+      }
+    },
+    {
+      "id": "eval-14-weekly-pay",
+      "name": "weekly pay",
+      "skill": "tabletest",
+      "results": {
+        "assertions_passed": 15,
+        "assertions_total": 20,
+        "pass_rate": 0.75,
+        "failed_assertions": [
+          "1.5-depth-error-edge-cases",
+          "1.6-readability-empty-cells",
+          "1.12-format-annotation-order",
+          "separates-classification-and-calculation",
+          "compiles"
+        ],
+        "total_tokens": 404915,
+        "duration_ms": 354658,
+        "cost_usd": 0.61044465
+      }
+    },
+    {
+      "id": "eval-25-convert-from-spock",
+      "name": "convert from spock",
+      "skill": "tabletest",
+      "results": {
+        "assertions_passed": 14,
+        "assertions_total": 18,
+        "pass_rate": 0.7777777777777778,
+        "failed_assertions": [
+          "options-as-map",
+          "options-type-converter",
+          "numeric-types-correct",
+          "has-tabletest-dependency"
+        ],
+        "total_tokens": 625338,
+        "duration_ms": 380717,
+        "cost_usd": 0.6868027499999999
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 41,
+    "assertions_total": 51,
+    "pass_rate": 0.803921568627451,
+    "total_tokens": 1340685,
+    "total_duration_ms": 793967,
+    "total_cost_usd": 1.5087302999999999
+  }
+}
