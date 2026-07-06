@@ -1,6 +1,0 @@
-2026-04-12T14:57:38.134Z
-GRADING FAILED: Timed out after 600000ms
-Error: Timed out after 600000ms
-    at Timeout._onTimeout (/Users/nch/tabletest/tabletest-claude-plugin/scripts/run-evals.js:395:19)
-    at listOnTimeout (node:internal/timers:605:17)
-    at process.processTimers (node:internal/timers:541:7)

@@ -1,9 +1,0 @@
-2026-04-11T16:00:07.653Z
-GRADING FAILED: claude exited with code 1:
-  stderr: 
-Error: claude exited with code 1:
-  stderr: 
-    at ChildProcess.<anonymous> (/Users/nch/tabletest/tabletest-claude-plugin/scripts/run-evals.js:386:21)
-    at ChildProcess.emit (node:events:509:20)
-    at maybeClose (node:internal/child_process:1108:16)
-    at ChildProcess._handle.onexit (node:internal/child_process:305:5)
