@@ -5,3 +5,9 @@
 .gradle/
 build/
 target/
+
+# Eval run artifacts — commit summaries (benchmark.json, eval-review.md) only
+iterations/**/conversation.jsonl
+iterations/**/outputs/
+iterations/**/run.log
+iterations/**/error.log
