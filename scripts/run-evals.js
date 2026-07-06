@@ -134,9 +134,9 @@ function logError(...args) {
 
 function resolveModel(shortName) {
   const models = {
-    haiku: "claude-haiku-4-5-20251001",
-    sonnet: "claude-sonnet-4-6",
-    opus: "claude-opus-4-6",
+    haiku: "claude-haiku-4-5",
+    sonnet: "claude-sonnet-5",
+    opus: "claude-opus-4-8",
   };
   if (models[shortName]) return models[shortName];
   // Already a full model ID (contains a dash)
@@ -573,23 +573,30 @@ function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, time
 
     proc.on("close", (code) => {
       clearTimeout(timer);
+      const events = [];
+      for (const line of stdout.split("\n")) {
+        if (!line.trim()) continue;
+        try { events.push(JSON.parse(line)); } catch { /* ignore non-JSON lines */ }
+      }
+      const resultLine = events.filter(o => o.type === "result").pop();
       if (code !== 0) {
-        const err = new Error(`claude exited with code ${code}:\n  stderr: ${stderr.slice(0, 500)}`);
+        const detail = resultLine && resultLine.result
+          ? `\n  result: ${String(resultLine.result).slice(0, 300)}`
+          : "";
+        const err = new Error(`claude exited with code ${code}:${detail}\n  stderr: ${stderr.slice(0, 500)}`);
         err.stdout = stdout;
         err.stderr = stderr;
         settle(reject, err);
         return;
       }
-      try {
-        const lines = stdout.split("\n").filter(l => l.trim());
-        const parsed = lines.map(l => JSON.parse(l));
-        const resultLine = parsed.filter(o => o.type === "result").pop();
-        if (!resultLine) throw new Error("No result line found in stream-json output");
-        resultLine._conversationJsonl = stdout;
-        settle(resolve, resultLine);
-      } catch (e) {
-        settle(reject, new Error(`Failed to parse claude output: ${e.message}\n${stdout.slice(0, 500)}`));
+      if (!resultLine) {
+        settle(reject, new Error(`No result line found in stream-json output\n${stdout.slice(0, 500)}`));
+        return;
       }
+      const init = events.find(o => o.type === "system" && o.subtype === "init");
+      resultLine._conversationJsonl = stdout;
+      resultLine._model = (init && init.model) || null;
+      settle(resolve, resultLine);
     });
 
     proc.on("error", (err) => {
@@ -688,6 +695,8 @@ async function generateOne(evalDef, worktreePath, iterationDir, args) {
 
     const usage = result.usage || {};
     const timing = {
+      model: result._model || null,
+      models_used: Object.keys(result.modelUsage || {}),
       duration_ms: result.duration_ms || 0,
       input_tokens: usage.input_tokens || 0,
       output_tokens: usage.output_tokens || 0,
@@ -1039,6 +1048,7 @@ function aggregateResults(evals, iterationDir, args) {
     skill_name: args.variant ? `${args.skill} (${args.variant})` : args.skill,
     iteration: args.iteration,
     model: args.model,
+    grading_model: resolveModel(args.gradingModel),
     timestamp: new Date().toISOString(),
     evals: [],
     summary: {},
@@ -1069,6 +1079,7 @@ function aggregateResults(evals, iterationDir, args) {
         : {};
 
       evalEntry.results = {
+        model: timing.model || null,
         assertions_passed: grading.assertions_passed,
         assertions_total: grading.assertions_total,
         pass_rate: grading.pass_rate,
@@ -1102,6 +1113,10 @@ function aggregateResults(evals, iterationDir, args) {
   const results = benchmark.evals
     .map((e) => unwrapResults(e))
     .filter(Boolean);
+
+  // Resolved model version(s) actually used, as reported by the CLI's init event
+  const resolvedModels = [...new Set(results.map(r => r.model).filter(Boolean))];
+  benchmark.model_resolved = resolvedModels.length === 1 ? resolvedModels[0] : resolvedModels;
 
   benchmark.summary = {
     assertions_passed: results.reduce(
@@ -1267,8 +1282,12 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
     previousBenchmark
   );
   const label = args.variant ? `${args.skill} variant=${args.variant}` : args.skill;
+  const modelResolved = [].concat(benchmark.model_resolved || []).join(", ");
+  const modelLabel = modelResolved && modelResolved !== args.model
+    ? `${args.model} (${modelResolved})`
+    : args.model;
   let md = `# Eval Review — ${label}, Iteration ${args.iteration}\n\n`;
-  md += `**Model:** ${args.model} · **Date:** ${new Date().toISOString().split("T")[0]} · **Evals:** ${benchmark.evals.length}\n\n`;
+  md += `**Model:** ${modelLabel} · **Grading:** ${benchmark.grading_model || "?"} · **Date:** ${new Date().toISOString().split("T")[0]} · **Evals:** ${benchmark.evals.length}\n\n`;
 
   // Summary
   md += `## Summary\n\n`;
@@ -1284,6 +1303,10 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
   const compareIter = args.compareIteration != null ? args.compareIteration : args.iteration - 1;
   if (previousBenchmark) {
     md += `## Delta vs Iteration ${compareIter}\n\n`;
+    const prevModel = [].concat(previousBenchmark.model_resolved || []).join(", ");
+    if (prevModel && modelResolved && prevModel !== modelResolved) {
+      md += `⚠️ **Model changed since iteration ${compareIter}:** ${prevModel} → ${modelResolved} — deltas reflect model and skill changes combined.\n\n`;
+    }
     if (regressions.length === 0 && improvements.length === 0 && notComparable.length === 0) {
       md += `No changes.\n\n`;
     } else {
