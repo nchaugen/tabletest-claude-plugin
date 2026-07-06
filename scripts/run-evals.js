@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const { execSync, spawn } = require("child_process");
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const { checkers } = require("./assertions");
@@ -17,6 +18,37 @@ function findFiles(dir, pattern) {
     }
   }
   return results;
+}
+
+/**
+ * Content fingerprint of an eval definition (prompt, assertions, expected
+ * output, project scaffolding). Results stamped with different fingerprints
+ * were measured by different eval definitions and must not be compared.
+ */
+function computeEvalFingerprint(evalDir) {
+  const files = [];
+  for (const name of ["prompt.md", "eval.json", "expected_output.md"]) {
+    const p = path.join(evalDir, name);
+    if (fs.existsSync(p)) files.push(p);
+  }
+  files.push(...findFiles(path.join(evalDir, "project"), /./));
+
+  const hash = crypto.createHash("sha256");
+  for (const file of files.sort()) {
+    hash.update(path.relative(evalDir, file));
+    hash.update("\0");
+    hash.update(fs.readFileSync(file));
+    hash.update("\0");
+  }
+  return hash.digest("hex").slice(0, 12);
+}
+
+/**
+ * True when both entries carry a fingerprint and they differ. Entries without
+ * a fingerprint (pre-guard benchmarks) are treated as comparable.
+ */
+function fingerprintsDiffer(a, b) {
+  return Boolean(a && b && a.fingerprint && b.fingerprint && a.fingerprint !== b.fingerprint);
 }
 
 function runBuildCheck(worktreePath) {
@@ -80,6 +112,7 @@ function loadEvalsFromDir(evalsDir) {
     meta.prompt = fs.readFileSync(path.join(dir, "prompt.md"), "utf-8").replace(/\n$/, "");
     meta.expected_output = fs.readFileSync(path.join(dir, "expected_output.md"), "utf-8").replace(/\n$/, "");
     meta.sourceDir = dir;
+    meta.fingerprint = computeEvalFingerprint(dir);
     return meta;
   });
 }
@@ -111,7 +144,28 @@ function resolveModel(shortName) {
   return shortName;
 }
 
-async function gradeViaApi(systemPrompt, userPrompt, model) {
+async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropic") {
+  if (provider === "ollama") {
+    const resp = await fetch("http://localhost:11434/api/chat", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        stream: false,
+      }),
+    });
+    if (!resp.ok) {
+      const body = await resp.text();
+      throw new Error(`Ollama API error ${resp.status}: ${body.slice(0, 300)}`);
+    }
+    const data = await resp.json();
+    return data.message.content;
+  }
+
   const resp = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -182,6 +236,7 @@ function parseArgs(argv) {
     evals: null,       // null = all, or array of ids
     model: "sonnet",
     gradingModel: "haiku",
+    provider: "anthropic",
     gradingSuffix: null,
     parallel: 4,
     gradeOnly: false,
@@ -210,6 +265,9 @@ function parseArgs(argv) {
         break;
       case "--model":
         args.model = argv[++i];
+        break;
+      case "--provider":
+        args.provider = argv[++i];
         break;
       case "--grading-model":
         args.gradingModel = argv[++i];
@@ -240,8 +298,9 @@ function parseArgs(argv) {
     console.error("  --compare-iteration N Compare against iteration N instead of the previous one");
     console.error("  --compare-official   Compare variant results against latest official benchmark");
     console.error("  --evals 1,2,3       Run specific evals (supports ranges: 1-13)");
-    console.error("  --model MODEL       Model to use (default: sonnet)");
-    console.error("  --grading-model M   Model for grading (default: haiku)");
+    console.error("  --provider PROV     Provider to use (anthropic, ollama) (default: anthropic)");
+    console.error("  --model MODEL       Model to use (default: sonnet / gemma4:31b for ollama)");
+    console.error("  --grading-model M   Model for grading (default: haiku / gemma4:31b for ollama)");
     console.error("  --grading-suffix S  Write grading to grading-S.json instead of grading.json");
     console.error("  --parallel N        Max parallel evals (default: 4)");
     console.error("  --grade-only        Re-grade existing outputs");
@@ -264,6 +323,11 @@ function parseArgs(argv) {
 
 async function main() {
   const args = parseArgs(process.argv);
+
+  if (args.provider === "ollama") {
+    if (args.model === "sonnet") args.model = "gemma4:31b";
+    if (args.gradingModel === "haiku") args.gradingModel = "gemma4:31b";
+  }
 
   const repoRoot = execSync("git rev-parse --show-toplevel", {
     encoding: "utf-8",
@@ -296,7 +360,7 @@ async function main() {
     return;
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (args.provider === "anthropic" && !process.env.ANTHROPIC_API_KEY) {
     console.error("Error: ANTHROPIC_API_KEY environment variable is not set.");
     console.error("The eval script requires an API key to avoid consuming interactive plan usage.");
     console.error("Set it with: ANTHROPIC_API_KEY=sk-... node scripts/run-evals.js ...");
@@ -310,7 +374,7 @@ async function main() {
 
   const label = args.variant ? `variant=${args.variant}` : "official";
   log(
-    `\nEval run: ${args.skill} (${label}), iteration ${args.iteration}, ${evals.length} evals, model ${args.model}`
+    `\nEval run: ${args.skill} (${label}), iteration ${args.iteration}, ${evals.length} evals, model ${args.model}, provider ${args.provider}`
   );
 
   // Validate variant directory exists
@@ -458,7 +522,7 @@ function cleanupWorktree(worktreePath) {
   }
 }
 
-function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 600000 }) {
+function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, timeoutMs = 600000 }) {
   return new Promise((resolve, reject) => {
     let settled = false;
     const settle = (fn, value) => {
@@ -484,9 +548,15 @@ function runClaude({ prompt, systemPrompt, model, cwd, pluginDir, timeoutMs = 60
     let stdout = "";
     let stderr = "";
 
+    const env = { ...process.env };
+    if (provider === "ollama") {
+      env.ANTHROPIC_BASE_URL = "http://localhost:11434";
+      env.ANTHROPIC_AUTH_TOKEN = "ollama";
+    }
+
     const proc = spawn("claude", args, {
       cwd,
-      env: { ...process.env },
+      env,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
 
@@ -547,14 +617,16 @@ async function generateResponses(evals, worktreePath, iterationDir, args) {
 
     await Promise.all(
       batch.map((evalDef) =>
-        generateOne(evalDef, worktreePath, iterationDir, args.model)
+        generateOne(evalDef, worktreePath, iterationDir, args)
       )
     );
     completedJobs += batch.length;
   }
 }
 
-async function generateOne(evalDef, worktreePath, iterationDir, model) {
+async function generateOne(evalDef, worktreePath, iterationDir, args) {
+  const model = args.model;
+  const provider = args.provider;
   const evalDir = path.join(
     iterationDir,
     `eval-${evalDef.id}-${evalDef.slug}`
@@ -596,13 +668,13 @@ async function generateOne(evalDef, worktreePath, iterationDir, model) {
     }
     // Copy project scaffolding
     fs.cpSync(projectDir, agentCwd, { recursive: true });
-    log(`    Copied project scaffolding to ${path.basename(agentCwd)}/`);
   }
 
   try {
     const result = await runClaude({
       prompt: evalDef.prompt,
       model,
+      provider,
       cwd: agentCwd,
       pluginDir: agentCwd,
       timeoutMs: evalDef.timeout_ms,
@@ -651,9 +723,6 @@ async function generateOne(evalDef, worktreePath, iterationDir, model) {
       fs.mkdirSync(path.dirname(dest), { recursive: true });
       fs.cpSync(tf, dest);
     }
-    if (testFiles.length > 0) {
-      log(`    Collected ${testFiles.length} test file(s) to outputs/`);
-    }
 
     // Collect build files from agent working directory (for dependency assertions)
     for (const buildFile of ["pom.xml", "build.gradle", "build.gradle.kts"]) {
@@ -672,10 +741,6 @@ async function generateOne(evalDef, worktreePath, iterationDir, model) {
           JSON.stringify(buildResult, null, 2),
           "utf-8"
         );
-        const buildStatus = buildResult.compiles
-          ? (buildResult.tests_pass ? "compiles + tests pass" : buildResult.tests_pass === false ? "compiles, tests fail" : "compiles")
-          : "compile failed";
-        log(`    Build: ${buildStatus}`);
       }
     }
 
@@ -851,7 +916,7 @@ function parseLlmGrading(gradingText) {
   return null;
 }
 
-async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null) {
+async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, provider = "anthropic") {
   const evalDir = path.join(
     iterationDir,
     `eval-${evalDef.id}-${evalDef.slug}`
@@ -893,7 +958,7 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null) {
   if (llmAssertions.length > 0) {
     const llmEvalDef = { ...evalDef, assertions: llmAssertions };
     const gradingPrompt = buildGradingPrompt(llmEvalDef, response, allFiles);
-    const gradingText = await gradeViaApi(GRADING_SYSTEM_PROMPT, gradingPrompt, model);
+    const gradingText = await gradeViaApi(GRADING_SYSTEM_PROMPT, gradingPrompt, model, provider);
 
     const llmGrading = parseLlmGrading(gradingText);
     if (!llmGrading) {
@@ -941,7 +1006,7 @@ async function gradeResponses(evals, iterationDir, args) {
     const batch = evals.slice(i, i + args.parallel);
     await Promise.all(
       batch.map((evalDef) =>
-        gradeOne(evalDef, iterationDir, args.gradingModel, args.gradingSuffix).catch((err) => {
+        gradeOne(evalDef, iterationDir, args.gradingModel, args.gradingSuffix, args.provider).catch((err) => {
           logError(`  ✗ Eval ${evalDef.id} — GRADING FAILED: ${err.message}`);
           const errDir = path.join(iterationDir, `eval-${evalDef.id}-${evalDef.slug}`);
           if (fs.existsSync(errDir)) {
@@ -990,6 +1055,7 @@ function aggregateResults(evals, iterationDir, args) {
       id: `eval-${evalDef.id}-${evalDef.slug}`,
       name: evalDef.slug.replace(/-/g, " "),
       skill: evalDef.skill,
+      fingerprint: evalDef.fingerprint,
       results: {},
     };
 
@@ -1142,10 +1208,11 @@ function loadOfficialBenchmark(repoRoot, skill) {
 }
 
 function detectRegressions(benchmark, previousBenchmark) {
-  if (!previousBenchmark) return { regressions: [], improvements: [] };
+  if (!previousBenchmark) return { regressions: [], improvements: [], notComparable: [] };
 
   const regressions = [];
   const improvements = [];
+  const notComparable = [];
 
   const prevByEvalNum = {};
   for (const prevEval of previousBenchmark.evals) {
@@ -1159,6 +1226,11 @@ function detectRegressions(benchmark, previousBenchmark) {
     );
     const prevEval = prevByEvalNum[evalNum];
     if (!prevEval) continue;
+
+    if (fingerprintsDiffer(evalEntry, prevEval)) {
+      notComparable.push({ eval: evalEntry.id });
+      continue;
+    }
 
     const currResult = unwrapResults(evalEntry);
     const prevResult = unwrapResults(prevEval);
@@ -1186,11 +1258,11 @@ function detectRegressions(benchmark, previousBenchmark) {
     }
   }
 
-  return { regressions, improvements };
+  return { regressions, improvements, notComparable };
 }
 
 function generateReport(benchmark, previousBenchmark, officialBenchmark, iterationDir, args) {
-  const { regressions, improvements } = detectRegressions(
+  const { regressions, improvements, notComparable } = detectRegressions(
     benchmark,
     previousBenchmark
   );
@@ -1212,7 +1284,7 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
   const compareIter = args.compareIteration != null ? args.compareIteration : args.iteration - 1;
   if (previousBenchmark) {
     md += `## Delta vs Iteration ${compareIter}\n\n`;
-    if (regressions.length === 0 && improvements.length === 0) {
+    if (regressions.length === 0 && improvements.length === 0 && notComparable.length === 0) {
       md += `No changes.\n\n`;
     } else {
       if (regressions.length > 0) {
@@ -1226,6 +1298,13 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
         md += `**Improvements (${improvements.length}):**\n`;
         for (const imp of improvements) {
           md += `- ✅ ${imp.eval}: \`${imp.assertion}\`\n`;
+        }
+        md += `\n`;
+      }
+      if (notComparable.length > 0) {
+        md += `**Eval definition changed — not comparable (${notComparable.length}):**\n`;
+        for (const nc of notComparable) {
+          md += `- ⚠️ ${nc.eval}: fingerprint differs from iteration ${compareIter}; re-baseline to compare\n`;
         }
         md += `\n`;
       }
@@ -1322,6 +1401,7 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
     md += `|------|------------|------------|--------------|--------------|-------|------------|------------|--------|------------|------------|--------|\n`;
 
     const attentionItems = [];
+    const changedEvals = [];
     let totOffTokens = 0, totVarTokens = 0, totOffCost = 0, totVarCost = 0, totOffTime = 0, totVarTime = 0;
     let totOffPass = 0, totOffTotal = 0, totVarPass = 0, totVarTotal = 0;
     let comparableCount = 0;
@@ -1333,6 +1413,9 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
       const off = officialEval ? unwrapResults(officialEval) : null;
       if (!curr) continue;
 
+      const evalChanged = fingerprintsDiffer(evalEntry, officialEval);
+      if (evalChanged) changedEvals.push(evalEntry.id);
+
       const currPass = `${curr.assertions_passed}/${curr.assertions_total}`;
       const offPass = off ? `${off.assertions_passed}/${off.assertions_total}` : "—";
       const offTok = off ? String(off.total_tokens) : "—";
@@ -1342,9 +1425,9 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
       const costDelta = off ? fmtDelta(curr.cost_usd, off.cost_usd) : "—";
       const timeDelta = off ? fmtDelta(curr.duration_ms, off.duration_ms) : "—";
 
-      md += `| ${evalEntry.id} | ${offPass} | ${currPass} | ${offTok} | ${curr.total_tokens} | ${tokDelta} | ${offCost} | $${curr.cost_usd.toFixed(4)} | ${costDelta} | ${offTime} | ${(curr.duration_ms / 1000).toFixed(1)}s | ${timeDelta} |\n`;
+      md += `| ${evalEntry.id}${evalChanged ? " ⚠️" : ""} | ${offPass} | ${currPass} | ${offTok} | ${curr.total_tokens} | ${tokDelta} | ${offCost} | $${curr.cost_usd.toFixed(4)} | ${costDelta} | ${offTime} | ${(curr.duration_ms / 1000).toFixed(1)}s | ${timeDelta} |\n`;
 
-      if (off) {
+      if (off && !evalChanged) {
         comparableCount++;
         totOffTokens += off.total_tokens; totVarTokens += curr.total_tokens;
         totOffCost += off.cost_usd; totVarCost += curr.cost_usd;
@@ -1366,6 +1449,10 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
       md += `| **Totals (${comparableCount} comparable)** | **${totOffPass}/${totOffTotal}** | **${totVarPass}/${totVarTotal}** | **${totOffTokens}** | **${totVarTokens}** | **${fmtDelta(totVarTokens, totOffTokens)}** | **$${totOffCost.toFixed(4)}** | **$${totVarCost.toFixed(4)}** | **${fmtDelta(totVarCost, totOffCost)}** | **${(totOffTime / 1000).toFixed(1)}s** | **${(totVarTime / 1000).toFixed(1)}s** | **${fmtDelta(totVarTime, totOffTime)}** |\n`;
     }
     md += `\n`;
+
+    if (changedEvals.length > 0) {
+      md += `⚠️ Eval definition changed since the official baseline — excluded from totals and per-assertion comparison; re-baseline to compare: ${changedEvals.join(", ")}\n\n`;
+    }
 
     // Summary comparison (uses comparable totals from resource table above)
     if (comparableCount > 0) {
@@ -1390,6 +1477,7 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
       const evalNum = String(evalEntry.id.match(/eval-(\d+)/)?.[1]);
       const officialEval = officialByEvalNum[evalNum];
       if (!officialEval) continue;
+      if (fingerprintsDiffer(evalEntry, officialEval)) continue;
 
       const currResult = unwrapResults(evalEntry);
       const offResult = unwrapResults(officialEval);
@@ -1458,17 +1546,27 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
   log("Report saved:", reportPath);
 }
 
-process.on("unhandledRejection", (reason) => {
-  console.error("Unhandled rejection:", reason);
-});
+if (require.main === module) {
+  process.on("unhandledRejection", (reason) => {
+    console.error("Unhandled rejection:", reason);
+  });
 
-process.on("SIGINT", () => {
-  console.error("\nInterrupted — partial results may be in the iteration directory.");
-  process.exit(130);
-});
+  process.on("SIGINT", () => {
+    console.error("\nInterrupted — partial results may be in the iteration directory.");
+    process.exit(130);
+  });
 
-main().catch((err) => {
-  console.error("Fatal error:", err.message);
-  if (err.stack) console.error(err.stack);
-  process.exit(1);
-});
+  main().catch((err) => {
+    console.error("Fatal error:", err.message);
+    if (err.stack) console.error(err.stack);
+    process.exit(1);
+  });
+}
+
+module.exports = {
+  computeEvalFingerprint,
+  fingerprintsDiffer,
+  loadEvalsFromDir,
+  detectRegressions,
+  generateReport,
+};
