@@ -1,0 +1,127 @@
+{
+  "assertions": [
+    {
+      "id": "2.1-decomposition-concern-separation",
+      "text": "Discount ladder, and traveller eligibility are in separate tables. Rolling window counting as a third table is desirable.",
+      "passed": true,
+      "evidence": "Four separate @TableTest methods: discountForTripCount (ladder), discountForCategoryAndTripCount (eligibility), countSingleTicketsInWindow (rolling window), calculatesDiscountEndToEnd (integration)"
+    },
+    {
+      "id": "2.2-children-flat-discount",
+      "text": "Children's flat 20% discount is represented — either as a row in the eligibility table or a separate note. It does not follow the ladder.",
+      "passed": true,
+      "evidence": "Row 'Child gets a flat discount regardless of trips' with CHILD category and Discount 20 across {1, 5, 40} trip counts"
+    },
+    {
+      "id": "2.3-depth-tier-boundaries",
+      "text": "The discount ladder has multiple tiers derived from the 'every fifth trip' rule, with boundary values or value sets showing which ticket counts produce which discount. The maximum 40% discount is represented.",
+      "passed": true,
+      "evidence": "Rows show tiers: {1,2,3,4}→0%, 5→5%, {6-9}→5%, 10→10%, etc., up to 40+→40%. All nine tiers present."
+    },
+    {
+      "id": "2.4-depth-rolling-window-boundary",
+      "text": "The 30-day rolling window boundary is tested: a ticket at exactly 30 days is included, at 31 days is excluded.",
+      "passed": true,
+      "evidence": "countSingleTicketsInWindow table rows: 'Exactly 30 days ago is still in window | [30/SINGLE/ZONE_1] | 1' and '31 days ago has fallen out | [31/SINGLE/ZONE_1] | 0'"
+    },
+    {
+      "id": "2.9-correctness-value-set-tier-semantics",
+      "text": "Value sets in the tier table contain exactly the values that produce the same discount. No cross-tier contamination.",
+      "passed": true,
+      "evidence": "discountForTripCount table uses {1,2,3,4}→0%, {6,7,8,9}→5%, {11,12,13,14}→10%, each mapping to a single discount with no overlap"
+    },
+    {
+      "id": "2.15-ticket-count-uses-value-sets",
+      "text": "The discount ladder table uses value sets for the ticket count column to group counts within the same tier (e.g. {5, 6, 7, 8, 9} or {5, 9} for min/max → 5%) — not one row per boundary value.",
+      "passed": true,
+      "evidence": "Rows use {1,2,3,4}, {6,7,8,9}, {11,12,13,14}, {36,37,38,39}, {41,45,100} as value sets, not individual boundary rows"
+    },
+    {
+      "id": "2.16-no-duplicate-tier-mapping",
+      "text": "The tier-to-discount mapping is expressed once — not repeated across multiple tables. A price application table (if present) should test the arithmetic without re-enumerating tiers.",
+      "passed": true,
+      "evidence": "discountForTripCount establishes the mapping once; discountForCategoryAndTripCount and calculatesDiscountEndToEnd call it, not re-enumerate tier boundaries"
+    },
+    {
+      "id": "2.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "4 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "2.11-format-description",
+      "text": "@Description is present on at least the class or the tier method and provides context beyond what the table rows already express — such as the discount ladder structure, eligibility rules, or application context.",
+      "passed": true,
+      "evidence": "@Description on discountForTripCount explains 'every 5th single ticket in rolling 30-day window raises discount by 5%, up to 40% cap'; on countSingleTicketsInWindow explains boundary semantics and zone independence; on discountForCategoryAndTripCount explains category rules"
+    },
+    {
+      "id": "2.13-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "2.14-format-description-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "2.17-zone-irrelevance-visible",
+      "text": "The eligibility/passenger-type table includes a Zone column (or equivalent) with a value set to show that the discount applies regardless of zone — rather than silently omitting zone.",
+      "passed": false,
+      "evidence": "countSingleTicketsInWindow includes zone in History (ZONE_1, ZONE_2, ZONE_3) but the eligibility table (discountForCategoryAndTripCount) does not include a Zone column or explicit demonstration of zone-independence"
+    },
+    {
+      "id": "2.18-adult-senior-value-set",
+      "text": "Adult and senior are expressed as a value set {ADULT, SENIOR} (or equivalent) in at least one row of the eligibility table, since they follow identical discount rules. Not enumerated as separate rows.",
+      "passed": true,
+      "evidence": "discountForCategoryAndTripCount row 'Adult and senior are capped the same | {ADULT, SENIOR} | 45 | 40' uses a value set for both categories"
+    },
+    {
+      "id": "2.19-depth-all-tiers",
+      "text": "All 9 discount tiers are represented in the ladder table: 0% (tickets 1-4), 5% (5-9), 10% (10-14), 15% (15-19), 20% (20-24), 25% (25-29), 30% (30-34), 35% (35-39), and 40% (40+).",
+      "passed": false,
+      "evidence": "discountForTripCount shows tiers for 0%, 5%, 10%, 35%, 40% but explicitly tests only {1-4}→0%, 5→5%, {6-9}→5%, 10→10%, {11-14}→10%, 35→35%, {36-39}→35%, 40→40%, {41+}→40%. Missing explicit rows for 15%, 20%, 25%, 30%."
+    },
+    {
+      "id": "2.20-readability-one-row-per-tier",
+      "text": "Each tier in the discount ladder is expressed as a single row with a value set for ticket counts — not split across multiple rows. One tier = one row.",
+      "passed": false,
+      "evidence": "discountForTripCount splits the 5% tier across two rows: 'Exactly at first tier | 5 | 5' and 'Within first tier | {6,7,8,9} | 5'; same for 10%, 35% tiers. Should consolidate to one row per tier."
+    },
+    {
+      "id": "2.21-readability-relative-time",
+      "text": "The rolling window table expresses time relatively (e.g. '14 days ago', '30 days ago', or an integer 'Days ago' column) rather than using absolute dates.",
+      "passed": true,
+      "evidence": "countSingleTicketsInWindow History column uses 'daysAgo' format (1/SINGLE/ZONE_1, 30/SINGLE/ZONE_1, 31/SINGLE/ZONE_1) which is relative time, not absolute dates"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules.",
+      "passed": true,
+      "evidence": "Four separate @TableTest methods: discountForTripCount (pure ladder), countSingleTicketsInWindow (30-day window), discountForCategoryAndTripCount (category rules), calculatesDiscountEndToEnd (API integration)"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
+      "passed": false,
+      "evidence": "discountForTripCount has 10 rows, but many test the same discount multiple times (e.g., {6,7,8,9}→5% and {1-4}→0% could be consolidated). Rows like 'Exactly at first tier' and 'Within first tier' split a single tier rule into two rows."
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit:1.2.1 as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit:1.2.1"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 16,
+  "assertions_total": 20,
+  "pass_rate": 0.8
+}

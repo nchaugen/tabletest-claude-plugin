@@ -1,0 +1,115 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "threshold-as-column",
+      "text": "Policy thresholds (650/600 credit scores) appear in a dedicated policy column (e.g. 'Credit threshold') separate from the applicant's actual credit score column. The reader sees both the threshold and the score, making the comparison explicit. Not just threshold values used as data in the score column.",
+      "passed": false,
+      "evidence": "The table has 'Credit Score' as a single column with concrete values (700, 650, 651, 600). No separate 'Credit threshold' column exists; thresholds are only mentioned in @Description text, not visible in table columns."
+    },
+    {
+      "id": "concrete-domain-values",
+      "text": "Cell values use concrete domain terms (e.g. '70', '650', 'APPROVED') — not abstract codes like 'CATEGORY_A' or '1'. Boolean true/false is acceptable for yes/no flags when the parameter type is boolean.",
+      "passed": true,
+      "evidence": "Table uses concrete values: Age 30, 64, 65, 70; Credit Score 700, 650, 651, 600; Stable Income true/false; Result APPROVED, REJECTED, PENDING_REVIEW."
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\""
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('Senior at lower threshold', 'Missing income') — not outcomes ('Approved', 'Rejected').",
+      "passed": true,
+      "evidence": "Scenarios describe conditions: 'Standard age, well above threshold, stable income', 'At senior age boundary, lower threshold applies', 'above threshold, income unknown' — not outcome-focused."
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language (e.g. 'Age', 'Credit score', 'Stable income', 'Decision?') — not code identifiers like 'customerAge', 'boolean'.",
+      "passed": true,
+      "evidence": "Column headers: 'Age', 'Credit Score', 'Stable Income', 'Result?' — all business language, no code identifiers."
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Decision?' or 'Status?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Result?"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "1 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "1 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": false,
+      "evidence": "Only one @TableTest method 'evaluatesLoanApproval' exists. Age boundary, credit score categorisation, and income status are all combined in a single 12-row table rather than separated."
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
+      "passed": false,
+      "evidence": "The single table has 12 rows testing age boundary (rows 8-11), credit score thresholds (rows 1-5), and income effects (rows 5-7, 12) simultaneously, creating unnecessary permutations."
+    },
+    {
+      "id": "separates-age-credit-income",
+      "text": "Age boundary policy, credit score categorisation, and income status are separated into distinct @TableTest methods, with a method combining these for the expected verdict",
+      "passed": false,
+      "evidence": "Only one @TableTest method exists. No separate methods for age boundary, credit score categorisation, or income status; all combined in 'evaluatesLoanApproval'."
+    },
+    {
+      "id": "description-no-redundant-field-values",
+      "text": "Scenario descriptions and @Description text do not include specific field values that are already visible in the table or that serve as 'any valid value' placeholders. Stating 'Customer age is 35 for all rows' in @Description when age is fixed in the method body, or including fixed values in scenario names that are already columns, adds maintenance burden without value. Describe the scenario condition or policy being tested instead.",
+      "passed": false,
+      "evidence": "@Description includes 'standard applicants (under 65)' and 'senior applicants (65+)' — policy-relevant groupings already visible in age column rows. Scenario 'At senior age boundary, lower threshold applies' redundantly mentions the threshold when it's tested in the table values."
+    },
+    {
+      "id": "depth-stable-income-effect",
+      "text": "The standardApplicantCreditThreshold table (or equivalent non-senior table) clearly documents the effect of stable income: rows show that above-threshold credit score + stable income = APPROVED, and above-threshold credit score + no stable income = REJECTED. The stable income parameter's effect on the outcome must be visible from the table rows, not just implied.",
+      "passed": true,
+      "evidence": "Row 'Standard age, well above threshold, stable income' (30, 700, true) → APPROVED; row 'Standard age, above threshold, known unstable income' (30, 700, false) → REJECTED. Both have score 700 (above 650), differing only in income, clearly showing the effect."
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit:1.2.1 as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit:1.2.1"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 13,
+  "assertions_total": 18,
+  "pass_rate": 0.7222222222222222
+}
