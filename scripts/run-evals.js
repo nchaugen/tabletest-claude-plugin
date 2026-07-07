@@ -353,6 +353,7 @@ function parseArgs(argv) {
     gradingModel: "haiku",
     provider: "anthropic",
     gradingSuffix: null,
+    nudgeSkill: false,
     parallel: 4,
     gradeOnly: false,
     reportOnly: false,
@@ -393,6 +394,9 @@ function parseArgs(argv) {
       case "--grading-suffix":
         args.gradingSuffix = argv[++i];
         break;
+      case "--nudge-skill":
+        args.nudgeSkill = true;
+        break;
       case "--parallel":
         args.parallel = parseInt(argv[++i], 10);
         break;
@@ -418,8 +422,9 @@ function parseArgs(argv) {
     console.error("  --compare-official   Compare variant results against latest official benchmark");
     console.error("  --evals 1,2,3       Run specific evals (supports ranges: 1-13)");
     console.error("  --provider PROV     Provider to use (anthropic, ollama) (default: anthropic)");
-    console.error("  --model MODEL       Model to use (default: sonnet / gemma4:31b for ollama)");
-    console.error("  --grading-model M   Model for grading (default: haiku / gemma4:31b for ollama)");
+    console.error("  --model MODEL       Model to use (default: sonnet)");
+    console.error("  --grading-model M   Model for grading (default: haiku)");
+    console.error("  --nudge-skill       Append a prompt nudge to invoke the relevant skill (for models that don't trigger skills on their own)");
     console.error("  --grading-suffix S  Isolate a re-grade: write grading-S.json, benchmark-S.json, eval-review-S.md");
     console.error("  --parallel N        Max parallel evals (default: 4)");
     console.error("  --grade-only        Re-grade existing outputs");
@@ -451,11 +456,6 @@ function parseArgs(argv) {
 
 async function main() {
   const args = parseArgs(process.argv);
-
-  if (args.provider === "ollama") {
-    if (args.model === "sonnet") args.model = "gemma4:31b";
-    if (args.gradingModel === "haiku") args.gradingModel = "gemma4:31b";
-  }
 
   const repoRoot = execSync("git rev-parse --show-toplevel", {
     encoding: "utf-8",
@@ -502,7 +502,7 @@ async function main() {
 
   const label = args.variant ? `variant=${args.variant}` : "official";
   log(
-    `\nEval run: ${args.skill} (${label}), iteration ${args.iteration}, ${evals.length} evals, model ${args.model}, provider ${args.provider}`
+    `\nEval run: ${args.skill} (${label}), iteration ${args.iteration}, ${evals.length} evals, model ${args.model}, provider ${args.provider}${args.nudgeSkill ? ", nudge-skill" : ""}`
   );
 
   // Validate variant directory exists
@@ -773,6 +773,16 @@ const BATCH_MODE_NOTE =
   "\n\nThis is a non-interactive run: you cannot ask follow-up questions. " +
   "If anything is ambiguous, state your assumptions and deliver the complete result.";
 
+// Appended to the user prompt with --nudge-skill: models that are not
+// trained to trigger Claude Code skills on their own (e.g. local models via
+// ollama) need an explicit pointer to the Skill tool. Injected into the user
+// prompt rather than the system prompt because weak models ignore
+// instructions buried in a large system prompt. Deliberately does not name a
+// skill so routing between skills is still measured.
+const SKILL_NUDGE =
+  "\n\nIMPORTANT: This project provides skills via the Skill tool (see the available skills list). " +
+  "Before writing or modifying any code, invoke the skill relevant to this task and follow its instructions.";
+
 async function generateOne(evalDef, worktreePath, iterationDir, args) {
   const model = args.model;
   const provider = args.provider;
@@ -823,7 +833,7 @@ async function generateOne(evalDef, worktreePath, iterationDir, args) {
 
   try {
     const result = await runClaude({
-      prompt: evalDef.prompt + BATCH_MODE_NOTE,
+      prompt: evalDef.prompt + BATCH_MODE_NOTE + (args.nudgeSkill ? SKILL_NUDGE : ""),
       model,
       provider,
       cwd: agentCwd,
@@ -1212,6 +1222,8 @@ function aggregateResults(evals, iterationDir, args) {
     skill_name: args.variant ? `${args.skill} (${args.variant})` : args.skill,
     iteration: args.iteration,
     model: args.model,
+    provider: args.provider,
+    ...(args.nudgeSkill ? { nudge_skill: true } : {}),
     grading_model: resolveModel(args.gradingModel),
     timestamp: new Date().toISOString(),
     evals: [],
