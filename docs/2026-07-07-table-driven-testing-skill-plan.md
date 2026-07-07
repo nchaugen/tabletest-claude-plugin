@@ -11,7 +11,13 @@ record any decisions in the Decisions section.
 
 ## Status
 
-Plan written; no implementation started. Next up: phase 0.
+Phase 0 done (commit `d1d5144`): pytest 9.1.1 installed via Homebrew; runner
+extended with per-language profiles (`language` field in eval.json — `jvm`
+default, `python`, `swift`) driving build checks, output collection, grading
+file loading, and the delivery gate; `--no-skill` baseline mode added. Both
+new build checks verified against scratch projects (pytest exit-5-on-empty
+confirmed as a correct `compiles` failure; Swift Testing package builds and
+runs). Next up: phase 1 evals.
 
 ## Approach (agreed before parking, 2026-07-07)
 
@@ -34,28 +40,6 @@ Plan written; no implementation started. Next up: phase 0.
   skill beats vanilla Claude at all, so the baseline run is prompt-only.
 
 ## Phases
-
-### Phase 0 — Runner groundwork (`feat(evals):` commits, frozen before suite work)
-
-- [ ] Install pytest for the eval environment (machine has Python 3.14 but no
-      pytest, no uv; Swift 6.3.3 is present and includes Swift Testing).
-- [ ] Extend `runBuildCheck` in `scripts/run-evals.js` beyond Maven/Gradle
-      (it currently returns null for anything else, so `compiles` /
-      `tests_pass` assertions would silently skip):
-      - pytest project (`pyproject.toml` or `test_*.py` present):
-        `compiles` → `python3 -m pytest --collect-only -q`,
-        `tests_pass` → `python3 -m pytest -q`.
-      - Swift package (`Package.swift` present):
-        `compiles` → `swift build --build-tests`,
-        `tests_pass` → `swift test` (allow a generous first-build timeout).
-- [ ] Add a `--no-skill` run mode that deletes `skills/<skill>/` from the
-      worktree, for the phase 3 baseline.
-- [ ] Update the runner usage text (`--skill` currently enumerates
-      `tabletest, spec-by-example`).
-
-Everything else in the runner is already skill-agnostic: `evals/<skill>/` is
-resolved generically, plugin skills are auto-discovered from `skills/`, and
-per-eval `project/` scaffolding is copied regardless of language.
 
 ### Phase 1 — pytest eval suite (3 evals)
 
@@ -130,3 +114,15 @@ suite, on fresh domains:
 - 2026-07-07: pytest-first (3 evals), then Swift, all before any skill text —
   so Swift requirements shape the first draft, but suite mechanics are
   debugged on the cheapest ecosystem.
+- 2026-07-07: Language handling in the runner is a per-eval `language` field
+  in eval.json (`jvm` default, `python`, `swift`) mapped to a profile (build
+  check, output collection, delivery-gate pattern) — not filesystem
+  autodetection at grade time, so grading is deterministic per definition.
+  Existing eval.json files are untouched (fingerprints preserved).
+- 2026-07-07: `--no-skill` reuses the variant plumbing under the reserved
+  label `no-skill` (results in `iterations/<skill>/no-skill/`); the worktree
+  deletes `skills/<skill>/` while other skills stay installed, so the
+  baseline matches what current plugin users experience.
+- 2026-07-07: pytest installed via `brew install pytest` (9.1.1) — Homebrew
+  Python is externally managed, so no pip install; the `pytest` binary on
+  PATH is what the runner and eval agents invoke.
