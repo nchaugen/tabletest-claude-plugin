@@ -52,7 +52,7 @@ skill-variants/                  ← in-development skill versions (never shippe
       references/
 ```
 
-Results directories are trimmed after each development cycle; older results live in git history (summaries) only.
+Results directories are trimmed after each development cycle; older results live in git history — summaries plus the full artefacts (`outputs/`, `grading.json`, `timing.json`), so past iterations can be compared, audited, or re-graded from history. Conversation and run logs are never committed.
 
 **Running evals:** Use `scripts/run-evals.js`. The `--skill` flag is required.
 
@@ -86,7 +86,7 @@ The eval-review.md's "Load-Bearing Assertions" and resource-comparison sections 
 1. Replace the contents of `skills/<skill>/` with the variant; reconcile the `references/` set (delete references whose content the new SKILL.md subsumes); delete `skill-variants/<skill>/next/`.
 2. Bump the version in `.claude-plugin/plugin.json` and write a user-facing `CHANGELOG.md` entry — describe what changed for users, no variant/development terminology.
 3. Commit (`feat:`), then run one official eval iteration. Its regression report against the previous official baseline is the promotion evidence, and its `benchmark.json` becomes the new baseline.
-4. Trim results: commit `benchmark.json` + `eval-review.md` for iterations worth recording, then delete all iteration directories except the latest official baseline — the next run's regression comparison reads it from disk. Keep the baseline's gitignored `outputs/` on disk: they enable cheap re-grading when assertions change (see below). Conversation logs and outputs are never committed.
+4. Trim results: commit each recorded iteration's `benchmark.json`, `eval-review.md`, `outputs/`, `grading.json`, and `timing.json`, then delete all iteration directories except the latest official baseline — the next run's regression comparison reads it from disk, and everything else remains available in git history for comparison and re-grading (see below). Conversation and run logs are never committed.
 5. Tag and release per the Release Process above.
 
 ### Evolving the Eval Suite

@@ -6,8 +6,8 @@
 build/
 target/
 
-# Eval run artifacts — commit summaries (benchmark.json, eval-review.md) only
+# Eval run artifacts — outputs, gradings, and summaries are committed for
+# recorded iterations; conversation and run logs never are
 iterations/**/conversation.jsonl
-iterations/**/outputs/
 iterations/**/run.log
 iterations/**/error.log
