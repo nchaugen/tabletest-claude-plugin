@@ -1,0 +1,55 @@
+{
+  "assertions": [
+    {
+      "id": "uses-test-arguments",
+      "text": "Tests use @Test(arguments:) parameterised cases — not one test function per case, and not a loop over cases inside a single test body.",
+      "passed": true,
+      "evidence": "Found @Test(arguments:)"
+    },
+    {
+      "id": "no-loop-in-swift-test",
+      "text": "Test function bodies contain no for/while loops or forEach — cases are supplied via @Test(arguments:), not iterated manually.",
+      "passed": true,
+      "evidence": "No loops in @Test function bodies"
+    },
+    {
+      "id": "no-if-in-swift-test",
+      "text": "Test function bodies contain no if/switch/guard branching — expected outcomes come from the argument rows, not branching logic.",
+      "passed": true,
+      "evidence": "No if/switch/guard statements in @Test function bodies"
+    },
+    {
+      "id": "cases-are-paired-rows",
+      "text": "Each case reads as a coherent row pairing input with expected outcome — labelled tuple elements, a row struct, or zip of collections — not multiple independent collections passed to arguments",
+      "passed": true,
+      "evidence": "struct FeeCase with daysBeforeCheckIn, bookingValue, expectedFee fields; passed as single arguments: feeCases parameter"
+    },
+    {
+      "id": "full-tier-enumeration",
+      "text": "Every fee tier is represented and every boundary tested from both sides: 30 vs 29, 7 vs 6, 1 vs 0",
+      "passed": true,
+      "evidence": "Cases include: 30 (free), 29 (50%), 7 (50%), 6 (80%), 1 (80%), 0 (full). All four tiers and all six boundary points covered."
+    },
+    {
+      "id": "exception-case-separated",
+      "text": "The started-stay case is expressed as its own test using #expect(throws:) — not mixed into the fee table",
+      "passed": true,
+      "evidence": "stayAlreadyStarted(daysBeforeCheckIn:) is separate @Test with #expect(throws: CancellationError.stayAlreadyStarted)"
+    },
+    {
+      "id": "concrete-domain-values",
+      "text": "Case values are concrete domain values (days like 29, fees like 100) — not computed expressions or symbolic constants",
+      "passed": true,
+      "evidence": "FeeCase instances use literal integers: daysBeforeCheckIn: 29, bookingValue: 100, expectedFee: 50 (not formulas)"
+    },
+    {
+      "id": "compiles",
+      "text": "swift build --build-tests succeeds against the package scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 8,
+  "assertions_total": 8,
+  "pass_rate": 1
+}

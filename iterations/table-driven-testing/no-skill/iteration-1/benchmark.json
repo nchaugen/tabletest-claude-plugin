@@ -1,0 +1,118 @@
+{
+  "skill_name": "table-driven-testing (no-skill)",
+  "iteration": 1,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-haiku-4-5",
+  "timestamp": "2026-07-07T13:41:50.776Z",
+  "evals": [
+    {
+      "id": "eval-31-travel-insurance-py",
+      "name": "travel insurance py",
+      "skill": "table-driven-testing",
+      "fingerprint": "7ff188366a87",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 8,
+        "assertions_total": 13,
+        "pass_rate": 0.6153846153846154,
+        "failed_assertions": [
+          "threshold-as-column",
+          "scenario-names-describe-conditions",
+          "concerns-decomposed",
+          "minimal-rows-per-concern",
+          "separates-age-duration-destination"
+        ],
+        "total_tokens": 384994,
+        "duration_ms": 75969,
+        "cost_usd": 0.27832334999999997
+      }
+    },
+    {
+      "id": "eval-32-baggage-fees-py",
+      "name": "baggage fees py",
+      "skill": "table-driven-testing",
+      "fingerprint": "d22423ecf0aa",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 6,
+        "assertions_total": 8,
+        "pass_rate": 0.75,
+        "failed_assertions": [
+          "parametrize-has-ids",
+          "scenario-names-describe-conditions"
+        ],
+        "total_tokens": 252149,
+        "duration_ms": 33412,
+        "cost_usd": 0.15384004999999998
+      }
+    },
+    {
+      "id": "eval-33-library-fees-py",
+      "name": "library fees py",
+      "skill": "table-driven-testing",
+      "fingerprint": "8b8a37920a00",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 8,
+        "assertions_total": 9,
+        "pass_rate": 0.8888888888888888,
+        "failed_assertions": [
+          "parametrize-has-ids"
+        ],
+        "total_tokens": 286693,
+        "duration_ms": 41479,
+        "cost_usd": 0.168937
+      }
+    },
+    {
+      "id": "eval-34-hotel-cancellation-swift",
+      "name": "hotel cancellation swift",
+      "skill": "table-driven-testing",
+      "fingerprint": "2416ba6180ff",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 8,
+        "assertions_total": 8,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 344480,
+        "duration_ms": 76430,
+        "cost_usd": 0.26542085
+      }
+    },
+    {
+      "id": "eval-35-cinema-tickets-routing",
+      "name": "cinema tickets routing",
+      "skill": "table-driven-testing",
+      "fingerprint": "9cd36132b361",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 0,
+        "assertions_total": 6,
+        "pass_rate": 0,
+        "failed_assertions": [
+          "has-tabletest-annotation",
+          "no-parameterized-test",
+          "has-tabletest-dependency",
+          "scenario-column-present",
+          "has-question-mark-column",
+          "compiles"
+        ],
+        "total_tokens": 360073,
+        "duration_ms": 68686,
+        "cost_usd": 0.25913474999999997
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 30,
+    "assertions_total": 44,
+    "pass_rate": 0.6818181818181818,
+    "total_tokens": 1628389,
+    "total_duration_ms": 295976,
+    "total_cost_usd": 1.1256559999999998
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}
