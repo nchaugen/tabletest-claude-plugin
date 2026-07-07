@@ -45,9 +45,18 @@ mechanics for pytest/Swift Testing/Jest/Go/xUnit (with per-framework
 table-design principles targeting the baseline gaps (decomposition,
 thresholds visible, tier/boundary enumeration, condition-named rows/ids,
 error-case separation, ambiguity policy), and the description defers to
-tabletest for Java/Kotlin. Next up: phase 5 — run the suite with the skill
-(`node scripts/run-evals.js --skill table-driven-testing --iteration 1`,
-user's shell) and compare against the 30/44 no-skill baseline.
+tabletest for Java/Kotlin. Phase 5 in progress: iteration 1 (`f4eeba1`)
+scored **42/44 (95.5%)** vs the 30/44 baseline — eval-31 13/13 (whole
+decomposition family flipped), eval-33 9/9, eval-34 8/8 (no Swift
+regression), eval-35 6/6 (routing fixed: the new skill's deferring
+description makes the agent pick tabletest on Java). The only failures are
+eval-32's two, both skill-induced over-applications: ids with the outcome
+appended (`at_..._limit-<fee name>`) and expected values extracted into
+module-level constants. Commit `edd3e4d` adds targeted counter-text (name
+says *when*, expectations say *what*; literal values in rows, no named
+constants). Next: re-run eval-32 as iteration 2
+(`node scripts/run-evals.js --skill table-driven-testing --iteration 2
+--evals 32`, user's shell); if it clears, proceed to phase 6.
 
 ## Approach (agreed before parking, 2026-07-07)
 
