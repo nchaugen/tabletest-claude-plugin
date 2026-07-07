@@ -11,13 +11,15 @@ record any decisions in the Decisions section.
 
 ## Status
 
-Phase 0 done (commit `d1d5144`): pytest 9.1.1 installed via Homebrew; runner
-extended with per-language profiles (`language` field in eval.json — `jvm`
+Phases 0 and 1 done. Runner groundwork (commit `d1d5144`): pytest 9.1.1 via
+Homebrew; per-language profiles (`language` field in eval.json — `jvm`
 default, `python`, `swift`) driving build checks, output collection, grading
-file loading, and the delivery gate; `--no-skill` baseline mode added. Both
-new build checks verified against scratch projects (pytest exit-5-on-empty
-confirmed as a correct `compiles` failure; Swift Testing package builds and
-runs). Next up: phase 1 evals.
+file loading, and the delivery gate; `--no-skill` baseline mode; both new
+build checks verified against scratch projects. The three pytest evals are
+committed (`b99cc39`, `086fa16`) with three new deterministic Python checkers
+(`uses-parametrize`, `parametrize-has-ids`, `no-if-in-python-test`) unit-
+tested against good and bad samples; all scaffolds collect cleanly and the
+runner loads the suite. Next up: phase 2 (Swift eval + routing eval).
 
 ## Approach (agreed before parking, 2026-07-07)
 
@@ -41,26 +43,16 @@ runs). Next up: phase 1 evals.
 
 ## Phases
 
-### Phase 1 — pytest eval suite (3 evals)
-
-Create `evals/table-driven-testing/` following the existing eval layout
-(`prompt.md`, `expected_output.md`, `eval.json`, `project/`). Project
-scaffolding: minimal `pyproject.toml` plus a small `src` module, mirroring
-how tabletest evals ship a Gradle project with main sources and empty test
-dirs. Port the assertion families that discriminate hardest in the tabletest
-suite, on fresh domains:
-
-- [ ] Eval A — decomposition + thresholds-as-columns (the eval-23-shaped
-      pressure: one fat table that should split, with visible thresholds).
-- [ ] Eval B — one-row-per-tier enumeration + descriptive scenario naming
-      (the eval-15-shaped pressure: a tier ladder models boundary-sample).
-- [ ] Eval C — ambiguity policy / deliver-don't-ask + black-box outputs
-      (underspecified prompt; the skill should make the agent state
-      assumptions and deliver).
-- [ ] Deterministic checkers where possible (delivery gate, table-shape
-      checks), matching the fixed-suite conventions from the v1.5.0 cycle.
-
 ### Phase 2 — Swift eval + routing eval
+
+The three pytest evals now in `evals/table-driven-testing/` set the
+template: eval-31 `travel-insurance-py` (decomposition +
+thresholds-as-columns, the eval-23-shaped pressure), eval-32
+`baggage-fees-py` (full-tier enumeration + exception-case separation, the
+eval-15-shaped pressure), eval-33 `library-fees-py` (ambiguity policy /
+deliver-don't-ask; the cap-vs-half-rate interaction is the planted
+ambiguity). Eval ids continue the global id space (tabletest and
+spec-by-example interleave 1–30, so this suite starts at 31).
 
 - [ ] Eval D — Swift Testing `@Test(arguments:)` eval with a `Package.swift`
       scaffold; asserts parameterised structure (zipped argument tuples or
