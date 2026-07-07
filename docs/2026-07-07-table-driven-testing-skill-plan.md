@@ -11,15 +11,20 @@ record any decisions in the Decisions section.
 
 ## Status
 
-Phases 0 and 1 done. Runner groundwork (commit `d1d5144`): pytest 9.1.1 via
+Phases 0–2 done. Runner groundwork (commit `d1d5144`): pytest 9.1.1 via
 Homebrew; per-language profiles (`language` field in eval.json — `jvm`
 default, `python`, `swift`) driving build checks, output collection, grading
-file loading, and the delivery gate; `--no-skill` baseline mode; both new
-build checks verified against scratch projects. The three pytest evals are
-committed (`b99cc39`, `086fa16`) with three new deterministic Python checkers
-(`uses-parametrize`, `parametrize-has-ids`, `no-if-in-python-test`) unit-
-tested against good and bad samples; all scaffolds collect cleanly and the
-runner loads the suite. Next up: phase 2 (Swift eval + routing eval).
+file loading, and the delivery gate; `--no-skill` baseline mode. The suite is
+now five evals: three pytest (`b99cc39`, `086fa16`), eval-34
+`hotel-cancellation-swift` (Swift Testing, ports the full-tier-enumeration +
+exception-separation family; three new Swift checkers `uses-test-arguments`,
+`no-loop-in-swift-test`, `no-if-in-swift-test`), and eval-35
+`cinema-tickets-routing` (Java/Gradle prompt saying "table-driven tests";
+deterministic-only — delivery gate plus `has-tabletest-annotation` and a new
+`no-parameterized-test` checker make mis-routing score zero). All checkers
+verified against good/bad samples; both new scaffolds build cleanly; the
+runner loads all five evals and every deterministic assertion resolves to a
+checker. Next up: phase 3 (freeze suite, `--no-skill` baseline run).
 
 ## Approach (agreed before parking, 2026-07-07)
 
@@ -43,24 +48,17 @@ runner loads the suite. Next up: phase 2 (Swift eval + routing eval).
 
 ## Phases
 
-### Phase 2 — Swift eval + routing eval
-
-The three pytest evals now in `evals/table-driven-testing/` set the
-template: eval-31 `travel-insurance-py` (decomposition +
-thresholds-as-columns, the eval-23-shaped pressure), eval-32
-`baggage-fees-py` (full-tier enumeration + exception-case separation, the
-eval-15-shaped pressure), eval-33 `library-fees-py` (ambiguity policy /
-deliver-don't-ask; the cap-vs-half-rate interaction is the planted
-ambiguity). Eval ids continue the global id space (tabletest and
-spec-by-example interleave 1–30, so this suite starts at 31).
-
-- [ ] Eval D — Swift Testing `@Test(arguments:)` eval with a `Package.swift`
-      scaffold; asserts parameterised structure (zipped argument tuples or
-      struct rows, not a for-loop inside one test) plus one ported design
-      family.
-- [ ] Eval E — routing guard: a Java/Gradle project prompt in this suite
-      where the passing behaviour is TableTest output (i.e. the `tabletest`
-      skill wins the routing, not this one).
+The five evals in `evals/table-driven-testing/`: eval-31
+`travel-insurance-py` (decomposition + thresholds-as-columns, the
+eval-23-shaped pressure), eval-32 `baggage-fees-py` (full-tier enumeration +
+exception-case separation, the eval-15-shaped pressure), eval-33
+`library-fees-py` (ambiguity policy / deliver-don't-ask; the
+cap-vs-half-rate interaction is the planted ambiguity), eval-34
+`hotel-cancellation-swift` (Swift Testing `@Test(arguments:)`; the eval-32
+family ported), eval-35 `cinema-tickets-routing` (routing guard: Java/Gradle
+prompt where TableTest output is the passing behaviour). Eval ids continue
+the global id space (tabletest and spec-by-example interleave 1–30, so this
+suite starts at 31).
 
 ### Phase 3 — Baseline
 
@@ -118,3 +116,15 @@ spec-by-example interleave 1–30, so this suite starts at 31).
 - 2026-07-07: pytest installed via `brew install pytest` (9.1.1) — Homebrew
   Python is externally managed, so no pip install; the `pytest` binary on
   PATH is what the runner and eval agents invoke.
+- 2026-07-07: the Swift eval stub throws a package-private `NotImplemented`
+  error rather than `fatalError()` — `swift test` fails gracefully instead
+  of crashing the test process, and the started-stay test cannot spuriously
+  pass because `NotImplemented` is not a `CancellationError`.
+- 2026-07-07: the routing eval (35) is deterministic-only (no LLM
+  assertions) — the jvm delivery gate zeroes everything when no `@TableTest`
+  source is delivered, so mis-routing is measured for free; design depth is
+  the other evals' job.
+- 2026-07-07: `no-if-in-swift-test` also rejects `guard` — in a
+  table-driven Swift test, `guard` on the row data is the same
+  mixed-outcome branching the checker exists to catch (Swift Testing's
+  `try #require(...)` is the idiomatic alternative).
