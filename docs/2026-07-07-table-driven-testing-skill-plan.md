@@ -38,7 +38,16 @@ project produced generic @ParameterizedTest/@CsvSource; the skill never
 triggered (tabletest's own eval prompts all say "TableTest" explicitly). The
 new skill's description mentioning "table-driven" and deferring to tabletest
 for Java/Kotlin may itself close this gap — eval-35 measures exactly that.
-Next up: phase 4 (draft `skills/table-driven-testing/SKILL.md`).
+Phase 4 done: skill v0 committed (`d12b170`) as a single self-contained
+`skills/table-driven-testing/SKILL.md` (~220 lines) — table model, framework
+mechanics for pytest/Swift Testing/Jest/Go/xUnit (with per-framework
+"regardless of" emulation and the Swift cartesian footgun), de-JVM-ified
+table-design principles targeting the baseline gaps (decomposition,
+thresholds visible, tier/boundary enumeration, condition-named rows/ids,
+error-case separation, ambiguity policy), and the description defers to
+tabletest for Java/Kotlin. Next up: phase 5 — run the suite with the skill
+(`node scripts/run-evals.js --skill table-driven-testing --iteration 1`,
+user's shell) and compare against the 30/44 no-skill baseline.
 
 ## Approach (agreed before parking, 2026-07-07)
 
@@ -74,18 +83,11 @@ prompt where TableTest output is the passing behaviour). Eval ids continue
 the global id space (tabletest and spec-by-example interleave 1–30, so this
 suite starts at 31).
 
-### Phase 4 — Skill v0
-
-- [ ] Draft `skills/table-driven-testing/SKILL.md`. Pre-release, direct
-      iteration in `skills/` is fine (nothing published to protect), but
-      evals test HEAD — commit before every run.
-- [ ] Description scoped to non-JVM parameterised/table/data-driven testing;
-      explicitly defers to `tabletest` for Java/Kotlin.
-- [ ] Self-contained single file first (the v1.4.0 minimal-variant benchmark
-      showed reference-splitting hurts); add references only if a measured
-      gap demands it.
-
 ### Phase 5 — Iterate
+
+Evals test HEAD — commit skill edits before every run. Keep the skill a
+self-contained single file (the v1.4.0 minimal-variant benchmark showed
+reference-splitting hurts); add references only if a measured gap demands it.
 
 - [ ] Iterate skill text against the no-skill baseline; identify the
       discriminating core once enough runs exist to see which assertions
