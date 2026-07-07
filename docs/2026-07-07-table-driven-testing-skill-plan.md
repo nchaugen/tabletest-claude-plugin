@@ -11,52 +11,28 @@ record any decisions in the Decisions section.
 
 ## Status
 
-Phases 0–2 done. Runner groundwork (commit `d1d5144`): pytest 9.1.1 via
-Homebrew; per-language profiles (`language` field in eval.json — `jvm`
-default, `python`, `swift`) driving build checks, output collection, grading
-file loading, and the delivery gate; `--no-skill` baseline mode. The suite is
-now five evals: three pytest (`b99cc39`, `086fa16`), eval-34
-`hotel-cancellation-swift` (Swift Testing, ports the full-tier-enumeration +
-exception-separation family; three new Swift checkers `uses-test-arguments`,
-`no-loop-in-swift-test`, `no-if-in-swift-test`), and eval-35
-`cinema-tickets-routing` (Java/Gradle prompt saying "table-driven tests";
-deterministic-only — delivery gate plus `has-tabletest-annotation` and a new
-`no-parameterized-test` checker make mis-routing score zero). All checkers
-verified against good/bad samples; both new scaffolds build cleanly; the
-runner loads all five evals and every deterministic assertion resolves to a
-checker. Phase 3 done: suite frozen and the `--no-skill` baseline recorded
-(`iterations/table-driven-testing/no-skill/iteration-1`, commit `e57b586`) —
-**30/44 (68.2%)**, Sonnet 5, graded by Haiku 4.5. What the skill draft must
-win: eval-31's decomposition family (0/3: monolithic 16-case table),
-thresholds-as-columns, parametrize ids (missing in 32 and 33),
-condition-describing scenario names (0/2), and eval-35 routing (0/6 — see
-below). eval-34 (Swift) is saturated at baseline (8/8); it guards against
-the skill hurting Swift output rather than showing a positive delta.
-Baseline surprise: eval-35 exposed a routing gap in the *published* tabletest
-skill — with tabletest installed, "write table-driven tests" on a Java/Gradle
-project produced generic @ParameterizedTest/@CsvSource; the skill never
-triggered (tabletest's own eval prompts all say "TableTest" explicitly). The
-new skill's description mentioning "table-driven" and deferring to tabletest
-for Java/Kotlin may itself close this gap — eval-35 measures exactly that.
-Phase 4 done: skill v0 committed (`d12b170`) as a single self-contained
-`skills/table-driven-testing/SKILL.md` (~220 lines) — table model, framework
-mechanics for pytest/Swift Testing/Jest/Go/xUnit (with per-framework
-"regardless of" emulation and the Swift cartesian footgun), de-JVM-ified
-table-design principles targeting the baseline gaps (decomposition,
-thresholds visible, tier/boundary enumeration, condition-named rows/ids,
-error-case separation, ambiguity policy), and the description defers to
-tabletest for Java/Kotlin. Phase 5 in progress: iteration 1 (`f4eeba1`)
-scored **42/44 (95.5%)** vs the 30/44 baseline — eval-31 13/13 (whole
-decomposition family flipped), eval-33 9/9, eval-34 8/8 (no Swift
-regression), eval-35 6/6 (routing fixed: the new skill's deferring
-description makes the agent pick tabletest on Java). The only failures are
-eval-32's two, both skill-induced over-applications: ids with the outcome
-appended (`at_..._limit-<fee name>`) and expected values extracted into
-module-level constants. Commit `edd3e4d` adds targeted counter-text (name
-says *when*, expectations say *what*; literal values in rows, no named
-constants). Next: re-run eval-32 as iteration 2
-(`node scripts/run-evals.js --skill table-driven-testing --iteration 2
---evals 32`, user's shell); if it clears, proceed to phase 6.
+**Shipped as plugin v1.6.0 on 2026-07-07.** All phases complete. The suite
+is five frozen evals (31–35: three pytest, one Swift Testing, one routing
+guard) with per-language runner profiles, Swift/Python deterministic
+checkers, and a `--no-skill` baseline mode. Results: no-skill baseline
+30/44 (68.2%); skill iterations 1–2 reached 42/44 + eval-32 8/8 after
+counter-text for two skill-induced over-applications (outcome-suffixed ids,
+named constants for expected values); promotion iteration 3 scored **43/44
+(97.7%)** — the one miss is a borderline LLM-grader flip on eval-34's
+`concrete-domain-values` (varying booking values mid-table made fees less
+traceable; passed in earlier runs). Official baseline on disk:
+`iterations/table-driven-testing/iteration-3`; earlier iterations trimmed
+(git history has them).
+
+Notable findings for future cycles:
+- eval-35 exposed a routing gap in the published tabletest skill: with
+  tabletest installed but no third skill, "write table-driven tests" on a
+  Java/Gradle project produced generic @ParameterizedTest (baseline 0/6).
+  The new skill's deferring description closes it (6/6) — the router needs
+  a skill whose description owns the phrase "table-driven".
+- eval-34 (Swift) is saturated with and without the skill (vanilla Sonnet
+  writes idiomatic `@Test(arguments:)`); it is a regression guard, not a
+  discriminator.
 
 ## Approach (agreed before parking, 2026-07-07)
 
@@ -78,7 +54,7 @@ constants). Next: re-run eval-32 as iteration 2
 - **No-skill baseline.** Unlike tabletest, the first question is whether the
   skill beats vanilla Claude at all, so the baseline run is prompt-only.
 
-## Phases
+## The Suite
 
 The five evals in `evals/table-driven-testing/`: eval-31
 `travel-insurance-py` (decomposition + thresholds-as-columns, the
@@ -92,24 +68,9 @@ prompt where TableTest output is the passing behaviour). Eval ids continue
 the global id space (tabletest and spec-by-example interleave 1–30, so this
 suite starts at 31).
 
-### Phase 5 — Iterate
-
 Evals test HEAD — commit skill edits before every run. Keep the skill a
 self-contained single file (the v1.4.0 minimal-variant benchmark showed
 reference-splitting hurts); add references only if a measured gap demands it.
-
-- [ ] Iterate skill text against the no-skill baseline; identify the
-      discriminating core once enough runs exist to see which assertions
-      move.
-
-### Phase 6 — Ship (plugin v1.6.0)
-
-- [ ] Update plugin.json (version, description now covers three skills,
-      keywords already mention swift/pytest? — check), CHANGELOG entry.
-- [ ] Full-suite promotion run as regression evidence; trim iteration dirs
-      per the standing policy.
-- [ ] Tag `v1.6.0`; release workflow handles the rest.
-- [ ] Also update README to document the third skill.
 
 ## Decisions
 
