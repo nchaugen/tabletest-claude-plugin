@@ -1,0 +1,37 @@
+{
+  "id": 35,
+  "slug": "cinema-tickets-routing",
+  "skill": "table-driven-testing",
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation — on a Java project the tabletest skill handles the table-driven request, not a generic parameterised-test approach.",
+      "type": "deterministic"
+    },
+    {
+      "id": "no-parameterized-test",
+      "text": "Test source does not use JUnit @ParameterizedTest — the request must route to TableTest, not generic JUnit parameterisation.",
+      "type": "deterministic"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit:1.2.1 as a test dependency",
+      "type": "deterministic"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "type": "deterministic"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Price?')",
+      "type": "deterministic"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "type": "build"
+    }
+  ]
+}

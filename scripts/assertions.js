@@ -154,6 +154,81 @@ function getPythonTestContent(fileContent, allFiles) {
   return fileContent;
 }
 
+/**
+ * Swift test source content only (*.swift files, excluding Package.swift and
+ * Sources/) — falls back to fileContent when no Swift test files were collected.
+ */
+function getSwiftTestContent(fileContent, allFiles) {
+  const swiftFiles = (allFiles || []).filter(f =>
+    f.path.endsWith(".swift")
+    && !/(^|\/)Package\.swift$/.test(f.path)
+    && !/(^|\/)Sources\//.test(f.path)
+  );
+  if (swiftFiles.length > 0) {
+    return swiftFiles.map(f => f.content).join("\n\n");
+  }
+  return fileContent;
+}
+
+/**
+ * Extract the argument text of each @Test attribute using paren-counting,
+ * so `arguments:` detection cannot leak across attribute boundaries.
+ * @Test with no parenthesised arguments yields an empty string.
+ */
+function extractSwiftTestAttributes(content) {
+  const results = [];
+  const testAttrRegex = /@Test\b/g;
+  let match;
+
+  while ((match = testAttrRegex.exec(content)) !== null) {
+    const after = content.slice(match.index + match[0].length);
+    const parenStart = after.search(/\S/);
+    if (parenStart === -1 || after[parenStart] !== "(") {
+      results.push("");
+      continue;
+    }
+    let depth = 1;
+    let i = parenStart + 1;
+    while (i < after.length && depth > 0) {
+      if (after[i] === "(") depth++;
+      else if (after[i] === ")") depth--;
+      i++;
+    }
+    results.push(after.slice(parenStart + 1, i - 1));
+  }
+
+  return results;
+}
+
+/**
+ * Extract function bodies of @Test-annotated functions using brace-counting.
+ * Returns array of {name, body} objects.
+ */
+function extractSwiftTestFunctionBodies(content) {
+  const results = [];
+  const testAttrRegex = /@Test\b/g;
+  let match;
+
+  while ((match = testAttrRegex.exec(content)) !== null) {
+    const after = content.slice(match.index);
+    const funcMatch = after.match(/\bfunc\s+(\w+|`[^`]+`)\s*\([^)]*\)[^{]*\{/);
+    if (!funcMatch) continue;
+
+    const braceStart = match.index + after.indexOf(funcMatch[0]) + funcMatch[0].length - 1;
+    let depth = 1;
+    let i = braceStart + 1;
+    while (i < content.length && depth > 0) {
+      if (content[i] === "{") depth++;
+      else if (content[i] === "}") depth--;
+      i++;
+    }
+
+    results.push({ name: funcMatch[1], body: content.slice(braceStart + 1, i - 1) });
+  }
+
+  return results;
+}
+
 // --- Checkers ---
 
 const checkers = {
@@ -557,6 +632,17 @@ const checkers = {
     return { passed: false, evidence: `Mixed output: Kotlin: ${ktFiles.map(f => f.path).join(", ")}; Java: ${javaFiles.map(f => f.path).join(", ")}` };
   },
 
+  "no-parameterized-test": ({ fileContent, allFiles }) => {
+    const content = getTestSourceContent(fileContent, allFiles);
+    const found = /@ParameterizedTest/.test(content);
+    return {
+      passed: !found,
+      evidence: found
+        ? "Test source uses @ParameterizedTest instead of @TableTest"
+        : "No @ParameterizedTest in test source",
+    };
+  },
+
   // --- Python (table-driven-testing skill) ---
 
   "uses-parametrize": ({ fileContent, allFiles }) => {
@@ -607,6 +693,57 @@ const checkers = {
       evidence: violations.length === 0
         ? "No if/elif statements in test function bodies"
         : `Branching in test body: ${violations.slice(0, 3).join("; ")}`,
+    };
+  },
+
+  // --- Swift (table-driven-testing skill) ---
+
+  "uses-test-arguments": ({ fileContent, allFiles }) => {
+    const content = getSwiftTestContent(fileContent, allFiles);
+    const attributes = extractSwiftTestAttributes(content);
+    if (attributes.length === 0) {
+      return { passed: false, evidence: "No @Test attribute found" };
+    }
+    const found = attributes.some(attr => /\barguments\s*:/.test(attr));
+    return {
+      passed: found,
+      evidence: found
+        ? "Found @Test(arguments:)"
+        : `${attributes.length} @Test attribute(s) found, none with arguments:`,
+    };
+  },
+
+  "no-loop-in-swift-test": ({ fileContent, allFiles }) => {
+    const content = getSwiftTestContent(fileContent, allFiles);
+    const bodies = extractSwiftTestFunctionBodies(content);
+    if (bodies.length === 0) {
+      return { passed: false, evidence: "No @Test function found" };
+    }
+    const violations = bodies.filter(({ body }) =>
+      /\bfor\s+[\w`(]/.test(body) || /\bwhile\b/.test(body) || /\.forEach\b/.test(body)
+    );
+    return {
+      passed: violations.length === 0,
+      evidence: violations.length === 0
+        ? "No loops in @Test function bodies"
+        : `Loop over cases in @Test body: ${violations.map(v => v.name).join(", ")}`,
+    };
+  },
+
+  "no-if-in-swift-test": ({ fileContent, allFiles }) => {
+    const content = getSwiftTestContent(fileContent, allFiles);
+    const bodies = extractSwiftTestFunctionBodies(content);
+    if (bodies.length === 0) {
+      return { passed: false, evidence: "No @Test function found" };
+    }
+    const violations = bodies.filter(({ body }) =>
+      /\bif\b/.test(body) || /\bswitch\b/.test(body) || /\bguard\b/.test(body)
+    );
+    return {
+      passed: violations.length === 0,
+      evidence: violations.length === 0
+        ? "No if/switch/guard statements in @Test function bodies"
+        : `Branching in @Test body: ${violations.map(v => v.name).join(", ")}`,
     };
   },
 };
