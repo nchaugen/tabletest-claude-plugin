@@ -51,13 +51,120 @@ function fingerprintsDiffer(a, b) {
   return Boolean(a && b && a.fingerprint && b.fingerprint && a.fingerprint !== b.fingerprint);
 }
 
+/**
+ * Per-language conventions for collecting agent output, verifying the build,
+ * and detecting a delivered test file. An eval opts in via "language" in
+ * eval.json; absent means "jvm" (the original TableTest behaviour).
+ */
+const LANGUAGE_PROFILES = {
+  jvm: {
+    testDirs: ["src/test"],
+    testFilePattern: /\.(java|kt)$/,
+    rootTestFiles: false,
+    buildFiles: ["pom.xml", "build.gradle", "build.gradle.kts"],
+    deliverablePath: /(^|\/)src\//,
+    deliverableContent: /@TableTest/,
+    deliverableDescription: "test source containing @TableTest",
+  },
+  python: {
+    testDirs: ["tests", "test"],
+    testFilePattern: /(^test_[^/]*|[^/]*_test)\.py$/,
+    rootTestFiles: true,
+    buildFiles: ["pyproject.toml", "pytest.ini", "conftest.py"],
+    deliverablePath: /(test_[^/]*|[^/]*_test)\.py$/,
+    deliverableContent: /def test_/,
+    deliverableDescription: "pytest test file",
+  },
+  swift: {
+    testDirs: ["Tests"],
+    testFilePattern: /\.swift$/,
+    rootTestFiles: false,
+    buildFiles: ["Package.swift"],
+    deliverablePath: /\.swift$/,
+    deliverableContent: /@Test/,
+    deliverableDescription: "Swift Testing test file",
+  },
+};
+
+function languageProfile(evalDef) {
+  return LANGUAGE_PROFILES[evalDef.language || "jvm"];
+}
+
+function collectTestFiles(agentCwd, profile) {
+  const files = [];
+  for (const dir of profile.testDirs) {
+    files.push(...findFiles(path.join(agentCwd, dir), profile.testFilePattern));
+  }
+  if (profile.rootTestFiles) {
+    for (const entry of fs.readdirSync(agentCwd, { withFileTypes: true })) {
+      if (entry.isFile() && profile.testFilePattern.test(entry.name)) {
+        files.push(path.join(agentCwd, entry.name));
+      }
+    }
+  }
+  return files;
+}
+
 function runBuildCheck(worktreePath) {
   const hasPom = fs.existsSync(path.join(worktreePath, "pom.xml"));
   const hasGradle = fs.existsSync(path.join(worktreePath, "build.gradle"))
     || fs.existsSync(path.join(worktreePath, "build.gradle.kts"));
 
-  if (!hasPom && !hasGradle) return null;
+  if (hasPom || hasGradle) return runJvmBuildCheck(worktreePath, hasPom);
+  if (fs.existsSync(path.join(worktreePath, "Package.swift"))) return runSwiftBuildCheck(worktreePath);
+  if (fs.existsSync(path.join(worktreePath, "pyproject.toml"))
+    || fs.existsSync(path.join(worktreePath, "pytest.ini"))) return runPytestBuildCheck(worktreePath);
 
+  return null;
+}
+
+function runSwiftBuildCheck(worktreePath) {
+  const result = { compiles: false, tests_pass: null, compile_output: "", test_output: "" };
+
+  try {
+    execSync("swift build --build-tests", { cwd: worktreePath, stdio: "pipe", timeout: 300000 });
+    result.compiles = true;
+  } catch (err) {
+    result.compile_output = (err.stderr || err.stdout || "").toString().slice(0, 2000);
+    return result;
+  }
+
+  try {
+    execSync("swift test", { cwd: worktreePath, stdio: "pipe", timeout: 300000 });
+    result.tests_pass = true;
+  } catch (err) {
+    result.tests_pass = false;
+    result.test_output = (err.stderr || err.stdout || "").toString().slice(0, 2000);
+  }
+
+  return result;
+}
+
+function runPytestBuildCheck(worktreePath) {
+  const result = { compiles: false, tests_pass: null, compile_output: "", test_output: "" };
+
+  // Python has no compile step; "compiles" means pytest can import and
+  // collect the test modules (exit 5 = nothing collected, also a failure).
+  try {
+    execSync("pytest --collect-only -q", { cwd: worktreePath, stdio: "pipe", timeout: 120000 });
+    result.compiles = true;
+  } catch (err) {
+    result.compile_output = (err.stderr || err.stdout || "").toString().slice(0, 2000);
+    return result;
+  }
+
+  try {
+    execSync("pytest -q", { cwd: worktreePath, stdio: "pipe", timeout: 120000 });
+    result.tests_pass = true;
+  } catch (err) {
+    result.tests_pass = false;
+    result.test_output = (err.stderr || err.stdout || "").toString().slice(0, 2000);
+  }
+
+  return result;
+}
+
+function runJvmBuildCheck(worktreePath, hasPom) {
   const result = { compiles: false, tests_pass: null, compile_output: "", test_output: "" };
 
   // Detect Kotlin test files to choose the right compile task
@@ -238,6 +345,7 @@ function parseArgs(argv) {
     iteration: null,
     skill: null,
     variant: null,
+    noSkill: false,
     compareOfficial: false,
     compareIteration: null,
     evals: null,       // null = all, or array of ids
@@ -260,6 +368,9 @@ function parseArgs(argv) {
         break;
       case "--variant":
         args.variant = argv[++i];
+        break;
+      case "--no-skill":
+        args.noSkill = true;
         break;
       case "--compare-official":
         args.compareOfficial = true;
@@ -300,8 +411,9 @@ function parseArgs(argv) {
   if (!args.iteration || !args.skill) {
     console.error("Usage: node scripts/run-evals.js --skill SKILL --iteration N [options]");
     console.error("Options:");
-    console.error("  --skill SKILL       Skill to evaluate (required: tabletest, spec-by-example)");
+    console.error("  --skill SKILL       Skill to evaluate (required; a directory under evals/)");
     console.error("  --variant NAME      Run a skill variant instead of the official skill");
+    console.error("  --no-skill          Baseline run with the skill removed from the plugin");
     console.error("  --compare-iteration N Compare against iteration N instead of the previous one");
     console.error("  --compare-official   Compare variant results against latest official benchmark");
     console.error("  --evals 1,2,3       Run specific evals (supports ranges: 1-13)");
@@ -319,6 +431,15 @@ function parseArgs(argv) {
     console.error("Error: --variant requires --skill");
     process.exit(1);
   }
+
+  if (args.noSkill && args.variant) {
+    console.error("Error: --no-skill and --variant are mutually exclusive");
+    process.exit(1);
+  }
+  // A no-skill baseline behaves like a variant named "no-skill" for results
+  // directories, labels, and comparisons; the worktree deletes the skill
+  // instead of swapping its files.
+  if (args.noSkill) args.variant = "no-skill";
 
   if (args.compareOfficial && !args.variant) {
     console.error("Error: --compare-official requires --variant");
@@ -385,7 +506,7 @@ async function main() {
   );
 
   // Validate variant directory exists
-  if (args.variant) {
+  if (args.variant && !args.noSkill) {
     const variantDir = path.join(repoRoot, variantSkillDir(args.skill, args.variant));
     if (!fs.existsSync(path.join(variantDir, "SKILL.md"))) {
       console.error(`Error: Variant skill file not found: ${path.join(variantDir, "SKILL.md")}`);
@@ -483,9 +604,17 @@ function setupWorktree(repoRoot, mode = "skill", args = {}) {
   }
 
   // Variant: swap the skill files with variant content
-  if (args.variant) {
+  if (args.variant && !args.noSkill) {
     applyVariant(worktreePath, args.skill, path.join(repoRoot, variantSkillDir(args.skill, args.variant)));
     removals.push(`applied variant: ${args.variant}`);
+  }
+
+  // No-skill baseline: remove the skill under test; the rest of the plugin
+  // (other skills) stays, so routing behaves as it would for current users
+  if (args.noSkill) {
+    const skillDir = path.join(worktreePath, "skills", args.skill);
+    if (fs.existsSync(skillDir)) fs.rmSync(skillDir, { recursive: true });
+    removals.push(`skills/${args.skill}/ (no-skill baseline)`);
   }
 
   log(`  Removed for isolation: ${removals.join(", ")}`);
@@ -739,8 +868,8 @@ async function generateOne(evalDef, worktreePath, iterationDir, args) {
     }
 
     // Collect generated test files from agent working directory
-    const testDir = path.join(agentCwd, "src", "test");
-    const testFiles = findFiles(testDir, /\.(java|kt)$/);
+    const profile = languageProfile(evalDef);
+    const testFiles = collectTestFiles(agentCwd, profile);
     for (const tf of testFiles) {
       const rel = path.relative(agentCwd, tf);
       const dest = path.join(evalDir, "outputs", rel);
@@ -749,7 +878,7 @@ async function generateOne(evalDef, worktreePath, iterationDir, args) {
     }
 
     // Collect build files from agent working directory (for dependency assertions)
-    for (const buildFile of ["pom.xml", "build.gradle", "build.gradle.kts"]) {
+    for (const buildFile of profile.buildFiles) {
       const src = path.join(agentCwd, buildFile);
       if (fs.existsSync(src)) {
         fs.cpSync(src, path.join(evalDir, "outputs", buildFile));
@@ -841,7 +970,8 @@ function loadOutputFiles(evalDir) {
       const full = path.join(dir, entry);
       if (fs.statSync(full).isDirectory()) {
         walk(full);
-      } else if (entry.endsWith(".java") || entry.endsWith(".kt") || entry === "pom.xml" || entry === "build.gradle" || entry === "build.gradle.kts") {
+      } else if (/\.(java|kt|py|swift)$/.test(entry)
+        || ["pom.xml", "build.gradle", "build.gradle.kts", "pyproject.toml", "pytest.ini", "conftest.py", "Package.swift"].includes(entry)) {
         files.push({ path: path.relative(outputsDir, full), content: fs.readFileSync(full, "utf-8") });
       }
     }
@@ -976,13 +1106,15 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, prov
   const llmAssertions = evalDef.assertions.filter(a => !a.type || a.type === "llm");
 
   // Delivery gate: an eval that verifies the build expects actual test code.
-  // Without a test source containing @TableTest, format and build assertions
-  // must not pass vacuously (e.g. "compiles" with nothing to compile).
+  // Without a delivered test source (per the eval's language profile), format
+  // and build assertions must not pass vacuously (e.g. "compiles" with
+  // nothing to compile).
+  const profile = languageProfile(evalDef);
   const expectsTestCode = evalDef.assertions.some(a => a.id === "compiles");
-  const hasDeliverable = allFiles.some(f => /(^|\/)src\//.test(f.path) && /@TableTest/.test(f.content));
+  const hasDeliverable = allFiles.some(f => profile.deliverablePath.test(f.path) && profile.deliverableContent.test(f.content));
   const gated = expectsTestCode && !hasDeliverable;
 
-  const gate = (a) => ({ id: a.id, text: a.text, passed: false, evidence: "No test source containing @TableTest was delivered" });
+  const gate = (a) => ({ id: a.id, text: a.text, passed: false, evidence: `No ${profile.deliverableDescription} was delivered` });
 
   // Run deterministic assertions
   const deterministicResults = gated
