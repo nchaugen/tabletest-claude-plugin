@@ -1,1 +1,0 @@
-Please convert EmailValidatorTest to a TableTest.
