@@ -24,7 +24,21 @@ deterministic-only — delivery gate plus `has-tabletest-annotation` and a new
 `no-parameterized-test` checker make mis-routing score zero). All checkers
 verified against good/bad samples; both new scaffolds build cleanly; the
 runner loads all five evals and every deterministic assertion resolves to a
-checker. Next up: phase 3 (freeze suite, `--no-skill` baseline run).
+checker. Phase 3 done: suite frozen and the `--no-skill` baseline recorded
+(`iterations/table-driven-testing/no-skill/iteration-1`, commit `e57b586`) —
+**30/44 (68.2%)**, Sonnet 5, graded by Haiku 4.5. What the skill draft must
+win: eval-31's decomposition family (0/3: monolithic 16-case table),
+thresholds-as-columns, parametrize ids (missing in 32 and 33),
+condition-describing scenario names (0/2), and eval-35 routing (0/6 — see
+below). eval-34 (Swift) is saturated at baseline (8/8); it guards against
+the skill hurting Swift output rather than showing a positive delta.
+Baseline surprise: eval-35 exposed a routing gap in the *published* tabletest
+skill — with tabletest installed, "write table-driven tests" on a Java/Gradle
+project produced generic @ParameterizedTest/@CsvSource; the skill never
+triggered (tabletest's own eval prompts all say "TableTest" explicitly). The
+new skill's description mentioning "table-driven" and deferring to tabletest
+for Java/Kotlin may itself close this gap — eval-35 measures exactly that.
+Next up: phase 4 (draft `skills/table-driven-testing/SKILL.md`).
 
 ## Approach (agreed before parking, 2026-07-07)
 
@@ -59,13 +73,6 @@ family ported), eval-35 `cinema-tickets-routing` (routing guard: Java/Gradle
 prompt where TableTest output is the passing behaviour). Eval ids continue
 the global id space (tabletest and spec-by-example interleave 1–30, so this
 suite starts at 31).
-
-### Phase 3 — Baseline
-
-- [ ] Freeze the suite (evals committed, no further assertion edits during
-      skill iteration).
-- [ ] Run the suite with `--no-skill` → `iterations/table-driven-testing/`
-      baseline. This benchmark is what the first skill draft must beat.
 
 ### Phase 4 — Skill v0
 
