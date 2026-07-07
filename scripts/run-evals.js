@@ -79,16 +79,23 @@ function runBuildCheck(worktreePath) {
     return result;
   }
 
-  try {
-    if (hasPom) {
-      execSync("mvn test -q", { cwd: worktreePath, stdio: "pipe", timeout: 120000 });
-    } else {
-      execSync("gradle test -q", { cwd: worktreePath, stdio: "pipe", timeout: 120000 });
+  // Infrastructure flakes (daemon crashes, lock timeouts) are not failing
+  // tests — retry once before recording a failure.
+  const infraFailure = /Test process encountered an unexpected problem|Gradle build daemon disappeared|Could not connect to the Gradle daemon|Timeout waiting to lock|Could not create service/i;
+  const testCmd = hasPom ? "mvn test -q" : "gradle test -q";
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      execSync(testCmd, { cwd: worktreePath, stdio: "pipe", timeout: 120000 });
+      result.tests_pass = true;
+      result.test_output = "";
+      break;
+    } catch (err) {
+      const output = (err.stderr || err.stdout || "").toString();
+      result.tests_pass = false;
+      result.test_output = output.slice(0, 2000);
+      if (attempt === 1 && infraFailure.test(output)) continue;
+      break;
     }
-    result.tests_pass = true;
-  } catch (err) {
-    result.tests_pass = false;
-    result.test_output = (err.stderr || err.stdout || "").toString().slice(0, 2000);
   }
 
   return result;
@@ -301,7 +308,7 @@ function parseArgs(argv) {
     console.error("  --provider PROV     Provider to use (anthropic, ollama) (default: anthropic)");
     console.error("  --model MODEL       Model to use (default: sonnet / gemma4:31b for ollama)");
     console.error("  --grading-model M   Model for grading (default: haiku / gemma4:31b for ollama)");
-    console.error("  --grading-suffix S  Write grading to grading-S.json instead of grading.json");
+    console.error("  --grading-suffix S  Isolate a re-grade: write grading-S.json, benchmark-S.json, eval-review-S.md");
     console.error("  --parallel N        Max parallel evals (default: 4)");
     console.error("  --grade-only        Re-grade existing outputs");
     console.error("  --report-only       Regenerate report from existing benchmark.json");
@@ -631,6 +638,12 @@ async function generateResponses(evals, worktreePath, iterationDir, args) {
   }
 }
 
+// Appended to every eval prompt: evals are single-turn, so ending the turn
+// with clarifying questions is a non-delivery, not professional caution.
+const BATCH_MODE_NOTE =
+  "\n\nThis is a non-interactive run: you cannot ask follow-up questions. " +
+  "If anything is ambiguous, state your assumptions and deliver the complete result.";
+
 async function generateOne(evalDef, worktreePath, iterationDir, args) {
   const model = args.model;
   const provider = args.provider;
@@ -653,6 +666,8 @@ async function generateOne(evalDef, worktreePath, iterationDir, args) {
   }
 
   log(`  Running eval ${evalDef.id} (${evalDef.slug})...`);
+
+  const startedAt = Date.now();
 
   // Use a per-eval working directory if project scaffolding exists, otherwise use worktree root
   const projectDir = path.join(evalDef.sourceDir, "project");
@@ -679,7 +694,7 @@ async function generateOne(evalDef, worktreePath, iterationDir, args) {
 
   try {
     const result = await runClaude({
-      prompt: evalDef.prompt,
+      prompt: evalDef.prompt + BATCH_MODE_NOTE,
       model,
       provider,
       cwd: agentCwd,
@@ -775,7 +790,7 @@ async function generateOne(evalDef, worktreePath, iterationDir, args) {
     );
     fs.writeFileSync(
       path.join(evalDir, "timing.json"),
-      JSON.stringify({ error: err.message }, null, 2),
+      JSON.stringify({ error: err.message, duration_ms: Date.now() - startedAt }, null, 2),
       "utf-8"
     );
   } finally {
@@ -786,7 +801,7 @@ async function generateOne(evalDef, worktreePath, iterationDir, args) {
   }
 }
 
-function buildGradingPrompt(evalDef, response, generatedFiles) {
+function buildGradingPrompt(evalDef, response, generatedFiles, { noDeliverable = false } = {}) {
   const assertionsList = evalDef.assertions
     .map((a) => `- [${a.id}] ${a.text}`)
     .join("\n");
@@ -797,6 +812,10 @@ function buildGradingPrompt(evalDef, response, generatedFiles) {
       `### ${f.path}\n\`\`\`\n${f.content}\n\`\`\``
     ).join("\n\n");
     filesSection = `\n\n## Generated Files\n\nThe agent wrote these files (grade against these, not the conversational response):\n\n${fileBlocks}`;
+  }
+
+  if (noDeliverable) {
+    filesSection += `\n\n## IMPORTANT: No Test Code Was Delivered\n\nThe agent did not deliver any test source file. Assertions about the content, structure, or quality of test code must FAIL — a description, mockup, or plan in the response does not satisfy them. Only assertions explicitly about the conversational response itself may pass.`;
   }
 
   return `## Assertions
@@ -956,17 +975,30 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, prov
   const buildAssertions = evalDef.assertions.filter(a => a.type === "build");
   const llmAssertions = evalDef.assertions.filter(a => !a.type || a.type === "llm");
 
+  // Delivery gate: an eval that verifies the build expects actual test code.
+  // Without a test source containing @TableTest, format and build assertions
+  // must not pass vacuously (e.g. "compiles" with nothing to compile).
+  const expectsTestCode = evalDef.assertions.some(a => a.id === "compiles");
+  const hasDeliverable = allFiles.some(f => /(^|\/)src\//.test(f.path) && /@TableTest/.test(f.content));
+  const gated = expectsTestCode && !hasDeliverable;
+
+  const gate = (a) => ({ id: a.id, text: a.text, passed: false, evidence: "No test source containing @TableTest was delivered" });
+
   // Run deterministic assertions
-  const deterministicResults = runDeterministicAssertions(deterministicAssertions, fileContent, allFiles);
+  const deterministicResults = gated
+    ? deterministicAssertions.map(gate)
+    : runDeterministicAssertions(deterministicAssertions, fileContent, allFiles);
 
   // Run build assertions
-  const buildResults = runBuildAssertions(buildAssertions, evalDir);
+  const buildResults = gated
+    ? buildAssertions.map(gate)
+    : runBuildAssertions(buildAssertions, evalDir);
 
   // Run LLM assertions (if any)
   let llmResults = [];
   if (llmAssertions.length > 0) {
     const llmEvalDef = { ...evalDef, assertions: llmAssertions };
-    const gradingPrompt = buildGradingPrompt(llmEvalDef, response, allFiles);
+    const gradingPrompt = buildGradingPrompt(llmEvalDef, response, allFiles, { noDeliverable: gated });
     const gradingText = await gradeViaApi(GRADING_SYSTEM_PROMPT, gradingPrompt, model, provider);
 
     const llmGrading = parseLlmGrading(gradingText);
@@ -1054,6 +1086,10 @@ function aggregateResults(evals, iterationDir, args) {
     summary: {},
   };
 
+  // A grading suffix isolates an entire re-grade: read grading-<suffix>.json
+  // and write benchmark-<suffix>.json so the original results stay intact.
+  const suffix = args.gradingSuffix ? `-${args.gradingSuffix}` : "";
+
   const regradedEntries = [];
   for (const evalDef of evals) {
     const evalDir = path.join(
@@ -1069,7 +1105,7 @@ function aggregateResults(evals, iterationDir, args) {
       results: {},
     };
 
-    const gradingPath = path.join(evalDir, "grading.json");
+    const gradingPath = path.join(evalDir, `grading${suffix}.json`);
     const timingPath = path.join(evalDir, "timing.json");
 
     if (fs.existsSync(gradingPath)) {
@@ -1090,13 +1126,33 @@ function aggregateResults(evals, iterationDir, args) {
         duration_ms: timing.duration_ms || 0,
         cost_usd: timing.cost_usd || 0,
       };
+    } else {
+      // No grading exists. If generation errored (timeout, crash), score the
+      // eval 0/N instead of dropping it — a timed-out eval must not improve
+      // the aggregate pass rate. Token/cost usage is typically unrecorded.
+      const timing = fs.existsSync(timingPath)
+        ? JSON.parse(fs.readFileSync(timingPath, "utf-8"))
+        : {};
+      if (timing.error) {
+        evalEntry.results = {
+          model: timing.model || null,
+          assertions_passed: 0,
+          assertions_total: evalDef.assertions.length,
+          pass_rate: 0,
+          failed_assertions: evalDef.assertions.map((a) => a.id),
+          total_tokens: timing.total_tokens || 0,
+          duration_ms: timing.duration_ms || 0,
+          cost_usd: timing.cost_usd || 0,
+          error: timing.error,
+        };
+      }
     }
 
     regradedEntries.push(evalEntry);
   }
 
   // When re-grading a subset, merge with existing benchmark instead of replacing
-  const benchPath = path.join(iterationDir, "benchmark.json");
+  const benchPath = path.join(iterationDir, `benchmark${suffix}.json`);
   if (args.gradeOnly && fs.existsSync(benchPath)) {
     const existing = JSON.parse(fs.readFileSync(benchPath, "utf-8"));
     for (const newEntry of regradedEntries) {
@@ -1118,6 +1174,10 @@ function aggregateResults(evals, iterationDir, args) {
   const resolvedModels = [...new Set(results.map(r => r.model).filter(Boolean))];
   benchmark.model_resolved = resolvedModels.length === 1 ? resolvedModels[0] : resolvedModels;
 
+  // Costs come from the Claude Code CLI's own estimate (list price); actual
+  // billing may differ (e.g. promotional pricing).
+  benchmark.cost_basis = "cli-list-price-estimate";
+
   benchmark.summary = {
     assertions_passed: results.reduce(
       (sum, r) => sum + r.assertions_passed,
@@ -1137,13 +1197,9 @@ function aggregateResults(evals, iterationDir, args) {
     total_cost_usd: results.reduce((sum, r) => sum + r.cost_usd, 0),
   };
 
-  fs.writeFileSync(
-    path.join(iterationDir, "benchmark.json"),
-    JSON.stringify(benchmark, null, 2),
-    "utf-8"
-  );
+  fs.writeFileSync(benchPath, JSON.stringify(benchmark, null, 2), "utf-8");
 
-  log("\nBenchmark saved:", path.join(iterationDir, "benchmark.json"));
+  log("\nBenchmark saved:", benchPath);
   return benchmark;
 }
 
@@ -1297,6 +1353,9 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
     md += ` · ${s.total_tokens} tokens · ${(s.total_duration_ms / 1000).toFixed(1)}s`;
     if (s.total_cost_usd > 0) md += ` · $${s.total_cost_usd.toFixed(4)}`;
     md += `\n\n`;
+    if (s.total_cost_usd > 0) {
+      md += `_Cost figures are Claude Code list-price estimates; actual billing may differ (e.g. promotional pricing). Timed-out evals score 0 with unrecorded token usage._\n\n`;
+    }
   }
 
   // Regression summary
@@ -1564,7 +1623,8 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
     }
   }
 
-  const reportPath = path.join(iterationDir, "eval-review.md");
+  const reportSuffix = args.gradingSuffix ? `-${args.gradingSuffix}` : "";
+  const reportPath = path.join(iterationDir, `eval-review${reportSuffix}.md`);
   fs.writeFileSync(reportPath, md, "utf-8");
   log("Report saved:", reportPath);
 }
