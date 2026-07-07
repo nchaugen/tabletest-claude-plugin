@@ -38,7 +38,7 @@ def test_tax_bracket_by_income_and_status(income, filing_status, rate):
     assert bracket_for(income, filing_status).rate == rate
 ```
 
-Always name cases — `pytest.param(..., id="...")` or an `ids=` argument. Auto-generated ids like `15000-SINGLE-0.1` force the reader to decode values; a written id states the condition.
+Always name cases — `pytest.param(..., id="...")` or an `ids=` argument. Auto-generated ids like `15000-SINGLE-0.1` force the reader to decode values; a written id states the condition — only the condition: `at_the_limit`, never `at_the_limit-surcharge_applied`.
 
 **"Regardless of" inputs**: stacking a second `@pytest.mark.parametrize` multiplies the decorators into a cartesian product — use it when one input must not affect the outcome.
 
@@ -115,6 +115,8 @@ The loop over the case slice is the framework mechanic here — the rule against
 
 Good scenario names answer "under what circumstances?" — not "what happens?". The outcome is already in the expectation values; naming it twice adds nothing, and when the expectation changes the name silently lies.
 
+Appending the outcome to a condition (`weekend_booking-surcharge_applied`) is still naming the outcome. The name only needs to say *when*; the row's expectation values say *what*.
+
 | Good                         | Bad             |
 |------------------------------|-----------------|
 | `negative input`             | `returns error` |
@@ -125,6 +127,8 @@ Good scenario names answer "under what circumstances?" — not "what happens?". 
 ### Use Domain Terminology and Concrete Values
 
 Parameter and field names use domain language (`credit_hours`, `filing_status`, `decision`) — not `a`, `b`, `val1`, `expected1`. Case values are concrete domain data (`29`, `0.22`, `Standing.FRESHMAN`) — not abstract codes, sentinel numbers, or expressions computed from other values. If an expected value is `base_rate * 2`, write the number and let the base rate appear as its own input so the reader can trace the derivation.
+
+Write literal values in the rows even when they repeat across rows. Do not extract expected values into named constants (`WEEKEND_SURCHARGE = 25`) — the reader must then look up every number, which is exactly the indirection the rows exist to remove.
 
 ### Decompose Concerns into Separate Tests
 
@@ -207,7 +211,7 @@ When tests come before the implementation:
 
 After writing, verify:
 
-- [ ] **Named rows**: every case carries a condition-describing name (`id=` in pytest, subtest name in Go, interpolated title in Jest); names state conditions, not outcomes
+- [ ] **Named rows**: every case carries a condition-describing name (`id=` in pytest, subtest name in Go, interpolated title in Jest); names state conditions, not outcomes — and not conditions with the outcome appended
 - [ ] **Straightforward body**: the test body only arranges, acts, and asserts — no `if`/`switch`/`guard`/ternary, no loops over cases, no defaulting or parsing
 - [ ] **Rows are paired**: each case binds inputs to their expected outputs in one row — no parallel arrays, no accidental cartesian products (Swift `arguments:` with multiple collections)
 - [ ] **Concerns decomposed**: one parameterised test per rule; no monolithic case list mixing unrelated rules; precedence between rules shown by dedicated rows
@@ -215,7 +219,7 @@ After writing, verify:
 - [ ] **Thresholds visible**: rules that compare against a limit show the limit in the row, with boundary cases at and just past it
 - [ ] **Tiers fully enumerated**: every tier represented; every boundary tested from both sides, including middle tiers
 - [ ] **Errors separated**: expected-exception cases in their own test using the framework's throw assertion — no sentinel expectations
-- [ ] **Concrete values**: expected values are literal domain values traceable to the inputs — not computed in the row or the body
+- [ ] **Concrete values**: expected values are literal domain values traceable to the inputs — not computed in the row or the body, and not hidden behind named constants
 - [ ] **Domain language**: parameter/field names come from the domain, not generic placeholders
 - [ ] **Complete outputs**: all observable outputs of the concern asserted in the same rows
 - [ ] **Stateful rows independent**: transition rows carry their own before-state; no row depends on another having run
