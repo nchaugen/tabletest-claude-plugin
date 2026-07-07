@@ -378,8 +378,10 @@ const checkers = {
       { regex: /\bshouldBe\b/, label: "shouldBe" },
       { regex: /\bforAll\s*\(/, label: "forAll(" },
       { regex: /\bwithData\s*\(/, label: "withData(" },
-      { regex: /\bdescribe\s*\(/, label: "describe(" },
-      { regex: /\bit\s*\(/, label: "it(" },
+      // describe/it must open a string argument — bare "it (" appears in
+      // English prose inside @Description text blocks.
+      { regex: /\bdescribe\s*\(\s*["']/, label: "describe(" },
+      { regex: /\bit\s*\(\s*["']/, label: "it(" },
       { regex: /io\.kotest/, label: "io.kotest import" },
     ];
 
