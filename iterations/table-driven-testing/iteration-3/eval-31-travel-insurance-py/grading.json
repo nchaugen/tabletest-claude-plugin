@@ -1,0 +1,85 @@
+{
+  "assertions": [
+    {
+      "id": "uses-parametrize",
+      "text": "Tests use @pytest.mark.parametrize (or pytest.param rows) — not one test function per case, and not a loop over cases inside a single test body.",
+      "passed": true,
+      "evidence": "Found @pytest.mark.parametrize"
+    },
+    {
+      "id": "parametrize-has-ids",
+      "text": "Parametrized cases carry scenario identifiers — an ids= argument or pytest.param(..., id=...) — so each case has a readable name in test output.",
+      "passed": true,
+      "evidence": "Parametrized cases carry ids (ids= or pytest.param id=)"
+    },
+    {
+      "id": "no-if-in-python-test",
+      "text": "Test function bodies contain no if/elif statements — expected outcomes come from the parametrized data, not branching logic.",
+      "passed": true,
+      "evidence": "No if/elif statements in test function bodies"
+    },
+    {
+      "id": "threshold-as-column",
+      "text": "Policy thresholds (age 70, 90-day trip limit) appear as explicit values in the test data alongside the applicant's actual values, making the comparison visible to the reader — not only baked invisibly into which cases were chosen.",
+      "passed": true,
+      "evidence": "Test cases show explicit values: 'pytest.param(90, Decision.APPROVED, id=\"at the trip length limit\")', 'pytest.param(70, True, Decision.APPROVED, id=\"at the age limit with medical clearance\")'"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario ids describe conditions ('senior without clearance', 'trip just over limit') — not outcomes ('approved', 'declined').",
+      "passed": true,
+      "evidence": "IDs describe conditions: 'id=\"at the trip length limit\"', 'id=\"just over the trip length limit\"', 'id=\"at the age limit without medical clearance\"' (conditions, not outcomes)"
+    },
+    {
+      "id": "domain-parameter-names",
+      "text": "Parametrize argument names use domain language (age, trip_days, decision) — not generic names like a, b, val1, expected1.",
+      "passed": true,
+      "evidence": "@pytest.mark.parametrize uses 'age', 'trip_days', 'has_medical_clearance', 'destination_restricted', 'decision' throughout"
+    },
+    {
+      "id": "concrete-domain-values",
+      "text": "Case values use concrete domain values (73, 91, Decision.APPROVED) — not abstract placeholders like 'CATEGORY_A' or magic sentinel numbers with no domain meaning.",
+      "passed": true,
+      "evidence": "Values like 'age=40', 'trip_days=120', 'Decision.APPROVED', 'age=70', 'trip_days=91' are concrete domain-meaningful numbers"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple parametrized tests are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": true,
+      "evidence": "4 distinct parametrized tests: test_restricted_destination_declines..., test_trip_over_ninety_days..., test_trip_length_threshold..., test_decision_by_age_and_medical_clearance..."
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each parametrized test has only the cases needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer cases per test is expected when concerns are properly separated.",
+      "passed": true,
+      "evidence": "Trip-length boundary test has 2 cases, age/clearance table has 7 cases focused on that concern. No unnecessary cross-product expansion."
+    },
+    {
+      "id": "separates-age-duration-destination",
+      "text": "Age/clearance policy, trip-duration policy, and destination restriction are separated into distinct parametrized tests, rather than every rule exercised through one combined table.",
+      "passed": true,
+      "evidence": "test_restricted_destination_declines_regardless... (destination), test_trip_over_ninety_days... (duration), test_decision_by_age_and_medical_clearance... (age/clearance), test_trip_length_threshold... (duration boundary)"
+    },
+    {
+      "id": "precedence-visible",
+      "text": "Rule precedence is visible from concrete cases: a restricted destination with an otherwise approvable profile is DECLINED, and a >90-day trip is MANUAL_REVIEW even when the age/clearance rule alone would decline or approve.",
+      "passed": true,
+      "evidence": "test_restricted_destination_declines... shows DECLINED for age=90 (which would MANUAL_REVIEW alone), and test_trip_over_ninety_days... shows MANUAL_REVIEW for age=90 with trip_days=120"
+    },
+    {
+      "id": "clearance-effect-visible",
+      "text": "The effect of medical clearance for applicants aged 70+ is visible from paired cases: the same senior profile appears with clearance (APPROVED) and without (DECLINED). The clearance parameter's effect must be readable from the rows, not just implied.",
+      "passed": true,
+      "evidence": "Paired rows in test_decision_by_age_and_medical_clearance: 'pytest.param(70, True, Decision.APPROVED...)' and 'pytest.param(70, False, Decision.MANUAL_REVIEW...)' show clearance effect for age 70"
+    },
+    {
+      "id": "compiles",
+      "text": "pytest can import and collect the test modules against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 13,
+  "assertions_total": 13,
+  "pass_rate": 1
+}

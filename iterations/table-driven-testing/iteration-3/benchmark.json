@@ -1,0 +1,102 @@
+{
+  "skill_name": "table-driven-testing",
+  "iteration": 3,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-haiku-4-5",
+  "timestamp": "2026-07-07T14:12:51.242Z",
+  "evals": [
+    {
+      "id": "eval-31-travel-insurance-py",
+      "name": "travel insurance py",
+      "skill": "table-driven-testing",
+      "fingerprint": "7ff188366a87",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 474461,
+        "duration_ms": 109781,
+        "cost_usd": 0.37764325000000004
+      }
+    },
+    {
+      "id": "eval-32-baggage-fees-py",
+      "name": "baggage fees py",
+      "skill": "table-driven-testing",
+      "fingerprint": "d22423ecf0aa",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 8,
+        "assertions_total": 8,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 358044,
+        "duration_ms": 49669,
+        "cost_usd": 0.2313115
+      }
+    },
+    {
+      "id": "eval-33-library-fees-py",
+      "name": "library fees py",
+      "skill": "table-driven-testing",
+      "fingerprint": "8b8a37920a00",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 9,
+        "assertions_total": 9,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 390051,
+        "duration_ms": 73569,
+        "cost_usd": 0.2826463
+      }
+    },
+    {
+      "id": "eval-34-hotel-cancellation-swift",
+      "name": "hotel cancellation swift",
+      "skill": "table-driven-testing",
+      "fingerprint": "2416ba6180ff",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 7,
+        "assertions_total": 8,
+        "pass_rate": 0.875,
+        "failed_assertions": [
+          "concrete-domain-values"
+        ],
+        "total_tokens": 294943,
+        "duration_ms": 75875,
+        "cost_usd": 0.27600165000000004
+      }
+    },
+    {
+      "id": "eval-35-cinema-tickets-routing",
+      "name": "cinema tickets routing",
+      "skill": "table-driven-testing",
+      "fingerprint": "9cd36132b361",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 6,
+        "assertions_total": 6,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 604839,
+        "duration_ms": 105356,
+        "cost_usd": 0.42667245
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 43,
+    "assertions_total": 44,
+    "pass_rate": 0.9772727272727273,
+    "total_tokens": 2122338,
+    "total_duration_ms": 414250,
+    "total_cost_usd": 1.59427515
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}
