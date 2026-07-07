@@ -64,6 +64,8 @@ node scripts/run-evals.js --skill tabletest --iteration N --compare-iteration M
 
 **Regression detection:** The script compares scores against the previous iteration's benchmark.json (within the same variant) and flags any assertion that regressed. With `--compare-official`, it also compares variant results against the latest official benchmark.
 
+**Two-tier cost control (tabletest):** during variant iteration, run only the discriminating core — `--evals 2,14,15,22,23,26,28,30` (about 40% of full-suite cost; contains every assertion family that has failed in recent baselines). The full suite runs once at promotion as the regression evidence. Full-suite conversion coverage can be rotated (26+28 one cycle, 25+27 the next) if promotion cost matters.
+
 ### Developing a New Skill Version
 
 `skills/` is always the published version — never iterate on it directly. Develop the next version as a variant:
