@@ -1,0 +1,55 @@
+{
+  "assertions": [
+    {
+      "id": "uses-test-arguments",
+      "text": "Tests use @Test(arguments:) parameterised cases — not one test function per case, and not a loop over cases inside a single test body.",
+      "passed": true,
+      "evidence": "Found @Test(arguments:)"
+    },
+    {
+      "id": "no-loop-in-swift-test",
+      "text": "Test function bodies contain no for/while loops or forEach — cases are supplied via @Test(arguments:), not iterated manually.",
+      "passed": true,
+      "evidence": "No loops in @Test function bodies"
+    },
+    {
+      "id": "no-if-in-swift-test",
+      "text": "Test function bodies contain no if/switch/guard branching — expected outcomes come from the argument rows, not branching logic.",
+      "passed": true,
+      "evidence": "No if/switch/guard statements in @Test function bodies"
+    },
+    {
+      "id": "cases-are-paired-rows",
+      "text": "Each case reads as a coherent row pairing input with expected outcome — labelled tuple elements, a row struct, or zip of collections — not multiple independent collections passed to arguments",
+      "passed": true,
+      "evidence": "arguments: [(daysBeforeCheckIn: 45, bookingValue: 300, fee: 0), ...] uses labelled tuples pairing all inputs and expected output per row"
+    },
+    {
+      "id": "full-tier-enumeration",
+      "text": "Every fee tier is represented and every boundary tested from both sides: 30 days (free) vs 29 days (50%), 7 days (50%) vs 6 days (80%), 1 day (80%) vs 0 days (full value)",
+      "passed": true,
+      "evidence": "(daysBeforeCheckIn: 30, fee: 0), (daysBeforeCheckIn: 29, fee: 100), (daysBeforeCheckIn: 7, fee: 200), (daysBeforeCheckIn: 6, fee: 200), (daysBeforeCheckIn: 1, fee: 120), (daysBeforeCheckIn: 0, fee: 180)"
+    },
+    {
+      "id": "exception-case-separated",
+      "text": "The started-stay case is expressed as its own test using #expect(throws:) — not mixed into the fee table",
+      "passed": true,
+      "evidence": "@Test(\"Cancelling once the stay has started...\") separate function with #expect(throws: CancellationError.stayAlreadyStarted)"
+    },
+    {
+      "id": "concrete-domain-values",
+      "text": "Case values are concrete domain values (days like 29, fees like 100) — not abstract placeholders or computed expressions",
+      "passed": true,
+      "evidence": "(daysBeforeCheckIn: 29, bookingValue: 200, fee: 100) and (daysBeforeCheckIn: 0, bookingValue: 180, fee: 180) are literal integers, not expressions"
+    },
+    {
+      "id": "compiles",
+      "text": "swift build --build-tests succeeds against the package scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 8,
+  "assertions_total": 8,
+  "pass_rate": 1
+}

@@ -1,0 +1,61 @@
+{
+  "assertions": [
+    {
+      "id": "delivers-without-asking",
+      "text": "The response delivers a complete test file. Open questions may be noted as assumptions alongside the delivered tests, but the response must not stop at clarifying questions instead of delivering.",
+      "passed": true,
+      "evidence": "Response delivers three complete parametrized test functions (test_no_fee_when_returned_by_due_date, test_late_fee_standard_section, test_late_fee_childrens_section) with concrete test cases."
+    },
+    {
+      "id": "assumptions-stated",
+      "text": "The ambiguity in the rules (how the 20-euro cap interacts with the children's half rate) is resolved to an explicit, stated interpretation — in the response text, a comment, or scenario ids — not silently embedded in expected values.",
+      "passed": true,
+      "evidence": "Module docstring states: \"The 20-euro cap (2000 cents) applies to the final fee for both the standard and children's sections.\""
+    },
+    {
+      "id": "cap-interaction-covered",
+      "text": "Cases cover the interaction between the cap and the children's half rate: a children's-section book late enough to reach the cap appears with a concrete expected fee — not just each rule tested in isolation.",
+      "passed": true,
+      "evidence": "test_late_fee_childrens_section includes: (79, 1975, 'just under'), (80, 2000, 'at the cap'), (81, 2000, 'just over')"
+    },
+    {
+      "id": "boundary-cases-covered",
+      "text": "Cases include zero days late (no fee), an ordinary per-day fee, and a return late enough to hit the cap for a regular book — the rule set's boundaries, not just one happy-path row.",
+      "passed": true,
+      "evidence": "test_no_fee_when_returned_by_due_date covers 0 days; test_late_fee_standard_section covers 1-day (50¢), 2-day (100¢), and cap boundary (40+ days at 2000¢)"
+    },
+    {
+      "id": "uses-parametrize",
+      "text": "Tests use @pytest.mark.parametrize (or pytest.param rows) — not one test function per case, and not a loop over cases inside a single test body.",
+      "passed": true,
+      "evidence": "Found @pytest.mark.parametrize"
+    },
+    {
+      "id": "parametrize-has-ids",
+      "text": "Parametrized cases carry scenario identifiers — an ids= argument or pytest.param(..., id=...) — so each case has a readable name in test output.",
+      "passed": true,
+      "evidence": "Parametrized cases carry ids (ids= or pytest.param id=)"
+    },
+    {
+      "id": "no-if-in-python-test",
+      "text": "Test function bodies contain no if/elif statements — expected outcomes come from the parametrized data, not branching logic.",
+      "passed": true,
+      "evidence": "No if/elif statements in test function bodies"
+    },
+    {
+      "id": "concrete-domain-values",
+      "text": "Expected fees are concrete cent values (e.g. 150, 2000) readable directly from the cases — not computed inside the test body from the rate and days.",
+      "passed": true,
+      "evidence": "All parametrized cases have hardcoded expected_cents: (1, 50), (2, 100), (39, 1950), (40, 2000), etc. No computation in test body."
+    },
+    {
+      "id": "compiles",
+      "text": "pytest can import and collect the test modules against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 9,
+  "assertions_total": 9,
+  "pass_rate": 1
+}
