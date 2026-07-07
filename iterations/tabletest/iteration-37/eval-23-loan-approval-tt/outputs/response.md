@@ -1,3 +1,0 @@
-I wrote `src/test/java/com/example/loan/LoanEvaluatorTest.java` and added the `tabletest-junit` dependency to `build.gradle`. `LoanEvaluator` is left as the stub — it still throws `UnsupportedOperationException`, so all 15 generated cases currently fail there, confirming compilation and table wiring is correct.
-
-One thing worth flagging: the rules as given don't fully specify what happens when credit score is **below** threshold *and* income is missing (null). "Below-threshold rejected regardless of income" and "missing income → PENDING_REVIEW" both plausibly apply. I assumed **REJECTED wins** (rows "below limit, missing income") and documented this as an open question in `@Description` — please confirm that's the intended precedence before implementing the logic.
