@@ -142,6 +142,18 @@ function dependencyRemovedChecker(label, regex) {
   };
 }
 
+/**
+ * Python test source content only (*.py files) — falls back to fileContent
+ * when no Python files were collected.
+ */
+function getPythonTestContent(fileContent, allFiles) {
+  const pyFiles = (allFiles || []).filter(f => f.path.endsWith(".py"));
+  if (pyFiles.length > 0) {
+    return pyFiles.map(f => f.content).join("\n\n");
+  }
+  return fileContent;
+}
+
 // --- Checkers ---
 
 const checkers = {
@@ -543,6 +555,59 @@ const checkers = {
       return { passed: false, evidence: `No Kotlin test files found. Java test files: ${javaFiles.map(f => f.path).join(", ") || "none"}` };
     }
     return { passed: false, evidence: `Mixed output: Kotlin: ${ktFiles.map(f => f.path).join(", ")}; Java: ${javaFiles.map(f => f.path).join(", ")}` };
+  },
+
+  // --- Python (table-driven-testing skill) ---
+
+  "uses-parametrize": ({ fileContent, allFiles }) => {
+    const content = getPythonTestContent(fileContent, allFiles);
+    const found = /@pytest\.mark\.parametrize/.test(content);
+    return {
+      passed: found,
+      evidence: found ? "Found @pytest.mark.parametrize" : "No @pytest.mark.parametrize found",
+    };
+  },
+
+  "parametrize-has-ids": ({ fileContent, allFiles }) => {
+    const content = getPythonTestContent(fileContent, allFiles);
+    if (!/@pytest\.mark\.parametrize/.test(content)) {
+      return { passed: false, evidence: "No @pytest.mark.parametrize found" };
+    }
+    const found = /\bids\s*=/.test(content) || /pytest\.param\([^)]*\bid\s*=/.test(content);
+    return {
+      passed: found,
+      evidence: found
+        ? "Parametrized cases carry ids (ids= or pytest.param id=)"
+        : "No ids= argument or pytest.param(id=...) found",
+    };
+  },
+
+  "no-if-in-python-test": ({ fileContent, allFiles }) => {
+    const content = getPythonTestContent(fileContent, allFiles);
+    const violations = [];
+    let inTest = false;
+    let defIndent = 0;
+    for (const line of content.split("\n")) {
+      const def = line.match(/^(\s*)def\s+(\w+)/);
+      if (def) {
+        inTest = def[2].startsWith("test_");
+        defIndent = def[1].length;
+        continue;
+      }
+      if (!inTest || line.trim() === "") continue;
+      const indent = line.match(/^(\s*)/)[1].length;
+      if (indent <= defIndent) {
+        inTest = false;
+        continue;
+      }
+      if (/^\s*(if|elif)\b/.test(line)) violations.push(line.trim());
+    }
+    return {
+      passed: violations.length === 0,
+      evidence: violations.length === 0
+        ? "No if/elif statements in test function bodies"
+        : `Branching in test body: ${violations.slice(0, 3).join("; ")}`,
+    };
   },
 };
 
