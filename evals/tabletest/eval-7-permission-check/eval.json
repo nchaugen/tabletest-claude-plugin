@@ -36,7 +36,7 @@
     {
       "id": "has-descriptive-title",
       "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'permissionsByRoleAndAction' → 'Permissions By Role And Action'). Not a generic name like 'test1' or 'canPerform'.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "description-if-present-adds-information",

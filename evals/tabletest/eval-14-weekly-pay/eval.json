@@ -46,7 +46,7 @@
     {
       "id": "1.10-format-displayname",
       "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "1.11-format-description",

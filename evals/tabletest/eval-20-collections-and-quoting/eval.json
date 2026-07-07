@@ -61,7 +61,7 @@
     {
       "id": "has-descriptive-title",
       "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "description-uses-textblock",
@@ -78,5 +78,6 @@
       "text": "The generated test code compiles successfully against the project scaffolding",
       "type": "build"
     }
-  ]
+  ],
+  "timeout_ms": 900000
 }

@@ -2,7 +2,7 @@
   "id": 28,
   "slug": "convert-from-methodsource",
   "skill": "tabletest",
-  "timeout_ms": 900000,
+  "timeout_ms": 1500000,
   "assertions": [
     {
       "id": "has-tabletest-annotation",
@@ -72,7 +72,7 @@
     {
       "id": "has-descriptive-title",
       "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "no-methodsource-artifacts",

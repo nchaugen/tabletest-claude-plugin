@@ -31,7 +31,7 @@
     {
       "id": "has-descriptive-title",
       "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'bonusByLevelAndDepartment' → 'Bonus By Level And Department'). Not a generic name like 'test1' or 'testMethod'.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "description-if-present-adds-information",
