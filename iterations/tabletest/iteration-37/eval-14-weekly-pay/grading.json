@@ -1,0 +1,127 @@
+{
+  "assertions": [
+    {
+      "id": "1.2-error-has-expected-column",
+      "text": "The error/rejection table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row — rather than hardcoding the exception type in @Description or the method name.",
+      "passed": true,
+      "evidence": "shouldRejectNegativeRate table has 'Throws?' column with values like 'java.lang.IllegalArgumentException' and null for allowed cases"
+    },
+    {
+      "id": "1.3-depth-overtime-boundary",
+      "text": "Overtime threshold boundary is covered: at least a value at the threshold (40) and just above (41 or similar). Not just values well below and well above.",
+      "passed": true,
+      "evidence": "Table has 'At overtime threshold | 40' and 'Just over overtime threshold | 41' rows"
+    },
+    {
+      "id": "1.4-depth-combined-scenario",
+      "text": "A combined scenario is present: a row with weekday + Sunday + holiday hours, testing the composition of all hour types.",
+      "passed": true,
+      "evidence": "'Weekday overtime, Sunday and holiday | 45 | 5 | 8' tests all three hour types together"
+    },
+    {
+      "id": "1.5-depth-error-edge-cases",
+      "text": "Error/edge cases covered: at least negative hours (floored at zero) and negative or missing rate (rejected).",
+      "passed": true,
+      "evidence": "Negative hours in 'shouldNotAllowTotalPayBelowZero' table; negative rates rejected in 'shouldRejectNegativeRate' with '-0.01' and '-50.00' rows"
+    },
+    {
+      "id": "1.6-readability-empty-cells",
+      "text": "Sunday and Holiday hour columns use empty cells (not 0) when those inputs are not relevant to a scenario — making it easier to spot which rows involve weekend/holiday hours. This is a readability preference; parameter types should be Integer (not int) to support null from blank cells.",
+      "passed": false,
+      "evidence": "Table uses '0' for unused hour types (e.g. 'Under overtime threshold | 30 | 0 | 0') instead of empty cells; parameters are 'double' not 'Integer'"
+    },
+    {
+      "id": "1.7-readability-scenario-names",
+      "text": "Scenario names describe work patterns (e.g. 'Part-time', 'Five hours overtime', 'Full Sunday shift') — not 'Test case 1' or expected outcomes.",
+      "passed": true,
+      "evidence": "Scenario names like 'Under overtime threshold', 'Just over overtime threshold', 'Weekday overtime, Sunday and holiday' describe work patterns clearly"
+    },
+    {
+      "id": "1.8-correctness-expected-values",
+      "text": "Expected values in intermediate and total columns are arithmetically correct for every row, consistent with the formulas in @Description.",
+      "passed": true,
+      "evidence": "Row 'Just over overtime threshold | 41 | 0 | 0 | 20.00 | 830.00' = (40×20) + (1×30) = 800+30 = 830; calculations consistent with 1.5× overtime rule"
+    },
+    {
+      "id": "1.9-correctness-value-set-semantics",
+      "text": "Value sets are only used where all values in the set produce the same expected result (e.g. any rate × 0 = 0). Not used where results would differ.",
+      "passed": true,
+      "evidence": "No value set notation detected; each row has discrete single values, not sets"
+    },
+    {
+      "id": "1.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "Method names 'shouldCalculateWeeklyPay', 'shouldRejectNegativeRate', 'shouldNotAllowTotalPayBelowZero' read clearly as descriptive titles without @DisplayName"
+    },
+    {
+      "id": "1.11-format-description",
+      "text": "@Description is present on at least the pay calculation method and provides context beyond what the table rows already express — such as the overtime threshold (40 hours), premium multipliers (Sunday 2×, Holiday 2.5×), or other fixed assumptions not visible in the table. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": true,
+      "evidence": "@Description on shouldCalculateWeeklyPay explains 'Overtime applies only to weekday hours beyond 40 per week' and 'Sunday and holiday hours are always paid at double time'"
+    },
+    {
+      "id": "1.12-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "1.13-format-description-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "1.14-depth-zero-rate",
+      "text": "A row where the hourly rate is zero, showing that pay is zero regardless of hours worked. This is a distinct edge case from negative rate (which is rejected).",
+      "passed": true,
+      "evidence": "'Zero rate is allowed | 0.00' in shouldRejectNegativeRate table; also 'Zero hours worked | 0 | 0 | 0 | 20.00 | 0.00' in first table"
+    },
+    {
+      "id": "1.15-format-clean-method",
+      "text": "The test method body contains no if/ternary null-handling or parsing logic. Null-to-default conversion (e.g. blank Sunday hours → 0) is handled via a @TypeConverter method or a private helper, keeping the test method limited to arrange/act/assert.",
+      "passed": false,
+      "evidence": "shouldRejectNegativeRate method body has 'if (throws_ == null) { assertDoesNotThrow(...) } else { assertThrows(...) }' conditional logic for handling null"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language (e.g. 'Weekday hours', 'Sunday hours', 'Hourly rate', 'Weekly pay?') — not implementation terms like 'weekdayHrs', 'int', 'param1'.",
+      "passed": true,
+      "evidence": "Column headers: 'Weekday Hours', 'Sunday Hours', 'Holiday Hours', 'Rate', 'Total Pay?' use business language"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": true,
+      "evidence": "Three separate @TableTest methods: shouldCalculateWeeklyPay (core rules), shouldRejectNegativeRate (validation), shouldNotAllowTotalPayBelowZero (pay floor)"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
+      "passed": true,
+      "evidence": "shouldRejectNegativeRate has 3 rows (boundary at 0, just below, clearly negative); shouldCalculateWeeklyPay has 8 focused rows covering boundaries and combinations"
+    },
+    {
+      "id": "separates-classification-and-calculation",
+      "text": "Payable hours categorisation (1x regular, 1.5x overtime, 2x Sunday/holiday) and pay calculation (hours × rate) are in separate @TableTest methods",
+      "passed": false,
+      "evidence": "Both classification and calculation are combined in single shouldCalculateWeeklyPay table; no separate table isolates hour categorization logic"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit:1.2.1 as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit:1.2.1"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 17,
+  "assertions_total": 20,
+  "pass_rate": 0.85
+}

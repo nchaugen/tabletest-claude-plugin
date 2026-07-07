@@ -1,0 +1,127 @@
+{
+  "assertions": [
+    {
+      "id": "1.2-error-has-expected-column",
+      "text": "The error/rejection table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row — rather than hardcoding the exception type in @Description or the method name.",
+      "passed": true,
+      "evidence": "Table column 'Throws?' with values like 'java.lang.IllegalArgumentException' and empty cells for non-exception cases"
+    },
+    {
+      "id": "1.3-depth-overtime-boundary",
+      "text": "Overtime threshold boundary is covered: at least a value at the threshold (40) and just above (41 or similar). Not just values well below and well above.",
+      "passed": true,
+      "evidence": "'At overtime threshold | 40' and 'Just past overtime threshold | 41' rows in weekday pay table"
+    },
+    {
+      "id": "1.4-depth-combined-scenario",
+      "text": "A combined scenario is present: a row with weekday + Sunday + holiday hours, testing the composition of all hour types.",
+      "passed": true,
+      "evidence": "'Overtime, Sunday and holiday combined | 45 | 8 | 8 | 20.00 | 1590.00' in weekly pay table"
+    },
+    {
+      "id": "1.5-depth-error-edge-cases",
+      "text": "Error/edge cases covered: at least negative hours (floored at zero) and negative or missing rate (rejected).",
+      "passed": true,
+      "evidence": "Negative hours rows ('Negative adjustment floors at zero | -50') and negative rate rows ('Just below zero | -0.01 | java.lang.IllegalArgumentException') in respective tables"
+    },
+    {
+      "id": "1.6-readability-empty-cells",
+      "text": "Sunday and Holiday hour columns use empty cells (not 0) when those inputs are not relevant to a scenario — making it easier to spot which rows involve weekend/holiday hours. This is a readability preference; parameter types should be Integer (not int) to support null from blank cells.",
+      "passed": false,
+      "evidence": "Rows use explicit '0' values (e.g., 'Zero hours | 0 | 20.00 | 0.00') instead of empty cells, and parameters are BigDecimal not Integer/null-supporting types"
+    },
+    {
+      "id": "1.7-readability-scenario-names",
+      "text": "Scenario names describe work patterns (e.g. 'Part-time', 'Five hours overtime', 'Full Sunday shift') — not 'Test case 1' or expected outcomes.",
+      "passed": true,
+      "evidence": "Scenarios like 'Regular week with overtime', 'Overtime, Sunday and holiday combined', 'Negative adjustment floors at zero' describe patterns, not test case numbers"
+    },
+    {
+      "id": "1.8-correctness-expected-values",
+      "text": "Expected values in intermediate and total columns are arithmetically correct for every row, consistent with the formulas in @Description.",
+      "passed": true,
+      "evidence": "Row 'Just past overtime threshold | 41 | 20.00 | 830.00' is correct: 40×20 + 1×30 = 800 + 30 = 830"
+    },
+    {
+      "id": "1.9-correctness-value-set-semantics",
+      "text": "Value sets are only used where all values in the set produce the same expected result (e.g. any rate × 0 = 0). Not used where results would differ.",
+      "passed": true,
+      "evidence": "No value set notation (e.g., {a,b,c}) appears in the tables; all rows have explicit distinct values"
+    },
+    {
+      "id": "1.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "@DisplayName annotation present"
+    },
+    {
+      "id": "1.11-format-description",
+      "text": "@Description is present on at least the pay calculation method and provides context beyond what the table rows already express — such as the overtime threshold (40 hours), premium multipliers (Sunday 2×, Holiday 2.5×), or other fixed assumptions not visible in the table. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": true,
+      "evidence": "First @Description states 'hours up to 40 are paid at the base rate; hours beyond 40 are overtime at 1.5x' and explicitly names the threshold and multiplier"
+    },
+    {
+      "id": "1.12-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "1.13-format-description-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "1.14-depth-zero-rate",
+      "text": "A row where the hourly rate is zero, showing that pay is zero regardless of hours worked. This is a distinct edge case from negative rate (which is rejected).",
+      "passed": true,
+      "evidence": "'Zero rate pays nothing | 40 | 8 | 8 | 0.00 | 0.00' row in weekly pay table"
+    },
+    {
+      "id": "1.15-format-clean-method",
+      "text": "The test method body contains no if/ternary null-handling or parsing logic. Null-to-default conversion (e.g. blank Sunday hours → 0) is handled via a @TypeConverter method or a private helper, keeping the test method limited to arrange/act/assert.",
+      "passed": true,
+      "evidence": "Test methods contain only single assertion lines (e.g., 'assertThat(calculator.calculateWeekdayPay(...))') with no if/ternary logic; helper 'assertRateHandling' for exception handling"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language (e.g. 'Weekday hours', 'Sunday hours', 'Hourly rate', 'Weekly pay?') — not implementation terms like 'weekdayHrs', 'int', 'param1'.",
+      "passed": true,
+      "evidence": "Columns named 'Weekday Hours', 'Sunday Hours', 'Holiday Hours', 'Hourly Rate', 'Weekday Pay?', 'Weekly Pay?', 'Throws?'"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": true,
+      "evidence": "Four separate @TableTest methods: weekday pay, double-time pay, weekly pay, and hourly rate validation"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
+      "passed": true,
+      "evidence": "Weekday table has 5 rows, double-time has 3 rows, weekly pay has 8 rows, validation has 4 rows—each focused on its specific concern"
+    },
+    {
+      "id": "separates-classification-and-calculation",
+      "text": "Payable hours categorisation (1x regular, 1.5x overtime, 2x Sunday/holiday) and pay calculation (hours × rate) are in separate @TableTest methods",
+      "passed": true,
+      "evidence": "Weekday pay calculation (with 1/1.5x multipliers) in one method, double-time (2x) in another, weekly pay combination in a third"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit:1.2.1 as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit:1.2.1"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 19,
+  "assertions_total": 20,
+  "pass_rate": 0.95
+}

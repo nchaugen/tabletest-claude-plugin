@@ -1,0 +1,127 @@
+{
+  "assertions": [
+    {
+      "id": "2.1-decomposition-concern-separation",
+      "text": "Discount ladder, and traveller eligibility are in separate tables. Rolling window counting as a third table is desirable.",
+      "passed": true,
+      "evidence": "Mockup shows two distinct tables: 'Discount tier by trailing ticket count' and 'Counting single tickets in the last 30 days', plus mentions of child-discount and final-price tables."
+    },
+    {
+      "id": "2.2-children-flat-discount",
+      "text": "Children's flat 20% discount is represented — either as a row in the eligibility table or a separate note. It does not follow the ladder.",
+      "passed": false,
+      "evidence": "Response mentions 'a small final-price arithmetic table' and 'child flat 20% discount' but provides no actual table content showing how children's 20% is represented."
+    },
+    {
+      "id": "2.3-depth-tier-boundaries",
+      "text": "The discount ladder has multiple tiers derived from the 'every fifth trip' rule, with boundary values or value sets showing which ticket counts produce which discount. The maximum 40% discount is represented.",
+      "passed": true,
+      "evidence": "Mockup table shows tiers: 0% (4 tickets), 5% (5-9), 10% (10), 40% (40+), with formula 'discount% = min(40, floor(N / 5) * 5)' and rows 'At the cap' and 'Beyond the cap' showing 40% maximum."
+    },
+    {
+      "id": "2.4-depth-rolling-window-boundary",
+      "text": "The 30-day rolling window boundary is tested: a ticket at exactly 30 days is included, at 31 days is excluded.",
+      "passed": true,
+      "evidence": "Mockup table 'Counting single tickets in the last 30 days' includes rows 'Exactly at the 30-day boundary | [30]' and 'Just outside the window | [31] | 0', though boundary answer is marked '?'."
+    },
+    {
+      "id": "2.9-correctness-value-set-tier-semantics",
+      "text": "Value sets in the tier table contain exactly the values that produce the same discount. No cross-tier contamination.",
+      "passed": false,
+      "evidence": "Mockup shows one row per boundary (4, 5, 9, 10, 40, 45) rather than value sets like {5,6,7,8,9}. No actual value sets are present in the mockup."
+    },
+    {
+      "id": "2.15-ticket-count-uses-value-sets",
+      "text": "The discount ladder table uses value sets for the ticket count column to group counts within the same tier (e.g. {5, 6, 7, 8, 9} or {5, 9} for min/max → 5%) — not one row per boundary value. The 'every fifth trip' rule creates tiers; the table should express tiers, not enumerate boundaries.",
+      "passed": false,
+      "evidence": "Mockup shows 'Tickets in last 30 days' column with single values (4, 5, 9, 10, 40, 45), not value sets like {5,6,7,8,9}. Response says 'say so and I'll go ahead and write the tables'—tables not yet written."
+    },
+    {
+      "id": "2.16-no-duplicate-tier-mapping",
+      "text": "The tier-to-discount mapping is expressed once — not repeated across multiple tables. A price application table (if present) should test the arithmetic (base price × discount → final price) without re-enumerating which ticket counts map to which tier.",
+      "passed": false,
+      "evidence": "Response mentions 'final-price arithmetic table' but provides no content. Cannot verify that tier mapping is not duplicated without seeing actual tables."
+    },
+    {
+      "id": "2.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": false,
+      "evidence": "No test methods shown. Response only provides mockup table structure, not actual @TableTest method code with @DisplayName annotations."
+    },
+    {
+      "id": "2.11-format-description",
+      "text": "@Description is present on at least the class or the tier method and provides context beyond what the table rows already express — such as the discount ladder structure, eligibility rules, or application context. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": false,
+      "evidence": "No @Description annotations shown. Response states 'Before I write the full tables' and asks questions; actual test class code not provided."
+    },
+    {
+      "id": "2.13-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "2.14-format-description-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "No @Description present — passes by default"
+    },
+    {
+      "id": "2.17-zone-irrelevance-visible",
+      "text": "The eligibility/passenger-type table includes a Zone column (or equivalent) with a value set to show that the discount applies regardless of zone — rather than silently omitting zone. The requirement explicitly says 'regardless of the zones you travel in'.",
+      "passed": false,
+      "evidence": "Mockup shows no Zone column. Response does not mention zone-independence in table structure."
+    },
+    {
+      "id": "2.18-adult-senior-value-set",
+      "text": "Adult and senior are expressed as a value set {ADULT, SENIOR} (or equivalent) in at least one row of the eligibility table, since they follow identical discount rules. Not enumerated as separate rows with the same outcome.",
+      "passed": true,
+      "evidence": "Mockup 'Discount tier by trailing ticket count' table shows 'Traveler Category | {ADULT, SENIOR}' in all rows, grouping them as a value set."
+    },
+    {
+      "id": "2.19-depth-all-tiers",
+      "text": "All 9 discount tiers are represented in the ladder table: 0% (tickets 1-4), 5% (5-9), 10% (10-14), 15% (15-19), 20% (20-24), 25% (25-29), 30% (30-34), 35% (35-39), and 40% (40+). Not just a subset of tiers.",
+      "passed": false,
+      "evidence": "Mockup shows only 6 scenario rows covering tiers 0%, 5%, 10%, and 40%, missing tiers for 15%, 20%, 25%, 30%, 35%."
+    },
+    {
+      "id": "2.20-readability-one-row-per-tier",
+      "text": "Each tier in the discount ladder is expressed as a single row with a value set for ticket counts — not split across multiple rows (e.g. separate rows for 'tier kicks in' and 'tier holds'). One tier = one row.",
+      "passed": false,
+      "evidence": "Mockup shows 'Before first threshold' and 'First discount applies' and 'Between tiers' as separate rows; tier 5% is split across at least 2 rows (5 and 9)."
+    },
+    {
+      "id": "2.21-readability-relative-time",
+      "text": "The rolling window table expresses time relatively (e.g. '14 days ago', '30 days ago', or an integer 'Days ago' column) rather than using absolute dates, making the table readable without needing to know the reference date.",
+      "passed": true,
+      "evidence": "Mockup 'Counting single tickets in the last 30 days' uses column 'Past Single Ticket Purchases (days ago)' with values like [30], [31]—relative time format."
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": true,
+      "evidence": "Response proposes splitting into: 'Tier lookup', 'Trailing count derivation', 'child flat 20%', and 'final-price arithmetic'—multiple distinct concerns."
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
+      "passed": false,
+      "evidence": "Mockup 'Discount tier by trailing ticket count' has 6 rows for only 4 discount tiers (0%, 5%, 10%, 40%); rows like 'Between tiers' with value 9 are redundant given 'First discount applies' with value 5."
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit:1.2.1 as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit:1.2.1"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 20,
+  "pass_rate": 0.5
+}

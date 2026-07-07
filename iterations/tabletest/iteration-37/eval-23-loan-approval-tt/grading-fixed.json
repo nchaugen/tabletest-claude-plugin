@@ -1,0 +1,115 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "threshold-as-column",
+      "text": "Policy thresholds (650/600 credit scores) appear in a dedicated policy column (e.g. 'Credit threshold') separate from the applicant's actual credit score column.",
+      "passed": false,
+      "evidence": "The table has columns 'Age' and 'Credit Score' but no dedicated 'Credit threshold' column. Thresholds (650/600) are only mentioned in scenario names and @Description, not as visible input columns."
+    },
+    {
+      "id": "concrete-domain-values",
+      "text": "Cell values use concrete domain terms (e.g. '70', '650', 'APPROVED') — not abstract codes like 'CATEGORY_A' or '1'.",
+      "passed": true,
+      "evidence": "All values are concrete: ages like '40', '70', '64', '65'; credit scores like '651', '650', '600'; and results like 'APPROVED', 'REJECTED', 'PENDING_REVIEW'."
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\""
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('Senior at lower threshold', 'Missing income') — not outcomes ('Approved', 'Rejected').",
+      "passed": true,
+      "evidence": "Scenario names describe conditions: 'Standard threshold, just above, stable income', 'Senior threshold, below limit, missing income', 'Just at senior age uses lower threshold'."
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language (e.g. 'Age', 'Credit score', 'Stable income', 'Decision?') — not code identifiers like 'customerAge'.",
+      "passed": true,
+      "evidence": "Column headers are 'Age', 'Credit Score', 'Stable Income', 'Result?' — all business language, not code identifiers."
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Decision?' or 'Status?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Result?"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "1 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "1 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules.",
+      "passed": false,
+      "evidence": "Only one @TableTest method 'evaluatesLoanApplications' exists. All age, credit score, income, and senior/standard threshold rules are combined in a single table (13 rows)."
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
+      "passed": false,
+      "evidence": "Single monolithic table with 13 rows mixing age boundaries, credit thresholds, income status, and senior/standard logic together, violating separation of concerns."
+    },
+    {
+      "id": "separates-age-credit-income",
+      "text": "Age boundary policy, credit score categorisation, and income status are separated into distinct @TableTest methods, with a method combining these for the expected verdict.",
+      "passed": false,
+      "evidence": "All three concerns (age boundary, credit score, income status) are tested in one method 'evaluatesLoanApplications'. No separate methods for age, credit, or income exist."
+    },
+    {
+      "id": "description-no-redundant-field-values",
+      "text": "Scenario descriptions and @Description text do not include specific field values that are already visible in the table or serve as placeholders.",
+      "passed": false,
+      "evidence": "@Description includes 'standard applicants need a credit score above 650; senior applicants (65+) need only above 600' — these threshold values are already embodied in the table rows."
+    },
+    {
+      "id": "depth-stable-income-effect",
+      "text": "The standardApplicantCreditThreshold table clearly documents the effect of stable income: rows show above-threshold + stable income = APPROVED and above-threshold + no stable income = REJECTED.",
+      "passed": true,
+      "evidence": "Rows show: 'Standard threshold, above limit, stable income | 40 | 700 | true | APPROVED' and 'Standard threshold, above limit, no stable income | 40 | 700 | false | REJECTED' — effect is visible."
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit:1.2.1 as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit:1.2.1"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 13,
+  "assertions_total": 18,
+  "pass_rate": 0.7222222222222222
+}

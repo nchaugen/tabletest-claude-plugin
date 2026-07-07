@@ -1,0 +1,127 @@
+{
+  "assertions": [
+    {
+      "id": "2.1-decomposition-concern-separation",
+      "text": "Discount ladder, and traveller eligibility are in separate tables. Rolling window counting as a third table is desirable.",
+      "passed": true,
+      "evidence": "Three @TableTest methods: ReisDiscountRuleTest (ladder), ReisDiscountRuleTest (eligibility/category), SingleTicketFrequencyTest (30-day window)"
+    },
+    {
+      "id": "2.2-children-flat-discount",
+      "text": "Children's flat 20% discount is represented — either as a row in the eligibility table or a separate note. It does not follow the ladder.",
+      "passed": true,
+      "evidence": "ReisDiscountRuleTest: 'Child gets the flat discount regardless of zone or count | CHILD | {ZONE_1, ZONE_2, ZONE_3} | {1, 39} | 20'"
+    },
+    {
+      "id": "2.3-depth-tier-boundaries",
+      "text": "The discount ladder has multiple tiers derived from the 'every fifth trip' rule, with boundary values or value sets showing which ticket counts produce which discount. The maximum 40% discount is represented.",
+      "passed": true,
+      "evidence": "ReisDiscountRuleTest ladder table shows 9 rows with value sets per tier and 'Maximum discount reached | {40, 41, 100} | 40'"
+    },
+    {
+      "id": "2.4-depth-rolling-window-boundary",
+      "text": "The 30-day rolling window boundary is tested: a ticket at exactly 30 days is included, at 31 days is excluded.",
+      "passed": true,
+      "evidence": "SingleTicketFrequencyTest: 'Ticket exactly thirty days old still counts | ADULT | [30d SINGLE ADULT] | 1' and 'Ticket older than thirty days is excluded | ADULT | [31d SINGLE ADULT] | 0'"
+    },
+    {
+      "id": "2.9-correctness-value-set-tier-semantics",
+      "text": "Value sets in the tier table contain exactly the values that produce the same discount. No cross-tier contamination.",
+      "passed": true,
+      "evidence": "Ladder rows use non-overlapping value sets: {1,4}→0%, {5,9}→5%, {10,14}→10%... {40,41,100}→40%, each tier distinct"
+    },
+    {
+      "id": "2.15-ticket-count-uses-value-sets",
+      "text": "The discount ladder table uses value sets for the ticket count column to group counts within the same tier (e.g. {5, 6, 7, 8, 9} or {5, 9} for min/max → 5%) — not one row per boundary value. The 'every fifth trip' rule creates tiers; the table should express tiers, not enumerate boundaries.",
+      "passed": true,
+      "evidence": "Ladder table uses value sets per tier: 'First rung reached | {5, 9} | 5', 'Second rung reached | {10, 14} | 10', etc."
+    },
+    {
+      "id": "2.16-no-duplicate-tier-mapping",
+      "text": "The tier-to-discount mapping is expressed once — not repeated across multiple tables. A price application table (if present) should test the arithmetic (base price × discount → final price) without re-enumerating which ticket counts map to which tier.",
+      "passed": true,
+      "evidence": "Discount ladder defined once in ReisDiscountRuleTest.appliesLadderByRecentTicketCount; other tables use it indirectly without re-enumerating tier mappings"
+    },
+    {
+      "id": "2.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "@DisplayName annotation present"
+    },
+    {
+      "id": "2.11-format-description",
+      "text": "@Description is present on at least the class or the tier method and provides context beyond what the table rows already express — such as the discount ladder structure, eligibility rules, or application context. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": true,
+      "evidence": "Ladder @Description: 'Every five tickets raises the discount by 5 percentage points, starting at ticket five, capped at 40%. Category is fixed to ADULT...'"
+    },
+    {
+      "id": "2.13-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "2.14-format-description-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "2.17-zone-irrelevance-visible",
+      "text": "The eligibility/passenger-type table includes a Zone column (or equivalent) with a value set to show that the discount applies regardless of zone — rather than silently omitting zone. The requirement explicitly says 'regardless of the zones you travel in'.",
+      "passed": true,
+      "evidence": "ReisDiscountRuleTest rule-selection rows: 'Zone | {ZONE_1, ZONE_2, ZONE_3}' across all three category scenarios, proving zone irrelevance"
+    },
+    {
+      "id": "2.18-adult-senior-value-set",
+      "text": "Adult and senior are expressed as a value set {ADULT, SENIOR} (or equivalent) in at least one row of the eligibility table, since they follow identical discount rules. Not enumerated as separate rows with the same outcome.",
+      "passed": false,
+      "evidence": "ReisDiscountRuleTest has separate rows for ADULT and SENIOR in rule-selection table, not combined as {ADULT, SENIOR} value set"
+    },
+    {
+      "id": "2.19-depth-all-tiers",
+      "text": "All 9 discount tiers are represented in the ladder table: 0% (tickets 1-4), 5% (5-9), 10% (10-14), 15% (15-19), 20% (20-24), 25% (25-29), 30% (30-34), 35% (35-39), and 40% (40+). Not just a subset of tiers.",
+      "passed": true,
+      "evidence": "Ladder table has 9 rows: {1,4}→0%, {5,9}→5%, {10,14}→10%, {15,19}→15%, {20,24}→20%, {25,29}→25%, {30,34}→30%, {35,39}→35%, {40,41,100}→40%"
+    },
+    {
+      "id": "2.20-readability-one-row-per-tier",
+      "text": "Each tier in the discount ladder is expressed as a single row with a value set for ticket counts — not split across multiple rows (e.g. separate rows for 'tier kicks in' and 'tier holds'). One tier = one row.",
+      "passed": true,
+      "evidence": "Each tier expressed once: 'First rung reached | {5, 9} | 5' is one row, not split into separate 'kicks in' and 'holds' rows"
+    },
+    {
+      "id": "2.21-readability-relative-time",
+      "text": "The rolling window table expresses time relatively (e.g. '14 days ago', '30 days ago', or an integer 'Days ago' column) rather than using absolute dates, making the table readable without needing to know the reference date.",
+      "passed": true,
+      "evidence": "SingleTicketFrequencyTest rows use relative notation: '[10d SINGLE ADULT]', '[30d SINGLE ADULT]', '[31d SINGLE ADULT]' (days before purchase)"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": true,
+      "evidence": "4 @TableTest methods: ReisDiscountRuleTest (2 tables for rule selection and ladder), SingleTicketFrequencyTest (1 table for 30-day window), ReisDiscountCalculatorTest (1 integration table)"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
+      "passed": true,
+      "evidence": "Rule-selection table: 3 rows (categories only); ladder table: 9 rows (one per tier); frequency table: 8 rows (boundary + type/category filters); end-to-end: 3 rows"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit:1.2.1 as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit:1.2.1"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 19,
+  "assertions_total": 20,
+  "pass_rate": 0.95
+}

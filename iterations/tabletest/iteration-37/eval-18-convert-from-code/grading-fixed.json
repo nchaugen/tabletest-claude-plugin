@@ -1,0 +1,133 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "black-box-columns",
+      "text": "Table columns represent the method's public inputs (applicant type, age, claim count) and observable outputs (decision, premium) — not internal state like hasActivePolicy, internalRiskScore, or calculateRiskScore.",
+      "passed": true,
+      "evidence": "Columns are 'Applicant Type', 'Age', 'Claim Count', 'Status?', 'Premium?' — all public inputs/outputs, no internal fields named."
+    },
+    {
+      "id": "observable-io-only",
+      "text": "No column is named after private fields or internal variables (hasActivePolicy, internalRiskScore, riskScore). The test treats the method as a black box.",
+      "passed": true,
+      "evidence": "Column headers contain only 'Applicant Type', 'Age', 'Claim Count', 'Status?', 'Premium?' — no private variable names appear."
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language (e.g. 'Applicant type', 'Age', 'Claims', 'Decision?', 'Premium?') — not code identifiers like 'applicantType', 'claimCount', 'String'.",
+      "passed": true,
+      "evidence": "'Applicant Type', 'Age', 'Claim Count', 'Status?', 'Premium?' are all business terms, not camelCase code identifiers."
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('Renewal with no claims', 'Senior applicant') — not outcomes ('Auto approved', 'Rejected').",
+      "passed": false,
+      "evidence": "Scenario 'Risk score just above the threshold is rejected' describes an outcome, not a condition. Also 'Renewal with no claims auto-approves' names the outcome in the scenario."
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Decision?' or 'Premium?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Status?, Premium?, Premium?"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "2 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "2 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "No @Description present — passes by default"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": true,
+      "evidence": "Two @TableTest methods: 'resolvesApplicationOutcome' for decision logic and 'calculatesPremiumForApprovedApplications' for premium calculation."
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
+      "passed": true,
+      "evidence": "First table has 6 scenario rows (7 cases with value set) focused on decision logic; second has 5 rows focused only on premium boundaries."
+    },
+    {
+      "id": "separates-decision-and-premium",
+      "text": "Decision logic (AUTO_APPROVED/REJECTED/APPROVED) and premium calculation are in separate @TableTest methods",
+      "passed": true,
+      "evidence": "'resolvesApplicationOutcome' tests decision; 'calculatesPremiumForApprovedApplications' tests premium as separate @TableTest methods."
+    },
+    {
+      "id": "no-reimplemented-internals",
+      "text": "Test method body does not recompute internal formulas (e.g. risk score calculation). It only calls the public API (evaluateApplication) and asserts on the return value's fields. No arithmetic duplicating private method logic appears in the test.",
+      "passed": true,
+      "evidence": "Test calls 'evaluator.evaluateApplication()' and asserts only on 'result.decision()' and 'result.premium()' — no risk score calculation in test body."
+    },
+    {
+      "id": "description-no-internals",
+      "text": "@Description explains the test's purpose and business context — not internal formulas or implementation details (e.g. 'riskScore = age/10 + claimCount*15', 'rejected when riskScore > 75'). Black-box tests describe observable behaviour, not code internals.",
+      "passed": false,
+      "evidence": "No @Description annotation present on either @TableTest method. Test lacks business context documentation."
+    },
+    {
+      "id": "depth-decision-boundaries",
+      "text": "Approval decision table covers the rejection boundary thoroughly: 5 claims triggers rejection regardless of realistic age (risk score crosses 75), 4 claims results in approval. Rows at 4 and 5 claims with varying ages demonstrate this cliff. Senior vs non-senior distinction (64 vs 65) also visible in the decision table.",
+      "passed": false,
+      "evidence": "Decision table has no row with 4 claims to show approval boundary; only 0, 1, 5, 6 claims tested. No age 64 vs 65 comparison in decision table (only in premium table)."
+    },
+    {
+      "id": "depth-premium-boundaries",
+      "text": "Approved premium table covers boundary effects: the premium jump from 0 to 1 claim (impact of +15 risk score on premium), and the premium difference at age 64 vs 65 (standard vs senior formula). These boundary conditions document how premium changes at each threshold.",
+      "passed": true,
+      "evidence": "Premium table has rows comparing age 64 vs 65 (112.00 vs 221.00) and 0 vs 1 claim (106.00 vs 136.00 at age 30), showing both boundaries."
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit:1.2.1 as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit:1.2.1"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The generated tests pass when executed against InsuranceEvaluator",
+      "passed": true,
+      "evidence": "Tests passed"
+    }
+  ],
+  "assertions_passed": 18,
+  "assertions_total": 21,
+  "pass_rate": 0.8571428571428571
+}

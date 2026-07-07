@@ -1,0 +1,97 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "null-as-blank-cell",
+      "text": "Null input is represented as a blank cell in the valid inputs @TableTest table (not the string 'null', and not as a separate @Test method). The blank cell maps to a null parameter.",
+      "passed": true,
+      "evidence": "No literal null values found in table data cells"
+    },
+    {
+      "id": "exception-has-expected-column",
+      "text": "The exception/invalid-input table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row — rather than hardcoding the exception type in @Description or the method name.",
+      "passed": true,
+      "evidence": "shouldRejectInvalidInput table has 'Throws?' column with 'java.lang.IllegalArgumentException' values per row"
+    },
+    {
+      "id": "exception-cases-handled",
+      "text": "The exception cases (empty string, letters-only, negative) are handled — via a Throws? column, assertThrows in the method body, or a separate @TableTest — not silently omitted",
+      "passed": true,
+      "evidence": "All three cases present: 'Empty string | ''', 'Letters only | abc', 'Negative amount | -5.00' with assertThrows in method body"
+    },
+    {
+      "id": "result-column-with-question-mark",
+      "text": "Valid inputs have a result column name ending with '?' (e.g. 'Money?' or 'Result?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Money?, Throws?"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "2 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'moneyParsing' → 'Money Parsing'). Not a generic name like 'test1' or 'testMethod'.",
+      "passed": true,
+      "evidence": "Two methods: 'shouldParseAmount' and 'shouldRejectInvalidInput' clearly describe their concerns"
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "If @Description is present, it provides context beyond what the table rows already express — such as the expected currency format, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context.",
+      "passed": true,
+      "evidence": "No @Description annotations present; table structure and scenarios are self-explanatory, which is acceptable per assertion"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "No @Description present — passes by default"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": true,
+      "evidence": "Two separate @TableTest methods: 'shouldParseAmount' for valid cases and 'shouldRejectInvalidInput' for exceptions"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
+      "passed": true,
+      "evidence": "Valid table: 3 rows (two decimals, smallest unit, null). Exception table: 3 rows (empty, letters, negative). No duplication or permutations"
+    },
+    {
+      "id": "separates-valid-and-invalid",
+      "text": "Valid parsing cases and error/exception cases are in separate @TableTest methods",
+      "passed": true,
+      "evidence": "'shouldParseAmount' uses 'Money?' result column; 'shouldRejectInvalidInput' uses 'Throws?' column with assertThrows"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit:1.2.1 as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit:1.2.1"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 15,
+  "assertions_total": 15,
+  "pass_rate": 1
+}

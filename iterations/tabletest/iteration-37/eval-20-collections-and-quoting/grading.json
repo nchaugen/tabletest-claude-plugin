@@ -1,0 +1,97 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "list-syntax-correct",
+      "text": "List values in the table use bracket syntax like [tech:java, biz:sales, dev:ci] — not comma-separated strings without brackets.",
+      "passed": true,
+      "evidence": "| [\"tech:java\", \"dev:kotlin\", \"biz:sales\", \"ops:deploy\"]     | tech     | [\"tech:java\", \"dev:kotlin\"]"
+    },
+    {
+      "id": "empty-list-explicit",
+      "text": "Empty list input uses [] (not a blank cell, which represents null). The distinction between empty list and null is preserved.",
+      "passed": true,
+      "evidence": "Empty tags list | [] | tech | [] and No tags match category | [...] | business | []"
+    },
+    {
+      "id": "special-chars-quoted",
+      "text": "Values containing pipes (|), brackets, or colons (:) are properly quoted (e.g. \"tech:java\") so they don't conflict with table syntax.",
+      "passed": true,
+      "evidence": "[\"tech:java\", \"dev:kotlin\"] with colons inside quoted strings and \"tech:[java] module\""
+    },
+    {
+      "id": "set-syntax-correct",
+      "text": "Set<String> values in the table use curly brace syntax like {tech, dev} — not bracket syntax [tech, dev] which is for lists.",
+      "passed": true,
+      "evidence": "Optional adds one extra prefix | [...] | tech | {biz} and Optional adds multiple prefixes | [...] | tech | {biz, ops}"
+    },
+    {
+      "id": "newline-in-cell",
+      "text": "Cell values containing newlines use \\n escaping — not literal line breaks that would break the table row structure.",
+      "passed": true,
+      "evidence": "[\"tech:java\\nEnterprise Edition\", \"biz:sales\"] with \\n escape sequence in cell"
+    },
+    {
+      "id": "pipe-quoted",
+      "text": "Values containing pipe characters (|) are quoted so they don't conflict with the markdown table column separator.",
+      "passed": true,
+      "evidence": "[\"tech:java | core\", \"dev:kotlin\"] with pipe character inside quoted string"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Filtered tags?' or 'Result?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Filtered?, Filtered?, Filtered?"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "3 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "void filtersTagsByCategory, void appliesOptionalCategoryPrefixes, void preservesTagContentAsIs"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "No @Description present — passes by default"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit:1.2.1 as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit:1.2.1"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 15,
+  "assertions_total": 15,
+  "pass_rate": 1
+}

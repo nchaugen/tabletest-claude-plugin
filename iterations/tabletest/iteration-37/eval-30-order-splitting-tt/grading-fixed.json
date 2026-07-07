@@ -1,0 +1,127 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing all splitting rules.",
+      "passed": true,
+      "evidence": "4 @TableTest methods: groupsItemsByFulfillmentTypeAndDeliveryAddress, shipsInStockItemsImmediatelyWithoutHoldingForBackorderedItems, minimisesShipmentCountAcrossWarehouses, prefersShippingCompanionProductsFromTheSameWarehouseWhenPossible"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each @TableTest has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
+      "passed": true,
+      "evidence": "groupsItemsByFulfillmentTypeAndDeliveryAddress has 5 rows; shipsInStockItems has 5 rows; minimisesShipmentCount has 4 rows; prefersShippingCompanions has 3 rows. Each focused on its specific rule."
+    },
+    {
+      "id": "concern-fulfillment-method",
+      "text": "Fulfillment method splitting is represented as its own @TableTest — items with different fulfillment types (store pickup vs home delivery) cannot share a shipment.",
+      "passed": true,
+      "evidence": "groupsItemsByFulfillmentTypeAndDeliveryAddress includes 'Different fulfillment types split' row: battery@PICKUP vs camera@DELIVERY split into separate shipments"
+    },
+    {
+      "id": "concern-delivery-address",
+      "text": "Delivery address splitting is represented as its own @TableTest — items going to different addresses must be in separate shipments.",
+      "passed": true,
+      "evidence": "groupsItemsByFulfillmentTypeAndDeliveryAddress includes 'Different delivery addresses split' row: camera@12 Elm St vs lens@88 Oak Ave split into separate shipments"
+    },
+    {
+      "id": "concern-availability",
+      "text": "Availability splitting is represented as its own @TableTest — in-stock items ship immediately, backordered/pre-ordered items ship when available.",
+      "passed": true,
+      "evidence": "shipsInStockItemsImmediatelyWithoutHoldingForBackorderedItems has 5 rows including 'In-stock item ships without waiting for backorder' and 'Backordered and pre-ordered items ship together'"
+    },
+    {
+      "id": "concern-warehouse-allocation",
+      "text": "Warehouse allocation (minimising shipments) is represented as its own @TableTest — choosing which warehouses to ship from to minimise total shipment count.",
+      "passed": true,
+      "evidence": "minimisesShipmentCountAcrossWarehouses with 4 rows including 'Warehouse covering everything beats splitting across two' demonstrating minimal shipment selection"
+    },
+    {
+      "id": "concern-companion-products",
+      "text": "Companion product grouping is represented as its own @TableTest — paired items (e.g. camera body and lens) should ship together from the same location when possible.",
+      "passed": true,
+      "evidence": "prefersShippingCompanionProductsFromTheSameWarehouseWhenPossible with 3 rows: 'Companions grouped together when warehouse choice is tied', 'Companions split when no warehouse holds both', 'Multiple companion groups'"
+    },
+    {
+      "id": "all-outputs-same-table",
+      "text": "Each @TableTest method includes all output columns for its concern in the same table — e.g. warehouse allocation includes both the assignment and shipment count, not split across methods. All outputs of the same concern belong together.",
+      "passed": true,
+      "evidence": "Each @TableTest has a single 'Shipments?' output column containing all relevant outputs (warehouse, availability, product IDs). No outputs are split across methods."
+    },
+    {
+      "id": "scalar-quantity-for-warehouse",
+      "text": "Warehouse allocation table uses scalar quantity columns (e.g. 'Qty ordered') not item lists, when product identity doesn't matter for the logic.",
+      "passed": false,
+      "evidence": "minimisesShipmentCountAcrossWarehouses uses 'Items' column with item lists like [camera@DELIVERY@12 Elm St, lens@DELIVERY@12 Elm St], not scalar quantities. Warehouse logic uses product identity."
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Shipments?', 'Groups?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Shipments?, Shipments?, Shipments?, Shipments?"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe the business situation (e.g. 'Consolidate: two beats three', 'Everything at one warehouse') — not 'Test case 2'.",
+      "passed": true,
+      "evidence": "Scenario names: 'Same type and address ship together', 'All items in stock ship together immediately', 'Warehouse covering everything beats splitting across two', 'Companions grouped together when warehouse choice is tied'"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use business/domain language (e.g. 'Shipments?' not 'Result?', 'Warehouse stock' not 'inventory_map'). The tables read as a specification a product person could review.",
+      "passed": true,
+      "evidence": "Columns: 'Scenario', 'Items', 'Stock', 'Shipments?', 'Warehouse Stock', 'Companions'. All use clear business domain language readable by product personnel."
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "4 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "4 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit:1.2.1 as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit:1.2.1"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 19,
+  "assertions_total": 20,
+  "pass_rate": 0.95
+}
