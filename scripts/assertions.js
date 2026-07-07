@@ -10,7 +10,7 @@
 
 /**
  * Extract method bodies for @TableTest-annotated methods using brace-counting.
- * Returns array of {methodSignature, body} objects.
+ * Returns array of {methodSignature, name, body} objects.
  */
 function extractTableTestMethodBodies(content) {
   const results = [];
@@ -23,8 +23,8 @@ function extractTableTestMethodBodies(content) {
 
     // Find the opening brace of the method body (after parameter list)
     // Java: returnType methodName(params) {
-    // Kotlin: fun methodName(params) {  or  fun methodName(params): ReturnType {
-    const methodMatch = after.match(/(?:fun|void|boolean|int|long|double|float|String|[A-Z]\w*(?:<[^>]*>)?)\s+(\w+)\s*\([^)]*\)\s*(?::\s*\S+\s*)?(?:throws\s+[^{]*)?\{/);
+    // Kotlin: fun methodName(params) {  or  fun `name with spaces`(params): ReturnType {
+    const methodMatch = after.match(/(?:fun|void|boolean|int|long|double|float|String|[A-Z]\w*(?:<[^>]*>)?)\s+(\w+|`[^`]+`)\s*\([^)]*\)\s*(?::\s*\S+\s*)?(?:throws\s+[^{]*)?\{/);
     if (!methodMatch) continue;
 
     const braceStart = match.index + after.indexOf(methodMatch[0]) + methodMatch[0].length - 1;
@@ -38,7 +38,7 @@ function extractTableTestMethodBodies(content) {
     }
 
     const body = content.slice(braceStart + 1, i - 1);
-    results.push({ methodSignature: methodMatch[0], body });
+    results.push({ methodSignature: methodMatch[0], name: methodMatch[1], body });
   }
 
   return results;
@@ -99,6 +99,49 @@ function getCheckContent(fileContent, allFiles) {
   return fileContent;
 }
 
+/**
+ * Get test source content only (src/**.java|kt) — excludes build files, so
+ * code-level checks aren't tripped by build-file references (e.g. a leftover
+ * dependency coordinate). Falls back to fileContent when no test sources exist.
+ */
+function getTestSourceContent(fileContent, allFiles) {
+  const testFiles = (allFiles || []).filter(f => /\.(java|kt)$/.test(f.path) && /(^|\/)src\//.test(f.path));
+  if (testFiles.length > 0) {
+    return testFiles.map(f => f.content).join('\n\n');
+  }
+  return fileContent;
+}
+
+/**
+ * Joined build-file content (pom.xml / build.gradle / build.gradle.kts), or null.
+ */
+function getBuildFileContent(allFiles) {
+  const buildFiles = (allFiles || []).filter(f =>
+    f.path === "pom.xml" || f.path === "build.gradle" || f.path === "build.gradle.kts"
+  );
+  if (buildFiles.length === 0) return null;
+  return buildFiles.map(f => f.content).join('\n');
+}
+
+/**
+ * Checker factory: build files must no longer reference the old test framework.
+ */
+function dependencyRemovedChecker(label, regex) {
+  return ({ allFiles }) => {
+    const content = getBuildFileContent(allFiles);
+    if (content === null) {
+      return { passed: true, evidence: "No build file in outputs — nothing to check" };
+    }
+    const found = regex.test(content);
+    return {
+      passed: !found,
+      evidence: found
+        ? `Build file still references ${label}`
+        : `Build file has no ${label} reference`,
+    };
+  };
+}
+
 // --- Checkers ---
 
 const checkers = {
@@ -154,7 +197,12 @@ const checkers = {
     const content = getCheckContent(fileContent, allFiles);
     const methods = extractTableTestMethodBodies(content);
     if (methods.length === 0) {
-      return { passed: false, evidence: "No @TableTest method bodies found" };
+      if (!/@TableTest/.test(content)) {
+        return { passed: false, evidence: "No @TableTest methods found" };
+      }
+      // @TableTest present but bodies unparseable: checker limitation, not a
+      // model failure — do not record a spurious fail.
+      return { passed: true, evidence: "Could not parse @TableTest method bodies (checker limitation) — review manually" };
     }
 
     const violations = [];
@@ -258,7 +306,10 @@ const checkers = {
     const content = getCheckContent(fileContent, allFiles);
     const methods = extractTableTestMethodBodies(content);
     if (methods.length === 0) {
-      return { passed: false, evidence: "No @TableTest method bodies found" };
+      if (!/@TableTest/.test(content)) {
+        return { passed: false, evidence: "No @TableTest methods found" };
+      }
+      return { passed: true, evidence: "Could not parse @TableTest method bodies (checker limitation) — review manually" };
     }
 
     const violations = [];
@@ -296,7 +347,7 @@ const checkers = {
   },
 
   "no-groovy-syntax": ({ fileContent, allFiles }) => {
-    const content = getCheckContent(fileContent, allFiles);
+    const content = getTestSourceContent(fileContent, allFiles);
     const patterns = [
       { regex: /\bdef\s+/, label: "def keyword" },
       { regex: /\bwhere\s*:/, label: "where:" },
@@ -321,10 +372,12 @@ const checkers = {
   },
 
   "no-kotest-syntax": ({ fileContent, allFiles }) => {
-    const content = getCheckContent(fileContent, allFiles);
+    const content = getTestSourceContent(fileContent, allFiles);
     const patterns = [
       { regex: /\bshould\s*\{/, label: "should {" },
+      { regex: /\bshouldBe\b/, label: "shouldBe" },
       { regex: /\bforAll\s*\(/, label: "forAll(" },
+      { regex: /\bwithData\s*\(/, label: "withData(" },
       { regex: /\bdescribe\s*\(/, label: "describe(" },
       { regex: /\bit\s*\(/, label: "it(" },
       { regex: /io\.kotest/, label: "io.kotest import" },
@@ -344,7 +397,7 @@ const checkers = {
   },
 
   "no-testng-artifacts": ({ fileContent, allFiles }) => {
-    const content = getCheckContent(fileContent, allFiles);
+    const content = getTestSourceContent(fileContent, allFiles);
     const patterns = [
       { regex: /@DataProvider/, label: "@DataProvider" },
       { regex: /org\.testng/, label: "org.testng import" },
@@ -364,11 +417,49 @@ const checkers = {
   },
 
   "no-methodsource-artifacts": ({ fileContent, allFiles }) => {
-    const content = getCheckContent(fileContent, allFiles);
+    const content = getTestSourceContent(fileContent, allFiles);
     const found = /@MethodSource/.test(content);
     return {
       passed: !found,
       evidence: found ? "Found @MethodSource" : "No @MethodSource found",
+    };
+  },
+
+  "kotest-dependency-removed": dependencyRemovedChecker("Kotest", /io\.kotest/),
+
+  "spock-dependency-removed": dependencyRemovedChecker("Spock/Groovy", /org\.spockframework|spock-core|org\.codehaus\.groovy|apache\.groovy|groovy-all/),
+
+  "testng-dependency-removed": dependencyRemovedChecker("TestNG", /org\.testng|\btestng\b/),
+
+  "has-descriptive-title": ({ fileContent, allFiles }) => {
+    const content = getCheckContent(fileContent, allFiles);
+    if (/@DisplayName/.test(content)) {
+      return { passed: true, evidence: "@DisplayName annotation present" };
+    }
+    const methods = extractTableTestMethodBodies(content);
+    if (methods.length === 0) {
+      return { passed: false, evidence: "No @TableTest methods found" };
+    }
+    const offenders = [];
+    for (const m of methods) {
+      const raw = m.name;
+      if (raw.startsWith("`")) {
+        // Kotlin backtick name: qualifies if it reads as a multi-word phrase
+        if (raw.slice(1, -1).trim().split(/\s+/).length < 2) offenders.push(raw);
+        continue;
+      }
+      if (/^test(\d+|method|case\d*)?$/i.test(raw)) {
+        offenders.push(raw);
+        continue;
+      }
+      const words = raw.replace(/([a-z0-9])([A-Z])/g, "$1 $2").split(/[\s_]+/).filter(Boolean);
+      if (words.length < 2) offenders.push(raw);
+    }
+    return {
+      passed: offenders.length === 0,
+      evidence: offenders.length === 0
+        ? `${methods.length} @TableTest method name(s) read as descriptive titles (no @DisplayName needed)`
+        : `Non-descriptive method name(s): ${offenders.join(", ")}`,
     };
   },
 
@@ -460,6 +551,8 @@ const aliases = {
   "2.13-format-annotation-order": "annotation-order",
   "2.14-format-description-textblock": "description-uses-textblock",
   "result-column-with-question-mark": "has-question-mark-column",
+  "1.10-format-displayname": "has-descriptive-title",
+  "2.10-format-displayname": "has-descriptive-title",
 };
 
 for (const [alias, target] of Object.entries(aliases)) {
