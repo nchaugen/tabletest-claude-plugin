@@ -547,7 +547,30 @@ void shouldParseAmount(String input, BigDecimal result) {
 
 ### Collapse Sparse Columns into a Map
 
-When several columns are mostly blank, consider collapsing them into a single map column (e.g. `[key: value, key: value]`) with a `@TypeConverter` to construct the target object. This is especially appropriate when the sparse columns correspond to a single parameter in the method under test. The map keeps the table compact and moves construction logic out of the test method.
+When several columns are mostly blank, collapse them into a single map column with a `@TypeConverter` that constructs the target object. This is especially appropriate when the sparse columns correspond to a single parameter of the method under test — typically an object with several optional fields where each row sets only one or two. A blank cell means "all defaults"; the converter supplies them:
+
+```java
+@TableTest("""
+    Scenario         | Config                        | Timeout Used?
+    All defaults     |                               | 3000
+    Explicit timeout | [timeout: 5000]               | 5000
+    Several options  | [method: POST, timeout: 1000] | 1000
+    """)
+void appliesConfiguredTimeout(RequestConfig config, int timeoutMs) {
+    assertEquals(timeoutMs, gateway.timeoutFor(config));
+}
+
+@TypeConverter
+public static RequestConfig parseRequestConfig(Map<String, String> config) {
+    if (config == null) return RequestConfig.defaults();
+    return new RequestConfig(
+        config.getOrDefault("method", "GET"),
+        Integer.parseInt(config.getOrDefault("timeout", "3000")),
+        Integer.parseInt(config.getOrDefault("retry", "1")));
+}
+```
+
+The map keeps the table compact, each row states only what differs from the defaults, and all construction and null-defaulting logic lives in the converter — never in the test method body. This applies however the object is normally built (constructor, setters, or builder), and even when a table exercises only one or two of the optional fields: if a method body news up a parameter object and mutates it, that construction belongs in a `@TypeConverter` behind a map column.
 
 ### Include Traceability Columns
 
@@ -712,7 +735,9 @@ Junior     | {60, 75, 89}        | Junior
 Senior     | {90, 100, 120}      | Senior
 ```
 
-This makes the tier structure a first-class concept — each row IS a tier.
+This makes the tier structure a first-class concept — each row IS a tier. Cover every tier as one row (value set holding at least both boundary counts), not a sample of tiers or separate "tier begins"/"tier holds" rows.
+
+**Value sets work on two axes — check both.** Within a row, group input values that produce the same outcome (`{30, 45, 59}` → one tier). Across rows, collapse duplicates: when two input kinds follow identical rules everywhere (two categories treated alike by every rule), one row with `{A, B}` replaces two identical rows. It is easy to apply one axis and miss the other.
 
 ### Null, Empty, and Blank Values
 
@@ -748,12 +773,13 @@ void resolves_values(String input, String resolved) {
 ### Converting Existing Tests
 
 1. Identify tests with identical structure but different data.
-2. Extract the varying parts as columns (inputs and expected values).
+2. Extract the varying parts as columns (inputs and expected values). If the originals build an object with several optional fields — via constructor arguments, setters, or a builder — collapse those into one map column with a `@TypeConverter` (see Collapse Sparse Columns into a Map) instead of constructing the object in the method body.
 3. Create table with scenario column first, inputs next, expectations last (suffix with `?`).
 4. Align method parameters to column order; do not bind the scenario column unless annotated with `@Scenario`.
 5. Verify all rows use the same assertion logic.
 6. After building table with multiple rows, check for column consolidation opportunities (see Quality Checks).
 7. Remove the original `@Test` methods the table now covers — run the tests before and after removal to confirm coverage is preserved.
+8. When converting from another framework (Spock, Kotest, TestNG, JUnit 4), finish the migration: replace the old framework's assertion/matcher style (`shouldBe`, `expect:`, TestNG asserts) with the project's JUnit-compatible style, remove its imports, and remove its dependencies from the build file. Leftover matcher calls or a leftover build dependency both mean the conversion is incomplete.
 
 ### Writing New TableTest from a Feature Description
 
@@ -762,6 +788,10 @@ When there is no existing code (empty `src/main/java`), write the tests first �
 1. **Read the feature description** and identify the rules/concerns
 2. **Write the test class** with `@TableTest` methods following the design principles in this skill
 3. **Add stub implementation** — create the class and methods referenced by the tests with signatures only (return defaults, throw `UnsupportedOperationException`, etc.). Do not implement the logic unless specifically instructed. The user may want to iterate on the test design before committing to an implementation.
+
+**Let tables drive the API decomposition.** Each concern's table should call a function whose parameters are exactly the table's input columns. If a test method needs a loop or helper to fabricate raw data so a derived input reaches a target value (e.g. generating n records so that a count equals n), the table is targeting too high in the stack — stub a narrower function that takes the derived value directly, and cover the raw-data derivation in its own table. Cheap rows are the sign of a well-placed table; when adding a row feels expensive, the API needs another seam.
+
+**Ambiguity policy — deliver, don't ask.** Feature descriptions rarely answer every question. Choose the most reasonable interpretation, record it — along with any open question — in the affected table's `@Description`, and deliver complete tests. Never end the task with clarifying questions in place of tests: documented assumptions in delivered tests are how you raise them. This holds even if you have just read the spec-by-example skill — its clarify-first workshop style is for requirements discussions, not for a request to write tests.
 
 ### Writing New TableTest from Existing Code
 
@@ -777,19 +807,20 @@ When there is no existing code (empty `src/main/java`), write the tests first �
 ## Quality Checks
 
 After writing, verify:
-- [ ] **Multiple rows**: table has 2+ rows; use `@Test` for single cases
+- [ ] **Multiple rows**: table has 2+ rows; use `@Test` only for a genuinely standalone single case — a lone error, null, or empty-input case related to an existing table belongs in that table as a row (with a `Throws?` column if it throws), not in a separate `@Test`
 - [ ] **Black-box design**: columns represent observable inputs and outputs, not internal flags or implementation details
 - [ ] **Clear communication**: scenario names describe conditions (not outcomes), column names use domain language (not parameter names)
 - [ ] **Uniform assertions**: all rows use the same assertion logic; split into separate TableTests if logic differs per row
-- [ ] **Straightforward method**: no `if`/`switch` statements, no parsing or conversion logic; the method only arranges, acts, and asserts
+- [ ] **Straightforward method**: no `if`/`switch`/ternary — not even null-guards or defaulting, which belong in a `@TypeConverter` or helper; the method only arranges, acts, and asserts
 - [ ] **Parameter alignment**: parameters match data columns left-to-right (excluding scenario column)
 - [ ] **Parameter conversion**: custom type converter methods (annotated `@TypeConverter`) or JUnit converters handle type conversion, keeping the test method free of parsing code
 - [ ] **Valid syntax**: values requiring quotes are quoted, collections use correct bracket syntax, empty collections are explicit (`[]`, `{}`, `[:]`)
 - [ ] **Expectation columns present**: at least one column uses `?` suffix (not prefix)
 - [ ] **Concrete values**: expectation values are traceable to input column values where applicable
-- [ ] **Thresholds visible**: rules that depend on a threshold or limit show it as a column, with boundary rows at and just past the threshold
+- [ ] **Thresholds visible**: rules that depend on a threshold or limit show it as a column, with boundary rows at and just past the threshold; for date cutoffs, prefer descriptive relative values (`before cutoff`, `on cutoff`) via a `@TypeConverter` — or include the cutoff date as a column if literal dates are used
 - [ ] **Correct expected values**: arithmetic in expected columns verified independently; every row's output matches the stated rules
 - [ ] **Value set semantics**: value sets only used where every value produces the same result; not used as shorthand for "test multiple values"
+- [ ] **Irrelevance and tiers use value sets**: inputs that don't affect a row's outcome appear as value sets (not a fixed placeholder value mentioned in `@Description`); when a range of input values maps to one tier, the row groups representative values (including both boundaries) into a value set
 - [ ] **Optional inputs blank**: columns not relevant to a scenario use blank cells (not 0 or defaults); parameter types support null
 - [ ] **Traceability columns**: intermediate expected values included only when the value is observable from the public API — never reimplemented from internal logic; if you need to reimplement a formula to populate the column, decompose into separate tables instead
 - [ ] **@Description adds information**: if present, `@Description` provides context beyond what the table shows (fixed values, domain context, open questions) — not a restatement of columns or rows. Omit `@Description` if there is nothing to add.
@@ -801,6 +832,7 @@ After writing, verify:
 - [ ] **Column consolidation**: if multiple columns are mutually exclusive (both identity and status vary together), consider consolidating into single column with composite values (e.g., `Primary OK`, `Secondary ERROR`)
 - [ ] **Cross-table consistency**: if multiple TableTests exist in the same class, use consistent notation for similar concerns (timing, errors, special values); share parsers and helper methods
 - [ ] **Test helpers organized**: helper classes placed at bottom of test file with clear names (`QueryCounter`, not `Helper`); only extract to separate file when reused across test classes
+- [ ] **Old framework removed** (conversions only): no imports, matcher/assertion calls, or build-file dependencies from the framework being replaced
 
 ---
 
