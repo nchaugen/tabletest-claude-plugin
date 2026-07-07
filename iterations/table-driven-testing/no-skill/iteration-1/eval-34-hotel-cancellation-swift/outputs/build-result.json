@@ -1,6 +1,0 @@
-{
-  "compiles": true,
-  "tests_pass": false,
-  "compile_output": "",
-  "test_output": "[0/1] Planning build\nBuilding for debugging...\n[0/2] Write swift-version--58304C5D6DBC2206.txt\nBuild complete! (0.08s)\n"
-}
