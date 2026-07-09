@@ -357,6 +357,7 @@ function parseArgs(argv) {
     parallel: 4,
     gradeOnly: false,
     reportOnly: false,
+    timeoutMs: null,   // null = use each eval's timeout_ms (or runClaude default)
   };
 
   for (let i = 2; i < argv.length; i++) {
@@ -400,6 +401,15 @@ function parseArgs(argv) {
       case "--parallel":
         args.parallel = parseInt(argv[++i], 10);
         break;
+      case "--timeout": {
+        const seconds = parseInt(argv[++i], 10);
+        if (!Number.isFinite(seconds) || seconds <= 0) {
+          console.error("Error: --timeout requires a positive number of seconds");
+          process.exit(1);
+        }
+        args.timeoutMs = seconds * 1000;
+        break;
+      }
       case "--grade-only":
         args.gradeOnly = true;
         break;
@@ -427,6 +437,7 @@ function parseArgs(argv) {
     console.error("  --nudge-skill       Append a prompt nudge to invoke the relevant skill (for models that don't trigger skills on their own)");
     console.error("  --grading-suffix S  Isolate a re-grade: write grading-S.json, benchmark-S.json, eval-review-S.md");
     console.error("  --parallel N        Max parallel evals (default: 4)");
+    console.error("  --timeout SECONDS   Override each eval's generation timeout (useful for slow local LLMs)");
     console.error("  --grade-only        Re-grade existing outputs");
     console.error("  --report-only       Regenerate report from existing benchmark.json");
     process.exit(1);
@@ -838,7 +849,7 @@ async function generateOne(evalDef, worktreePath, iterationDir, args) {
       provider,
       cwd: agentCwd,
       pluginDir: agentCwd,
-      timeoutMs: evalDef.timeout_ms,
+      timeoutMs: args.timeoutMs || evalDef.timeout_ms,
     });
 
     fs.writeFileSync(
