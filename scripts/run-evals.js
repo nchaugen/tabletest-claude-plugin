@@ -570,7 +570,7 @@ function setupWorktree(repoRoot, mode = "skill", args = {}) {
   }
 
   // Project files that leak eval strategy or expected answers
-  for (const file of ["README.md", "CLAUDE.md", "CHANGELOG.md"]) {
+  for (const file of ["README.md", "CLAUDE.md", "AGENTS.md", "CHANGELOG.md"]) {
     const p = path.join(worktreePath, file);
     if (fs.existsSync(p)) { fs.rmSync(p); removals.push(file); }
   }
