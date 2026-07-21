@@ -263,8 +263,7 @@ function resolveModel(shortName) {
 // benchmark with a silently missing eval. A full re-baseline makes hundreds of these calls
 // over ~73 minutes, and --grade-runs multiplies them, so transient failures are expected
 // rather than exceptional. Retry them; fail fast on anything the caller caused.
-const GRADING_MAX_ATTEMPTS = 5;
-const GRADING_RETRY_BASE_MS = 1000;
+const DEFAULT_RETRY_POLICY = { maxAttempts: 5, baseDelayMs: 1000 };
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -276,12 +275,12 @@ function isRetryableStatus(status) {
 
 /** Honours Retry-After when the server sends one; otherwise exponential backoff, jittered so
  *  parallel graders do not retry in lockstep and re-collide. */
-function retryDelayMs(attempt, retryAfterHeader) {
+function retryDelayMs(attempt, retryAfterHeader, baseDelayMs = DEFAULT_RETRY_POLICY.baseDelayMs) {
   const retryAfterSeconds = Number(retryAfterHeader);
   if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) {
     return retryAfterSeconds * 1000;
   }
-  const backoff = GRADING_RETRY_BASE_MS * 2 ** attempt;
+  const backoff = baseDelayMs * 2 ** attempt;
   return backoff + Math.random() * backoff;
 }
 
@@ -290,10 +289,15 @@ function retryDelayMs(attempt, retryAfterHeader) {
  *
  * A 4xx other than 429 is a bad request — a missing API key, a malformed model id — and
  * retrying it just delays the same error five times over, so those fail immediately.
+ *
+ * `retryPolicy` exists so tests can exercise exhaustion without waiting out real backoff;
+ * production always uses the default.
  */
-async function postGradingRequest(url, options, apiName) {
+async function postGradingRequest(url, options, apiName, retryPolicy = DEFAULT_RETRY_POLICY) {
+  const { maxAttempts, baseDelayMs } = retryPolicy;
+
   for (let attempt = 0; ; attempt++) {
-    const isLastAttempt = attempt === GRADING_MAX_ATTEMPTS - 1;
+    const isLastAttempt = attempt === maxAttempts - 1;
     let resp = null;
     let networkError = null;
 
@@ -309,15 +313,15 @@ async function postGradingRequest(url, options, apiName) {
     if (!retryable || isLastAttempt) {
       if (networkError) throw networkError;
       const body = await resp.text();
-      const exhausted = retryable ? ` after ${GRADING_MAX_ATTEMPTS} attempts` : "";
+      const exhausted = retryable ? ` after ${maxAttempts} attempts` : "";
       throw new Error(`${apiName} API error ${resp.status}${exhausted}: ${body.slice(0, 300)}`);
     }
 
     const retryAfter = resp ? resp.headers.get("retry-after") : null;
-    const delay = retryDelayMs(attempt, retryAfter);
+    const delay = retryDelayMs(attempt, retryAfter, baseDelayMs);
     if (resp) await resp.text().catch(() => {}); // release the socket before waiting
     const cause = networkError ? networkError.message : `HTTP ${resp.status}`;
-    log(`  ${apiName} grading call failed (${cause}) — retry ${attempt + 1}/${GRADING_MAX_ATTEMPTS - 1} in ${Math.round(delay)}ms`);
+    log(`  ${apiName} grading call failed (${cause}) — retry ${attempt + 1}/${maxAttempts - 1} in ${Math.round(delay)}ms`);
     await sleep(delay);
   }
 }
