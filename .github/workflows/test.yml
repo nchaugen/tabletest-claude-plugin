@@ -1,0 +1,23 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # No package.json and no dependencies — node:test is built in. Pinned rather than
+      # lts/* so a Node release cannot turn a green branch red without a commit.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Glob, so a new scripts/*.test.js file is picked up without touching this workflow.
+      # The suite stubs every API call, so it needs no secrets and no network.
+      - name: Run tests
+        run: node --test "scripts/*.test.js"
