@@ -258,9 +258,73 @@ function resolveModel(shortName) {
   return shortName;
 }
 
+// A grading call that throws costs more than itself: gradeOne discards the eval's
+// already-completed batches, so one transient 500 wipes a whole eval's grading and leaves a
+// benchmark with a silently missing eval. A full re-baseline makes hundreds of these calls
+// over ~73 minutes, and --grade-runs multiplies them, so transient failures are expected
+// rather than exceptional. Retry them; fail fast on anything the caller caused.
+const GRADING_MAX_ATTEMPTS = 5;
+const GRADING_RETRY_BASE_MS = 1000;
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function isRetryableStatus(status) {
+  return status === 429 || status >= 500;
+}
+
+/** Honours Retry-After when the server sends one; otherwise exponential backoff, jittered so
+ *  parallel graders do not retry in lockstep and re-collide. */
+function retryDelayMs(attempt, retryAfterHeader) {
+  const retryAfterSeconds = Number(retryAfterHeader);
+  if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) {
+    return retryAfterSeconds * 1000;
+  }
+  const backoff = GRADING_RETRY_BASE_MS * 2 ** attempt;
+  return backoff + Math.random() * backoff;
+}
+
+/**
+ * POSTs to a grading API, retrying transient failures (429, 5xx, network errors).
+ *
+ * A 4xx other than 429 is a bad request — a missing API key, a malformed model id — and
+ * retrying it just delays the same error five times over, so those fail immediately.
+ */
+async function postGradingRequest(url, options, apiName) {
+  for (let attempt = 0; ; attempt++) {
+    const isLastAttempt = attempt === GRADING_MAX_ATTEMPTS - 1;
+    let resp = null;
+    let networkError = null;
+
+    try {
+      resp = await fetch(url, options);
+    } catch (err) {
+      networkError = err;
+    }
+
+    if (resp && resp.ok) return resp;
+
+    const retryable = networkError !== null || isRetryableStatus(resp.status);
+    if (!retryable || isLastAttempt) {
+      if (networkError) throw networkError;
+      const body = await resp.text();
+      const exhausted = retryable ? ` after ${GRADING_MAX_ATTEMPTS} attempts` : "";
+      throw new Error(`${apiName} API error ${resp.status}${exhausted}: ${body.slice(0, 300)}`);
+    }
+
+    const retryAfter = resp ? resp.headers.get("retry-after") : null;
+    const delay = retryDelayMs(attempt, retryAfter);
+    if (resp) await resp.text().catch(() => {}); // release the socket before waiting
+    const cause = networkError ? networkError.message : `HTTP ${resp.status}`;
+    log(`  ${apiName} grading call failed (${cause}) — retry ${attempt + 1}/${GRADING_MAX_ATTEMPTS - 1} in ${Math.round(delay)}ms`);
+    await sleep(delay);
+  }
+}
+
 async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropic") {
   if (provider === "ollama") {
-    const resp = await fetch("http://localhost:11434/api/chat", {
+    const resp = await postGradingRequest("http://localhost:11434/api/chat", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -271,16 +335,12 @@ async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropi
         ],
         stream: false,
       }),
-    });
-    if (!resp.ok) {
-      const body = await resp.text();
-      throw new Error(`Ollama API error ${resp.status}: ${body.slice(0, 300)}`);
-    }
+    }, "Ollama");
     const data = await resp.json();
     return data.message.content;
   }
 
-  const resp = await fetch("https://api.anthropic.com/v1/messages", {
+  const resp = await postGradingRequest("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
       "x-api-key": process.env.ANTHROPIC_API_KEY,
@@ -293,11 +353,7 @@ async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropi
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
     }),
-  });
-  if (!resp.ok) {
-    const body = await resp.text();
-    throw new Error(`Anthropic API error ${resp.status}: ${body.slice(0, 300)}`);
-  }
+  }, "Anthropic");
   const data = await resp.json();
   return data.content[0].text;
 }
