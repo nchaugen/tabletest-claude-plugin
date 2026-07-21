@@ -1,0 +1,13 @@
+{
+  "model": "qwen3.6:35b-mlx",
+  "models_used": [
+    "qwen3.6:35b-mlx"
+  ],
+  "duration_ms": 227938,
+  "input_tokens": 565026,
+  "output_tokens": 10489,
+  "cache_creation_input_tokens": 0,
+  "cache_read_input_tokens": 0,
+  "total_tokens": 575515,
+  "cost_usd": 3.11868
+}

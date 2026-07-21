@@ -1,0 +1,288 @@
+{
+  "skill_name": "tabletest (qwen)",
+  "iteration": 1,
+  "model": "qwen3.6:35b-mlx",
+  "provider": "ollama",
+  "nudge_skill": true,
+  "grading_model": "claude-haiku-4-5",
+  "timestamp": "2026-07-07T23:50:50.548Z",
+  "evals": [
+    {
+      "id": "eval-1-convert-repetitive-tests",
+      "name": "convert repetitive tests",
+      "skill": "tabletest",
+      "fingerprint": "83916a89342e",
+      "results": {}
+    },
+    {
+      "id": "eval-2-parse-dates",
+      "name": "parse dates",
+      "skill": "tabletest",
+      "fingerprint": "b78db3934b14",
+      "results": {}
+    },
+    {
+      "id": "eval-7-permission-check",
+      "name": "permission check",
+      "skill": "tabletest",
+      "fingerprint": "d0c049884196",
+      "results": {}
+    },
+    {
+      "id": "eval-8-money-parse",
+      "name": "money parse",
+      "skill": "tabletest",
+      "fingerprint": "e32a6e31968c",
+      "results": {}
+    },
+    {
+      "id": "eval-9-bonus-contractor-structure",
+      "name": "bonus contractor structure",
+      "skill": "tabletest",
+      "fingerprint": "bd0f0eeb7281",
+      "results": {}
+    },
+    {
+      "id": "eval-14-weekly-pay",
+      "name": "weekly pay",
+      "skill": "tabletest",
+      "fingerprint": "eb78eda8e1ad",
+      "results": {}
+    },
+    {
+      "id": "eval-15-reis-discount",
+      "name": "reis discount",
+      "skill": "tabletest",
+      "fingerprint": "0fa82bfd31da",
+      "results": {}
+    },
+    {
+      "id": "eval-18-convert-from-code",
+      "name": "convert from code",
+      "skill": "tabletest",
+      "fingerprint": "c2092c8a9931",
+      "results": {
+        "model": null,
+        "assertions_passed": 0,
+        "assertions_total": 21,
+        "pass_rate": 0,
+        "failed_assertions": [
+          "has-tabletest-annotation",
+          "black-box-columns",
+          "observable-io-only",
+          "scenario-column-present",
+          "business-language-columns",
+          "scenario-names-describe-conditions",
+          "has-question-mark-column",
+          "no-if-switch-in-method",
+          "annotation-order",
+          "has-descriptive-title",
+          "description-uses-textblock",
+          "concerns-decomposed",
+          "minimal-rows-per-concern",
+          "separates-decision-and-premium",
+          "no-reimplemented-internals",
+          "description-no-internals",
+          "depth-decision-boundaries",
+          "depth-premium-boundaries",
+          "has-tabletest-dependency",
+          "compiles",
+          "tests-pass"
+        ],
+        "total_tokens": 0,
+        "duration_ms": 916337,
+        "cost_usd": 0,
+        "error": "claude exited with code 1:\n  result: API Error: Response stalled mid-stream. The response above may be incomplete.\n  stderr: ⚠ claude.ai connectors are disabled because ANTHROPIC_API_KEY or another auth source is set and takes precedence over your claude.ai login · Unset it to load your organization's connectors\n"
+      }
+    },
+    {
+      "id": "eval-20-collections-and-quoting",
+      "name": "collections and quoting",
+      "skill": "tabletest",
+      "fingerprint": "0a439ff8703c",
+      "results": {
+        "model": null,
+        "assertions_passed": 0,
+        "assertions_total": 15,
+        "pass_rate": 0,
+        "failed_assertions": [
+          "has-tabletest-annotation",
+          "list-syntax-correct",
+          "empty-list-explicit",
+          "special-chars-quoted",
+          "set-syntax-correct",
+          "newline-in-cell",
+          "pipe-quoted",
+          "scenario-column-present",
+          "has-question-mark-column",
+          "no-if-switch-in-method",
+          "annotation-order",
+          "has-descriptive-title",
+          "description-uses-textblock",
+          "has-tabletest-dependency",
+          "compiles"
+        ],
+        "total_tokens": 0,
+        "duration_ms": 2174565,
+        "cost_usd": 0,
+        "error": "Timed out after 1800000ms"
+      }
+    },
+    {
+      "id": "eval-22-event-registration-tt",
+      "name": "event registration tt",
+      "skill": "tabletest",
+      "fingerprint": "e93f016c691a",
+      "results": {}
+    },
+    {
+      "id": "eval-23-loan-approval-tt",
+      "name": "loan approval tt",
+      "skill": "tabletest",
+      "fingerprint": "acce12d3c355",
+      "results": {}
+    },
+    {
+      "id": "eval-25-convert-from-spock",
+      "name": "convert from spock",
+      "skill": "tabletest",
+      "fingerprint": "c9e0fd99d22c",
+      "results": {}
+    },
+    {
+      "id": "eval-26-convert-from-kotest",
+      "name": "convert from kotest",
+      "skill": "tabletest",
+      "fingerprint": "f82d8f585f35",
+      "results": {}
+    },
+    {
+      "id": "eval-27-convert-from-testng",
+      "name": "convert from testng",
+      "skill": "tabletest",
+      "fingerprint": "7eaa99f68f65",
+      "results": {
+        "model": null,
+        "assertions_passed": 0,
+        "assertions_total": 19,
+        "pass_rate": 0,
+        "failed_assertions": [
+          "has-tabletest-annotation",
+          "options-as-map",
+          "options-type-converter",
+          "dimensions-as-list",
+          "uses-value-sets",
+          "concerns-decomposed",
+          "numeric-types-correct",
+          "scenario-column-present",
+          "scenario-names-describe-conditions",
+          "has-question-mark-column",
+          "business-language-columns",
+          "no-if-switch-in-method",
+          "annotation-order",
+          "has-descriptive-title",
+          "no-testng-artifacts",
+          "has-tabletest-dependency",
+          "compiles",
+          "tests-pass",
+          "testng-dependency-removed"
+        ],
+        "total_tokens": 0,
+        "duration_ms": 1118726,
+        "cost_usd": 0,
+        "error": "claude exited with code 1:\n  result: API Error: Response stalled mid-stream. The response above may be incomplete.\n  stderr: ⚠ claude.ai connectors are disabled because ANTHROPIC_API_KEY or another auth source is set and takes precedence over your claude.ai login · Unset it to load your organization's connectors\n"
+      }
+    },
+    {
+      "id": "eval-28-convert-from-methodsource",
+      "name": "convert from methodsource",
+      "skill": "tabletest",
+      "fingerprint": "1d0d16a40021",
+      "results": {
+        "model": null,
+        "assertions_passed": 0,
+        "assertions_total": 18,
+        "pass_rate": 0,
+        "failed_assertions": [
+          "has-tabletest-annotation",
+          "options-as-map",
+          "options-type-converter",
+          "dimensions-as-list",
+          "uses-value-sets",
+          "concerns-decomposed",
+          "numeric-types-correct",
+          "scenario-column-present",
+          "scenario-names-describe-conditions",
+          "has-question-mark-column",
+          "business-language-columns",
+          "no-if-switch-in-method",
+          "annotation-order",
+          "has-descriptive-title",
+          "no-methodsource-artifacts",
+          "has-tabletest-dependency",
+          "compiles",
+          "tests-pass"
+        ],
+        "total_tokens": 0,
+        "duration_ms": 2481429,
+        "cost_usd": 0,
+        "error": "Timed out after 1800000ms"
+      }
+    },
+    {
+      "id": "eval-29-shopping-cart-tt",
+      "name": "shopping cart tt",
+      "skill": "tabletest",
+      "fingerprint": "a6078bc0c3a5",
+      "results": {}
+    },
+    {
+      "id": "eval-30-order-splitting-tt",
+      "name": "order splitting tt",
+      "skill": "tabletest",
+      "fingerprint": "556582fc2cc1",
+      "results": {
+        "model": null,
+        "assertions_passed": 0,
+        "assertions_total": 20,
+        "pass_rate": 0,
+        "failed_assertions": [
+          "has-tabletest-annotation",
+          "concerns-decomposed",
+          "minimal-rows-per-concern",
+          "concern-fulfillment-method",
+          "concern-delivery-address",
+          "concern-availability",
+          "concern-warehouse-allocation",
+          "concern-companion-products",
+          "all-outputs-same-table",
+          "scalar-quantity-for-warehouse",
+          "scenario-column-present",
+          "has-question-mark-column",
+          "scenario-names-describe-conditions",
+          "business-language-columns",
+          "no-if-switch-in-method",
+          "annotation-order",
+          "has-descriptive-title",
+          "description-uses-textblock",
+          "has-tabletest-dependency",
+          "compiles"
+        ],
+        "total_tokens": 0,
+        "duration_ms": 2415286,
+        "cost_usd": 0,
+        "error": "Timed out after 1800000ms"
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 0,
+    "assertions_total": 93,
+    "pass_rate": 0,
+    "total_tokens": 0,
+    "total_duration_ms": 9106343,
+    "total_cost_usd": 0
+  },
+  "model_resolved": [],
+  "cost_basis": "cli-list-price-estimate"
+}

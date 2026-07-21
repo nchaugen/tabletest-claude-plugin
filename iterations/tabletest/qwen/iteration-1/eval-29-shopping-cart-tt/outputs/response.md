@@ -1,0 +1,1 @@
+I see problems — row 46 has an incorrect expected value (cart items after adding Gadget to empty wouldn't have Widget), and `CartItems?` column is misleading since each row starts from empty. Let me fix this properly:

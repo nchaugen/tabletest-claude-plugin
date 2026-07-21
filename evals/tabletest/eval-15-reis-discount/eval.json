@@ -2,6 +2,7 @@
   "id": 15,
   "slug": "reis-discount",
   "skill": "tabletest",
+  "timeout_ms": 1500000,
   "assertions": [
     {
       "id": "2.1-decomposition-concern-separation",
@@ -95,7 +96,7 @@
     },
     {
       "id": "has-tabletest-dependency",
-      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit:1.2.1 as a test dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
       "type": "deterministic"
     },
     {

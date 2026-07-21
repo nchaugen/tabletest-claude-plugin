@@ -85,7 +85,7 @@
     },
     {
       "id": "has-tabletest-dependency",
-      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit:1.2.1 as a test dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
       "type": "deterministic"
     },
     {

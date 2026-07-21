@@ -1,0 +1,13 @@
+{
+  "model": "gemma4:31b-mlx",
+  "models_used": [
+    "gemma4:31b-mlx"
+  ],
+  "duration_ms": 446821,
+  "input_tokens": 340113,
+  "output_tokens": 3620,
+  "cache_creation_input_tokens": 0,
+  "cache_read_input_tokens": 0,
+  "total_tokens": 343733,
+  "cost_usd": 1.799045
+}

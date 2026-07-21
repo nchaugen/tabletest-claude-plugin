@@ -44,10 +44,30 @@ node scripts/run-evals.js --skill tabletest --iteration N [--evals 1,2] [--compa
 Regression detection compares against the previous iteration's `benchmark.json` (same
 variant); `--compare-official` also compares a variant against the latest official baseline.
 
-**Cost control (tabletest):** during variant iteration run only the discriminating core
-`--evals 2,14,15,22,23,26,28,30` (~40% of full-suite cost; covers every assertion family
-that has failed in recent baselines). Run the full suite once at promotion as regression
-evidence. Conversion coverage can rotate (26+28 one cycle, 25+27 the next) to cut promotion cost.
+**Timeouts:** the runner's default is 600s. An eval whose recent runs exceed ~60% of its
+budget needs an explicit `timeout_ms`, or it will eventually time out, score 0, and swing the
+next two reports — once down, once back up as phantom "improvements" across every assertion
+it owns. Suspect this whenever a delta shows `compiles`, `has-tabletest-dependency` or a
+format assertion "improving"; those do not improve on their own.
+
+**Cost control (tabletest):** almost all run cost is *generation* — solving the eval, not
+grading it. Assertion count is close to free (deterministic assertions are code checkers, LLM
+assertions share one batched call per eval), so cost is controlled by choosing which evals to
+run, never by trimming assertions.
+
+**An eval earns a place in the iteration loop by having at least one assertion that is unique
+to it and has failed in a recent baseline.** Everything else is promotion-time regression
+evidence. Two consequences worth stating, because both are easy to get wrong:
+
+- An eval at 100% teaches nothing during iteration, however good it is. Keep it for promotion.
+- Near-duplicate evals bill separately for the same finding. The four conversion evals
+  (25/26/27/28) are one task from four source frameworks; their eval-unique assertions
+  (`no-*-syntax`, `*-dependency-removed`) pass consistently, so every failure they surface is
+  in a shared assertion. Run **one** per iteration cycle, rotating; run all four at promotion.
+
+Pick the loop per change, from the previous baseline's failing-assertion set, rather than
+reusing a fixed list — the discriminating core drifts as failures are fixed. The full suite is
+~$15 and ~73 min; a well-chosen loop is a quarter of that with strictly more signal.
 
 ### Developing a variant
 

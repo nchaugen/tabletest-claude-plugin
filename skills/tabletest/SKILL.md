@@ -18,14 +18,14 @@ Maven:
 <dependency>
     <groupId>org.tabletest</groupId>
     <artifactId>tabletest-junit</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
     <scope>test</scope>
 </dependency>
 ```
 
 Gradle:
 ```groovy
-testImplementation "org.tabletest:tabletest-junit:1.2.1"
+testImplementation "org.tabletest:tabletest-junit:1.2.2"
 ```
 
 Imports:
