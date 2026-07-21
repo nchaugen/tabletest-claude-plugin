@@ -306,6 +306,33 @@ async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropi
 // the largest evals carry nearly twenty LLM assertions.
 const LLM_GRADING_BATCH_SIZE = 10;
 
+/**
+ * Collapses repeated gradings of one batch into a single verdict per assertion.
+ *
+ * Grader disagreement is response-level, not assertion-level: a whole batch swings
+ * together, so sharper assertion wording does not settle it but a second opinion does.
+ * A split vote is recorded in the evidence, making an unreliable assertion visible
+ * instead of silently contributing noise to the score.
+ */
+function majorityVote(samples, batch) {
+  if (samples.length === 1) return samples[0];
+  return batch.map(a => {
+    const votes = samples.map(s => s.find(r => r.id === a.id)).filter(Boolean);
+    const passes = votes.filter(v => v.passed).length;
+    const passed = passes * 2 > votes.length;
+    const winner = votes.find(v => v.passed === passed) || {};
+    const split = passes !== 0 && passes !== votes.length;
+    return {
+      id: a.id,
+      text: a.text,
+      passed,
+      evidence: split
+        ? `[split vote ${passes}/${votes.length} pass] ${winner.evidence || ""}`
+        : (winner.evidence || ""),
+    };
+  });
+}
+
 const GRADING_SYSTEM_PROMPT = `You are an eval grader. You will receive a model response and a list of assertions.
 For each assertion, determine whether it passes or fails based on the response content.
 
@@ -357,6 +384,7 @@ function parseArgs(argv) {
     gradingModel: "haiku",
     provider: "anthropic",
     gradingSuffix: null,
+    gradeRuns: 1,
     nudgeSkill: false,
     parallel: 4,
     gradeOnly: false,
@@ -398,6 +426,9 @@ function parseArgs(argv) {
         break;
       case "--grading-suffix":
         args.gradingSuffix = argv[++i];
+        break;
+      case "--grade-runs":
+        args.gradeRuns = Math.max(1, parseInt(argv[++i], 10) || 1);
         break;
       case "--nudge-skill":
         args.nudgeSkill = true;
@@ -442,6 +473,7 @@ function parseArgs(argv) {
     console.error("  --grading-suffix S  Isolate a re-grade: write grading-S.json, benchmark-S.json, eval-review-S.md");
     console.error("  --parallel N        Max parallel evals (default: 4)");
     console.error("  --timeout SECONDS   Override each eval's generation timeout (useful for slow local LLMs)");
+    console.error("  --grade-runs N      Grade each assertion N times and take the majority verdict (default 1)");
     console.error("  --grade-only        Re-grade existing outputs");
     console.error("  --report-only       Regenerate report from existing benchmark.json");
     process.exit(1);
@@ -1099,7 +1131,7 @@ function parseLlmGrading(gradingText) {
   return null;
 }
 
-async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, provider = "anthropic") {
+async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, provider = "anthropic", gradeRuns = 1) {
   const evalDir = path.join(
     iterationDir,
     `eval-${evalDef.id}-${evalDef.slug}`
@@ -1160,15 +1192,19 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, prov
     const batch = llmAssertions.slice(i, i + LLM_GRADING_BATCH_SIZE);
     const llmEvalDef = { ...evalDef, assertions: batch };
     const gradingPrompt = buildGradingPrompt(llmEvalDef, response, allFiles, { noDeliverable: gated });
-    const gradingText = await gradeViaApi(GRADING_SYSTEM_PROMPT, gradingPrompt, model, provider);
 
-    const llmGrading = parseLlmGrading(gradingText);
-    if (!llmGrading) {
-      throw new Error(
-        `Failed to parse grading JSON for eval ${evalDef.id} (assertions ${i + 1}-${i + batch.length}): ${gradingText.slice(0, 200)}`
-      );
+    const samples = [];
+    for (let run = 0; run < gradeRuns; run++) {
+      const gradingText = await gradeViaApi(GRADING_SYSTEM_PROMPT, gradingPrompt, model, provider);
+      const llmGrading = parseLlmGrading(gradingText);
+      if (!llmGrading) {
+        throw new Error(
+          `Failed to parse grading JSON for eval ${evalDef.id} (assertions ${i + 1}-${i + batch.length}, run ${run + 1}): ${gradingText.slice(0, 200)}`
+        );
+      }
+      samples.push(llmGrading.assertions);
     }
-    llmResults = llmResults.concat(llmGrading.assertions);
+    llmResults = llmResults.concat(majorityVote(samples, batch));
   }
 
   // Merge all results in original assertion order
@@ -1208,7 +1244,7 @@ async function gradeResponses(evals, iterationDir, args) {
     const batch = evals.slice(i, i + args.parallel);
     await Promise.all(
       batch.map((evalDef) =>
-        gradeOne(evalDef, iterationDir, args.gradingModel, args.gradingSuffix, args.provider).catch((err) => {
+        gradeOne(evalDef, iterationDir, args.gradingModel, args.gradingSuffix, args.provider, args.gradeRuns).catch((err) => {
           logError(`  ✗ Eval ${evalDef.id} — GRADING FAILED: ${err.message}`);
           const errDir = path.join(iterationDir, `eval-${evalDef.id}-${evalDef.slug}`);
           if (fs.existsSync(errDir)) {

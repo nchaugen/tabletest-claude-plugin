@@ -75,12 +75,12 @@
     },
     {
       "id": "description-no-redundant-field-values",
-      "text": "Scenario descriptions and @Description text do not include specific field values that are already visible in the table or that serve as 'any valid value' placeholders. Stating 'Customer age is 35 for all rows' in @Description when age is fixed in the method body, or including fixed values in scenario names that are already columns, adds maintenance burden without value. Describe the scenario condition or policy being tested instead.",
+      "text": "Scenario names and @Description text do not restate values the table already shows. The assertion FAILS if either: (1) a scenario name contains a literal value that also appears in an input cell of the same row (e.g. scenario 'Age 35, score 700' beside Age and Credit score columns holding 35 and 700); or (2) @Description states a fixed value for an input that is already a column in that table. Otherwise it PASSES. Stating a constant that is NOT a column — a threshold, a policy figure, a value fixed in the method body — is correct and must not fail this assertion.",
       "type": "llm"
     },
     {
       "id": "depth-stable-income-effect",
-      "text": "The standardApplicantCreditThreshold table (or equivalent non-senior table) clearly documents the effect of stable income: rows show that above-threshold credit score + stable income = APPROVED, and above-threshold credit score + no stable income = REJECTED. The stable income parameter's effect on the outcome must be visible from the table rows, not just implied.",
+      "text": "The effect of stable income on the outcome is visible from table rows, not merely implied. The assertion PASSES if some single @TableTest table contains two rows that differ in the stable-income column (or equivalent) while holding the credit score and age columns equal, and those two rows carry different expected decisions. It FAILS if no such row pair exists in any table — including when stable income appears only in scenario names, only in the @Description, or only in rows that also vary another input.",
       "type": "llm"
     },
     {
@@ -90,12 +90,12 @@
     },
     {
       "id": "rule-falsifiable-by-a-row",
-      "text": "Cell values are chosen so the rule is falsifiable, not merely distinguishable. For each table, name the plausible wrong implementation (returns a constant, ignores one of the inputs, applies the rule in the wrong order, truncates instead of rounding) — at least one row must fail under it. Tables whose rows would all still pass under \"return the same answer every time\", or that use arbitrary placeholder values where the real distinction lies elsewhere, fail this assertion.",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES. Do not fail a table merely because its values are simple or round — only these three conditions matter.",
       "type": "llm"
     },
     {
       "id": "rule-statable-from-table",
-      "text": "A reader can state the rule from the table alone, without reading the test method body. Everything essential to the rule is visible in the title, the @Description, or the columns — not hidden in the assertion, in a helper method, or in a constant hardcoded in the method body. A table that shows only the endpoints of an operation, without making the operation itself inferable, fails this assertion.",
+      "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone; (3) a helper method used in the assertion applies a comparison criterion (ordering, tolerance, subset matching) that is stated nowhere in the table, title, or description. Otherwise the assertion PASSES. Setup that merely constructs the objects named by the columns is not a failure.",
       "type": "llm"
     },
     {

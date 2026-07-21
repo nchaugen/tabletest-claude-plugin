@@ -2,6 +2,7 @@
   "id": 14,
   "slug": "weekly-pay",
   "skill": "tabletest",
+  "timeout_ms": 1500000,
   "assertions": [
     {
       "id": "1.2-error-has-expected-column",
