@@ -9,5 +9,4 @@ target/
 # Eval run artifacts — outputs, gradings, and summaries are committed for
 # recorded iterations; conversation and run logs never are
 iterations/**/conversation.jsonl
-iterations/**/run.log
-iterations/**/error.log
+iterations/**/*.log

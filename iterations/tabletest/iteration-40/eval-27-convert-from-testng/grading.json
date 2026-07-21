@@ -1,0 +1,121 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "options-as-map",
+      "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:].",
+      "passed": false,
+      "evidence": "Options are passed as individual boolean/String parameters in table columns (e.g., 'Fragile', 'Handling', 'Insured Value'), not as a collapsed map column like '[fragile: true, insuredValue: 500]'."
+    },
+    {
+      "id": "options-type-converter",
+      "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.",
+      "passed": false,
+      "evidence": "No @TypeConverter method is present in the test file. Options are constructed programmatically in test methods, not via a type converter."
+    },
+    {
+      "id": "dimensions-as-list",
+      "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns",
+      "passed": true,
+      "evidence": "Dimensions appear as 'Dimensions | [10, 10, 10]' and '[70, 50, 10]' in table format, parsed as List<Integer>."
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence, rather than duplicating rows per carrier",
+      "passed": true,
+      "evidence": "Value set syntax found"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence",
+      "passed": true,
+      "evidence": "Eight separate @TableTest methods: calculatesBaseRateByZoneAndWeight, appliesDimensionalWeightWhenGreaterThanActual, appliesOversizeSurchargeWhenAnyDimensionExceedsLimit, appliesFragileSurcharge, appliesInsurancePremiumWithMinimum, appliesHazmatHandlingFee, combinesSurchargesInOrder, carrierDoesNotAffectPrice."
+    },
+    {
+      "id": "numeric-types-correct",
+      "text": "Parameter types correspond to the ShippingCostCalculator.calculateShippingCost interface — weight, cost, and dimension types match the method signature.",
+      "passed": true,
+      "evidence": "Method calls use 'double weight', 'List<Integer> dimensions', 'BigDecimal' return/param types: 'calculateShippingCost(zone, 1.0, dimensions, new PackageOptions(), Carrier.DHL)' and 'BigDecimal result'."
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Each table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1').",
+      "passed": true,
+      "evidence": "Scenarios describe conditions: 'EU standard, light', 'EU express, medium', 'Small package, actual weight used', 'Just over the limit', 'Fragile and insured', 'Same zone and weight, any carrier'."
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Cost?', 'Base rate?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Base Rate?, Rate?, Total Cost?, Total Cost?, Total Cost?, Total Cost?, Total Cost?, Total Cost?"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')",
+      "passed": true,
+      "evidence": "Columns use business language: 'Region', 'Speed', 'Weight', 'Base Rate?', 'Dimensions', 'Total Cost?', 'Fragile', 'Insured Value', 'Handling', 'Carrier'."
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method bodies contain no if or switch statements",
+      "passed": true,
+      "evidence": "8 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "8 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "no-testng-artifacts",
+      "text": "Output contains no TestNG syntax: no @DataProvider, @Test(dataProvider=...), Object[][], or TestNG imports (org.testng.*).",
+      "passed": true,
+      "evidence": "No TestNG artifacts found"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit:1.2.1"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The generated tests pass when executed against ShippingCostCalculator",
+      "passed": true,
+      "evidence": "Tests passed"
+    },
+    {
+      "id": "testng-dependency-removed",
+      "text": "The build file no longer declares a TestNG dependency — the old framework is fully removed, not just the test code.",
+      "passed": true,
+      "evidence": "Build file has no TestNG reference"
+    }
+  ],
+  "assertions_passed": 17,
+  "assertions_total": 19,
+  "pass_rate": 0.8947368421052632
+}

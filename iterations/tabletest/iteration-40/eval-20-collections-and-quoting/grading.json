@@ -1,0 +1,109 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "list-syntax-correct",
+      "text": "List values in the table use bracket syntax like [tech:java, biz:sales, dev:ci] — not comma-separated strings without brackets.",
+      "passed": true,
+      "evidence": "| [\"tech:java\", \"dev:python\", \"biz:sales\", \"ops:deploy\"] | tech | [\"tech:java\", \"dev:python\"]"
+    },
+    {
+      "id": "empty-list-explicit",
+      "text": "Empty list input uses [] (not a blank cell, which represents null). The distinction between empty list and null is preserved.",
+      "passed": true,
+      "evidence": "Empty tag list returns empty list | [] | tech | [] and Null category returns all tags unfiltered | ... | | ..."
+    },
+    {
+      "id": "special-chars-quoted",
+      "text": "Values containing pipes (|), brackets, or colons (:) are properly quoted (e.g. \"tech:java\") so they don't conflict with table syntax. Colons without quoting would be mis-interpreted as map key:value entries.",
+      "passed": true,
+      "evidence": "\"tech:java|enterprise\" and \"tech:report[Q1]\" and \"tech:java\\nEnterprise Edition\" all properly quoted"
+    },
+    {
+      "id": "set-syntax-correct",
+      "text": "Set<String> values in the table use curly brace syntax like {tech, dev} — not bracket syntax [tech, dev] which is for lists. The distinction between Set and List types is preserved in the table notation.",
+      "passed": true,
+      "evidence": "Optional adds one extra category's tags | tech | {biz} | ... and Optional adds multiple extra categories | business | {tech, ops} |"
+    },
+    {
+      "id": "newline-in-cell",
+      "text": "A cell value containing a newline does not break the table row structure: the newline is either escaped as \\n inside the cell, or the value is expressed as a list of lines joined in the test body. A literal line break inside a table row fails. Both representations are acceptable — escaping suits a newline inside a single value, a list of lines suits input that is inherently multi-line.",
+      "passed": true,
+      "evidence": "Tag with embedded newline preserved as-is | \"tech:java\\nEnterprise Edition\" | tech | ... with resolvedTag = tag.replace(\"\\\\n\", \"\\n\")"
+    },
+    {
+      "id": "pipe-quoted",
+      "text": "Values containing pipe characters (|) are quoted so they don't conflict with the markdown table column separator. For example, a tag like 'biz:hr|recruiting' must be quoted.",
+      "passed": true,
+      "evidence": "Tag with pipe character preserved as-is | \"tech:java|enterprise\" | tech | [\"tech:java|enterprise\"]"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Filtered tags?' or 'Result?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Kept?, Kept?, Kept?"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "3 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "3 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "no-blank-collection-elements",
+      "text": "No collection value in any table contains a blank element. `[a, , c]`, `[a, b, ]` and `[, a, b]` are parse errors, not collections holding a null element — a collection value cannot express a null element at all.",
+      "passed": true,
+      "evidence": "All list/set values are well-formed with proper elements: [\"tech:java\", \"dev:python\"], {biz}, {tech, ops}, [] - no blank elements present"
+    },
+    {
+      "id": "empty-string-element-quoted",
+      "text": "An empty tag inside a tag list is written as a quoted empty string (\"\" or ''), not as a blank element. Passes if the tables express the empty tag some other legitimate way (e.g. a dedicated String column); fails if a blank element inside a collection is used to mean an empty or absent tag.",
+      "passed": true,
+      "evidence": "Empty tag string is never kept | '' | tech | [] uses quoted empty string '' for the empty tag input"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 17,
+  "assertions_total": 17,
+  "pass_rate": 1
+}

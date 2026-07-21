@@ -1,0 +1,127 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "options-as-map",
+      "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:].",
+      "passed": false,
+      "evidence": "[split vote 1/3 pass] Options appear as separate columns (Fragile, Insured Value, Handling) in appliesSurchargesToBaseCost table, not collapsed into a map column like [fragile: true, insuredValue: 500]"
+    },
+    {
+      "id": "options-type-converter",
+      "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.",
+      "passed": false,
+      "evidence": "No @TypeConverter method is present in the test file. PackageOptions is constructed directly: 'val opts = PackageOptions(isFragile=fragile, insuredValue=insuredValue, handling=handling)'"
+    },
+    {
+      "id": "dimensions-as-list",
+      "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns",
+      "passed": true,
+      "evidence": "Dimensions column shows '[10, 10, 10]' and '[70, 50, 10]' as lists in the table headers and test calls use 'listOf(1, 1, 1)' and 'dimensions: List<Int>'"
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence, rather than duplicating rows per carrier",
+      "passed": true,
+      "evidence": "Value set syntax found"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence",
+      "passed": true,
+      "evidence": "Four separate @TableTest methods: 'calculatesBaseRateByRegionSpeedAndWeight', 'choosesGreaterOfActualAndDimensionalWeight', 'appliesSurchargesToBaseCost', 'carrierDoesNotAffectCost'"
+    },
+    {
+      "id": "numeric-types-correct",
+      "text": "Parameter types correspond to the ShippingCostCalculator.calculateShippingCost interface — weight, cost, and dimension types match the method signature.",
+      "passed": true,
+      "evidence": "Weight is Double (3.0, 25.0), cost is BigDecimal (5.00, 7.50), dimensions are List<Int> ([1,1,1], [10,10,10]). All calls use: calculator.calculateShippingCost(...weight: Double, dimensions: List<Int>..., BigDecimal)"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Each table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1').",
+      "passed": true,
+      "evidence": "Scenarios describe conditions: 'EU standard, light parcel', 'Dimensional weight exceeds actual weight', 'Fragile and insured together', 'One dimension exceeds 100cm'"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Cost?', 'Base rate?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Base Rate?, Base Rate?, Total Cost?, Total Cost?"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')",
+      "passed": true,
+      "evidence": "Column headers use domain language: 'Region', 'Speed', 'Weight', 'Dimensions', 'Fragile', 'Insured Value', 'Handling', 'Base Rate?', 'Total Cost?', 'Carrier'"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method bodies contain no if or switch statements",
+      "passed": true,
+      "evidence": "4 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "4 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "output-is-kotlin",
+      "text": "The generated test file is written in Kotlin (.kt), not Java. Uses Kotlin syntax: fun, val/var, Kotlin imports.",
+      "passed": true,
+      "evidence": "Found 1 Kotlin test file(s): src/test/kotlin/com/example/ShippingCostCalculatorTest.kt"
+    },
+    {
+      "id": "no-kotest-syntax",
+      "text": "Output contains no Kotest syntax: no forAll, row(), withData, shouldBe, context(), FunSpec, or Kotest imports.",
+      "passed": true,
+      "evidence": "No Kotest syntax found"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle.kts) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit:1.2.1"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The generated tests pass when executed against ShippingCostCalculator",
+      "passed": true,
+      "evidence": "Tests passed"
+    },
+    {
+      "id": "kotest-dependency-removed",
+      "text": "The build file no longer declares Kotest dependencies — the old framework is fully removed, not just the test code.",
+      "passed": true,
+      "evidence": "Build file has no Kotest reference"
+    }
+  ],
+  "assertions_passed": 18,
+  "assertions_total": 20,
+  "pass_rate": 0.9
+}
