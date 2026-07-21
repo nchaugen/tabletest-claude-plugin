@@ -30,7 +30,7 @@
     },
     {
       "id": "newline-in-cell",
-      "text": "Cell values containing newlines use \\n escaping — not literal line breaks that would break the table row structure.",
+      "text": "A cell value containing a newline does not break the table row structure: the newline is either escaped as \\n inside the cell, or the value is expressed as a list of lines joined in the test body. A literal line break inside a table row fails. Both representations are acceptable — escaping suits a newline inside a single value, a list of lines suits input that is inherently multi-line.",
       "type": "llm"
     },
     {
@@ -72,6 +72,16 @@
       "id": "has-tabletest-dependency",
       "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
       "type": "deterministic"
+    },
+    {
+      "id": "no-blank-collection-elements",
+      "text": "No collection value in any table contains a blank element. `[a, , c]`, `[a, b, ]` and `[, a, b]` are parse errors, not collections holding a null element — a collection value cannot express a null element at all.",
+      "type": "llm"
+    },
+    {
+      "id": "empty-string-element-quoted",
+      "text": "An empty tag inside a tag list is written as a quoted empty string (\"\" or ''), not as a blank element. Passes if the tables express the empty tag some other legitimate way (e.g. a dedicated String column); fails if a blank element inside a collection is used to mean an empty or absent tag.",
+      "type": "llm"
     },
     {
       "id": "compiles",

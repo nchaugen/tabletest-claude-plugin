@@ -302,6 +302,10 @@ async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropi
   return data.content[0].text;
 }
 
+// Assertions judged per grading call. Ten keeps every judgement close to the instructions;
+// the largest evals carry nearly twenty LLM assertions.
+const LLM_GRADING_BATCH_SIZE = 10;
+
 const GRADING_SYSTEM_PROMPT = `You are an eval grader. You will receive a model response and a list of assertions.
 For each assertion, determine whether it passes or fails based on the response content.
 
@@ -1147,20 +1151,24 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, prov
     ? buildAssertions.map(gate)
     : runBuildAssertions(buildAssertions, evalDir);
 
-  // Run LLM assertions (if any)
+  // Run LLM assertions, in batches. A grader asked to judge twenty criteria in one
+  // response degrades on the later ones; batching keeps each judgement close to the
+  // instructions. Grading is a rounding error against generation cost, so the extra
+  // calls are free in practice.
   let llmResults = [];
-  if (llmAssertions.length > 0) {
-    const llmEvalDef = { ...evalDef, assertions: llmAssertions };
+  for (let i = 0; i < llmAssertions.length; i += LLM_GRADING_BATCH_SIZE) {
+    const batch = llmAssertions.slice(i, i + LLM_GRADING_BATCH_SIZE);
+    const llmEvalDef = { ...evalDef, assertions: batch };
     const gradingPrompt = buildGradingPrompt(llmEvalDef, response, allFiles, { noDeliverable: gated });
     const gradingText = await gradeViaApi(GRADING_SYSTEM_PROMPT, gradingPrompt, model, provider);
 
     const llmGrading = parseLlmGrading(gradingText);
     if (!llmGrading) {
       throw new Error(
-        `Failed to parse grading JSON for eval ${evalDef.id}: ${gradingText.slice(0, 200)}`
+        `Failed to parse grading JSON for eval ${evalDef.id} (assertions ${i + 1}-${i + batch.length}): ${gradingText.slice(0, 200)}`
       );
     }
-    llmResults = llmGrading.assertions;
+    llmResults = llmResults.concat(llmGrading.assertions);
   }
 
   // Merge all results in original assertion order

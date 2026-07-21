@@ -16,6 +16,7 @@ It filters the given tags according to these rules:
 Tags follow this format:
 - Tag strings containing special characters like pipes (|) or brackets ([, ]) should be preserved as-is
 - Tag strings may contain newlines, e.g. "tech:java\nEnterprise Edition"
+- An empty tag string is never kept, whatever the category
 - Null category returns all tags unfiltered
 - Null or empty optional means no optional category filter is applied
 

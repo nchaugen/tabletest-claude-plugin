@@ -124,6 +124,16 @@
       "type": "deterministic"
     },
     {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values are chosen so the rule is falsifiable, not merely distinguishable. For each table, name the plausible wrong implementation (returns a constant, ignores one of the inputs, applies the rule in the wrong order, truncates instead of rounding) — at least one row must fail under it. Tables whose rows would all still pass under \"return the same answer every time\", or that use arbitrary placeholder values where the real distinction lies elsewhere, fail this assertion.",
+      "type": "llm"
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without reading the test method body. Everything essential to the rule is visible in the title, the @Description, or the columns — not hidden in the assertion, in a helper method, or in a constant hardcoded in the method body. A table that shows only the endpoints of an operation, without making the operation itself inferable, fails this assertion.",
+      "type": "llm"
+    },
+    {
       "id": "compiles",
       "text": "The generated test code compiles successfully against the project scaffolding",
       "type": "build"
