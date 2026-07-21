@@ -1293,8 +1293,43 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, prov
   );
 }
 
+/**
+ * Grading failed for at least one eval, so no benchmark may be written.
+ *
+ * An ungraded eval is not scored 0 — generation succeeded, so there is no `timing.error` and
+ * `aggregateResults` gives it empty results. It then leaves the totals silently, and the run
+ * reads as a smaller suite that happened to score differently. That is indistinguishable from
+ * a real change, which is why this aborts the run instead of reporting.
+ *
+ * Carries no stack: an unreachable grading API is an expected outcome, not a crash.
+ */
+class GradingIncompleteError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "GradingIncompleteError";
+    this.stack = undefined;
+  }
+}
+
+/** Rebuilds the invocation that re-grades only what failed, preserving the run's own flags. */
+function regradeCommand(failedIds, args) {
+  const flags = [
+    `--skill ${args.skill}`,
+    `--iteration ${args.iteration}`,
+    args.variant ? `--variant ${args.variant}` : null,
+    "--grade-only",
+    `--evals ${failedIds.join(",")}`,
+    args.gradeRuns > 1 ? `--grade-runs ${args.gradeRuns}` : null,
+    args.gradingSuffix ? `--grading-suffix ${args.gradingSuffix}` : null,
+    args.provider !== "anthropic" ? `--provider ${args.provider}` : null,
+  ].filter(Boolean);
+  return `node scripts/run-evals.js ${flags.join(" ")}`;
+}
+
 async function gradeResponses(evals, iterationDir, args) {
   log(`\nGrading responses (model=${args.gradingModel}, parallel=${args.parallel})...`);
+
+  const failures = [];
 
   for (let i = 0; i < evals.length; i += args.parallel) {
     const batch = evals.slice(i, i + args.parallel);
@@ -1302,6 +1337,7 @@ async function gradeResponses(evals, iterationDir, args) {
       batch.map((evalDef) =>
         gradeOne(evalDef, iterationDir, args.gradingModel, args.gradingSuffix, args.provider, args.gradeRuns).catch((err) => {
           logError(`  ✗ Eval ${evalDef.id} — GRADING FAILED: ${err.message}`);
+          failures.push({ evalDef, message: err.message });
           const errDir = path.join(iterationDir, `eval-${evalDef.id}-${evalDef.slug}`);
           if (fs.existsSync(errDir)) {
             fs.writeFileSync(
@@ -1312,6 +1348,22 @@ async function gradeResponses(evals, iterationDir, args) {
           }
         })
       )
+    );
+  }
+
+  // Every eval is attempted before aborting: generation is the expensive half and its output
+  // is already on disk, so the gradings that did succeed are kept and only the rest re-run.
+  if (failures.length > 0) {
+    const failedIds = failures.map((f) => f.evalDef.id);
+    const detail = failures
+      .map((f) => `  eval-${f.evalDef.id} (${f.evalDef.slug}): ${f.message}`)
+      .join("\n");
+    throw new GradingIncompleteError(
+      `grading failed for ${failures.length} of ${evals.length} evals — no benchmark or report written.\n\n` +
+      `${detail}\n\n` +
+      `A benchmark missing these evals would read as a score change rather than an error.\n` +
+      `Successful gradings are saved; re-grade only the failures (no generation cost), then re-run:\n\n` +
+      `  ${regradeCommand(failedIds, args)}\n`
     );
   }
 }
