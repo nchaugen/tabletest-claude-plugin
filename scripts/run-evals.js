@@ -1957,10 +1957,30 @@ if (require.main === module) {
   });
 }
 
+// Exported for scripts/run-evals.test.js. Everything here is either pure or takes its
+// collaborators as arguments, so the suite needs no network and no eval fixtures.
 module.exports = {
   computeEvalFingerprint,
   fingerprintsDiffer,
   loadEvalsFromDir,
   detectRegressions,
   generateReport,
+  // grading pipeline
+  parseLlmGrading,
+  repairGradingJson,
+  extractJson,
+  majorityVote,
+  gradeResponses,
+  regradeCommand,
+  GradingIncompleteError,
+  // transport
+  postGradingRequest,
+  isRetryableStatus,
+  retryDelayMs,
+  // benchmark shaping
+  unwrapResults,
+  unwrapSummary,
+  // cli
+  parseEvalIds,
+  resolveModel,
 };

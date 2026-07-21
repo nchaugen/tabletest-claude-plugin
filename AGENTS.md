@@ -41,6 +41,14 @@ history for comparison, audit, and re-grading. Conversation and run logs are nev
 node scripts/run-evals.js --skill tabletest --iteration N [--evals 1,2] [--compare-iteration M]
 ```
 
+**Testing the runner:** `node --test scripts/run-evals.test.js` (~1s, no network, no
+dependencies — `node:test` is built in). Covers the machinery a score depends on: grader
+response parsing, majority voting, retry/backoff, the abort-on-grading-failure path, the
+fingerprint guard. Run it after touching `run-evals.js` — a silent bug there corrupts every
+measurement downstream, and the failure mode is a plausible-looking number rather than a
+crash. The eval definitions in the suite are fabricated, never real ones, so the file carries
+no answer keys.
+
 Regression detection compares against the previous iteration's `benchmark.json` (same
 variant); `--compare-official` also compares a variant against the latest official baseline.
 
