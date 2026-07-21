@@ -553,27 +553,22 @@ const checkers = {
   },
 
   "has-tabletest-dependency": ({ fileContent, allFiles }) => {
-    // Check build files for tabletest-junit dependency with correct version
+    // Deliberately version-agnostic: the assertion text requires the artifact, not a
+    // particular release. A pinned version here silently fails every correct output
+    // from the day the library is bumped, which reads as a skill regression.
     const buildFiles = (allFiles || []).filter(f =>
       f.path === "pom.xml" || f.path === "build.gradle" || f.path === "build.gradle.kts"
     );
     if (buildFiles.length === 0) {
       // Fall back to checking fileContent (response.md) for build file snippets
-      const hasArtifact = /tabletest-junit/.test(fileContent);
-      const hasVersion = /1\.2\.1/.test(fileContent);
-      if (hasArtifact && hasVersion) {
-        return { passed: true, evidence: "Found tabletest-junit:1.2.1 in response" };
+      if (/tabletest-junit/.test(fileContent)) {
+        return { passed: true, evidence: "Found tabletest-junit in response" };
       }
       return { passed: false, evidence: "No build file found in outputs and no tabletest-junit reference in response" };
     }
     const content = buildFiles.map(f => f.content).join('\n');
-    const hasArtifact = /tabletest-junit/.test(content);
-    const hasVersion = /1\.2\.1/.test(content);
-    if (hasArtifact && hasVersion) {
-      return { passed: true, evidence: "Build file contains tabletest-junit:1.2.1" };
-    }
-    if (hasArtifact) {
-      return { passed: false, evidence: "Build file references tabletest-junit but not version 1.2.1" };
+    if (/tabletest-junit/.test(content)) {
+      return { passed: true, evidence: "Build file contains tabletest-junit" };
     }
     return { passed: false, evidence: "Build file does not contain tabletest-junit dependency" };
   },
