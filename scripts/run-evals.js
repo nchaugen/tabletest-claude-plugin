@@ -326,6 +326,10 @@ async function postGradingRequest(url, options, apiName, retryPolicy = DEFAULT_R
   }
 }
 
+// Grading is a judgement, not a generation: sampling variance in it is pure measurement noise.
+// The API default is 1.0, which was what `--grade-runs` majority voting was averaging out.
+const GRADING_TEMPERATURE = 0;
+
 async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropic") {
   if (provider === "ollama") {
     const resp = await postGradingRequest("http://localhost:11434/api/chat", {
@@ -338,6 +342,7 @@ async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropi
           { role: "user", content: userPrompt },
         ],
         stream: false,
+        options: { temperature: GRADING_TEMPERATURE },
       }),
     }, "Ollama");
     const data = await resp.json();
@@ -354,6 +359,7 @@ async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropi
     body: JSON.stringify({
       model: resolveModel(model),
       max_tokens: 4096,
+      temperature: GRADING_TEMPERATURE,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
     }),

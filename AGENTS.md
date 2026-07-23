@@ -104,8 +104,8 @@ the second is expensive, and it does not have to be asked once per promotion.
    SKILL.md subsumes); delete `skill-variants/<skill>/next/`.
 2. Bump `.claude-plugin/plugin.json` and write a user-facing `CHANGELOG.md` entry (no
    variant/development terminology).
-3. Commit (`feat:`). The variant's own loop result — at `--grade-runs 3`, against the same
-   loop run on the previous skill version — is the promotion evidence. **No full run yet.**
+3. Commit (`feat:`). The variant's own loop result — graded in the standard regime, against the
+   same loop run on the previous skill version — is the promotion evidence. **No full run yet.**
 4. Repeat 1–3 for further variants. Nothing is released mid-batch.
 5. **Close the batch with one official full iteration.** Its regression report is the evidence
    for every promotion in the batch, and its `benchmark.json` becomes the new baseline.
@@ -154,6 +154,15 @@ exactly one of them changed between the compared iterations.
   for the affected `--evals`; `--compare-official` merges the newest result per eval.
 - **Cross-suite regression reports are noise** — added/renamed assertions show as spurious
   regressions. Re-baseline instead of interpreting them.
+- **Grading regime is part of the instrument too.** Grading runs at `temperature: 0`
+  (`GRADING_TEMPERATURE`); a comparison across a change of temperature or of `--grade-runs` is
+  not a comparison. Measured over iteration 39's stored outputs, 138 slots, three identical
+  re-grades: 5/138 unstable at temp 1.0, 7/138 with sharpened assertion wording, 2/138 (1.4%)
+  at `--grade-runs 3`, and **2/138 (1.4%) at temp 0 with a single run** — temperature 0 buys
+  what majority voting bought, for a third of the calls. `--grade-runs 3` is therefore no
+  longer the default regime; keep it for adjudicating a result that lands within the MDE.
+  Sharper assertion *wording* does not help and has been tried twice — grader disagreement is
+  response-level, which is why a sampling-parameter fix worked where a text fix did not.
 - **Fingerprint guard (automatic).** Each `benchmark.json` result is stamped with a content
   fingerprint of its definition (`prompt.md`, `eval.json`, `expected_output.md`, `project/`);
   reports compare only matching evals and exclude changed ones as "not comparable". Pre-guard
