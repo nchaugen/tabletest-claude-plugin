@@ -21,7 +21,7 @@
     },
     {
       "id": "1.5-depth-error-edge-cases",
-      "text": "Error/edge cases covered: at least negative hours (floored at zero) and negative or missing rate (rejected).",
+      "text": "Error/edge cases covered with explicit rows: negative hours in some slot are handled by a visible example row stating the chosen semantics (rejected, floored at zero, or offsetting a positive slot) rather than being decided silently in the method body; and a negative or missing rate is rejected.",
       "type": "llm"
     },
     {
@@ -36,7 +36,7 @@
     },
     {
       "id": "1.8-correctness-expected-values",
-      "text": "Expected values in intermediate and total columns are arithmetically correct for every row, consistent with the formulas in @Description.",
+      "text": "Expected values in intermediate and total columns are arithmetically correct for every row, consistent with the rate rules the rows state (regular 1x, overtime 1.5x, Sunday 2x, holiday 2x).",
       "type": "llm"
     },
     {
@@ -51,7 +51,7 @@
     },
     {
       "id": "1.11-format-description",
-      "text": "@Description is present on at least the pay calculation method and provides context beyond what the table rows already express — such as the overtime threshold (40 hours), premium multipliers (Sunday 2×, Holiday 2.5×), or other fixed assumptions not visible in the table. Does NOT merely restate the column names or summarise what the rows show.",
+      "text": "If @Description is present, it provides context beyond what the table rows already express — such as what constitutes a pay week, the currency, rounding, or other fixed assumptions not visible in the rows. It does NOT restate the rate multipliers or the overtime threshold that the example rows already demonstrate, nor merely echo the column names. It is acceptable to omit @Description when the rows carry all the context.",
       "type": "llm"
     },
     {
