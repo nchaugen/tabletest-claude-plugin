@@ -10,19 +10,19 @@
       "id": "options-as-map",
       "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:].",
       "passed": false,
-      "evidence": "Options are passed as individual boolean/String parameters in table columns (e.g., 'Fragile', 'Handling', 'Insured Value'), not as a collapsed map column like '[fragile: true, insuredValue: 500]'."
+      "evidence": "Options are passed as individual boolean/String parameters (fragile, handling, insuredValue) in table columns, not as a collapsed map like [fragile: true, insuredValue: 500]."
     },
     {
       "id": "options-type-converter",
       "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.",
       "passed": false,
-      "evidence": "No @TypeConverter method is present in the test file. Options are constructed programmatically in test methods, not via a type converter."
+      "evidence": "No @TypeConverter method is present in the test file. Options are constructed manually in test methods."
     },
     {
       "id": "dimensions-as-list",
       "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns",
       "passed": true,
-      "evidence": "Dimensions appear as 'Dimensions | [10, 10, 10]' and '[70, 50, 10]' in table format, parsed as List<Integer>."
+      "evidence": "Dimensions appear as List<Integer> columns: 'Dimensions | [10, 10, 10]' and 'Dimensions | [70, 50, 10]'"
     },
     {
       "id": "uses-value-sets",
@@ -34,13 +34,13 @@
       "id": "concerns-decomposed",
       "text": "Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence",
       "passed": true,
-      "evidence": "Eight separate @TableTest methods: calculatesBaseRateByZoneAndWeight, appliesDimensionalWeightWhenGreaterThanActual, appliesOversizeSurchargeWhenAnyDimensionExceedsLimit, appliesFragileSurcharge, appliesInsurancePremiumWithMinimum, appliesHazmatHandlingFee, combinesSurchargesInOrder, carrierDoesNotAffectPrice."
+      "evidence": "8 separate @TableTest methods: calculatesBaseRateByZoneAndWeight, appliesDimensionalWeightWhenGreaterThanActual, appliesOversizeSurchargeWhenAnyDimensionExceedsLimit, appliesFragileSurcharge, appliesInsurancePremiumWithMinimum, appliesHazmatHandlingFee, combinesSurchargesInOrder, carrierDoesNotAffectPrice"
     },
     {
       "id": "numeric-types-correct",
       "text": "Parameter types correspond to the ShippingCostCalculator.calculateShippingCost interface — weight, cost, and dimension types match the method signature.",
       "passed": true,
-      "evidence": "Method calls use 'double weight', 'List<Integer> dimensions', 'BigDecimal' return/param types: 'calculateShippingCost(zone, 1.0, dimensions, new PackageOptions(), Carrier.DHL)' and 'BigDecimal result'."
+      "evidence": "Weight is double, cost is BigDecimal, dimensions are List<Integer>: 'calculator.calculateShippingCost(zone, weight, DEFAULT_DIMENSIONS, new PackageOptions(), Carrier.DHL)'"
     },
     {
       "id": "scenario-column-present",
@@ -52,7 +52,7 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1').",
       "passed": true,
-      "evidence": "Scenarios describe conditions: 'EU standard, light', 'EU express, medium', 'Small package, actual weight used', 'Just over the limit', 'Fragile and insured', 'Same zone and weight, any carrier'."
+      "evidence": "Scenario names describe conditions: 'EU standard, light', 'EU express, medium', 'Large package, dimensional weight used', 'Just over the limit', 'Fragile surcharge applied'"
     },
     {
       "id": "has-question-mark-column",
@@ -64,7 +64,7 @@
       "id": "business-language-columns",
       "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')",
       "passed": true,
-      "evidence": "Columns use business language: 'Region', 'Speed', 'Weight', 'Base Rate?', 'Dimensions', 'Total Cost?', 'Fragile', 'Insured Value', 'Handling', 'Carrier'."
+      "evidence": "Column headers use business language: 'Region', 'Speed', 'Weight', 'Base Rate?', 'Dimensions', 'Total Cost?', 'Fragile', 'Handling', 'Insured Value', 'Carrier'"
     },
     {
       "id": "no-if-switch-in-method",
@@ -94,7 +94,7 @@
       "id": "has-tabletest-dependency",
       "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
       "passed": true,
-      "evidence": "Build file contains tabletest-junit:1.2.1"
+      "evidence": "Build file contains tabletest-junit"
     },
     {
       "id": "compiles",

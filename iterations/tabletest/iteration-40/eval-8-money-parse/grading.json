@@ -22,7 +22,7 @@
       "id": "exception-cases-handled",
       "text": "The exception cases (empty string, letters-only, negative) are handled — via a Throws? column, assertThrows in the method body, or a separate @TableTest — not silently omitted",
       "passed": true,
-      "evidence": "rejectsInvalidInput @TableTest covers all three: 'Empty string', 'Letters only', 'Negative amount' with assertThrows"
+      "evidence": "rejectsInvalidInput @TableTest covers empty string, letters-only, negative with assertThrows(throws_, () -> parser.parse(input))"
     },
     {
       "id": "result-column-with-question-mark",
@@ -46,7 +46,7 @@
       "id": "description-if-present-adds-information",
       "text": "If @Description is present, it provides context beyond what the table rows already express — such as the expected currency format, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context.",
       "passed": true,
-      "evidence": "No @Description present; table columns and scenarios are self-explanatory, making @Description unnecessary"
+      "evidence": "No @Description present; table columns and scenarios are self-explanatory (Scenario, Input, Parsed?/Throws?)"
     },
     {
       "id": "annotation-order",
@@ -64,7 +64,7 @@
       "id": "concerns-decomposed",
       "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
       "passed": true,
-      "evidence": "Two separate @TableTest methods: 'parsesInputIntoMoney' for valid cases and 'rejectsInvalidInput' for exceptions"
+      "evidence": "Two separate @TableTest methods: parsesInputIntoMoney (valid cases) and rejectsInvalidInput (exception cases)"
     },
     {
       "id": "minimal-rows-per-concern",
@@ -76,13 +76,13 @@
       "id": "separates-valid-and-invalid",
       "text": "Valid parsing cases and error/exception cases are in separate @TableTest methods",
       "passed": true,
-      "evidence": "parsesInputIntoMoney tests valid inputs; rejectsInvalidInput tests exceptions in separate @TableTest"
+      "evidence": "parsesInputIntoMoney handles valid inputs; rejectsInvalidInput handles exceptions in separate @TableTest"
     },
     {
       "id": "has-tabletest-dependency",
       "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
       "passed": true,
-      "evidence": "Build file contains tabletest-junit:1.2.1"
+      "evidence": "Build file contains tabletest-junit"
     },
     {
       "id": "compiles",

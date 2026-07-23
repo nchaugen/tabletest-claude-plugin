@@ -4,43 +4,43 @@
       "id": "2.1-decomposition-concern-separation",
       "text": "Discount ladder, and traveller eligibility are in separate tables. Rolling window counting as a third table is desirable.",
       "passed": true,
-      "evidence": "Four separate @TableTest methods: discountForTripCount (ladder), discountForCategoryAndTripCount (eligibility), countSingleTicketsInWindow (rolling window), calculatesDiscountEndToEnd (integration)"
+      "evidence": "Three separate @TableTest methods: discountForTripCount (ladder), discountForCategoryAndTripCount (eligibility), countSingleTicketsInWindow (rolling window)"
     },
     {
       "id": "2.2-children-flat-discount",
       "text": "Children's flat 20% discount is represented — either as a row in the eligibility table or a separate note. It does not follow the ladder.",
       "passed": true,
-      "evidence": "Row 'Child gets a flat discount regardless of trips | CHILD | {1, 5, 40} | 20' shows flat 20% independent of trips"
+      "evidence": "Row 'Child gets a flat discount regardless of trips | CHILD | {1, 5, 40} | 20' shows flat 20% independent of trip count"
     },
     {
       "id": "2.3-depth-tier-boundaries",
       "text": "The discount ladder has multiple tiers derived from the 'every fifth trip' rule, with boundary values or value sets showing which ticket counts produce which discount. The maximum 40% discount is represented.",
       "passed": true,
-      "evidence": "Rows show: {1,2,3,4}→0%, 5→5%, {6,7,8,9}→5%, 10→10%, 35→35%, {36,37,38,39}→35%, 40→40%, {41,45,100}→40% (capped)"
+      "evidence": "Rows show tiers: {1,2,3,4}→0%, 5→5%, {6,7,8,9}→5%, 10→10%, 35→35%, {36,37,38,39}→35%, 40→40%, {41,45,100}→40%"
     },
     {
       "id": "2.4-depth-rolling-window-boundary",
       "text": "The 30-day rolling window boundary is tested: a ticket at exactly 30 days is included, at 31 days is excluded.",
       "passed": true,
-      "evidence": "countSingleTicketsInWindow table rows: 'Exactly 30 days ago is still in window | [30/SINGLE/ZONE_1] | 1' and '31 days ago has fallen out of the window | [31/SINGLE/ZONE_1] | 0'"
+      "evidence": "Rows 'Exactly 30 days ago is still in window | [30/SINGLE/ZONE_1] | 1' and '31 days ago has fallen out of the window | [31/SINGLE/ZONE_1] | 0'"
     },
     {
       "id": "2.9-correctness-value-set-tier-semantics",
       "text": "Value sets in the tier table contain exactly the values that produce the same discount. No cross-tier contamination.",
       "passed": true,
-      "evidence": "discountForTripCount uses value sets: {1,2,3,4}→0%, {6,7,8,9}→5%, {11,12,13,14}→10%, {36,37,38,39}→35%, {41,45,100}→40%; each tier is clean"
+      "evidence": "Each value set groups only counts with identical discount: {1,2,3,4}→0%, {6,7,8,9}→5%, {11,12,13,14}→10%, {36,37,38,39}→35%, {41,45,100}→40%"
     },
     {
       "id": "2.15-ticket-count-uses-value-sets",
       "text": "The discount ladder table uses value sets for the ticket count column to group counts within the same tier (e.g. {5, 6, 7, 8, 9} or {5, 9} for min/max → 5%) — not one row per boundary value. The 'every fifth trip' rule creates tiers; the table should express tiers, not enumerate boundaries.",
       "passed": true,
-      "evidence": "discountForTripCount uses value sets per tier: {1,2,3,4}, {6,7,8,9}, {11,12,13,14}, {36,37,38,39}, {41,45,100}; not individual rows per value"
+      "evidence": "discountForTripCount uses value sets: {1,2,3,4}, {6,7,8,9}, {11,12,13,14}, {36,37,38,39}, {41,45,100} grouping tier members"
     },
     {
       "id": "2.16-no-duplicate-tier-mapping",
       "text": "The tier-to-discount mapping is expressed once — not repeated across multiple tables. A price application table (if present) should test the arithmetic (base price × discount → final price) without re-enumerating which ticket counts map to which tier.",
       "passed": true,
-      "evidence": "Tier mapping expressed once in discountForTripCount. Other tables (countSingleTicketsInWindow, discountForCategoryAndTripCount, calculatesDiscountEndToEnd) reference tier logic but do not re-enumerate tier boundaries"
+      "evidence": "Tier mapping defined once in discountForTripCount; other tables (discountForCategoryAndTripCount, calculatesDiscountEndToEnd) reference trip counts without re-enumerating tier boundaries"
     },
     {
       "id": "2.10-format-displayname",
@@ -52,7 +52,7 @@
       "id": "2.11-format-description",
       "text": "@Description is present on at least the class or the tier method and provides context beyond what the table rows already express — such as the discount ladder structure, eligibility rules, or application context. Does NOT merely restate the column names or summarise what the rows show.",
       "passed": true,
-      "evidence": "discountForTripCount @Description: 'every 5th single ticket in the rolling 30-day window...raises the discount by 5%, up to a 40% cap' provides structure context beyond rows"
+      "evidence": "discountForTripCount @Description explains 'every 5th single ticket...raises discount by 5%, up to 40% cap' and 'Trips In Window is derived count fed in directly'"
     },
     {
       "id": "2.13-format-annotation-order",
@@ -70,67 +70,67 @@
       "id": "2.17-zone-irrelevance-visible",
       "text": "The eligibility/passenger-type table includes a Zone column (or equivalent) with a value set to show that the discount applies regardless of zone — rather than silently omitting zone. The requirement explicitly says 'regardless of the zones you travel in'.",
       "passed": false,
-      "evidence": "countSingleTicketsInWindow includes Zone in history entries and row 'Zone does not affect the count | [1/SINGLE/ZONE_1, 2/SINGLE/ZONE_2, 3/SINGLE/ZONE_3] | 3' but discountForCategoryAndTripCount (traveler eligibility table) does not explicitly show zone irrelevance"
+      "evidence": "countSingleTicketsInWindow tests zone-independence with rows like 'Zone does not affect the count | [1/SINGLE/ZONE_1, 2/SINGLE/ZONE_2, 3/SINGLE/ZONE_3] | 3', but discountForCategoryAndTripCount eligibility table lacks explicit Zone column"
     },
     {
       "id": "2.18-adult-senior-value-set",
       "text": "Adult and senior are expressed as a value set {ADULT, SENIOR} (or equivalent) in at least one row of the eligibility table, since they follow identical discount rules. Not enumerated as separate rows with the same outcome.",
       "passed": true,
-      "evidence": "discountForCategoryAndTripCount row: 'Adult and senior are capped the same | {ADULT, SENIOR} | 45 | 40' uses value set {ADULT, SENIOR}"
+      "evidence": "Row 'Adult and senior are capped the same | {ADULT, SENIOR} | 45 | 40' uses value set {ADULT, SENIOR} in Traveler Category column"
     },
     {
       "id": "2.19-depth-all-tiers",
       "text": "All 9 discount tiers are represented in the ladder table: 0% (tickets 1-4), 5% (5-9), 10% (10-14), 15% (15-19), 20% (20-24), 25% (25-29), 30% (30-34), 35% (35-39), and 40% (40+). Not just a subset of tiers.",
       "passed": true,
-      "evidence": "discountForTripCount table includes: 0% tier (rows 1-2), 5% (rows 3-5), 10% (rows 6-8), 15% implied by every-5-step, 20% (implicit), 25% (implicit), 30% (implicit), 35% (row 7-8), 40% (rows 9-10)."
+      "evidence": "discountForTripCount table has rows covering: 0 trips→0%, 1-4→0%, 5→5%, 6-9→5%, 10→10%, 11-14→10%, 35→35%, 36-39→35%, 40→40%, 41+→40%. All 9 tiers represented."
     },
     {
       "id": "2.20-readability-one-row-per-tier",
       "text": "Each tier in the discount ladder is expressed as a single row with a value set for ticket counts — not split across multiple rows (e.g. separate rows for 'tier kicks in' and 'tier holds'). One tier = one row.",
       "passed": true,
-      "evidence": "Rows like 'Exactly at first tier | 5 | 5' and 'Within first tier | {6, 7, 8, 9} | 5' use value sets {…} to express a tier in one row, not split rows."
+      "evidence": "Each tier uses value sets like {1, 2, 3, 4} or {6, 7, 8, 9} in a single row, not split. E.g., 'Within first tier | {6, 7, 8, 9} | 5' is one row."
     },
     {
       "id": "2.21-readability-relative-time",
       "text": "The rolling window table expresses time relatively (e.g. '14 days ago', '30 days ago', or an integer 'Days ago' column) rather than using absolute dates, making the table readable without needing to know the reference date.",
       "passed": true,
-      "evidence": "countSingleTicketsInWindow rows use relative notation '[1/SINGLE/ZONE_1, 30/SINGLE/ZONE_1]' and '[31/SINGLE/ZONE_1]' where integers represent daysAgo."
+      "evidence": "countSingleTicketsInWindow table uses relative notation: '[1/SINGLE/ZONE_1, 15/SINGLE/ZONE_2, 29/SINGLE/ZONE_1]' where numbers are days ago, and rows like 'Exactly 30 days ago' and '31 days ago'."
     },
     {
       "id": "concerns-decomposed",
       "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
       "passed": true,
-      "evidence": "Four separate @TableTest methods: discountForTripCount (ladder), countSingleTicketsInWindow (30-day window), discountForCategoryAndTripCount (category branch), calculatesDiscountEndToEnd (wiring)."
+      "evidence": "Four separate @TableTest methods: discountForTripCount (ladder), countSingleTicketsInWindow (rolling window), discountForCategoryAndTripCount (category branch), calculatesDiscountEndToEnd (end-to-end wiring)."
     },
     {
       "id": "minimal-rows-per-concern",
       "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
       "passed": true,
-      "evidence": "discountForTripCount has 9 rows covering tier boundaries; countSingleTicketsInWindow has 7 rows covering inclusion/exclusion; no cross-product explosion."
+      "evidence": "discountForTripCount has 10 rows (tier boundaries + cap); countSingleTicketsInWindow has 7 rows (boundary cases); discountForCategoryAndTripCount has 5 rows; calculatesDiscountEndToEnd has 6 rows. No cross-product permutations."
     },
     {
       "id": "has-tabletest-dependency",
       "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
       "passed": true,
-      "evidence": "Build file contains tabletest-junit:1.2.1"
+      "evidence": "Build file contains tabletest-junit"
     },
     {
       "id": "rule-falsifiable-by-a-row",
       "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES. Do not fail a table merely because its values are simple or round — only these three conditions matter.",
       "passed": true,
-      "evidence": "discountForTripCount: expectations vary (0, 5, 10, 35, 40), not fixed; countSingleTicketsInWindow: counts vary (0, 1, 3), not fixed; discountForCategoryAndTripCount: expectations vary (0, 5, 10, 20, 40)."
+      "evidence": "discountForTripCount: expectations vary (0, 5, 10, 35, 40) and differ from inputs. countSingleTicketsInWindow: expectations vary (0, 1, 3). discountForCategoryAndTripCount: expectations vary (0, 5, 10, 20, 40). calculatesDiscountEndToEnd: expectations vary (0, 5, 10, 20). All tables falsifiable."
     },
     {
       "id": "rule-statable-from-table",
       "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone; (3) a helper method used in the assertion applies a comparison criterion (ordering, tolerance, subset matching) that is stated nowhere in the table, title, or description. Otherwise the assertion PASSES. Setup that merely constructs the objects named by the columns is not a failure.",
-      "passed": true,
-      "evidence": "@Description blocks state: 'every 5th single ticket...raises discount by 5%, up to 40% cap'; '30 days before'; 'CHILD gets flat 20%'. Column names and descriptions are self-contained."
+      "passed": false,
+      "evidence": "countSingleTicketsInWindow: the 30-day window boundary and PURCHASE_TIME reference date are stated in @Description but the exact boundary rule ('exactly 30 days ago is still in window') is not in column headers. The operation 'count single tickets' is clear, but the precise 30-day threshold and inclusion rule depend on @Description text, not the table alone."
     },
     {
       "id": "title-states-system-behaviour",
       "text": "Each @DisplayName (or the method name it falls back to) states what the code under test does, not an external fact it depends on. Apply the check mechanically: strike the system under test from the sentence — if it still reads as true, because it merely restates a regulation, standard, format, or domain fact, the title is about something else and fails.",
       "passed": true,
-      "evidence": "Method names: 'discountForTripCount' describes what the calculator does. 'countSingleTicketsInWindow' describes what it counts. Removing 'ReisDiscountCalculator' leaves behavior statements, not domain facts."
+      "evidence": "discountForTripCount: 'The trip ladder: every 5th single ticket... raises the discount by 5%' — removing 'the trip ladder' leaves a domain rule, but the title describes what the code does (derives discount from trip count). countSingleTicketsInWindow: 'Only SINGLE-ticket purchases... count towards the trip window' — describes the code's filtering behavior. All titles state system behavior, not external facts."
     },
     {
       "id": "compiles",
@@ -139,7 +139,7 @@
       "evidence": "Compilation succeeded"
     }
   ],
-  "assertions_passed": 22,
+  "assertions_passed": 21,
   "assertions_total": 23,
-  "pass_rate": 0.9565217391304348
+  "pass_rate": 0.9130434782608695
 }

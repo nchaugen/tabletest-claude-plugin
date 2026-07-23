@@ -1,17 +1,16 @@
 # Eval Review — tabletest, Iteration 40
 
-**Model:** sonnet (claude-sonnet-5) · **Grading:** claude-haiku-4-5 · **Date:** 2026-07-21 · **Evals:** 17
+**Model:** sonnet (claude-sonnet-5) · **Grading:** claude-haiku-4-5 · **Date:** 2026-07-23 · **Evals:** 17
 
 ## Summary
 
-299/324 (92.3%) · 20956288 tokens · 4379.3s · $14.8965
+296/324 (91.4%) · 20956288 tokens · 4379.3s · $14.8965
 
 _Cost figures are Claude Code list-price estimates; actual billing may differ (e.g. promotional pricing). Timed-out evals score 0 with unrecorded token usage._
 
 ## Delta vs Iteration 39
 
 **Eval definition changed — not comparable (17):**
-- ⚠️ eval-20-collections-and-quoting: fingerprint differs from iteration 39; re-baseline to compare
 - ⚠️ eval-1-convert-repetitive-tests: fingerprint differs from iteration 39; re-baseline to compare
 - ⚠️ eval-2-parse-dates: fingerprint differs from iteration 39; re-baseline to compare
 - ⚠️ eval-7-permission-check: fingerprint differs from iteration 39; re-baseline to compare
@@ -20,6 +19,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 - ⚠️ eval-14-weekly-pay: fingerprint differs from iteration 39; re-baseline to compare
 - ⚠️ eval-15-reis-discount: fingerprint differs from iteration 39; re-baseline to compare
 - ⚠️ eval-18-convert-from-code: fingerprint differs from iteration 39; re-baseline to compare
+- ⚠️ eval-20-collections-and-quoting: fingerprint differs from iteration 39; re-baseline to compare
 - ⚠️ eval-22-event-registration-tt: fingerprint differs from iteration 39; re-baseline to compare
 - ⚠️ eval-23-loan-approval-tt: fingerprint differs from iteration 39; re-baseline to compare
 - ⚠️ eval-25-convert-from-spock: fingerprint differs from iteration 39; re-baseline to compare
@@ -33,16 +33,16 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 | Eval | Pass Rate | Prev | Tokens | Prev | Time(s) | Prev |
 |------|-----------|------|--------|------|---------|------|
-| eval-20-collections-and-quoting | 17/17 | 15/15 | 1242601 | 1811829 | 325.6 | 301.8 |
 | eval-1-convert-repetitive-tests | 13/13 | 13/13 | 438137 | 438137 | 48.3 | 48.3 |
 | eval-2-parse-dates | 15/15 | 15/15 | 815800 | 815800 | 115.2 | 115.2 |
 | eval-7-permission-check | 13/13 | 13/13 | 585941 | 585941 | 59.9 | 59.9 |
 | eval-8-money-parse | 15/15 | 15/15 | 606672 | 606672 | 87.6 | 87.6 |
 | eval-9-bonus-contractor-structure | 13/13 | 13/13 | 553264 | 553264 | 82.4 | 82.4 |
 | eval-14-weekly-pay | 19/20 | 19/20 | 1307679 | 1307679 | 264.9 | 264.9 |
-| eval-15-reis-discount | 22/23 | 16/20 | 2287509 | 2287509 | 411.3 | 411.3 |
-| eval-18-convert-from-code | 21/24 | 19/21 | 826034 | 826034 | 148.2 | 148.2 |
-| eval-22-event-registration-tt | 24/27 | 21/25 | 573142 | 573142 | 154.0 | 154.0 |
+| eval-15-reis-discount | 21/23 | 16/20 | 2287509 | 2287509 | 411.3 | 411.3 |
+| eval-18-convert-from-code | 20/24 | 19/21 | 826034 | 826034 | 148.2 | 148.2 |
+| eval-20-collections-and-quoting | 17/17 | 15/15 | 1242601 | 1811829 | 325.6 | 301.8 |
+| eval-22-event-registration-tt | 23/27 | 21/25 | 573142 | 573142 | 154.0 | 154.0 |
 | eval-23-loan-approval-tt | 16/21 | 12/18 | 540843 | 540843 | 149.9 | 149.9 |
 | eval-25-convert-from-spock | 19/20 | 19/20 | 3006845 | 3006845 | 514.5 | 514.5 |
 | eval-26-convert-from-kotest | 18/20 | 17/20 | 1443172 | 1443172 | 362.4 | 362.4 |
@@ -52,28 +52,6 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 | eval-30-order-splitting-tt | 18/20 | 19/20 | 3329150 | 3329150 | 664.9 | 664.9 |
 
 ## Per-Eval Results
-
-### ✅ Eval eval-20-collections-and-quoting
-
-**17/17** · 1242601 tokens · 325555ms
-
-- ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
-- ✅ **list-syntax-correct**: List values in the table use bracket syntax like [tech:java, biz:sales, dev:ci] — not comma-separated strings without brackets.
-- ✅ **empty-list-explicit**: Empty list input uses [] (not a blank cell, which represents null). The distinction between empty list and null is preserved.
-- ✅ **special-chars-quoted**: Values containing pipes (|), brackets, or colons (:) are properly quoted (e.g. "tech:java") so they don't conflict with table syntax. Colons without quoting would be mis-interpreted as map key:value entries.
-- ✅ **set-syntax-correct**: Set<String> values in the table use curly brace syntax like {tech, dev} — not bracket syntax [tech, dev] which is for lists. The distinction between Set and List types is preserved in the table notation.
-- ✅ **newline-in-cell**: A cell value containing a newline does not break the table row structure: the newline is either escaped as \n inside the cell, or the value is expressed as a list of lines joined in the test body. A literal line break inside a table row fails. Both representations are acceptable — escaping suits a newline inside a single value, a list of lines suits input that is inherently multi-line.
-- ✅ **pipe-quoted**: Values containing pipe characters (|) are quoted so they don't conflict with the markdown table column separator. For example, a tag like 'biz:hr|recruiting' must be quoted.
-- ✅ **scenario-column-present**: Table has a scenario/description column as the leftmost column
-- ✅ **has-question-mark-column**: At least one output column name ends with '?' (e.g. 'Filtered tags?' or 'Result?')
-- ✅ **no-if-switch-in-method**: Test method body contains no if or switch statements
-- ✅ **annotation-order**: Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.
-- ✅ **has-descriptive-title**: Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.
-- ✅ **description-uses-textblock**: If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string """), not string concatenation with +. Passes if @Description is absent.
-- ✅ **has-tabletest-dependency**: The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency
-- ✅ **no-blank-collection-elements**: No collection value in any table contains a blank element. `[a, , c]`, `[a, b, ]` and `[, a, b]` are parse errors, not collections holding a null element — a collection value cannot express a null element at all.
-- ✅ **empty-string-element-quoted**: An empty tag inside a tag list is written as a quoted empty string ("" or ''), not as a blank element. Passes if the tables express the empty tag some other legitimate way (e.g. a dedicated String column); fails if a blank element inside a collection is used to mean an empty or absent tag.
-- ✅ **compiles**: The generated test code compiles successfully against the project scaffolding
 
 ### ✅ Eval eval-1-convert-repetitive-tests
 
@@ -197,7 +175,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-15-reis-discount
 
-**22/23** · 2287509 tokens · 411343ms
+**21/23** · 2287509 tokens · 411343ms
 
 - ✅ **2.1-decomposition-concern-separation**: Discount ladder, and traveller eligibility are in separate tables. Rolling window counting as a third table is desirable.
 - ✅ **2.2-children-flat-discount**: Children's flat 20% discount is represented — either as a row in the eligibility table or a separate note. It does not follow the ladder.
@@ -226,7 +204,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-18-convert-from-code
 
-**21/24** · 826034 tokens · 148196ms
+**20/24** · 826034 tokens · 148196ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ❌ **black-box-columns**: Table columns represent the method's public inputs (applicant type, age, claim count) and observable outputs (decision, premium) — not internal state like hasActivePolicy, internalRiskScore, or calculateRiskScore.
@@ -256,9 +234,31 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 - ✅ **compiles**: The generated test code compiles successfully against the project scaffolding
 - ✅ **tests-pass**: The generated tests pass when executed against InsuranceEvaluator
 
+### ✅ Eval eval-20-collections-and-quoting
+
+**17/17** · 1242601 tokens · 325555ms
+
+- ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
+- ✅ **list-syntax-correct**: List values in the table use bracket syntax like [tech:java, biz:sales, dev:ci] — not comma-separated strings without brackets.
+- ✅ **empty-list-explicit**: Empty list input uses [] (not a blank cell, which represents null). The distinction between empty list and null is preserved.
+- ✅ **special-chars-quoted**: Values containing pipes (|), brackets, or colons (:) are properly quoted (e.g. "tech:java") so they don't conflict with table syntax. Colons without quoting would be mis-interpreted as map key:value entries.
+- ✅ **set-syntax-correct**: Set<String> values in the table use curly brace syntax like {tech, dev} — not bracket syntax [tech, dev] which is for lists. The distinction between Set and List types is preserved in the table notation.
+- ✅ **newline-in-cell**: A cell value containing a newline does not break the table row structure: the newline is either escaped as \n inside the cell, or the value is expressed as a list of lines joined in the test body. A literal line break inside a table row fails. Both representations are acceptable — escaping suits a newline inside a single value, a list of lines suits input that is inherently multi-line.
+- ✅ **pipe-quoted**: Values containing pipe characters (|) are quoted so they don't conflict with the markdown table column separator. For example, a tag like 'biz:hr|recruiting' must be quoted.
+- ✅ **scenario-column-present**: Table has a scenario/description column as the leftmost column
+- ✅ **has-question-mark-column**: At least one output column name ends with '?' (e.g. 'Filtered tags?' or 'Result?')
+- ✅ **no-if-switch-in-method**: Test method body contains no if or switch statements
+- ✅ **annotation-order**: Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.
+- ✅ **has-descriptive-title**: Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.
+- ✅ **description-uses-textblock**: If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string """), not string concatenation with +. Passes if @Description is absent.
+- ✅ **has-tabletest-dependency**: The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency
+- ✅ **no-blank-collection-elements**: No collection value in any table contains a blank element. `[a, , c]`, `[a, b, ]` and `[, a, b]` are parse errors, not collections holding a null element — a collection value cannot express a null element at all.
+- ✅ **empty-string-element-quoted**: An empty tag inside a tag list is written as a quoted empty string ("" or ''), not as a blank element. Passes if the tables express the empty tag some other legitimate way (e.g. a dedicated String column); fails if a blank element inside a collection is used to mean an empty or absent tag.
+- ✅ **compiles**: The generated test code compiles successfully against the project scaffolding
+
 ### ⚠️ Eval eval-22-event-registration-tt
 
-**24/27** · 573142 tokens · 153979ms
+**23/27** · 573142 tokens · 153979ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ✅ **validation-rules-covered**: Email validation and name-required error scenarios are present — at least one row for invalid email and one for missing name.

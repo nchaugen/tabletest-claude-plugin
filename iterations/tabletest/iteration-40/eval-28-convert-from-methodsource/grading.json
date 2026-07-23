@@ -10,19 +10,19 @@
       "id": "options-as-map",
       "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:].",
       "passed": false,
-      "evidence": "Options are passed via helper method `options(fragile, insuredValue, handling)` creating PackageOptions objects, not as map columns in the table itself."
+      "evidence": "Options are passed via helper method options(fragile, insuredValue, handling) and not represented as map columns in tables. Tables show individual boolean/string/BigDecimal columns instead."
     },
     {
       "id": "options-type-converter",
       "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.",
       "passed": false,
-      "evidence": "No @TypeConverter annotation or method present in the test class. Options use helper method instead."
+      "evidence": "No @TypeConverter method is present in the test file. Options are constructed via the private options() helper method, not via type conversion."
     },
     {
       "id": "dimensions-as-list",
       "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns",
       "passed": true,
-      "evidence": "Dimensions appear as lists in tables: 'Dimensions | [10, 10, 10]', '[70, 50, 10]', '[30, 20, 15]', etc."
+      "evidence": "Tables show 'Dimensions' column with values like '[10, 10, 10]', '[70, 50, 10]', '[30, 20, 15]', '[100, 5, 5]', '[120, 5, 5]' as lists."
     },
     {
       "id": "uses-value-sets",
@@ -40,7 +40,7 @@
       "id": "numeric-types-correct",
       "text": "Parameter types correspond to the ShippingCostCalculator.calculateShippingCost interface — weight, cost, and dimension types match the method signature.",
       "passed": true,
-      "evidence": "Method calls use: zone (ShippingZone), weight (double), List.of(...) for dimensions (List<Integer>), options (PackageOptions), carrier (Carrier); comparisons use BigDecimal."
+      "evidence": "Method signatures use 'double weight', 'List<Integer> dimensions', 'BigDecimal rate/total' matching calculator interface calls with these types."
     },
     {
       "id": "scenario-column-present",
@@ -52,7 +52,7 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1').",
       "passed": true,
-      "evidence": "Scenario names: 'EU standard, light', 'Dimensional weight governs', 'Oversize', 'Fragile', 'Below minimum, floor applies', 'Hazmat handling', etc."
+      "evidence": "Scenario column contains: 'EU standard, light', 'EU express, medium', 'Actual weight governs', 'Oversize', 'Fragile', 'Below minimum, floor applies', 'Hazmat handling', etc."
     },
     {
       "id": "has-question-mark-column",
@@ -64,7 +64,7 @@
       "id": "business-language-columns",
       "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')",
       "passed": true,
-      "evidence": "Column headers: 'Region', 'Speed', 'Weight (kg)', 'Dimensions', 'Fragile?', 'Insured Value', 'Handling', 'Carrier', 'Rate?', 'Total?'"
+      "evidence": "Column headers: 'Region', 'Speed', 'Weight (kg)', 'Dimensions', 'Fragile?', 'Insured Value', 'Handling', 'Carrier', 'Rate?', 'Total?' — all business language."
     },
     {
       "id": "no-if-switch-in-method",
@@ -94,7 +94,7 @@
       "id": "has-tabletest-dependency",
       "text": "The build file (pom.xml) includes org.tabletest:tabletest-junit as a test dependency",
       "passed": true,
-      "evidence": "Build file contains tabletest-junit:1.2.1"
+      "evidence": "Build file contains tabletest-junit"
     },
     {
       "id": "compiles",

@@ -10,55 +10,55 @@
       "id": "concerns-decomposed",
       "text": "Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing all splitting rules.",
       "passed": true,
-      "evidence": "File contains 4 separate @TableTest methods: splitsShipmentsByFulfillmentTypeAndAddress, splitsShipmentsByStockAvailability, choosesWarehouseCombinationMinimizingShipmentCount, keepsCompanionProductsTogetherWhenPossible"
+      "evidence": "Four @TableTest methods: splitsShipmentsByFulfillmentTypeAndAddress, splitsShipmentsByStockAvailability, choosesWarehouseCombinationMinimizingShipmentCount, keepsCompanionProductsTogetherWhenPossible"
     },
     {
       "id": "minimal-rows-per-concern",
       "text": "Each @TableTest has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
       "passed": true,
-      "evidence": "6 rows for fulfillment/address, 6 rows for availability, 4 rows for warehouse, 3 rows for companions = 19 total minimal rows per concern"
+      "evidence": "6 rows for fulfillment/address, 6 rows for availability, 4 rows for warehouse, 3 rows for companions = 19 total, each focused on one concern"
     },
     {
       "id": "concern-fulfillment-method",
       "text": "Fulfillment method splitting is represented as its own @TableTest — items with different fulfillment types (store pickup vs home delivery) cannot share a shipment.",
       "passed": true,
-      "evidence": "splitsShipmentsByFulfillmentTypeAndAddress method tests 'Delivery and pickup items always split' scenario with pickup vs delivery items"
+      "evidence": "splitsShipmentsByFulfillmentTypeAndAddress includes 'Delivery and pickup items always split' scenario with DELIVERY and PICKUP items"
     },
     {
       "id": "concern-delivery-address",
       "text": "Delivery address splitting is represented as its own @TableTest — items going to different addresses must be in separate shipments.",
       "passed": true,
-      "evidence": "splitsShipmentsByFulfillmentTypeAndAddress tests 'Same type, different delivery addresses' and address-based grouping scenarios"
+      "evidence": "splitsShipmentsByFulfillmentTypeAndAddress includes 'Same type, different delivery addresses' and 'Items sharing an address group together, others split' scenarios"
     },
     {
       "id": "concern-availability",
       "text": "Availability splitting is represented as its own @TableTest — in-stock items ship immediately, backordered/pre-ordered items ship when available.",
       "passed": true,
-      "evidence": "splitsShipmentsByStockAvailability method tests IMMEDIATE vs WHEN_AVAILABLE scenarios: 'In-stock item not held for a backordered item' and others"
+      "evidence": "splitsShipmentsByStockAvailability method with 6 rows testing IN_STOCK vs BACKORDERED vs PRE_ORDERED, showing IMMEDIATE vs WHEN_AVAILABLE shipments"
     },
     {
       "id": "concern-warehouse-allocation",
       "text": "Warehouse allocation (minimising shipments) is represented as its own @TableTest — choosing which warehouses to ship from to minimise total shipment count.",
       "passed": true,
-      "evidence": "choosesWarehouseCombinationMinimizingShipmentCount method tests warehouse selection minimizing shipments with scenarios like 'Correct warehouse pair must be found, not just any pair'"
+      "evidence": "choosesWarehouseCombinationMinimizingShipmentCount method with 4 rows testing warehouse selection to minimize shipments"
     },
     {
       "id": "concern-companion-products",
       "text": "Companion product grouping is represented as its own @TableTest — paired items (e.g. camera body and lens) should ship together from the same location when possible.",
       "passed": true,
-      "evidence": "keepsCompanionProductsTogetherWhenPossible method with companion relationship tests: 'Companions win a tie between equally minimal warehouses'"
+      "evidence": "keepsCompanionProductsTogetherWhenPossible method with 3 rows testing companion grouping via inventory.addCompanionGroup(companions)"
     },
     {
       "id": "all-outputs-same-table",
       "text": "Each @TableTest method includes all output columns for its concern in the same table — e.g. warehouse allocation includes both the assignment and shipment count, not split across methods. All outputs of the same concern belong together.",
       "passed": true,
-      "evidence": "Each method has single @TableTest: fulfillment includes Items and Shipments columns; warehouse includes Items, stock columns, and Shipments; companions include all relevant inputs/outputs in one table"
+      "evidence": "choosesWarehouseCombinationMinimizingShipmentCount has single 'Shipments?' column showing warehouse assignment and items together; keepsCompanionProductsTogetherWhenPossible similarly unified"
     },
     {
       "id": "scalar-quantity-for-warehouse",
       "text": "Warehouse allocation table uses scalar quantity columns (e.g. 'Qty ordered') not item lists, when product identity doesn't matter for the logic.",
       "passed": false,
-      "evidence": "choosesWarehouseCombinationMinimizingShipmentCount uses 'List<String> items' and 'List<String> w1Stock' columns, not scalar quantities"
+      "evidence": "choosesWarehouseCombinationMinimizingShipmentCount uses 'Items' column with product lists [camera, lens, mic] and W1/W2/W3 Stock columns with product lists, not scalar quantities"
     },
     {
       "id": "scenario-column-present",
@@ -76,13 +76,13 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe the business situation (e.g. 'Consolidate: two beats three', 'Everything at one warehouse') — not 'Test case 2'.",
       "passed": true,
-      "evidence": "Scenario names like 'Same fulfillment type and address', 'Overlapping stock does not cause a needless split', 'Companions win a tie between equally minimal warehouses' describe business conditions"
+      "evidence": "Scenarios named 'Single warehouse covers the whole order', 'Overlapping stock does not cause a needless split', 'Companions win a tie between equally minimal warehouses'"
     },
     {
       "id": "business-language-columns",
       "text": "Column names use business/domain language (e.g. 'Shipments?' not 'Result?', 'Warehouse stock' not 'inventory_map'). The tables read as a specification a product person could review.",
       "passed": false,
-      "evidence": "Column names include 'Shipments?', 'W1 Stock', 'W2 Stock', 'W3 Stock', 'Companions', 'Items', 'Scenario'. However, some are abbreviated/technical (e.g., 'W1', 'W2', 'W3' instead of full warehouse names) and the tables use technical notation like 'IMMEDIATE:[...]' and 'WHEN_AVAILABLE:[...]' rather than business language."
+      "evidence": "Column names include 'Shipments?', 'W1 Stock', 'W2 Stock', 'W3 Stock', 'Companions', 'Items' - but 'Shipments?' uses a question mark (non-standard business language) and lacks clarity. More critically, the test uses abbreviated warehouse names 'W1', 'W2', 'W3' rather than business terms like 'East Warehouse' or 'Primary Warehouse'."
     },
     {
       "id": "no-if-switch-in-method",
@@ -112,7 +112,7 @@
       "id": "has-tabletest-dependency",
       "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
       "passed": true,
-      "evidence": "Build file contains tabletest-junit:1.2.1"
+      "evidence": "Build file contains tabletest-junit"
     },
     {
       "id": "compiles",

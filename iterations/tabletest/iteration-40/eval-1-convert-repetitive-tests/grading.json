@@ -46,7 +46,7 @@
       "id": "description-if-present-adds-information",
       "text": "If @Description is present, it provides context beyond what the table rows already express — such as fixed values shared by all rows, where/when the rule applies, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context (e.g. fixed values are included as a column rather than hardcoded in the method body).",
       "passed": true,
-      "evidence": "No @Description annotation is present in the @TableTest method. The table includes all relevant columns (Scenario, Tier, Amount, Discount?) and the method body contains only a single assertEquals, making @Description unnecessary."
+      "evidence": "No @Description annotation is present in the @TableTest method. The table includes all relevant columns (Scenario, Tier, Amount, Discount?) and the method body contains a single assertEquals, making @Description unnecessary."
     },
     {
       "id": "annotation-order",
@@ -64,7 +64,7 @@
       "id": "has-tabletest-dependency",
       "text": "The build file (pom.xml) includes org.tabletest:tabletest-junit as a test dependency",
       "passed": true,
-      "evidence": "Build file contains tabletest-junit:1.2.1"
+      "evidence": "Build file contains tabletest-junit"
     },
     {
       "id": "compiles",

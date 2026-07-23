@@ -32,9 +32,9 @@
     },
     {
       "id": "no-duplicate-role-output",
-      "text": "No two rows share both the same Role value and the same boolean output — forces value set consolidation (e.g. USER can READ and USER can WRITE, both true, should be one row with {READ, WRITE}).",
+      "text": "No two rows share both the same Role value and the same boolean output — forces value set consolidation",
       "passed": true,
-      "evidence": "[split vote 2/3 pass] ADMIN row uses {READ, WRITE, DELETE} value set with single true outcome; USER and GUEST rows have differentiated outcomes per action"
+      "evidence": "ADMIN row uses {READ, WRITE, DELETE} value set with single true outcome; USER and GUEST rows consolidate multiple actions per role into distinct outcome rows"
     },
     {
       "id": "has-descriptive-title",
@@ -44,9 +44,9 @@
     },
     {
       "id": "description-if-present-adds-information",
-      "text": "If @Description is present, it provides context beyond what the table rows already express — such as where permissions are checked in the request lifecycle, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context.",
+      "text": "If @Description is present, it provides context beyond what the table rows already express",
       "passed": true,
-      "evidence": "No @Description annotation present in the @TableTest, which is acceptable per the rule: 'It is acceptable to omit @Description if the table already conveys all relevant context'"
+      "evidence": "No @Description annotation present in the @TableTest. Table structure is self-explanatory (Role, Action, Allowed columns), so omission is acceptable per assertion rules"
     },
     {
       "id": "annotation-order",
@@ -62,15 +62,15 @@
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions ('Admin performs any action', 'Guest reads') — not outcomes ('Allowed', 'Denied').",
+      "text": "Scenario names describe conditions ('Admin performs any action', 'Guest reads') — not outcomes ('Allowed', 'Denied')",
       "passed": true,
-      "evidence": "Scenarios are: 'Admin can perform any action', 'User can read', 'User can write', 'User cannot delete', etc. — all describe role/action conditions, not outcomes"
+      "evidence": "Scenario names: 'Admin can perform any action', 'User can read', 'User can write', 'User cannot delete', 'Guest can read', 'Guest cannot write', 'Guest cannot delete' — all describe role/action conditions, not outcomes"
     },
     {
       "id": "has-tabletest-dependency",
       "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
       "passed": true,
-      "evidence": "Build file contains tabletest-junit:1.2.1"
+      "evidence": "Build file contains tabletest-junit"
     },
     {
       "id": "compiles",
