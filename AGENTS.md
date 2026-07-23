@@ -161,6 +161,9 @@ exactly one of them changed between the compared iterations.
   at `--grade-runs 3`, and **2/138 (1.4%) at temp 0 with a single run** — temperature 0 buys
   what majority voting bought, for a third of the calls. `--grade-runs 3` is therefore no
   longer the default regime; keep it for adjudicating a result that lands within the MDE.
+  Regrading the whole iteration-40 baseline under both regimes moved the total by **-3 of 324
+  (-0.9%), 14 of 17 evals identical**, and all three moved slots were already-known-unstable
+  assertions — so the regimes differ in variance, not in level.
   Sharper assertion *wording* does not help and has been tried twice — grader disagreement is
   response-level, which is why a sampling-parameter fix worked where a text fix did not.
 - **Fingerprint guard (automatic).** Each `benchmark.json` result is stamped with a content
