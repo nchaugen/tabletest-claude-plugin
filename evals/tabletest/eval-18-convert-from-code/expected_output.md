@@ -60,6 +60,11 @@ important factor overall). Hold one thing constant and move the other:
   both jump. Because `64/10 == 65/10 == 6`, the risk score is identical across the pair, so the
   jump is purely the senior formula — a clean isolation of the threshold.
 
+Each row must earn its place by showing a *different kind of impact*. The premium properties would
+really be a graph; the table is only a handful of samples of it. Do not add rows that are the same
+pattern with different arithmetic (age 30, 40, 50 all "standard, no claims") — they exercise the
+same multiplication and teach nothing the first sample did not.
+
 The senior threshold is a **premium** effect, not a decision one: 64 and 65 both decide
 `APPROVED`, so the distinction only shows up in the premium column and belongs here, not in the
 decision table.

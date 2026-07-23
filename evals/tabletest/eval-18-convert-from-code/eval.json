@@ -85,7 +85,7 @@
     },
     {
       "id": "depth-decision-boundaries",
-      "text": "Approval decision table covers the rejection boundary thoroughly: 5 claims triggers rejection regardless of realistic age (risk score crosses 75), 4 claims results in approval. Rows at 4 and 5 claims with varying ages demonstrate this cliff. Senior vs non-senior distinction (64 vs 65) also visible in the decision table.",
+      "text": "Approval decision table covers the rejection boundary thoroughly: 5 claims triggers rejection regardless of realistic age (risk score crosses 75), 4 claims results in approval. Rows at 4 and 5 claims with varying ages demonstrate this cliff. The senior threshold (64 vs 65) is NOT expected here — it produces no decision difference (both APPROVED) and belongs to the premium table.",
       "type": "llm"
     },
     {
