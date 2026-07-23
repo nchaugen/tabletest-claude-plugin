@@ -12,8 +12,12 @@ own table — not how elegant any single table is.
 | Traveller category | which discount scheme applies | ADULT and SENIOR are **one** value of this dimension, not two — they follow identical rules. CHILD is a separate scheme. |
 | Ticket type | whether a purchase participates at all | Only single tickets receive a Reis discount, and only single tickets count toward the ladder. Period tickets (weekly, monthly) do neither. |
 | Zone | ticket **price** only | Never affects the discount percentage, and never affects whether a purchase counts. A Z1 single ticket counts exactly as a Z3 single ticket does. |
-| Travel count | position on the ladder | Single adult tickets purchased in the trailing 30 days, measured at the time of the new purchase, including the ticket being bought. |
-| Discount ladder | count → percentage | 5% per fifth ticket from ticket 5, capped at 40%. |
+| Travel count | position on the ladder | Adult/senior single tickets purchased in the trailing 30 days, measured at the time of the new purchase. **The ticket being bought counts toward its own discount** — four prior single tickets plus this one is a count of five, and this purchase is charged at 5%. |
+| Discount ladder | count → percentage | 5% per fifth ticket from ticket 5 (5→5%, 10→10%, … 40→40%), then flat 40% for every higher count. Nine rungs including 0%. |
+
+**Child purchases never enter the count at all.** A child ticket is always flat 20%, so it neither
+builds a count of its own nor contributes to the count of the adult buying it. The prompt does not
+state this, so it is not assertable — see "Out of scope, but foreseeable".
 
 ## Independence claims that must be exercised, not narrated
 
@@ -38,15 +42,22 @@ stated in an `@Description`:
 
 ## Good decomposition
 
-Three or four `@TableTest` methods: count derivation from raw history, the ladder from a count,
-eligibility/dispatch by traveller category, and optionally price application (base price ×
-discount). The tier→percentage mapping appears in exactly one of them.
+Three `@TableTest` methods: count derivation from raw history, the ladder from a count, and
+eligibility/dispatch by traveller category. The tier→percentage mapping appears in exactly one
+of them.
+
+**Ticket price is out of scope.** This eval scores derivation of the discount percentage. A
+price-application table (base price × discount → final price) is neither expected nor rewarded;
+it is not a coverage gap when absent, and when present it must not re-enumerate the tier mapping.
 
 ## Out of scope, but foreseeable
 
-When several adult single tickets are bought in one purchase (buying for a companion), only one
-counts toward the ladder. The prompt does not state this. A solution that omits it is not
-penalised; one that invents a rule contradicting it is.
+Two rules a solution cannot derive from the prompt. Omitting either is not penalised; inventing a
+rule that contradicts either is.
+
+- When several adult single tickets are bought in one purchase (buying for a companion), only one
+  counts toward the ladder.
+- Child single-ticket purchases never count toward anyone's travel count.
 
 ## Judging
 
