@@ -95,16 +95,51 @@ edits apply immediately; `skills/` changes only after committing.
 
 ### Promoting a variant
 
+**A full run per promotion is not required — a full run per *release* is.** The two questions a
+run answers have very different prices: "did the change do what I aimed it at?" needs only the
+discriminating loop (~$4), while "did it break something else?" needs all 17 evals ($15). Only
+the second is expensive, and it does not have to be asked once per promotion.
+
 1. Replace `skills/<skill>/` with the variant; reconcile `references/` (drop any the new
    SKILL.md subsumes); delete `skill-variants/<skill>/next/`.
 2. Bump `.claude-plugin/plugin.json` and write a user-facing `CHANGELOG.md` entry (no
    variant/development terminology).
-3. Commit (`feat:`), then run one official iteration — its regression report vs the previous
-   baseline is the promotion evidence, and its `benchmark.json` becomes the new baseline.
-4. Trim results: keep only the latest official baseline's iteration dir (commit its
+3. Commit (`feat:`). The variant's own loop result — at `--grade-runs 3`, against the same
+   loop run on the previous skill version — is the promotion evidence. **No full run yet.**
+4. Repeat 1–3 for further variants. Nothing is released mid-batch.
+5. **Close the batch with one official full iteration.** Its regression report is the evidence
+   for every promotion in the batch, and its `benchmark.json` becomes the new baseline.
+6. Trim results: keep only the latest official baseline's iteration dir (commit its
    `benchmark.json`, `eval-review.md`, `outputs/`, `grading.json`, `timing.json`); delete the
    rest, which git history retains. The next run reads the baseline from disk.
-5. Tag and release (see Release).
+7. Tag and release (see Release).
+
+**When the batch run shows a regression, bisect — don't re-run the suite.** Re-run *only the
+regressed evals* against each promotion commit in the batch. That is per-eval money (~$1 each),
+so attributing a two-eval regression across four promotions costs a few dollars, not $60. The
+saving over a full run per promotion grows with batch size and is only spent when a regression
+actually appears.
+
+**Batching does not cost you isolation when the variants are eval-disjoint.** Check which evals
+carry each variant's target assertions before sequencing: the legibility work discriminates on
+15/18/22/23/29, while `options-type-converter`/`options-as-map` appear *only* in the conversion
+quad 25/26/27/28. Disjoint targets mean both can be developed and validated in parallel, each
+on its own loop, and the eval partition supplies the isolation that serialised full runs were
+meant to buy. Two caveats: disjoint *targets* are not disjoint *effects* — every variant edits
+the same SKILL.md and added length perturbs everything, which is exactly what the batch-closing
+run is for — and two variants editing SKILL.md must be reconciled before that run.
+
+**Optional per-promotion regression tier.** If a batch is long enough that deferring all
+regression signal feels risky, add the evals sitting at zero failures (currently 1, 2, 7, 8, 9,
+20 — $3.02 together). They teach nothing during iteration, which is exactly why they are good
+sentinels: they have nowhere to go but down. Loop + sentinels is ~$7 against $15, with
+per-promotion attribution preserved.
+
+**Three things that do not save money.** Trimming assertions (grading is a rounding error
+against generation). A cheaper generation model (the model must match or every delta is
+meaningless). Reusing stored outputs across promotions — `--grade-only` is valid across
+*grading* changes only; any skill edit invalidates every stored output. If wall-clock rather
+than cost is the constraint, generation parallelism is the lever, and it does not reduce spend.
 
 ### Evolving the eval suite
 
