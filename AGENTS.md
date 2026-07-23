@@ -69,9 +69,10 @@ evidence. Two consequences worth stating, because both are easy to get wrong:
 
 - An eval at 100% teaches nothing during iteration, however good it is. Keep it for promotion.
 - Near-duplicate evals bill separately for the same finding. The four conversion evals
-  (25/26/27/28) are one task from four source frameworks; their eval-unique assertions
-  (`no-*-syntax`, `*-dependency-removed`) pass consistently, so every failure they surface is
-  in a shared assertion. Run **one** per iteration cycle, rotating; run all four at promotion.
+  (25/26/27/28) are one task from four source frameworks, and their eval-unique assertions
+  (`no-*-syntax`, `*-dependency-removed`) rarely move — so a failure they surface is usually in
+  an assertion the other three share. Run **one** per iteration cycle, rotating; all four at
+  promotion.
 
 Pick the loop per change, from the previous baseline's failing-assertion set, rather than
 reusing a fixed list — the discriminating core drifts as failures are fixed. The full suite is
@@ -87,11 +88,35 @@ reusing a fixed list — the discriminating core drifts as failures are fixed. T
 2. Benchmark against the baseline:
    `node scripts/run-evals.js --skill tabletest --variant next --iteration N --compare-official`.
    The `eval-review.md` "Load-Bearing Assertions" and resource-comparison sections show what
-   the change wins and loses.
+   the change wins and loses — but read them alongside the artefacts (see below), never alone.
 
 **HEAD gotcha:** official-skill runs test the last *commit* (the worktree is created from
 HEAD), while variant files, prompts, and scaffolding come from the live working tree. Variant
 edits apply immediately; `skills/` changes only after committing.
+
+### Analysing a variant outcome
+
+**The report tells you which assertions moved. It does not tell you why, and its grader
+justifications are not evidence of cause.** Before attributing a delta to a specific edit, read
+the artefacts under `iterations/<skill>/<variant>/iteration-N/<eval>/`:
+
+- `outputs/` — the generated test code. This is the primary evidence: what the guidance actually
+  produced. Read it for every assertion you intend to explain.
+- `conversation.jsonl` — the agent's narration of what it decided and why. Gitignored and present
+  only until the iteration dir is trimmed, so mine it while it exists. It is narration, not a
+  reasoning trace: it shows which guidance fired ("boundary rows at 64/65"), not which sentence
+  caused it.
+
+**Check every grader justification against the artefact.** A justification names the right
+assertion and can still name the wrong cause — a `description-*` failure whose real trigger is a
+scenario name, say. Graders also misfire outright, failing an assertion whose own wording the
+output satisfies. An analysis built on justifications alone will produce a confident, wrong fix
+list.
+
+**Compare against the right baseline.** `--compare-official` uses the latest *official* benchmark,
+which is stale for any eval a mid-batch promotion has already improved — its wins reappear as if
+the current variant had earned them. For those evals the previous variant iteration is the true
+comparison; reserve the official one for evals no promotion in the open batch has touched.
 
 ### Promoting a variant
 
@@ -130,19 +155,19 @@ saving over a full run per promotion grows with batch size and is only spent whe
 actually appears.
 
 **Batching does not cost you isolation when the variants are eval-disjoint.** Check which evals
-carry each variant's target assertions before sequencing: the legibility work discriminates on
-15/18/22/23/29, while `options-type-converter`/`options-as-map` appear *only* in the conversion
-quad 25/26/27/28. Disjoint targets mean both can be developed and validated in parallel, each
-on its own loop, and the eval partition supplies the isolation that serialised full runs were
-meant to buy. Two caveats: disjoint *targets* are not disjoint *effects* — every variant edits
-the same SKILL.md and added length perturbs everything, which is exactly what the batch-closing
-run is for — and two variants editing SKILL.md must be reconciled before that run.
+carry each variant's target assertions before sequencing; when two variants' target sets do not
+overlap, both can be developed and validated in parallel, each on its own loop, and the eval
+partition supplies the isolation that serialised full runs were meant to buy. Two caveats:
+disjoint *targets* are not disjoint *effects* — every variant edits the same SKILL.md and added
+length perturbs everything, which is exactly what the batch-closing run is for — and two variants
+editing SKILL.md must be reconciled before that run. Targets overlap more often than the failing
+sets suggest: two variants editing the same *section* collide even when their assertions differ.
 
 **Optional per-promotion regression tier.** If a batch is long enough that deferring all
-regression signal feels risky, add the evals sitting at zero failures (currently 1, 2, 7, 8, 9,
-20 — $3.02 together). They teach nothing during iteration, which is exactly why they are good
-sentinels: they have nowhere to go but down. Loop + sentinels is ~$7 against $15, with
-per-promotion attribution preserved.
+regression signal feels risky, add the evals sitting at zero failures in the current baseline
+(read them off its `benchmark.json`). They teach nothing during iteration, which is exactly why
+they are good sentinels: they have nowhere to go but down. Loop + sentinels is roughly half a
+full run, with per-promotion attribution preserved.
 
 **Three things that do not save money.** Trimming assertions (grading is a rounding error
 against generation). A cheaper generation model (the model must match or every delta is
@@ -163,18 +188,14 @@ exactly one of them changed between the compared iterations.
   for the affected `--evals`; `--compare-official` merges the newest result per eval.
 - **Cross-suite regression reports are noise** — added/renamed assertions show as spurious
   regressions. Re-baseline instead of interpreting them.
-- **Grading regime is part of the instrument too.** Grading runs at `temperature: 0`
-  (`GRADING_TEMPERATURE`); a comparison across a change of temperature or of `--grade-runs` is
-  not a comparison. Measured over iteration 39's stored outputs, 138 slots, three identical
-  re-grades: 5/138 unstable at temp 1.0, 7/138 with sharpened assertion wording, 2/138 (1.4%)
-  at `--grade-runs 3`, and **2/138 (1.4%) at temp 0 with a single run** — temperature 0 buys
-  what majority voting bought, for a third of the calls. `--grade-runs 3` is therefore no
-  longer the default regime; keep it for adjudicating a result that lands within the MDE.
-  Regrading the whole iteration-40 baseline under both regimes moved the total by **-3 of 324
-  (-0.9%), 14 of 17 evals identical**, and all three moved slots were already-known-unstable
-  assertions — so the regimes differ in variance, not in level.
-  Sharper assertion *wording* does not help and has been tried twice — grader disagreement is
-  response-level, which is why a sampling-parameter fix worked where a text fix did not.
+- **Grading regime is part of the instrument too.** The standard regime is `temperature: 0`
+  (`GRADING_TEMPERATURE`) with a single grading run; `--grade-runs 3` is reserved for
+  adjudicating a result that lands inside the MDE. A comparison across a change of temperature
+  or of `--grade-runs` is not a comparison. Residual instability is ~1–2% of slots, which sets
+  the MDE at a few slots — read the failing *set*, never the headline rate.
+  Sharper assertion *wording* does not fix grader disagreement and has been tried twice: the
+  disagreement is response-level, so it is a sampling problem, not a prompt problem. **Check
+  call parameters before rewriting prompts.**
 - **Fingerprint guard (automatic).** Each `benchmark.json` result is stamped with a content
   fingerprint of its definition (`prompt.md`, `eval.json`, `expected_output.md`, `project/`);
   reports compare only matching evals and exclude changed ones as "not comparable". Pre-guard
