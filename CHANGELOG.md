@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.7.0] - 2026-07-23
+## [Unreleased]
 
 ### Added
 - **tabletest**: Writing tests from a feature description now starts by committing to one `@TableTest` method per concern *before* any table is written — list the concerns, name the method each becomes, then write them. A feature stated as a list of policy rules is not one concern just because it resolves to a single verdict: eligibility conditions, tier and category boundaries, and status handling are separate concerns, with a combining table for the final verdict where one is needed. The decision is made up front because once a single table exists, the pull is to keep extending it with rows rather than split it

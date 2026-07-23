@@ -102,17 +102,26 @@ the second is expensive, and it does not have to be asked once per promotion.
 
 1. Replace `skills/<skill>/` with the variant; reconcile `references/` (drop any the new
    SKILL.md subsumes); delete `skill-variants/<skill>/next/`.
-2. Bump `.claude-plugin/plugin.json` and write a user-facing `CHANGELOG.md` entry (no
-   variant/development terminology).
+2. Add a user-facing `CHANGELOG.md` entry under `## [Unreleased]` (no variant/development
+   terminology). **Do not bump `.claude-plugin/plugin.json`** — see below.
 3. Commit (`feat:`). The variant's own loop result — graded in the standard regime, against the
    same loop run on the previous skill version — is the promotion evidence. **No full run yet.**
-4. Repeat 1–3 for further variants. Nothing is released mid-batch.
+4. Repeat 1–3 for further variants, accumulating entries under `## [Unreleased]`. Nothing is
+   released mid-batch.
 5. **Close the batch with one official full iteration.** Its regression report is the evidence
    for every promotion in the batch, and its `benchmark.json` becomes the new baseline.
 6. Trim results: keep only the latest official baseline's iteration dir (commit its
    `benchmark.json`, `eval-review.md`, `outputs/`, `grading.json`, `timing.json`); delete the
    rest, which git history retains. The next run reads the baseline from disk.
-7. Tag and release (see Release).
+7. Tag and release (see Release) — that is where the single version bump for the whole batch
+   happens, and where `## [Unreleased]` becomes `## [X.Y.Z] - <date>`.
+
+**One version bump per release, not per promotion.** A version is a publication fact: it names
+something a user can install. Numbering intermediate promoted-but-unreleased states burns
+versions on things that were never published, and buys nothing — `run-evals.js` never reads
+`plugin.json`, so the version is invisible to every comparison. What identifies a skill state to
+the instrument is the git commit (official runs build their worktree from HEAD) and the
+`skill_commit`/`skill_digest` provenance stamped into each `benchmark.json`.
 
 **When the batch run shows a regression, bisect — don't re-run the suite.** Re-run *only the
 regressed evals* against each promotion commit in the batch. That is per-eval money (~$1 each),
@@ -170,6 +179,17 @@ exactly one of them changed between the compared iterations.
   fingerprint of its definition (`prompt.md`, `eval.json`, `expected_output.md`, `project/`);
   reports compare only matching evals and exclude changed ones as "not comparable". Pre-guard
   benchmarks (no fingerprint) count as comparable.
+  **The guard protects comparison, not re-grade validity** — it excludes changed evals when
+  comparing two iterations, but a fresh `--grade-only` writes a benchmark stamped with the
+  *current* fingerprint, so re-grading a stored output whose prompt has since changed scores a
+  stale response as if it were valid, silently. Check what changed before re-grading.
+- **Skill provenance (automatic).** Each `benchmark.json` records `skill_commit` (repo HEAD at
+  run time) and `skill_digest` (content hash of the skill directory the agent was actually
+  handed, after any variant was applied), so a stored result still answers "which skill state
+  produced this?" once the iteration dirs around it are trimmed. A `--grade-only` run *inherits*
+  these from the benchmark already in the iteration dir rather than restamping — provenance
+  belongs to the generation, and today's skill did not write yesterday's answers. Runs predating
+  this record `unknown`.
 
 ### Contamination protocol
 

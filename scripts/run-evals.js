@@ -635,7 +635,7 @@ async function main() {
       await generateResponses(evals, worktreePath, iterationDir, args);
     }
     await gradeResponses(evals, iterationDir, args);
-    const benchmark = aggregateResults(evals, iterationDir, args);
+    const benchmark = aggregateResults(evals, iterationDir, args, worktreePath, repoRoot);
     const previousBenchmark = loadPreviousBenchmark(repoRoot, args);
     const officialBenchmark = args.compareOfficial ? loadOfficialBenchmark(repoRoot, args.skill) : null;
     generateReport(benchmark, previousBenchmark, officialBenchmark, iterationDir, args);
@@ -1384,13 +1384,87 @@ function unwrapResults(evalEntry) {
   return evalEntry.results.with_skill || evalEntry.results.no_skill || evalEntry.results.old_skill || Object.values(evalEntry.results)[0] || null;
 }
 
+/**
+ * Content hash of a directory tree: sorted relative paths and their bytes, so the
+ * digest changes when any file's name or content does and not otherwise.
+ */
+function digestDirectory(dir) {
+  const hash = crypto.createHash("sha256");
+  const walk = (current, prefix) => {
+    for (const entry of fs.readdirSync(current).sort()) {
+      const full = path.join(current, entry);
+      const rel = prefix ? `${prefix}/${entry}` : entry;
+      if (fs.statSync(full).isDirectory()) {
+        walk(full, rel);
+      } else {
+        hash.update(rel);
+        hash.update("\0");
+        hash.update(fs.readFileSync(full));
+        hash.update("\0");
+      }
+    }
+  };
+  walk(dir, "");
+  return hash.digest("hex").slice(0, 16);
+}
+
+/**
+ * Identifies the skill state that produced a run's outputs, so a stored benchmark
+ * still answers "which skill was this?" after the iteration dirs around it are trimmed.
+ *
+ * Digests the skill directory the agent was actually handed — the worktree copy, after
+ * any variant has been applied — so official and variant runs are described the same
+ * way, and the HEAD-versus-working-tree difference is captured rather than assumed.
+ */
+function skillProvenance(worktreePath, skillName, repoRoot) {
+  const skillDir = path.join(worktreePath, "skills", skillName);
+  let commit = "unknown";
+  try {
+    commit = execSync("git rev-parse HEAD", { cwd: repoRoot, stdio: ["ignore", "pipe", "ignore"] })
+      .toString().trim();
+  } catch {
+    // Not a git checkout, or git unavailable: the digest still identifies the content.
+  }
+  return {
+    skill_commit: commit,
+    skill_digest: fs.existsSync(skillDir) ? digestDirectory(skillDir) : "absent",
+  };
+}
+
+/**
+ * Provenance belongs to the generation, not the grading. A re-grade builds a new
+ * benchmark from outputs an earlier run produced, so it inherits that run's provenance
+ * instead of stamping the skill as it stands now — which would claim today's skill
+ * wrote yesterday's answers.
+ */
+function inheritedProvenance(iterationDir, suffix) {
+  const candidates = [`benchmark${suffix}.json`, "benchmark.json"];
+  for (const name of candidates) {
+    const file = path.join(iterationDir, name);
+    if (!fs.existsSync(file)) continue;
+    try {
+      const prior = JSON.parse(fs.readFileSync(file, "utf-8"));
+      if (prior.skill_commit || prior.skill_digest) {
+        return { skill_commit: prior.skill_commit, skill_digest: prior.skill_digest };
+      }
+    } catch {
+      // Unreadable benchmark: fall through to the next candidate.
+    }
+  }
+  return { skill_commit: "unknown", skill_digest: "unknown" };
+}
+
 function unwrapSummary(benchmark) {
   if (!benchmark || !benchmark.summary) return null;
   if (benchmark.summary.assertions_passed !== undefined) return benchmark.summary;
   return benchmark.summary.with_skill || benchmark.summary.no_skill || Object.values(benchmark.summary)[0] || null;
 }
 
-function aggregateResults(evals, iterationDir, args) {
+function aggregateResults(evals, iterationDir, args, worktreePath, repoRoot) {
+  // A grading suffix isolates an entire re-grade: read grading-<suffix>.json
+  // and write benchmark-<suffix>.json so the original results stay intact.
+  const suffix = args.gradingSuffix ? `-${args.gradingSuffix}` : "";
+
   const benchmark = {
     skill_name: args.variant ? `${args.skill} (${args.variant})` : args.skill,
     iteration: args.iteration,
@@ -1398,14 +1472,13 @@ function aggregateResults(evals, iterationDir, args) {
     provider: args.provider,
     ...(args.nudgeSkill ? { nudge_skill: true } : {}),
     grading_model: resolveModel(args.gradingModel),
+    ...(args.gradeOnly
+      ? inheritedProvenance(iterationDir, suffix)
+      : skillProvenance(worktreePath, args.skill, repoRoot)),
     timestamp: new Date().toISOString(),
     evals: [],
     summary: {},
   };
-
-  // A grading suffix isolates an entire re-grade: read grading-<suffix>.json
-  // and write benchmark-<suffix>.json so the original results stay intact.
-  const suffix = args.gradingSuffix ? `-${args.gradingSuffix}` : "";
 
   const regradedEntries = [];
   for (const evalDef of evals) {
@@ -1986,6 +2059,10 @@ module.exports = {
   // benchmark shaping
   unwrapResults,
   unwrapSummary,
+  // provenance
+  digestDirectory,
+  skillProvenance,
+  inheritedProvenance,
   // cli
   parseEvalIds,
   resolveModel,

@@ -31,6 +31,9 @@ const {
   resolveModel,
   computeEvalFingerprint,
   fingerprintsDiffer,
+  digestDirectory,
+  skillProvenance,
+  inheritedProvenance,
 } = require("./run-evals.js");
 
 // --- helpers ---------------------------------------------------------------
@@ -598,5 +601,131 @@ describe("resolveModel", () => {
 
   test("passes a full model id through unchanged", () => {
     assert.equal(resolveModel("claude-sonnet-5"), "claude-sonnet-5");
+  });
+});
+
+describe("digestDirectory", () => {
+  let dir;
+  beforeEach(() => { dir = fs.mkdtempSync(path.join(os.tmpdir(), "digest-test-")); });
+  afterEach(() => { fs.rmSync(dir, { recursive: true, force: true }); });
+
+  function writeSkill(root, files) {
+    for (const [rel, content] of Object.entries(files)) {
+      const full = path.join(root, rel);
+      fs.mkdirSync(path.dirname(full), { recursive: true });
+      fs.writeFileSync(full, content);
+    }
+  }
+
+  test("is stable across repeated digests of the same content", () => {
+    writeSkill(dir, { "SKILL.md": "guidance", "references/a.md": "detail" });
+    assert.equal(digestDirectory(dir), digestDirectory(dir));
+  });
+
+  test("changes when a file's content changes", () => {
+    writeSkill(dir, { "SKILL.md": "guidance" });
+    const before = digestDirectory(dir);
+    writeSkill(dir, { "SKILL.md": "guidance revised" });
+    assert.notEqual(digestDirectory(dir), before);
+  });
+
+  test("changes when a file is added", () => {
+    writeSkill(dir, { "SKILL.md": "guidance" });
+    const before = digestDirectory(dir);
+    writeSkill(dir, { "references/new.md": "extra" });
+    assert.notEqual(digestDirectory(dir), before);
+  });
+
+  test("distinguishes identical content under different names", () => {
+    const other = fs.mkdtempSync(path.join(os.tmpdir(), "digest-test-"));
+    try {
+      writeSkill(dir, { "SKILL.md": "same bytes" });
+      writeSkill(other, { "RENAMED.md": "same bytes" });
+      assert.notEqual(digestDirectory(dir), digestDirectory(other));
+    } finally {
+      fs.rmSync(other, { recursive: true, force: true });
+    }
+  });
+
+  test("ignores the order the filesystem happens to list entries in", () => {
+    const other = fs.mkdtempSync(path.join(os.tmpdir(), "digest-test-"));
+    try {
+      writeSkill(dir, { "a.md": "one", "b.md": "two" });
+      writeSkill(other, { "b.md": "two", "a.md": "one" });
+      assert.equal(digestDirectory(dir), digestDirectory(other));
+    } finally {
+      fs.rmSync(other, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("skillProvenance", () => {
+  let worktree;
+  beforeEach(() => { worktree = fs.mkdtempSync(path.join(os.tmpdir(), "provenance-test-")); });
+  afterEach(() => { fs.rmSync(worktree, { recursive: true, force: true }); });
+
+  test("digests the skill the agent was handed, not the whole worktree", () => {
+    fs.mkdirSync(path.join(worktree, "skills", "tabletest"), { recursive: true });
+    fs.writeFileSync(path.join(worktree, "skills", "tabletest", "SKILL.md"), "guidance");
+    const expected = digestDirectory(path.join(worktree, "skills", "tabletest"));
+
+    assert.equal(skillProvenance(worktree, "tabletest", worktree).skill_digest, expected);
+  });
+
+  test("reports an absent skill rather than throwing", () => {
+    // The no-skill baseline deletes the skill under test; that run still needs a benchmark.
+    assert.equal(skillProvenance(worktree, "tabletest", worktree).skill_digest, "absent");
+  });
+
+  test("records unknown when the repo root is not a git checkout", () => {
+    fs.mkdirSync(path.join(worktree, "skills", "tabletest"), { recursive: true });
+    assert.equal(skillProvenance(worktree, "tabletest", worktree).skill_commit, "unknown");
+  });
+});
+
+describe("inheritedProvenance", () => {
+  let iterationDir;
+  beforeEach(() => { iterationDir = fs.mkdtempSync(path.join(os.tmpdir(), "inherit-test-")); });
+  afterEach(() => { fs.rmSync(iterationDir, { recursive: true, force: true }); });
+
+  function writeBenchmark(name, body) {
+    fs.writeFileSync(path.join(iterationDir, name), JSON.stringify(body));
+  }
+
+  test("carries the generating run's provenance forward", () => {
+    writeBenchmark("benchmark.json", { skill_commit: "abc123", skill_digest: "deadbeef" });
+
+    assert.deepEqual(inheritedProvenance(iterationDir, ""), {
+      skill_commit: "abc123",
+      skill_digest: "deadbeef",
+    });
+  });
+
+  test("prefers the suffixed benchmark when re-grading an existing re-grade", () => {
+    writeBenchmark("benchmark.json", { skill_commit: "original", skill_digest: "one" });
+    writeBenchmark("benchmark-m3.json", { skill_commit: "regraded", skill_digest: "two" });
+
+    assert.equal(inheritedProvenance(iterationDir, "-m3").skill_commit, "regraded");
+  });
+
+  test("falls back to the unsuffixed benchmark on a first suffixed re-grade", () => {
+    writeBenchmark("benchmark.json", { skill_commit: "original", skill_digest: "one" });
+
+    assert.equal(inheritedProvenance(iterationDir, "-t0").skill_commit, "original");
+  });
+
+  test("reports unknown for outputs generated before provenance was recorded", () => {
+    writeBenchmark("benchmark.json", { skill_name: "tabletest" });
+
+    assert.deepEqual(inheritedProvenance(iterationDir, ""), {
+      skill_commit: "unknown",
+      skill_digest: "unknown",
+    });
+  });
+
+  test("survives an unreadable benchmark", () => {
+    fs.writeFileSync(path.join(iterationDir, "benchmark.json"), "{ truncated");
+
+    assert.equal(inheritedProvenance(iterationDir, "").skill_commit, "unknown");
   });
 });
