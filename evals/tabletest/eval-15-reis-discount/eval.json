@@ -25,6 +25,11 @@
       "type": "llm"
     },
     {
+      "id": "window-boundary-uses-purchase-time",
+      "text": "The 30-day window is exercised at time-of-purchase granularity, not whole days only. The requirement says the count is 'measured at the time of purchase', so at least one pair of rows must distinguish just-inside from just-outside by less than a day (e.g. 29 days 23 hours ago counts, 30 days 1 hour ago does not). A table whose finest distinction is whole days (30 vs 31) FAILS, however many boundary rows it has.",
+      "type": "llm"
+    },
+    {
       "id": "2.9-correctness-value-set-tier-semantics",
       "text": "Value sets in the tier table contain exactly the values that produce the same discount. No cross-tier contamination.",
       "type": "llm"
@@ -62,6 +67,11 @@
     {
       "id": "2.17-zone-irrelevance-visible",
       "text": "The eligibility/passenger-type table includes a Zone column (or equivalent) with a value set to show that the discount applies regardless of zone — rather than silently omitting zone. The requirement explicitly says 'regardless of the zones you travel in'.",
+      "type": "llm"
+    },
+    {
+      "id": "zone-independent-counting",
+      "text": "The rolling-window counting concern shows by row that a past purchase's zone does not affect whether it counts toward the travel count — for example history entries whose zones differ (or a zone value set) reaching the same count. The claim must be exercised by data: stating it only in @Description, or fixing every history entry to a single zone in the test or a converter, FAILS. This is about counting, not about the discount percentage, which zone-irrelevance-visible covers.",
       "type": "llm"
     },
     {
