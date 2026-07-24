@@ -14,6 +14,16 @@
       "type": "llm"
     },
     {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES. Do not fail a table merely because its values are simple or round — only these three conditions matter.",
+      "type": "llm"
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone; (3) a helper method used in the assertion applies a comparison criterion (ordering, tolerance, subset matching) that is stated nowhere in the table, title, or description. Otherwise the assertion PASSES. Setup that merely constructs the objects named by the columns is not a failure.",
+      "type": "llm"
+    },
+    {
       "id": "minimal-rows-per-concern",
       "text": "Each @TableTest has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
       "type": "llm"
