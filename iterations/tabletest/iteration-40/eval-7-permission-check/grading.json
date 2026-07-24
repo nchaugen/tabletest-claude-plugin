@@ -32,9 +32,9 @@
     },
     {
       "id": "no-duplicate-role-output",
-      "text": "No two rows share both the same Role value and the same boolean output — forces value set consolidation",
-      "passed": true,
-      "evidence": "ADMIN row uses {READ, WRITE, DELETE} value set with single true outcome; USER and GUEST rows consolidate multiple actions per role into distinct outcome rows"
+      "text": "No two rows share both the same Role value and the same boolean output",
+      "passed": false,
+      "evidence": "Row 6 (Guest cannot write | GUEST | WRITE | false) and Row 7 (Guest cannot delete | GUEST | DELETE | false) both have GUEST role and false outcome"
     },
     {
       "id": "has-descriptive-title",
@@ -44,9 +44,9 @@
     },
     {
       "id": "description-if-present-adds-information",
-      "text": "If @Description is present, it provides context beyond what the table rows already express",
+      "text": "If @Description is present, it provides context beyond table rows",
       "passed": true,
-      "evidence": "No @Description annotation present in the @TableTest. Table structure is self-explanatory (Role, Action, Allowed columns), so omission is acceptable per assertion rules"
+      "evidence": "No @Description annotation present in the test; omission is acceptable per spec since all context is in the table"
     },
     {
       "id": "annotation-order",
@@ -62,9 +62,9 @@
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions ('Admin performs any action', 'Guest reads') — not outcomes ('Allowed', 'Denied')",
+      "text": "Scenario names describe conditions, not outcomes",
       "passed": true,
-      "evidence": "Scenario names: 'Admin can perform any action', 'User can read', 'User can write', 'User cannot delete', 'Guest can read', 'Guest cannot write', 'Guest cannot delete' — all describe role/action conditions, not outcomes"
+      "evidence": "Scenario names are 'Admin can perform any action', 'User can read', 'User cannot delete', 'Guest can read', etc. — all describe the condition/action, not verdict"
     },
     {
       "id": "has-tabletest-dependency",
@@ -79,7 +79,7 @@
       "evidence": "Compilation succeeded"
     }
   ],
-  "assertions_passed": 13,
+  "assertions_passed": 12,
   "assertions_total": 13,
-  "pass_rate": 1
+  "pass_rate": 0.9230769230769231
 }

@@ -6,7 +6,7 @@
   "grading_model": "claude-haiku-4-5",
   "skill_commit": "unknown",
   "skill_digest": "unknown",
-  "timestamp": "2026-07-24T15:14:14.993Z",
+  "timestamp": "2026-07-24T15:30:12.825Z",
   "evals": [
     {
       "id": "eval-1-convert-repetitive-tests",
@@ -28,7 +28,7 @@
       "id": "eval-2-parse-dates",
       "name": "parse dates",
       "skill": "tabletest",
-      "fingerprint": "c511b35335db",
+      "fingerprint": "be1383ae9572",
       "results": {
         "model": "claude-sonnet-5",
         "assertions_passed": 15,
@@ -44,13 +44,15 @@
       "id": "eval-7-permission-check",
       "name": "permission check",
       "skill": "tabletest",
-      "fingerprint": "bcdf13ea3aa8",
+      "fingerprint": "20997b9c9e5a",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 13,
+        "assertions_passed": 12,
         "assertions_total": 13,
-        "pass_rate": 1,
-        "failed_assertions": [],
+        "pass_rate": 0.9230769230769231,
+        "failed_assertions": [
+          "no-duplicate-role-output"
+        ],
         "total_tokens": 585941,
         "duration_ms": 59895,
         "cost_usd": 0.34284165000000005
@@ -60,13 +62,15 @@
       "id": "eval-8-money-parse",
       "name": "money parse",
       "skill": "tabletest",
-      "fingerprint": "e69bda0bfc01",
+      "fingerprint": "767c3ac68e7b",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 15,
+        "assertions_passed": 14,
         "assertions_total": 15,
-        "pass_rate": 1,
-        "failed_assertions": [],
+        "pass_rate": 0.9333333333333333,
+        "failed_assertions": [
+          "minimal-rows-per-concern"
+        ],
         "total_tokens": 606672,
         "duration_ms": 87611,
         "cost_usd": 0.3907922999999999
@@ -76,7 +80,7 @@
       "id": "eval-9-bonus-contractor-structure",
       "name": "bonus contractor structure",
       "skill": "tabletest",
-      "fingerprint": "d986ef8aeabe",
+      "fingerprint": "5062e087f583",
       "results": {
         "model": "claude-sonnet-5",
         "assertions_passed": 13,
@@ -92,14 +96,18 @@
       "id": "eval-14-weekly-pay",
       "name": "weekly pay",
       "skill": "tabletest",
-      "fingerprint": "4575f8c9faba",
+      "fingerprint": "b922afa4dcb5",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 19,
+        "assertions_passed": 15,
         "assertions_total": 20,
-        "pass_rate": 0.95,
+        "pass_rate": 0.75,
         "failed_assertions": [
-          "1.6-readability-empty-cells"
+          "1.6-readability-empty-cells",
+          "1.9-correctness-value-set-semantics",
+          "1.11-format-description",
+          "business-language-columns",
+          "separates-classification-and-calculation"
         ],
         "total_tokens": 1307679,
         "duration_ms": 264939,
@@ -110,15 +118,15 @@
       "id": "eval-15-reis-discount",
       "name": "reis discount",
       "skill": "tabletest",
-      "fingerprint": "51ee93fb20bf",
+      "fingerprint": "64de04067cd2",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 21,
-        "assertions_total": 23,
-        "pass_rate": 0.9130434782608695,
+        "assertions_passed": 23,
+        "assertions_total": 25,
+        "pass_rate": 0.92,
         "failed_assertions": [
-          "2.17-zone-irrelevance-visible",
-          "rule-statable-from-table"
+          "window-boundary-uses-purchase-time",
+          "2.17-zone-irrelevance-visible"
         ],
         "total_tokens": 2287509,
         "duration_ms": 411343,
@@ -129,16 +137,18 @@
       "id": "eval-18-convert-from-code",
       "name": "convert from code",
       "skill": "tabletest",
-      "fingerprint": "9a80b2add803",
+      "fingerprint": "cc3d572d88d6",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 20,
+        "assertions_passed": 18,
         "assertions_total": 24,
-        "pass_rate": 0.8333333333333334,
+        "pass_rate": 0.75,
         "failed_assertions": [
           "black-box-columns",
+          "separates-decision-and-premium",
           "description-no-internals",
           "depth-decision-boundaries",
+          "depth-premium-boundaries",
           "rule-statable-from-table"
         ],
         "total_tokens": 826034,
@@ -150,13 +160,15 @@
       "id": "eval-20-collections-and-quoting",
       "name": "collections and quoting",
       "skill": "tabletest",
-      "fingerprint": "aae867a46f38",
+      "fingerprint": "4e719d42d86d",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 17,
+        "assertions_passed": 16,
         "assertions_total": 17,
-        "pass_rate": 1,
-        "failed_assertions": [],
+        "pass_rate": 0.9411764705882353,
+        "failed_assertions": [
+          "list-syntax-correct"
+        ],
         "total_tokens": 1242601,
         "duration_ms": 325555,
         "cost_usd": 0.9988507999999999
@@ -169,11 +181,10 @@
       "fingerprint": "0fb0cf6384e0",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 24,
+        "assertions_passed": 25,
         "assertions_total": 27,
-        "pass_rate": 0.8888888888888888,
+        "pass_rate": 0.9259259259259259,
         "failed_assertions": [
-          "minimal-rows-per-concern",
           "description-no-irrelevant-information",
           "rule-statable-from-table"
         ],
@@ -189,10 +200,12 @@
       "fingerprint": "5575308212ab",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 21,
+        "assertions_passed": 20,
         "assertions_total": 21,
-        "pass_rate": 1,
-        "failed_assertions": [],
+        "pass_rate": 0.9523809523809523,
+        "failed_assertions": [
+          "title-states-system-behaviour"
+        ],
         "total_tokens": 540843,
         "duration_ms": 149866,
         "cost_usd": 0.48218160000000004
@@ -202,13 +215,14 @@
       "id": "eval-25-convert-from-spock",
       "name": "convert from spock",
       "skill": "tabletest",
-      "fingerprint": "a0da8b2ce6f9",
+      "fingerprint": "b84859386681",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 19,
+        "assertions_passed": 18,
         "assertions_total": 20,
-        "pass_rate": 0.95,
+        "pass_rate": 0.9,
         "failed_assertions": [
+          "options-as-map",
           "options-type-converter"
         ],
         "total_tokens": 3006845,
@@ -220,15 +234,16 @@
       "id": "eval-26-convert-from-kotest",
       "name": "convert from kotest",
       "skill": "tabletest",
-      "fingerprint": "69dc0a379e61",
+      "fingerprint": "9c8b7bbbd7f8",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 18,
+        "assertions_passed": 17,
         "assertions_total": 20,
-        "pass_rate": 0.9,
+        "pass_rate": 0.85,
         "failed_assertions": [
           "options-as-map",
-          "options-type-converter"
+          "options-type-converter",
+          "business-language-columns"
         ],
         "total_tokens": 1443172,
         "duration_ms": 362383,
@@ -239,15 +254,16 @@
       "id": "eval-27-convert-from-testng",
       "name": "convert from testng",
       "skill": "tabletest",
-      "fingerprint": "e45b6bb4896c",
+      "fingerprint": "e2d18bff942a",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 17,
+        "assertions_passed": 16,
         "assertions_total": 19,
-        "pass_rate": 0.8947368421052632,
+        "pass_rate": 0.8421052631578947,
         "failed_assertions": [
           "options-as-map",
-          "options-type-converter"
+          "options-type-converter",
+          "business-language-columns"
         ],
         "total_tokens": 1445041,
         "duration_ms": 337704,
@@ -258,7 +274,7 @@
       "id": "eval-28-convert-from-methodsource",
       "name": "convert from methodsource",
       "skill": "tabletest",
-      "fingerprint": "92655161ea47",
+      "fingerprint": "59cc3903819f",
       "results": {
         "model": "claude-sonnet-5",
         "assertions_passed": 16,
@@ -280,13 +296,12 @@
       "fingerprint": "c8f7c9d9b768",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 23,
+        "assertions_passed": 24,
         "assertions_total": 26,
-        "pass_rate": 0.8846153846153846,
+        "pass_rate": 0.9230769230769231,
         "failed_assertions": [
           "business-language-columns",
-          "description-not-redundant-with-scenarios",
-          "rule-statable-from-table"
+          "coupon-as-single-column"
         ],
         "total_tokens": 968444,
         "duration_ms": 322446,
@@ -300,10 +315,12 @@
       "fingerprint": "a29f8e98d4e4",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 19,
+        "assertions_passed": 18,
         "assertions_total": 19,
-        "pass_rate": 1,
-        "failed_assertions": [],
+        "pass_rate": 0.9473684210526315,
+        "failed_assertions": [
+          "minimal-rows-per-concern"
+        ],
         "total_tokens": 3329150,
         "duration_ms": 664880,
         "cost_usd": 2.2749969
@@ -311,9 +328,9 @@
     }
   ],
   "summary": {
-    "assertions_passed": 303,
-    "assertions_total": 323,
-    "pass_rate": 0.9380804953560371,
+    "assertions_passed": 293,
+    "assertions_total": 325,
+    "pass_rate": 0.9015384615384615,
     "total_tokens": 20956288,
     "total_duration_ms": 4379343,
     "total_cost_usd": 14.896485799999997

@@ -10,19 +10,19 @@
       "id": "options-as-map",
       "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:].",
       "passed": false,
-      "evidence": "Options are passed via helper method options(fragile, insuredValue, handling) and not represented as map columns in tables. Tables show individual boolean/string/BigDecimal columns instead."
+      "evidence": "The test uses a helper method `options(boolean fragile, BigDecimal insuredValue, String handling)` to construct PackageOptions objects. No map column or @TypeConverter is present; options are built programmatically in the test body, not declared in the table."
     },
     {
       "id": "options-type-converter",
       "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.",
       "passed": false,
-      "evidence": "No @TypeConverter method is present in the test file. Options are constructed via the private options() helper method, not via type conversion."
+      "evidence": "No @TypeConverter method is present in the test class. The `options()` helper method constructs PackageOptions directly; there is no converter annotation or map-to-PackageOptions transformation."
     },
     {
       "id": "dimensions-as-list",
       "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns",
       "passed": true,
-      "evidence": "Tables show 'Dimensions' column with values like '[10, 10, 10]', '[70, 50, 10]', '[30, 20, 15]', '[100, 5, 5]', '[120, 5, 5]' as lists."
+      "evidence": "Dimensions appear as lists in tables: `[1, 1, 1]`, `[10, 10, 10]`, `[70, 50, 10]`, `[30, 20, 15]`, `[100, 5, 5]`, `[120, 5, 5]` and are passed as `List<Integer>` parameters."
     },
     {
       "id": "uses-value-sets",
@@ -34,13 +34,13 @@
       "id": "concerns-decomposed",
       "text": "Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence",
       "passed": true,
-      "evidence": "8 separate @TableTest methods: shouldLookUpBaseRateByRegionSpeedAndWeight, shouldUseTheLargerOfActualAndDimensionalWeight, shouldAddOversizeSurchargeWhenAnyDimensionExceedsThreshold, shouldApplyFragileMultiplier, shouldAddInsurancePremiumWithMinimum, shouldAddHazmatHandlingFee, shouldCombineFragileMultiplierWithInsurancePremium, shouldNotVaryCostByCarrier."
+      "evidence": "Eight separate @TableTest methods: shouldLookUpBaseRateByRegionSpeedAndWeight, shouldUseTheLargerOfActualAndDimensionalWeight, shouldAddOversizeSurchargeWhenAnyDimensionExceedsThreshold, shouldApplyFragileMultiplier, shouldAddInsurancePremiumWithMinimum, shouldAddHazmatHandlingFee, shouldCombineFragileMultiplierWithInsurancePremium, shouldNotVaryCostByCarrier."
     },
     {
       "id": "numeric-types-correct",
       "text": "Parameter types correspond to the ShippingCostCalculator.calculateShippingCost interface — weight, cost, and dimension types match the method signature.",
       "passed": true,
-      "evidence": "Method signatures use 'double weight', 'List<Integer> dimensions', 'BigDecimal rate/total' matching calculator interface calls with these types."
+      "evidence": "Weight is `double`, dimensions are `List<Integer>`, costs/rates are `BigDecimal`, and comparisons use `compareTo(rate)` with `== 0` check, matching the interface requirements."
     },
     {
       "id": "scenario-column-present",
@@ -52,7 +52,7 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1').",
       "passed": true,
-      "evidence": "Scenario column contains: 'EU standard, light', 'EU express, medium', 'Actual weight governs', 'Oversize', 'Fragile', 'Below minimum, floor applies', 'Hazmat handling', etc."
+      "evidence": "Scenario names describe conditions: 'EU standard, light', 'At 1kg boundary', 'Dimensional weight governs', 'Oversize', 'Fragile', 'Below minimum, floor applies', 'Hazmat handling', 'Carrier does not affect cost'."
     },
     {
       "id": "has-question-mark-column",
@@ -64,7 +64,7 @@
       "id": "business-language-columns",
       "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')",
       "passed": true,
-      "evidence": "Column headers: 'Region', 'Speed', 'Weight (kg)', 'Dimensions', 'Fragile?', 'Insured Value', 'Handling', 'Carrier', 'Rate?', 'Total?' — all business language."
+      "evidence": "Column headers use domain language: 'Region', 'Speed', 'Weight (kg)', 'Rate?', 'Dimensions', 'Total?', 'Fragile?', 'Insured Value', 'Handling', 'Carrier'."
     },
     {
       "id": "no-if-switch-in-method",

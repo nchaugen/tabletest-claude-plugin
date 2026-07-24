@@ -10,19 +10,19 @@
       "id": "options-as-map",
       "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:].",
       "passed": false,
-      "evidence": "Options are passed as separate parameters (fragile: Boolean, insuredValue: BigDecimal?, handling: String?) in appliesSurchargesToBaseCost, not as a map column in the table."
+      "evidence": "appliesSurchargesToBaseCost uses three separate columns: 'Fragile | Insured Value | Handling' instead of a single 'Options' map column like '[fragile: true, insuredValue: 200]'"
     },
     {
       "id": "options-type-converter",
       "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.",
       "passed": false,
-      "evidence": "No @TypeConverter method is present in the test file. Options are constructed directly as PackageOptions(isFragile=..., insuredValue=..., handling=...)."
+      "evidence": "No @TypeConverter method is present in the test file. Options are constructed manually in appliesSurchargesToBaseCost: 'val opts = PackageOptions(isFragile=fragile, insuredValue=insuredValue, handling=handling)'"
     },
     {
       "id": "dimensions-as-list",
       "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns",
       "passed": true,
-      "evidence": "Dimensions column shows '[10, 10, 10]' and '[70, 50, 10]' as list literals in the table."
+      "evidence": "All four @TableTest methods use 'Dimensions' column with list syntax: '[30, 20, 15]', '[70, 50, 10]', '[120, 5, 5]', '[1, 1, 1]'"
     },
     {
       "id": "uses-value-sets",
@@ -34,13 +34,13 @@
       "id": "concerns-decomposed",
       "text": "Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence",
       "passed": true,
-      "evidence": "Four separate @TableTest methods: calculatesBaseRateByRegionSpeedAndWeight, choosesGreaterOfActualAndDimensionalWeight, appliesSurchargesToBaseCost, carrierDoesNotAffectCost."
+      "evidence": "Four separate @TableTest methods: calculatesBaseRateByRegionSpeedAndWeight, choosesGreaterOfActualAndDimensionalWeight, appliesSurchargesToBaseCost, carrierDoesNotAffectCost"
     },
     {
       "id": "numeric-types-correct",
       "text": "Parameter types correspond to the ShippingCostCalculator.calculateShippingCost interface — weight, cost, and dimension types match the method signature.",
       "passed": true,
-      "evidence": "Weight is Double, dimensions are List<Int>, cost is BigDecimal, matching typical shipping calculator signatures."
+      "evidence": "weight is Double, dimensions is List<Int>, costs are BigDecimal; method calls use 'calculator.calculateShippingCost(ShippingZone(...), weight, dimensions, opts, carrier)'"
     },
     {
       "id": "scenario-column-present",
@@ -52,7 +52,7 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1').",
       "passed": true,
-      "evidence": "Scenarios like 'EU standard, light parcel', 'Dimensional weight exceeds actual weight', 'Fragile and insured together' describe conditions."
+      "evidence": "Scenarios describe conditions: 'EU standard, light parcel', 'Dimensional weight exceeds actual weight', 'Fragile and insured together', 'Carrier choice has no effect on price'"
     },
     {
       "id": "has-question-mark-column",
@@ -63,8 +63,8 @@
     {
       "id": "business-language-columns",
       "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')",
-      "passed": true,
-      "evidence": "Columns use 'Region', 'Speed', 'Weight', 'Dimensions', 'Fragile', 'Insured Value', 'Handling', 'Carrier', 'Base Rate?', 'Total Cost?'."
+      "passed": false,
+      "evidence": "appliesSurchargesToBaseCost uses code-style column names 'Fragile', 'Insured Value', 'Handling' instead of domain language; should be a single 'Options' column"
     },
     {
       "id": "no-if-switch-in-method",
@@ -121,7 +121,7 @@
       "evidence": "Build file has no Kotest reference"
     }
   ],
-  "assertions_passed": 18,
+  "assertions_passed": 17,
   "assertions_total": 20,
-  "pass_rate": 0.9
+  "pass_rate": 0.85
 }

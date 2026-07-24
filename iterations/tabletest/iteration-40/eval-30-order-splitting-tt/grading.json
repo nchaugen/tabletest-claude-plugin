@@ -15,44 +15,44 @@
     {
       "id": "minimal-rows-per-concern",
       "text": "Each @TableTest has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
-      "passed": true,
-      "evidence": "Fulfillment/address: 6 rows covering grouping, splitting by address, splitting by type, pickup grouping, and mixed cases. Availability: 6 rows. Warehouse: 4 rows. Companion: 3 rows. Total 19 rows, no cross-multiplication."
+      "passed": false,
+      "evidence": "First table has 6 rows (including interaction case 'Delivery split by address, plus a separate pickup item'); spec lists 4 obligations, one optional interaction. Second table has 6 rows where 3 obligations exist (in-stock not held for backordered AND separately for pre-ordered is redundant under two-state model)."
     },
     {
       "id": "concern-fulfillment-method",
       "text": "Fulfillment method splitting is represented as its own @TableTest — items with different fulfillment types (store pickup vs home delivery) cannot share a shipment.",
       "passed": true,
-      "evidence": "splitsShipmentsByFulfillmentTypeAndAddress includes row 'Delivery and pickup items always split' with camera (DELIVERY) and mug (PICKUP) in separate shipments"
+      "evidence": "splitsShipmentsByFulfillmentTypeAndAddress includes row 'Delivery and pickup items always split' with camera (DELIVERY) and mug (PICKUP) producing separate shipments"
     },
     {
       "id": "concern-delivery-address",
       "text": "Delivery address splitting is represented as its own @TableTest — items going to different addresses must be in separate shipments.",
       "passed": true,
-      "evidence": "splitsShipmentsByFulfillmentTypeAndAddress includes row 'Same type, different delivery addresses' with camera (Addr-A) and watch (Addr-B) in separate shipments"
+      "evidence": "splitsShipmentsByFulfillmentTypeAndAddress includes row 'Same type, different delivery addresses' with camera (Addr-A) and watch (Addr-B) producing separate shipments"
     },
     {
       "id": "concern-availability",
       "text": "Availability splitting is represented as its own @TableTest — in-stock items ship immediately, backordered/pre-ordered items ship when available.",
       "passed": true,
-      "evidence": "splitsShipmentsByStockAvailability with 6 rows including 'In-stock item not held for a backordered item' showing IMMEDIATE and WHEN_AVAILABLE shipments separately"
+      "evidence": "splitsShipmentsByStockAvailability has 6 rows isolating availability; row 'In-stock item not held for a backordered item' shows camera (IN_STOCK) and lens (BACKORDERED) in separate shipments with IMMEDIATE and WHEN_AVAILABLE tags"
     },
     {
       "id": "concern-warehouse-allocation",
       "text": "Warehouse allocation (minimising shipments) is represented as its own @TableTest — choosing which warehouses to ship from to minimise total shipment count.",
       "passed": true,
-      "evidence": "choosesWarehouseCombinationMinimizingShipmentCount with 4 rows including 'Correct warehouse pair must be found, not just any pair' proving minimal-cover logic"
+      "evidence": "choosesWarehouseCombinationMinimizingShipmentCount has 4 rows; row 'Correct warehouse pair must be found, not just any pair' proves minimal-cover logic with W1+W3 as the only valid two-warehouse cover"
     },
     {
       "id": "concern-companion-products",
       "text": "Companion product grouping is represented as its own @TableTest — paired items (e.g. camera body and lens) should ship together from the same location when possible.",
       "passed": true,
-      "evidence": "keepsCompanionProductsTogetherWhenPossible with 3 rows: tie-breaker, split when unavoidable, already together"
+      "evidence": "keepsCompanionProductsTogetherWhenPossible has 3 rows; row 'Companions win a tie between equally minimal warehouses' shows companions breaking a tie, row 'Companions split when no warehouse stocks both' shows preference yielding"
     },
     {
       "id": "all-outputs-same-table",
-      "text": "Each @TableTest method includes all output columns for its concern in the same table — e.g. warehouse allocation includes both the assignment and shipment count, not split across methods. All outputs of the same concern belong together.",
+      "text": "Each @TableTest method includes all output columns for its concern in the same table — e.g. warehouse allocation includes both the assignment and shipment count, not split across methods.",
       "passed": true,
-      "evidence": "Each @TableTest has a single 'Shipments?' output column. Warehouse table includes W1/W2/W3 stock columns and Shipments? together. Companion table includes Companions and Shipments? together."
+      "evidence": "choosesWarehouseCombinationMinimizingShipmentCount includes W1/W2/W3 Stock columns and Shipments? in one table; keepsCompanionProductsTogetherWhenPossible includes Companions and Shipments? together"
     },
     {
       "id": "scenario-column-present",
@@ -70,13 +70,13 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe the business situation (e.g. 'Consolidate: two beats three', 'Everything at one warehouse') — not 'Test case 2'.",
       "passed": true,
-      "evidence": "Scenarios named: 'Same fulfillment type and address', 'In-stock item not held for a backordered item', 'Correct warehouse pair must be found, not just any pair', 'Companions win a tie between equally minimal warehouses'"
+      "evidence": "Scenarios use business language: 'Same fulfillment type and address', 'In-stock item not held for a backordered item', 'Correct warehouse pair must be found, not just any pair', 'Companions win a tie between equally minimal warehouses'"
     },
     {
       "id": "business-language-columns",
       "text": "Column names use business/domain language (e.g. 'Shipments?' not 'Result?', 'Warehouse stock' not 'inventory_map'). The tables read as a specification a product person could review.",
       "passed": true,
-      "evidence": "Columns: 'Scenario', 'Items', 'Shipments?', 'W1 Stock', 'W2 Stock', 'W3 Stock', 'Companions' — all domain language with '?' suffix on output columns"
+      "evidence": "Columns: 'Items', 'Shipments?', 'W1 Stock', 'W2 Stock', 'W3 Stock', 'Companions', 'Scenario' — all domain language with '?' suffix on outputs per TableTest convention"
     },
     {
       "id": "no-if-switch-in-method",
@@ -115,7 +115,7 @@
       "evidence": "Compilation succeeded"
     }
   ],
-  "assertions_passed": 19,
+  "assertions_passed": 18,
   "assertions_total": 19,
-  "pass_rate": 1
+  "pass_rate": 0.9473684210526315
 }

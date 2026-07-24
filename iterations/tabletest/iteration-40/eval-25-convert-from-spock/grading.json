@@ -9,20 +9,20 @@
     {
       "id": "options-as-map",
       "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:].",
-      "passed": true,
-      "evidence": "Tables show options as single map columns: '[handling: hazmat]', '[fragile: true]', '[insuredValue: 500]', '[fragile: true, insuredValue: 200]', and blank cells for no options."
+      "passed": false,
+      "evidence": "Options column uses blank cells (e.g., 'No special handling |  |') instead of [:] for empty maps. The response acknowledges this: 'blank cells resolve straight to null before any custom converter runs, bypassing it entirely.'"
     },
     {
       "id": "options-type-converter",
       "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.",
       "passed": false,
-      "evidence": "No @TypeConverter method exists. Instead, parameters are typed 'Map<String, String>?' and a private 'buildOptions' helper applies defaults. Response states: 'blank cells resolve straight to null before any custom converter runs, bypassing it entirely.'"
+      "evidence": "No @TypeConverter method exists. Instead, a private buildOptions helper is used: 'doing the null-to-default logic in a private buildOptions helper instead.' The response explicitly states the converter approach failed."
     },
     {
       "id": "dimensions-as-list",
       "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns",
       "passed": true,
-      "evidence": "Dimensions column shows list syntax: '[30, 20, 15]', '[70, 50, 10]', '[120, 5, 5]' in single column, not three separate columns."
+      "evidence": "Dimensions column shows '[30, 20, 15]', '[70, 50, 10]', '[120, 5, 5]' as lists in the @TableTest tables, and method signature uses 'dimensions: List<Int>'."
     },
     {
       "id": "uses-value-sets",
@@ -40,7 +40,7 @@
       "id": "numeric-types-correct",
       "text": "Parameter types correspond to the ShippingCostCalculator.calculateShippingCost interface — weight, cost, and dimension types match the method signature.",
       "passed": true,
-      "evidence": "Parameters use: weight as Double, dimensions as List<Int>, fee/cost as BigDecimal. Method calls: 'calculator.calculateShippingCost(zone, weight, dimensions, ..., carrier)' match expected types."
+      "evidence": "Method signatures use 'weight: Double', 'baseFee: BigDecimal', 'dimensions: List<Int>', and comparisons use 'expected.compareTo(actual) == 0' for BigDecimal."
     },
     {
       "id": "scenario-column-present",
@@ -52,7 +52,7 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1').",
       "passed": true,
-      "evidence": "Scenario names describe conditions: 'EU standard light', 'Dimensional weight wins (bulky, light package)', 'Exceeds size limit (one dimension over 100 cm)', 'Hazmat handling', 'Fragile'."
+      "evidence": "Scenario names: 'EU standard light', 'Dimensional weight wins (bulky, light package)', 'Exceeds size limit (one dimension over 100 cm)', 'Fragile combined with insurance surcharge'."
     },
     {
       "id": "has-question-mark-column",
@@ -64,7 +64,7 @@
       "id": "business-language-columns",
       "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')",
       "passed": true,
-      "evidence": "Column headers use business language: 'Region', 'Speed', 'Weight', 'Base Fee?', 'Dimensions', 'Options', 'Fee?', 'Carrier', not code identifiers."
+      "evidence": "Column headers: 'Region', 'Speed', 'Weight', 'Base Fee?', 'Dimensions', 'Options', 'Fee?', 'Carrier' — all domain-level names, no camelCase code identifiers."
     },
     {
       "id": "no-if-switch-in-method",
@@ -121,7 +121,7 @@
       "evidence": "Build file has no Spock/Groovy reference"
     }
   ],
-  "assertions_passed": 19,
+  "assertions_passed": 18,
   "assertions_total": 20,
-  "pass_rate": 0.95
+  "pass_rate": 0.9
 }

@@ -16,13 +16,13 @@
       "id": "blank-for-absent-optional",
       "text": "Dietary requirements and/or accessibility needs use blank cells (null) when not provided — not 'N/A' or 'none'.",
       "passed": true,
-      "evidence": "Multiple rows show empty cells for Dietary Requirements and Accessibility Needs columns (e.g., 'Valid registration' row)"
+      "evidence": "Multiple rows show blank cells for Dietary Requirements and Accessibility Needs columns (e.g., 'Valid registration' row)"
     },
     {
       "id": "blank-vs-value-set-correct",
       "text": "When testing pricing rules, irrelevant inputs use value sets or representative values — not blanks.",
       "passed": true,
-      "evidence": "Pricing table passes null for dietary/accessibility: 'service.register(\"Alice\", \"alice@example.com\", null, null, registrationDate, groupSize)'"
+      "evidence": "Pricing table passes null for dietaryRequirements and accessibilityNeeds in method body; registration date and group size are in columns with values like 'before cutoff', 'after cutoff', and {5, 20}"
     },
     {
       "id": "scenario-column-present",
@@ -46,7 +46,7 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions ('Early-bird single attendee', 'Missing name') — not outcomes ('Rejected', '20% off').",
       "passed": true,
-      "evidence": "Scenarios: 'Missing name (null)', 'Early-bird discount applies', 'Group discount applies', 'Both apply, early-bird wins' describe conditions not outcomes"
+      "evidence": "Scenarios named 'Missing name (null)', 'Early-bird discount applies', 'Group discount applies', 'Both apply, early-bird wins' describe conditions not outcomes"
     },
     {
       "id": "no-if-switch-in-method",
@@ -81,8 +81,8 @@
     {
       "id": "minimal-rows-per-concern",
       "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations.",
-      "passed": false,
-      "evidence": "Validation table has 11 rows including 4 distinct malformed-email cases ('missing @', 'missing local part', 'missing domain', 'missing TLD') beyond the 2 representative invalids specified"
+      "passed": true,
+      "evidence": "Validation has 11 rows (name/email variants + 2 valid); pricing has 6 rows (boundaries and thresholds); no cross-multiplication of validation states with pricing parameters"
     },
     {
       "id": "separates-validation-and-pricing",
@@ -94,31 +94,31 @@
       "id": "validation-includes-optional-fields",
       "text": "Validation @TableTest includes Dietary Requirements and Accessibility Needs columns, with rows showing both null and non-null values are accepted.",
       "passed": true,
-      "evidence": "'Valid registration' row has blanks (null); 'Valid with optional fields' row has 'Vegetarian' and 'Wheelchair access' — both accepted"
+      "evidence": "'Valid registration' row has blank optionals (null); 'Valid with optional fields' row has 'Vegetarian' and 'Wheelchair access'; both have Accepted? = true"
     },
     {
       "id": "descriptive-registration-date",
       "text": "Registration date uses descriptive values (e.g. 'before cutoff', 'on cutoff', 'after cutoff') with a @TypeConverter method converting to actual dates.",
       "passed": true,
-      "evidence": "@TypeConverter parseRegistrationDate method converts 'before cutoff', 'on cutoff', 'after cutoff' to LocalDate values relative to EARLY_BIRD_CUTOFF"
+      "evidence": "Pricing table uses 'before cutoff', 'on cutoff', 'after cutoff'; @TypeConverter parseRegistrationDate converts these to LocalDate values relative to EARLY_BIRD_CUTOFF"
     },
     {
       "id": "cutoff-date-column-if-literal-dates",
       "text": "If registration dates are literal (e.g. '2025-02-28' instead of descriptive), the early-bird cutoff date appears as a separate policy column so the reader can see both dates and verify the comparison. Passes automatically if descriptive date values are used.",
       "passed": true,
-      "evidence": "Registration Date column uses descriptive values ('before cutoff', 'on cutoff', 'after cutoff') via @TypeConverter, not literal dates."
+      "evidence": "Registration date column uses descriptive values via @TypeConverter: 'before cutoff', 'on cutoff', 'after cutoff' — no literal dates appear in the table."
     },
     {
       "id": "description-no-irrelevant-information",
       "text": "If @Description is present, it does not include information that is already visible in the table columns or that can be derived from the table structure — such as fixed input values that could be columns, or restating the discount rules that the rows already demonstrate.",
       "passed": false,
-      "evidence": "Validation @Description states 'dietaryRequirements and accessibilityNeeds are optional and do not affect acceptance' — this is already demonstrated by the table rows (columns present, values vary, all accepted)."
+      "evidence": "Pricing @Description states 'groups of 5 or more get 15% off' and 'early-bird registrations (before 2025-03-01) get 20% off' — rules already demonstrated by the table rows themselves."
     },
     {
       "id": "discount-column-preferred",
       "text": "Output column is 'Discount?' (percentage or amount off) rather than 'Price?' — making verification simpler (discount is the rule's direct output; price requires knowing the base price). If 'Price?' is used instead, both 'Base price' and 'Price?' columns must be present so the reader can trace the calculation.",
       "passed": true,
-      "evidence": "Pricing table has both 'Discount?' and 'Price?' columns; @Description states 'Base price is £100' once, allowing reader to verify: 100 - (100 × discount%) = price."
+      "evidence": "Pricing table includes both 'Discount?' and 'Price?' columns; @Description states 'Base price is £100' once, allowing the reader to verify Price = 100 - Discount."
     },
     {
       "id": "single-assertion-in-method",
@@ -130,13 +130,13 @@
       "id": "optional-fields-has-expected-column",
       "text": "The optional-fields acceptance table includes an expectation/output column (e.g. 'Approved?', 'Result?', or 'Status?') asserting that each combination is accepted — not just varying inputs without any expected column.",
       "passed": true,
-      "evidence": "Validation table includes 'Accepted?' column asserting true/false for each row, and 'Error Message?' column for rejection details."
+      "evidence": "Validation table includes 'Accepted?' column asserting true/false for each row, and 'Error Message?' column providing context for failures."
     },
     {
       "id": "description-no-redundant-field-values",
-      "text": "Scenario names and @Description text do not restate values the table already shows. The assertion FAILS if either: (1) a scenario name contains a literal value that also appears in an input cell of the same row (e.g. scenario 'Age 35, score 700' beside Age and Credit score columns holding 35 and 700); or (2) @Description states a fixed value for an input that is already a column in that table. Otherwise it PASSES. Stating a constant that is NOT a column — a threshold, a policy figure, a value fixed in the method body — is correct and must not fail this assertion.",
+      "text": "Scenario names and @Description text do not restate values the table already shows. The assertion FAILS if either: (1) a scenario name contains a literal value that also appears in an input cell of the same row (e.g. scenario 'Age 35, score 700' beside Age and Credit score columns holding 35 and 700); or (2) @Description states a fixed value for an input that is already a column in that table. Otherwise it PASSES.",
       "passed": true,
-      "evidence": "Scenario names ('Valid registration', 'Early-bird discount applies') describe outcomes, not input values. @Description mentions '2025-03-01' cutoff (not a column, fixed in method body) and 'Base price £100' (not a column, constant)."
+      "evidence": "Scenario names ('Valid registration', 'Early-bird discount applies', etc.) describe the condition, not restate cell values. @Description fixes 'Base price is £100' (not a column) and 'before 2025-03-01' (policy, not a column)."
     },
     {
       "id": "has-tabletest-dependency",
@@ -146,15 +146,15 @@
     },
     {
       "id": "rule-falsifiable-by-a-row",
-      "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES. Do not fail a table merely because its values are simple or round — only these three conditions matter.",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES.",
       "passed": true,
-      "evidence": "Validation: 'Accepted?' varies (true/false across rows). Pricing: 'Discount?' varies (0.00, 20.00, 15.00) and 'Price?' varies (100.00, 80.00, 85.00); neither is a copy of input cells."
+      "evidence": "Validation: 'Accepted?' varies (true/false across rows). Pricing: 'Discount?' varies (0.00, 20.00, 15.00) and 'Price?' varies (100.00, 80.00, 85.00) — neither is a fixed value nor a copy of an input cell."
     },
     {
       "id": "rule-statable-from-table",
-      "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone; (3) a helper method used in the assertion applies a comparison criterion (ordering, tolerance, subset matching) that is stated nowhere in the table, title, or description. Otherwise the assertion PASSES. Setup that merely constructs the objects named by the columns is not a failure.",
+      "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone; (3) a helper method used in the assertion applies a comparison criterion (ordering, tolerance, subset matching) that is stated nowhere in the table, title, or description. Otherwise the assertion PASSES.",
       "passed": false,
-      "evidence": "Pricing table uses '{5, 20}' notation for group size (value-set expansion) without explanation in @Description or column header of what this notation means or how it is interpreted."
+      "evidence": "Pricing table uses value set '{5, 20}' for group size without explaining in @Description or table that both 5 and 20 should yield the same 15% discount. The rule 'groups of 5 or more' is stated in @Description but the table does not show why 20 is grouped with 5."
     },
     {
       "id": "compiles",
@@ -163,7 +163,7 @@
       "evidence": "Compilation succeeded"
     }
   ],
-  "assertions_passed": 24,
+  "assertions_passed": 25,
   "assertions_total": 27,
-  "pass_rate": 0.8888888888888888
+  "pass_rate": 0.9259259259259259
 }

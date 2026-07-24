@@ -10,13 +10,13 @@
       "id": "threshold-verifiable-from-table",
       "text": "Each policy threshold (650 for non-seniors, 600 for seniors) is verifiable from the table, in one of two ways: (a) a dedicated policy column (e.g. 'Credit threshold') beside the applicant's score, or (b) boundary rows that bracket it — within one age band, a row that qualifies just above the threshold and a row that fails at/below it, carrying different decisions.",
       "passed": true,
-      "evidence": "Rows 1–2 bracket 650/651 at age 40 (REJECTED/APPROVED); rows 5–6 bracket 600/601 at age 70 (REJECTED/APPROVED). Thresholds are inferred from the boundary pairs."
+      "evidence": "Rows 1–2 bracket 650 (age 40: 650→REJECTED, 651→APPROVED); rows 5–6 bracket 600 (age 70: 600→REJECTED, 601→APPROVED). Thresholds are visible from boundary pairs."
     },
     {
       "id": "concrete-domain-values",
       "text": "Cell values use concrete domain terms (e.g. '70', '650', 'APPROVED') — not abstract codes like 'CATEGORY_A' or '1'. Boolean true/false is acceptable for yes/no flags when the parameter type is boolean.",
       "passed": true,
-      "evidence": "All values are concrete: ages (40, 64, 65, 70), scores (500–700), Boolean true/false/blank, and results (REJECTED, APPROVED, PENDING_REVIEW)."
+      "evidence": "All values are concrete: ages (40, 64, 65, 70), scores (500–700), income (true, false, blank), results (REJECTED, APPROVED, PENDING_REVIEW)."
     },
     {
       "id": "scenario-column-present",
@@ -28,7 +28,7 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions ('Senior at lower threshold', 'Missing income') — not outcomes ('Approved', 'Rejected').",
       "passed": true,
-      "evidence": "Names describe conditions: 'At the standard threshold, not above it', 'Just above the standard threshold', 'Qualifying score with missing income information', 'Below threshold rejects even with missing income info'."
+      "evidence": "Scenario names describe conditions: 'At the standard threshold, not above it', 'Just above the standard threshold', 'Qualifying score with unstable income', 'Below threshold rejects even with missing income info'."
     },
     {
       "id": "business-language-columns",
@@ -70,31 +70,31 @@
       "id": "concerns-decomposed",
       "text": "The distinct concerns (age→threshold, credit boundary, income status) are each covered, without a monolithic table that re-proves unrelated rules through redundant permutations. A single table is acceptable when the concerns share the same input columns and each is covered by only a row or two.",
       "passed": true,
-      "evidence": "Single table covers: age/credit boundary (rows 1–6), income status (rows 7–9), and precedence (rows 10–11). Each concern is covered minimally without redundant cross-multiplication."
+      "evidence": "Single table covers: age→threshold (rows 3–4 show 64/65 boundary), credit boundary (rows 1–2, 5–6 bracket thresholds), income status (rows 7–8 vary income at fixed qualifying score). No redundant permutations."
     },
     {
       "id": "minimal-rows-per-concern",
       "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
       "passed": true,
-      "evidence": "11 rows (12 cases via value-set expansion) cover all three concerns without redundant permutations. Each row is load-bearing for at least one concern."
+      "evidence": "11 rows (12 cases via value-set expansion) cover all three concerns minimally: two boundary pairs for age/credit, three income variations at fixed score, precedence row. No redundant permutations."
     },
     {
       "id": "covers-age-credit-income",
       "text": "Age boundary policy, credit score categorisation, and income status are each covered by minimal scenarios. This may be one @TableTest whose rows exercise each concern (boundary pairs for age/credit, income held-constant rows for income status) or separate methods per concern with a combining verdict — both are correct given only a row or two per concern.",
       "passed": true,
-      "evidence": "Age boundary: rows 3–4 (64/65 cutoff). Credit boundary: rows 1–2, 5–6 (650/651, 600/601). Income status: rows 7–9 vary income at fixed qualifying score; row 10–11 test below-threshold precedence."
+      "evidence": "Age boundary: rows 3–4 (64→REJECTED, 65→APPROVED at score 610). Credit boundary: rows 1–2, 5–6. Income status: rows 7–8 hold age/score fixed, vary income (true→APPROVED, null→PENDING_REVIEW, false→REJECTED)."
     },
     {
       "id": "description-no-redundant-field-values",
       "text": "Scenario names and @Description text do not restate values the table already shows. The assertion FAILS if either: (1) a scenario name contains a literal value that also appears in an input cell of the same row (e.g. scenario 'Age 35, score 700' beside Age and Credit score columns holding 35 and 700); or (2) @Description states a fixed value for an input that is already a column in that table.",
       "passed": true,
-      "evidence": "@Description explains precedence and PENDING_REVIEW interpretation (policy context), not field values. Scenario names describe conditions, not literal values from their rows."
+      "evidence": "@Description states policy interpretation ('below-threshold scores are rejected regardless of income', 'PENDING_REVIEW is reserved for missing income') — not field values. Scenario names describe conditions, not literal values from their rows."
     },
     {
       "id": "depth-stable-income-effect",
       "text": "The effect of stable income on the outcome is visible from table rows, not merely implied. The assertion PASSES if some single @TableTest table contains two rows that differ in the stable-income column (or equivalent) while holding the credit score and age columns equal, and those two rows carry different expected decisions.",
       "passed": true,
-      "evidence": "Rows 2, 8, 9 hold age=40, credit=700 fixed and vary Stable Income (true→APPROVED, false→REJECTED, blank→PENDING_REVIEW), showing the income effect clearly."
+      "evidence": "Rows 7–8 hold age 40, credit score 700 fixed; row 7 (Stable Income=false)→REJECTED, row 8 (Stable Income=blank/null)→PENDING_REVIEW. Different income, different decision."
     },
     {
       "id": "has-tabletest-dependency",
@@ -106,19 +106,19 @@
       "id": "rule-falsifiable-by-a-row",
       "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row.",
       "passed": true,
-      "evidence": "Result column varies across rows (REJECTED, APPROVED, PENDING_REVIEW). No row's result is a copy of an input cell. A fixed-return implementation would fail rows 1 vs 2, 5 vs 6, 7 vs 8, etc."
+      "evidence": "Result column varies: REJECTED, APPROVED, PENDING_REVIEW across rows. No single fixed value satisfies all rows; expectations differ from input columns. Rules are falsifiable."
     },
     {
       "id": "rule-statable-from-table",
       "text": "A reader can state the rule from the table alone, without the test method body.",
       "passed": true,
-      "evidence": "Table columns are: Scenario, Age, Credit Score, Stable Income, Result?. Policy thresholds (650, 600) and age boundary (65) are visible in boundary rows (650 REJECTED vs 651 APPROVED; 600 REJECTED vs 601 APPROVED; age 64 vs 65). Income effect shown by holding age/score fixed at 40/700 and varying income (true→APPROVED, false→REJECTED, null→PENDING). Precedence shown in row 'Below threshold rejects even with missing income info' (650 with null→REJECTED). No threshold values appear only in method body."
+      "evidence": "Table columns are: Scenario, Age, Credit Score, Stable Income, Result?. Boundary rows show 650 REJECTED / 651 APPROVED (non-senior) and 600 REJECTED / 601 APPROVED (senior). Income variations at fixed 40/700 show true→APPROVED, null→PENDING, false→REJECTED. Row 'Below threshold rejects even with missing income info' shows precedence. All thresholds and operations are inferable from headers and values."
     },
     {
       "id": "title-states-system-behaviour",
       "text": "Each @DisplayName states what the code under test does, not an external fact it depends on.",
-      "passed": true,
-      "evidence": "The @TableTest method is named 'evaluatesLoanApproval' and the @Description explains the decision logic ('approved above a credit score of 650', 'senior applicants...approved above...600'). Striking 'evaluator' leaves 'loan approval' which is the system's behaviour, not an external regulation. Scenario names describe conditions (e.g. 'At the standard threshold, not above it'), not external facts."
+      "passed": false,
+      "evidence": "@Description states 'Standard applicants are approved above a credit score of 650; senior applicants (age 65+) are approved above a lower threshold of 600.' Striking 'the code under test' leaves 'applicants are approved above 650/600' — a domain rule, not what the evaluator does. The description restates policy rather than describing the evaluator's behaviour."
     },
     {
       "id": "compiles",
@@ -127,7 +127,7 @@
       "evidence": "Compilation succeeded"
     }
   ],
-  "assertions_passed": 21,
+  "assertions_passed": 20,
   "assertions_total": 21,
-  "pass_rate": 1
+  "pass_rate": 0.9523809523809523
 }
