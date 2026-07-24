@@ -6,7 +6,7 @@
   "grading_model": "claude-haiku-4-5",
   "skill_commit": "unknown",
   "skill_digest": "unknown",
-  "timestamp": "2026-07-24T16:11:07.652Z",
+  "timestamp": "2026-07-24T17:47:08.964Z",
   "evals": [
     {
       "id": "eval-1-convert-repetitive-tests",
@@ -99,14 +99,13 @@
       "fingerprint": "b922afa4dcb5",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 15,
+        "assertions_passed": 16,
         "assertions_total": 20,
-        "pass_rate": 0.75,
+        "pass_rate": 0.8,
         "failed_assertions": [
           "1.6-readability-empty-cells",
           "1.9-correctness-value-set-semantics",
           "1.11-format-description",
-          "business-language-columns",
           "separates-classification-and-calculation"
         ],
         "total_tokens": 1307679,
@@ -178,16 +177,13 @@
       "id": "eval-22-event-registration-tt",
       "name": "event registration tt",
       "skill": "tabletest",
-      "fingerprint": "0fb0cf6384e0",
+      "fingerprint": "207ee4b9ee5c",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 25,
+        "assertions_passed": 27,
         "assertions_total": 27,
-        "pass_rate": 0.9259259259259259,
-        "failed_assertions": [
-          "description-no-irrelevant-information",
-          "rule-statable-from-table"
-        ],
+        "pass_rate": 1,
+        "failed_assertions": [],
         "total_tokens": 573142,
         "duration_ms": 153979,
         "cost_usd": 0.51586905
@@ -200,12 +196,10 @@
       "fingerprint": "5575308212ab",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 20,
+        "assertions_passed": 21,
         "assertions_total": 21,
-        "pass_rate": 0.9523809523809523,
-        "failed_assertions": [
-          "title-states-system-behaviour"
-        ],
+        "pass_rate": 1,
+        "failed_assertions": [],
         "total_tokens": 540843,
         "duration_ms": 149866,
         "cost_usd": 0.48218160000000004
@@ -244,7 +238,7 @@
         "failed_assertions": [
           "options-as-map",
           "options-type-converter",
-          "numeric-types-correct"
+          "business-language-columns"
         ],
         "total_tokens": 1443172,
         "duration_ms": 362383,
@@ -296,15 +290,14 @@
       "id": "eval-29-shopping-cart-tt",
       "name": "shopping cart tt",
       "skill": "tabletest",
-      "fingerprint": "c8f7c9d9b768",
+      "fingerprint": "f5ffd6211c34",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 24,
+        "assertions_passed": 25,
         "assertions_total": 26,
-        "pass_rate": 0.9230769230769231,
+        "pass_rate": 0.9615384615384616,
         "failed_assertions": [
-          "business-language-columns",
-          "coupon-as-single-column"
+          "business-language-columns"
         ],
         "total_tokens": 968444,
         "duration_ms": 322446,
@@ -315,14 +308,13 @@
       "id": "eval-30-order-splitting-tt",
       "name": "order splitting tt",
       "skill": "tabletest",
-      "fingerprint": "7b3c24f60a9e",
+      "fingerprint": "e12143220ae8",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 19,
+        "assertions_passed": 20,
         "assertions_total": 22,
-        "pass_rate": 0.8636363636363636,
+        "pass_rate": 0.9090909090909091,
         "failed_assertions": [
-          "rule-falsifiable-by-a-row",
           "minimal-rows-per-concern",
           "native-collection-output"
         ],
@@ -333,9 +325,9 @@
     }
   ],
   "summary": {
-    "assertions_passed": 303,
+    "assertions_passed": 309,
     "assertions_total": 340,
-    "pass_rate": 0.8911764705882353,
+    "pass_rate": 0.9088235294117647,
     "total_tokens": 20956288,
     "total_duration_ms": 4379343,
     "total_cost_usd": 14.896485799999997

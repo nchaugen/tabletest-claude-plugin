@@ -32,7 +32,7 @@
     },
     {
       "id": "no-duplicate-role-output",
-      "text": "No two rows share both the same Role value and the same boolean output",
+      "text": "No two rows share both the same Role value and the same boolean output — forces value set consolidation (e.g. USER can READ and USER can WRITE, both true, should be one row with {READ, WRITE}).",
       "passed": false,
       "evidence": "Row 6 (Guest cannot write | GUEST | WRITE | false) and Row 7 (Guest cannot delete | GUEST | DELETE | false) both have GUEST role and false outcome"
     },
@@ -44,9 +44,9 @@
     },
     {
       "id": "description-if-present-adds-information",
-      "text": "If @Description is present, it provides context beyond table rows",
+      "text": "If @Description is present, it provides context beyond what the table rows already express — such as where permissions are checked in the request lifecycle, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context.",
       "passed": true,
-      "evidence": "No @Description annotation present in the test; omission is acceptable per spec since all context is in the table"
+      "evidence": "No @Description annotation present in the test; omission is acceptable per spec since all context is enumerated"
     },
     {
       "id": "annotation-order",
@@ -62,9 +62,9 @@
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions, not outcomes",
+      "text": "Scenario names describe conditions ('Admin performs any action', 'Guest reads') — not outcomes ('Allowed', 'Denied').",
       "passed": true,
-      "evidence": "Scenario names are 'Admin can perform any action', 'User can read', 'User cannot delete', 'Guest can read', etc. — all describe the condition/action, not verdict"
+      "evidence": "Scenarios use condition language: 'Admin can perform any action', 'User can read', 'User cannot delete', 'Guest can read', 'Guest cannot write'"
     },
     {
       "id": "has-tabletest-dependency",

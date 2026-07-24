@@ -38,27 +38,27 @@
     },
     {
       "id": "concern-not-over-split",
-      "text": "Do not fragment a single concern across multiple @TableTest methods that share the same fixture and assertion and differ only in which one sub-rule they exercise.",
+      "text": "Do not fragment a single concern across multiple @TableTest methods that share the same fixture and assertion and differ only in which one sub-rule they exercise. Two or more tables that fix the same setup (e.g. same zone and base cost) and each vary a single option or surcharge, with the same output column, should instead be one table with a column for the varying input. FAILS when two or more such same-fixture, single-sub-rule tables exist for one concern (e.g. a separate table per surcharge). PASSES when each @TableTest addresses a genuinely distinct concern with its own inputs. This is the complement of concerns-decomposed: that forbids cramming unrelated concerns into one table; this forbids scattering one concern across many.",
       "passed": false,
-      "evidence": "Surcharges are split across 6 separate methods (appliesOversizeSurchargeWhenAnyDimensionExceedsLimit, appliesFragileSurcharge, appliesInsurancePremiumWithMinimum, appliesHazmatHandlingFee, plus combinesSurchargesInOrder). Each fixes zone EU standard, weight 3.0kg, and varies only one surcharge option, with the same output column (Total Cost?). The spec requires one table for all surcharges."
+      "evidence": "Surcharges are split across 6 separate methods (appliesOversizeSurchargeWhenAnyDimensionExceedsLimit, appliesFragileSurcharge, appliesInsurancePremiumWithMinimum, appliesHazmatHandlingFee, plus combinesSurchargesInOrder). Each fixes zone EU standard, weight 3.0kg, and varies only one surcharge option, violating the 'one table per concern' rule for surcharges."
     },
     {
       "id": "rule-falsifiable-by-a-row",
-      "text": "Cell values make the rule falsifiable, not merely distinguishable. An implementation that ignored the input columns entirely and returned a fixed value would not satisfy every row.",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES. Do not fail a table merely because its values are simple or round — only these three conditions matter.",
       "passed": true,
       "evidence": "Each table has varying expected outputs: base rate table ranges 5.00–30.00; dimensional weight 5.00 vs 12.50; oversize 7.50 vs 17.50; fragile 7.50 vs 8.625; insurance 7.50 vs 10.50 vs 13.50; hazmat 7.50 vs 15.50; combined 11.625 vs 17.825; carrier 12.00 (invariant but proven by value set)."
     },
     {
       "id": "rule-statable-from-table",
-      "text": "A reader can state the rule from the table alone, without the test method body. No threshold, rate, cutoff, multiplier, or reference date appears only in the method body.",
+      "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone; (3) a helper method used in the assertion applies a comparison criterion (ordering, tolerance, subset matching) that is stated nowhere in the table, title, or description. Otherwise the assertion PASSES. Setup that merely constructs the objects named by the columns is not a failure.",
       "passed": true,
-      "evidence": "All rates, thresholds (100 for oversize, 0.6% and $3 minimum for insurance, 1.15× for fragile, +8 for hazmat, +10 for oversize) are either implicit in the table values or stated in @Description. The weight brackets (≤1, ≤5, ≤15, >15) are inferred from the scenario names and row values."
+      "evidence": "@Description blocks document fixed values (zone EU standard, weight 3.0kg base rate 7.50, dimensional divisor 5000, insurance 0.6% with $3 floor, oversize threshold 100, fragile ×1.15, hazmat +8). Column headers and cell values are sufficient to state each rule."
     },
     {
       "id": "numeric-types-correct",
-      "text": "Parameter types correspond to the ShippingCostCalculator.calculateShippingCost signature: weight is a double, dimensions are a List<Integer>, and cost / insured value are BigDecimal (compared via compareTo, not equals).",
+      "text": "Parameter types correspond to the ShippingCostCalculator.calculateShippingCost signature: weight is a double, dimensions are a List<Integer>, and cost / insured value are BigDecimal (compared via compareTo, not equals). Do not require BigDecimal for weight or dimensions — match the signature.",
       "passed": true,
-      "evidence": "Weight is `double` (0.5, 3.0, 10.0, 25.0); dimensions are `List<Integer>` ([10, 10, 10], [70, 50, 10], etc.); costs and insured values are `BigDecimal`; comparison uses `compareTo` in assertCost: `assertEquals(0, expected.compareTo(actual), ...)`."
+      "evidence": "Weight is `double` (0.5, 3.0, 10.0, 25.0); dimensions are `List<Integer>` ([10, 10, 10], [70, 50, 10]); costs and insured values are `BigDecimal`; assertion uses `expected.compareTo(actual) == 0` not `equals`."
     },
     {
       "id": "scenario-column-present",
@@ -82,7 +82,7 @@
       "id": "business-language-columns",
       "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')",
       "passed": true,
-      "evidence": "Column headers use domain language: 'Region', 'Speed', 'Weight', 'Base Rate?', 'Dimensions', 'Rate?', 'Total Cost?', 'Fragile', 'Handling', 'Insured Value', 'Carrier'."
+      "evidence": "Column headers use domain language: 'Region', 'Speed', 'Weight', 'Base Rate?', 'Dimensions', 'Rate?', 'Total Cost?', 'Fragile', 'Insured Value', 'Handling', 'Carrier'."
     },
     {
       "id": "no-if-switch-in-method",

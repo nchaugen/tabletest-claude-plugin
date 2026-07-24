@@ -16,13 +16,13 @@
       "id": "options-type-converter",
       "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.",
       "passed": false,
-      "evidence": "No @TypeConverter method is present in the test file. PackageOptions is constructed directly in the test body: 'PackageOptions(isFragile=fragile, insuredValue=insuredValue, handling=handling)'."
+      "evidence": "No @TypeConverter method is present in the test file. PackageOptions is constructed manually in appliesSurchargesToBaseCost: 'val opts = PackageOptions(...)'"
     },
     {
       "id": "dimensions-as-list",
       "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns",
       "passed": true,
-      "evidence": "All tables use 'Dimensions' column with list values like '[30, 20, 15]', '[70, 50, 10]', '[120, 5, 5]', '[1, 1, 1]'."
+      "evidence": "All tables use 'Dimensions' column with list values like '[1, 1, 1]', '[70, 50, 10]', '[120, 5, 5]' passed directly to calculateShippingCost."
     },
     {
       "id": "uses-value-sets",
@@ -38,27 +38,27 @@
     },
     {
       "id": "concern-not-over-split",
-      "text": "Do not fragment a single concern across multiple @TableTest methods that share the same fixture and assertion and differ only in which one sub-rule they exercise.",
+      "text": "Do not fragment a single concern across multiple @TableTest methods that share the same fixture and assertion and differ only in which one sub-rule they exercise. Two or more tables that fix the same setup (e.g. same zone and base cost) and each vary a single option or surcharge, with the same output column, should instead be one table with a column for the varying input. FAILS when two or more such same-fixture, single-sub-rule tables exist for one concern (e.g. a separate table per surcharge). PASSES when each @TableTest addresses a genuinely distinct concern with its own inputs. This is the complement of concerns-decomposed: that forbids cramming unrelated concerns into one table; this forbids scattering one concern across many.",
       "passed": true,
-      "evidence": "Each @TableTest addresses a distinct concern with its own inputs and setup. Surcharges are kept in one table (appliesSurchargesToBaseCost), not split across multiple methods."
+      "evidence": "Surcharges are kept in one table (appliesSurchargesToBaseCost with 8 rows), not split across multiple methods. Each @TableTest addresses a distinct concern."
     },
     {
       "id": "rule-falsifiable-by-a-row",
-      "text": "Cell values make the rule falsifiable, not merely distinguishable. An implementation that ignored the input columns entirely and returned a fixed value would not satisfy every row.",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES. Do not fail a table merely because its values are simple or round — only these three conditions matter.",
       "passed": true,
-      "evidence": "Base rate table has varying outputs (5.00, 7.50, 12.50, 20.00, 8.00, 12.00, 20.00, 32.00, 7.00, 10.50, 17.50, 28.00, 11.00, 16.50, 30.00, 45.00) across different inputs. Surcharge table outputs vary (7.50, 17.50, 15.50, 8.625, 10.50, 13.50, 11.625)."
+      "evidence": "Base Rate column varies (5.00, 7.50, 12.50, 20.00, 8.00, etc.); Total Cost varies (7.50, 17.50, 15.50, 8.625, etc.). Each row has distinct inputs and outputs."
     },
     {
       "id": "rule-statable-from-table",
-      "text": "A reader can state the rule from the table alone, without the test method body. No value needed to predict the expectation appears only in the method body or a field.",
+      "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone; (3) a helper method used in the assertion applies a comparison criterion (ordering, tolerance, subset matching) that is stated nowhere in the table, title, or description. Otherwise the assertion PASSES. Setup that merely constructs the objects named by the columns is not a failure.",
       "passed": true,
-      "evidence": "@Description annotations and column headers clearly state the rules: 'Effective weight is whichever is greater of actual weight and dimensional weight (length x width x height / 5000)'; surcharge order and rates are documented in appliesSurchargesToBaseCost description."
+      "evidence": "@Description blocks and column headers make rules explicit: 'base rate 7.50', 'dimensional weight (length x width x height / 5000)', 'surcharges apply in order', '0.6% of insured value, 3.00 minimum'."
     },
     {
       "id": "numeric-types-correct",
-      "text": "Parameter types correspond to the ShippingCostCalculator.calculateShippingCost signature: weight is a double, dimensions are a List<Integer>, and cost / insured value are BigDecimal (compared via compareTo, not equals).",
-      "passed": false,
-      "evidence": "appliesSurchargesToBaseCost method signature has 'insuredValue: BigDecimal?' but the table column 'Insured Value' contains scalar values (200, 500, 1000) without BigDecimal conversion. No @TypeConverter for the Options map means insuredValue is not properly typed as BigDecimal in the table."
+      "text": "Parameter types correspond to the ShippingCostCalculator.calculateShippingCost signature: weight is a double, dimensions are a List<Integer>, and cost / insured value are BigDecimal (compared via compareTo, not equals). Do not require BigDecimal for weight or dimensions — match the signature.",
+      "passed": true,
+      "evidence": "weight: Double (0.5, 3.0, 10.0); dimensions: List<Int> ([1,1,1], [70,50,10]); cost/insuredValue: BigDecimal; assertion uses 'assertEquals(0, cost.compareTo(baseRate))'."
     },
     {
       "id": "scenario-column-present",
@@ -70,7 +70,7 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1').",
       "passed": true,
-      "evidence": "Scenario names describe conditions: 'EU standard, light parcel', 'Dimensional weight exceeds actual weight', 'One dimension exceeds 100cm', 'Fragile and insured together', 'Carrier choice has no effect on price'."
+      "evidence": "Scenarios: 'EU standard, light parcel', 'Dimensional weight exceeds actual weight', 'Fragile and insured together', 'Carrier choice has no effect on price'."
     },
     {
       "id": "has-question-mark-column",
@@ -80,9 +80,9 @@
     },
     {
       "id": "business-language-columns",
-      "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims').",
-      "passed": true,
-      "evidence": "Column headers use domain language: 'Region', 'Speed', 'Weight', 'Base Rate?', 'Dimensions', 'Fragile', 'Insured Value', 'Handling', 'Total Cost?', 'Carrier'."
+      "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')",
+      "passed": false,
+      "evidence": "appliesSurchargesToBaseCost uses code-style columns: 'Fragile', 'Insured Value', 'Handling' instead of domain-unified 'Options' map. Also uses 'Fragile' (boolean column) instead of domain language."
     },
     {
       "id": "no-if-switch-in-method",

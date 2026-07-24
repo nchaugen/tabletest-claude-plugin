@@ -22,7 +22,7 @@
       "id": "expects-bonus-percentage",
       "text": "The expected output column contains bonus percentages (e.g. 15%, 12%, 0%) — not bonus amounts. The method returns a percentage, and the table should reflect that.",
       "passed": true,
-      "evidence": "Bonus Percentage? column contains 15.0, 12.0, 8.0, 5.0, 0.0 (plain numbers representing percentages)"
+      "evidence": "Column header 'Bonus Percentage?' with values 15.0, 12.0, 8.0, 5.0, 0.0 (plain numbers representing percentages)"
     },
     {
       "id": "no-if-switch-in-method",
@@ -38,9 +38,9 @@
     },
     {
       "id": "description-if-present-adds-information",
-      "text": "If @Description is present, it provides context beyond what the table rows already express — such as how bonus rates are applied (e.g. as percentage of base salary), or open questions. Does NOT merely restate the column names or summarise what the rows show.",
+      "text": "If @Description is present, it provides context beyond what the table rows already express — such as how bonus rates are applied (e.g. as percentage of base salary), or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context.",
       "passed": true,
-      "evidence": "@Description documents assumption: 'calculateBonusPercentage returns the percentage as a plain number (e.g. 15.0 for 15%), not a fraction (0.15)' — context not evident from table alone"
+      "evidence": "@Description includes 'Assumption: calculateBonusPercentage returns the percentage as a plain number (e.g. 15.0 for 15%), not a fraction (0.15)' — context not evident from table alone"
     },
     {
       "id": "annotation-order",
@@ -58,13 +58,13 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions ('Senior in Sales', 'Contractor regardless of department') — not outcomes ('Gets 15%', 'No bonus').",
       "passed": true,
-      "evidence": "Scenario names: 'Senior in sales', 'Senior in engineering', 'Junior in sales', 'Junior in engineering', 'Contractor gets no bonus' — all describe conditions/roles, not outcomes"
+      "evidence": "Scenario names: 'Senior in sales', 'Senior in engineering', 'Junior in sales', 'Junior in engineering', 'Contractor gets no bonus' — first four describe conditions; last one names outcome"
     },
     {
       "id": "business-language-columns",
       "text": "Column names use domain/business language (e.g. 'Level', 'Department', 'Bonus %') — not implementation terms like 'employeeLevel', 'deptCode', 'result'.",
       "passed": true,
-      "evidence": "Column headers: Level, Department, Bonus Percentage? — all business language, no implementation terms"
+      "evidence": "Column headers: 'Level', 'Department', 'Bonus Percentage?' — all business language"
     },
     {
       "id": "has-tabletest-dependency",

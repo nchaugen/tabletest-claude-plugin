@@ -16,7 +16,7 @@
       "id": "observable-io-only",
       "text": "No column is named after private fields or internal variables (hasActivePolicy, internalRiskScore, riskScore). The test treats the method as a black box.",
       "passed": true,
-      "evidence": "All table columns use only public inputs (Applicant Type, Age, Claim Count) and observable outputs (Status?, Premium?). No internal field names appear."
+      "evidence": "All table columns use only public inputs (Applicant Type, Age, Claim Count) and outputs (Status?, Premium?). No internal field names appear."
     },
     {
       "id": "scenario-column-present",
@@ -28,13 +28,13 @@
       "id": "business-language-columns",
       "text": "Column names use domain/business language (e.g. 'Applicant type', 'Age', 'Claims', 'Decision?', 'Premium?') — not code identifiers like 'applicantType', 'claimCount', 'String'.",
       "passed": true,
-      "evidence": "Columns are named 'Applicant Type', 'Age', 'Claim Count', 'Status?', 'Premium?' — all business language, not camelCase code identifiers."
+      "evidence": "Columns are 'Applicant Type', 'Age', 'Claim Count', 'Status?', 'Premium?' — all business language, not camelCase code identifiers."
     },
     {
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions ('Renewal with no claims', 'Senior applicant') — not outcomes ('Auto approved', 'Rejected').",
       "passed": true,
-      "evidence": "Scenario names like 'Renewal, no claims, would otherwise be standard', 'Risk score exactly at threshold', 'Just below senior threshold (64)' describe conditions, not outcomes."
+      "evidence": "Scenarios like 'Renewal, no claims, would otherwise be standard', 'Risk score exactly at threshold' describe conditions, not outcomes."
     },
     {
       "id": "has-question-mark-column",
@@ -68,39 +68,39 @@
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules.",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
       "passed": true,
-      "evidence": "Three separate @TableTest methods: autoApprovesRenewalsWithNoClaims, rejectsApplicationsAboveRiskThreshold, calculatesPremiumByAgeTier, each addressing a distinct concern."
+      "evidence": "Three separate @TableTest methods: autoApprovesRenewalsWithNoClaims, rejectsApplicationsAboveRiskThreshold, calculatesPremiumByAgeTier."
     },
     {
       "id": "minimal-rows-per-concern",
-      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
       "passed": true,
-      "evidence": "First table has 4 rows, second has 4 rows, third has 4 rows. Each row serves a distinct purpose (boundary, contrast, or isolation of a specific effect)."
+      "evidence": "First table has 4 rows, second has 4 rows, third has 4 rows — each focused on its specific concern without cross-product permutations."
     },
     {
       "id": "separates-decision-and-premium",
       "text": "Decision logic (AUTO_APPROVED/REJECTED/APPROVED) and premium calculation are in separate @TableTest methods",
       "passed": false,
-      "evidence": "The second @TableTest 'rejectsApplicationsAboveRiskThreshold' includes both Status? and Premium? columns, mixing decision and premium concerns in one table."
+      "evidence": "[split vote 1/3 pass] The second @TableTest 'rejectsApplicationsAboveRiskThreshold' includes both Status? and Premium? columns, mixing decision and premium concerns in one table."
     },
     {
       "id": "no-reimplemented-internals",
-      "text": "Test method body does not recompute internal formulas (e.g. risk score calculation). It only calls the public API (evaluateApplication) and asserts on the return value's fields.",
+      "text": "Test method body does not recompute internal formulas (e.g. risk score calculation). It only calls the public API (evaluateApplication) and asserts on the return value's fields. No arithmetic duplicating private method logic appears in the test.",
       "passed": true,
-      "evidence": "All three test methods call evaluateApplication() once and assert on result.decision() and result.premium() directly. No arithmetic or formula recomputation appears in the method bodies."
+      "evidence": "All test bodies call evaluateApplication() once and assert on result.decision() and result.premium() — no arithmetic or formula recomputation."
     },
     {
       "id": "description-no-internals",
-      "text": "@Description explains the test's purpose and business context — not internal formulas or implementation details.",
+      "text": "@Description explains the test's purpose and business context — not internal formulas or implementation details (e.g. 'riskScore = age/10 + claimCount*15', 'rejected when riskScore > 75'). Black-box tests describe observable behaviour, not code internals.",
       "passed": false,
-      "evidence": "The second @Description explicitly states: 'Risk score is age/10 + claimCount * 15. Applications are rejected once the score exceeds 75', exposing internal formula and threshold."
+      "evidence": "Second @Description states: 'Risk score is age/10 + claimCount * 15. Applications are rejected once the score exceeds 75.' This exposes internal formula and threshold."
     },
     {
       "id": "depth-decision-boundaries",
-      "text": "Approval decision table covers the rejection boundary thoroughly: 5 claims triggers rejection regardless of realistic age (risk score crosses 75), 4 claims results in approval. Rows at 4 and 5 claims with varying ages demonstrate this cliff.",
+      "text": "Approval decision table covers the rejection boundary thoroughly: 5 claims triggers rejection regardless of realistic age (risk score crosses 75), 4 claims results in approval. Rows at 4 and 5 claims with varying ages demonstrate this cliff. The senior threshold (64 vs 65) is NOT expected here — it produces no decision difference (both APPROVED) and belongs to the premium table.",
       "passed": false,
-      "evidence": "No dedicated decision table exists. The rejection boundary is tested in 'rejectsApplicationsAboveRiskThreshold' with rows at 5 claims (rejected) but no row at exactly 4 claims to demonstrate the approval boundary. The expected reference table requires rows at both 4 and 5 claims; this test lacks the 4-claim case."
+      "evidence": "No decision table explicitly tests the 4-vs-5 claims boundary. The second table tests risk score at 75/76 with 5 claims, but does not isolate the 4-claim approval case across ages."
     },
     {
       "id": "depth-premium-boundaries",
@@ -116,21 +116,21 @@
     },
     {
       "id": "rule-falsifiable-by-a-row",
-      "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES.",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES. Do not fail a table merely because its values are simple or round — only these three conditions matter.",
       "passed": true,
-      "evidence": "All three tables vary their expectation columns across rows and would fail if inputs were ignored: `autoApprovesRenewalsWithNoClaims` has Status? values {AUTO_APPROVED, APPROVED, REJECTED} and Premium? values {0.00, 136.00, 106.00}; `rejectsApplicationsAboveRiskThreshold` has Status? {APPROVED, REJECTED} and Premium? {134.00, 250.00, 0.00}; `calculatesPremiumByAgeTier` has Premium? {142.00, 273.50, 106.00, 231.50}."
+      "evidence": "All three tables vary their expectation columns across rows (Status?/Premium? differ), and no expectation is a verbatim copy of an input. A fixed-return implementation would fail (e.g., always returning APPROVED or a constant premium). Each table is falsifiable."
     },
     {
       "id": "rule-statable-from-table",
-      "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone; (3) a helper method used in the assertion applies a comparison criterion (ordering, tolerance, subset matching) that is stated nowhere in the table, title, or description. Otherwise the assertion PASSES.",
+      "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone; (3) a helper method used in the assertion applies a comparison criterion (ordering, tolerance, subset matching) that is stated nowhere in the table, title, or description. Otherwise the assertion PASSES. Setup that merely constructs the objects named by the columns is not a failure.",
       "passed": false,
-      "evidence": "The @Description of `rejectsApplicationsAboveRiskThreshold` states 'Risk score is age/10 + claimCount * 15' and 'exceeds 75', exposing internal formulas and thresholds that should not appear in a black-box test description. The spec requires these to be inferred from input/output rows, not stated."
+      "evidence": "The second table's @Description states 'Risk score is age/10 + claimCount * 15' and 'rejected once the score exceeds 75', exposing internal formulas and thresholds that should not appear in a black-box test. The specification explicitly forbids this: 'the risk score is internal...must **not** appear as a column or in `@Description`'."
     },
     {
       "id": "title-states-system-behaviour",
       "text": "Each @DisplayName (or the method name it falls back to) states what the code under test does, not an external fact it depends on. Apply the check mechanically: strike the system under test from the sentence — if it still reads as true, because it merely restates a regulation, standard, format, or domain fact, the title is about something else and fails.",
       "passed": true,
-      "evidence": "All three method names state system behaviour: 'autoApprovesRenewalsWithNoClaims' (the system auto-approves), 'rejectsApplicationsAboveRiskThreshold' (the system rejects), 'calculatesPremiumByAgeTier' (the system calculates premium). Removing the system leaves incomplete or false statements."
+      "evidence": "Method names describe what the evaluator does: 'autoApprovesRenewalsWithNoClaims' (the system auto-approves), 'rejectsApplicationsAboveRiskThreshold' (the system rejects), 'calculatesPremiumByAgeTier' (the system calculates premium). Striking 'evaluator' leaves statements about the system's actions, not external facts."
     },
     {
       "id": "compiles",
