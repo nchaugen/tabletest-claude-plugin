@@ -8,63 +8,63 @@
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing all splitting rules. Closely-related concerns may share one method (e.g. fulfillment type and delivery address, which follow the same 'same shipment iff same type and address' rule), so four methods covering five concerns is fine. FAILS only when a single method carries all the rules; PASSES with two or more concern-focused methods.",
-      "passed": true,
-      "evidence": "[split vote 2/3 pass] Four @TableTest methods: splitsShipmentsByFulfillmentTypeAndAddress, splitsShipmentsByStockAvailability, choosesWarehouseCombinationMinimizingShipmentCount, keepsCompanionProductsTogetherWhenPossible"
+      "text": "Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing all splitting rules.",
+      "passed": false,
+      "evidence": "Only 4 @TableTest methods present: fulfillment/address, availability, warehouse, companion. The spec requires 5 concerns (fulfillment type, delivery address, availability, warehouse allocation, companion grouping). Fulfillment type and delivery address are combined in one method, which is permitted ('either reads as a clean split'), but the response claims '4 focused @TableTest methods (19 rows total), one per splitting concern' — this is inaccurate. The actual count is 4, not 5."
     },
     {
       "id": "rule-falsifiable-by-a-row",
-      "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES. Do not fail a table merely because its values are simple or round — only these three conditions matter.",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable. Each @TableTest table independently must not have: (1) expectation column with same value in every row; (2) every expectation cell a verbatim copy of an input cell; (3) fixed return value satisfying all rows.",
       "passed": true,
-      "evidence": "[split vote 2/3 pass] Fulfillment table: same items produce [camera,lens] vs different addresses produce [camera, watch]. Availability: IN_STOCK produces IMMEDIATE vs BACKORDERED produces WHEN_AVAILABLE. Warehouse: single cover [W1:...] vs split [W1:..., W2:...]"
+      "evidence": "Fulfillment table: expectations vary ('camera,lens' vs 'camera, watch' vs '[camera, mug]'). Availability table: expectations vary ('IMMEDIATE:[camera,lens]' vs 'IMMEDIATE:[camera]', 'WHEN_AVAILABLE:[lens]'). Warehouse table: expectations vary ('W1:[camera,lens,mic]' vs 'W1:[camera,lens]', 'W2:[mic]'). Companion table: expectations vary. No table has identical expectations or fixed returns."
     },
     {
       "id": "rule-statable-from-table",
-      "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone; (3) a helper method used in the assertion applies a comparison criterion (ordering, tolerance, subset matching) that is stated nowhere in the table, title, or description. Otherwise the assertion PASSES. Setup that merely constructs the objects named by the columns is not a failure.",
+      "text": "A reader can state the rule from the table alone, without the test method body. Fails if: (1) a threshold/rate/cutoff appears only in method body; (2) operation cannot be named from headers/values; (3) helper comparison criterion stated nowhere.",
       "passed": true,
-      "evidence": "[split vote 2/3 pass] @Description blocks state key assumptions: 'BACKORDERED and PRE_ORDERED both ship WHEN_AVAILABLE', 'fewest-shipments combination must be chosen', 'Companions only affect outcome when multiple warehouse combinations tie'"
+      "evidence": "Column headers are explicit: 'Items', 'Shipments?', 'W1 Stock', 'W2 Stock', 'Companions', 'Availability'. @Description blocks state the rules: 'fewest-shipments combination', 'BACKORDERED and PRE_ORDERED both ship WHEN_AVAILABLE', 'companions win a tie'. No hidden thresholds or unstated comparisons."
     },
     {
       "id": "minimal-rows-per-concern",
       "text": "Each @TableTest has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
       "passed": false,
-      "evidence": "[split vote 1/3 pass] Fulfillment table has 6 rows; reference decomposition requires 5 (same type+address, different addresses, delivery vs pickup, two pickups, mixed grouping+split). Row 6 'Delivery split by address, plus a separate pickup item' cross-multiplies address and fulfillment concerns."
+      "evidence": "Fulfillment/address table has 6 rows; spec obligations are (a) same type+address groups, (b) different address splits, (c) different fulfillment type splits, (d) pickup with no address groups. Row 6 ('Delivery split by address, plus a separate pickup item') combines (b)+(c), which is optional but adds a permutation. Availability table has 6 rows for 3 core obligations (a) all in-stock, (b) in-stock not held, (c) delayed items group; rows 2 and 3 separately test 'not held for backordered' and 'not held for pre-ordered', which under the two-state model are redundant — spec notes this as 'mild over-coverage'."
     },
     {
       "id": "concern-fulfillment-method",
-      "text": "Fulfillment method splitting is represented in a @TableTest — its own, or one shared with the delivery-address split (both follow 'same shipment iff same fulfillment type and address') — showing that items with different fulfillment types (store pickup vs home delivery) cannot share a shipment.",
+      "text": "Fulfillment method splitting is represented in a @TableTest — its own, or one shared with the delivery-address split — showing that items with different fulfillment types (store pickup vs home delivery) cannot share a shipment.",
       "passed": true,
-      "evidence": "splitsShipmentsByFulfillmentTypeAndAddress row 3: 'Delivery and pickup items always split' with camera (DELIVERY) and mug (PICKUP) producing [camera, mug]"
+      "evidence": "Row 3 of fulfillment/address table: 'Delivery and pickup items always split' with items 'camera:DELIVERY:Addr-A', 'mug:PICKUP:' and expected shipments '[camera, mug]' — demonstrates different fulfillment types split."
     },
     {
       "id": "concern-delivery-address",
       "text": "Delivery address splitting is represented in a @TableTest — its own, or one shared with the fulfillment-method split — showing that items going to different addresses must be in separate shipments.",
       "passed": true,
-      "evidence": "splitsShipmentsByFulfillmentTypeAndAddress row 2: 'Same type, different delivery addresses' with Addr-A and Addr-B producing [camera, watch]"
+      "evidence": "Row 2 of fulfillment/address table: 'Same type, different delivery addresses' with items 'camera:DELIVERY:Addr-A', 'watch:DELIVERY:Addr-B' and expected shipments '[camera, watch]' — demonstrates different addresses split."
     },
     {
       "id": "concern-availability",
       "text": "Availability splitting is represented as its own @TableTest — in-stock items ship immediately, backordered/pre-ordered items ship when available.",
       "passed": true,
-      "evidence": "splitsShipmentsByStockAvailability with 6 rows: IN_STOCK produces IMMEDIATE, BACKORDERED/PRE_ORDERED produce WHEN_AVAILABLE, and row 5 'Backordered and pre-ordered items combine' proves they merge into one state"
+      "evidence": "Method `splitsShipmentsByStockAvailability` with 6 rows. Row 1: 'All items in stock' → 'IMMEDIATE:[camera,lens]'. Row 2: 'In-stock item not held for a backordered item' → 'IMMEDIATE:[camera]', 'WHEN_AVAILABLE:[lens]'. Demonstrates the split."
     },
     {
       "id": "concern-warehouse-allocation",
       "text": "Warehouse allocation (minimising shipments) is represented as its own @TableTest — choosing which warehouses to ship from to minimise total shipment count.",
       "passed": true,
-      "evidence": "choosesWarehouseCombinationMinimizingShipmentCount with 4 rows: single cover [W1:...], forced split [W1:..., W2:...], overlapping stock [W2:...], and correct pair [W1:..., W3:...]"
+      "evidence": "Method `choosesWarehouseCombinationMinimizingShipmentCount` with 4 rows. Row 4: 'Correct warehouse pair must be found, not just any pair' with items '[camera, lens, mic, battery]', W1/W2/W3 stock, and expected '[W1:[camera,lens]', 'W3:[battery,mic]']' — demonstrates minimal-cover selection."
     },
     {
       "id": "concern-companion-products",
       "text": "Companion product grouping is represented as its own @TableTest — paired items (e.g. camera body and lens) should ship together from the same location when possible.",
       "passed": true,
-      "evidence": "keepsCompanionProductsTogetherWhenPossible with 3 rows: tie-breaker win [W1:[camera,lens], W2:[mic]], split when unavoidable [W1:[camera], W2:[lens]], already together [W1:[camera,lens]]"
+      "evidence": "Method `keepsCompanionProductsTogetherWhenPossible` with 3 rows. Row 1: 'Companions win a tie between equally minimal warehouses' with companions '{camera, lens}' and expected '[W1:[camera,lens]', 'W2:[mic]']' — demonstrates tie-breaking."
     },
     {
       "id": "all-outputs-same-table",
-      "text": "Each @TableTest method includes all output columns for its concern in the same table — e.g. warehouse allocation includes both the assignment and shipment count, not split across methods. All outputs of the same concern belong together.",
+      "text": "Each @TableTest method includes all output columns for its concern in the same table — e.g. warehouse allocation includes both the assignment and shipment count, not split across methods.",
       "passed": true,
-      "evidence": "Each method has single Shipments? output column. Warehouse and companion methods include both warehouse assignment and shipment count in one Shipments? column via describeByWarehouse"
+      "evidence": "Warehouse table includes 'W1 Stock', 'W2 Stock', 'W3 Stock' (inputs) and 'Shipments?' (output) in one table. Companion table includes 'Companions' (input) and 'Shipments?' (output) in one table. All outputs co-located with their inputs."
     },
     {
       "id": "native-collection-output",
@@ -133,7 +133,7 @@
       "evidence": "Compilation succeeded"
     }
   ],
-  "assertions_passed": 20,
+  "assertions_passed": 19,
   "assertions_total": 22,
-  "pass_rate": 0.9090909090909091
+  "pass_rate": 0.8636363636363636
 }

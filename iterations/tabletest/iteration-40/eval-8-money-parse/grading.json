@@ -14,13 +14,13 @@
     },
     {
       "id": "exception-has-expected-column",
-      "text": "The exception/invalid-input table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row — rather than hardcoding the exception type in @Description or the method name.",
+      "text": "The exception/invalid-input table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row",
       "passed": true,
       "evidence": "rejectsInvalidInput table includes 'Throws?' column with 'java.lang.IllegalArgumentException' per row"
     },
     {
       "id": "exception-cases-handled",
-      "text": "The exception cases (empty string, letters-only, negative) are handled — via a Throws? column, assertThrows in the method body, or a separate @TableTest — not silently omitted",
+      "text": "The exception cases (empty string, letters-only, negative) are handled — via a Throws? column, assertThrows in the method body, or a separate @TableTest",
       "passed": true,
       "evidence": "Three rows in rejectsInvalidInput: 'Empty string | \\'\\'', 'Letters only | abc', 'Negative amount | -5.00'; assertThrows(throws_, ...) in method body"
     },
@@ -44,9 +44,9 @@
     },
     {
       "id": "description-if-present-adds-information",
-      "text": "If @Description is present, it provides context beyond what the table rows already express — such as the expected currency format, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context.",
+      "text": "If @Description is present, it provides context beyond what the table rows already express",
       "passed": true,
-      "evidence": "No @Description present; table headers and rows are self-explanatory, so omission is acceptable per spec"
+      "evidence": "No @Description annotation present; table headers and rows are self-explanatory, so omission is acceptable"
     },
     {
       "id": "annotation-order",
@@ -62,21 +62,21 @@
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern",
       "passed": true,
-      "evidence": "Two separate @TableTest methods: 'parsesInputIntoMoney' (valid) and 'rejectsInvalidInput' (errors)"
+      "evidence": "Two separate @TableTest methods: 'parsesInputIntoMoney' for valid cases and 'rejectsInvalidInput' for errors"
     },
     {
       "id": "minimal-rows-per-concern",
-      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations",
       "passed": false,
-      "evidence": "Valid table has only 3 rows (10.00, 0.01, null). Spec requires rows exploring BigDecimal scale/format: e.g., '5' vs '5.00', '10.5', '0.00', alternative formats. These underspecified cases are silently omitted."
+      "evidence": "Valid table has only 3 rows (10.00, 0.01, null). Spec requires rows exploring BigDecimal scale/format: e.g., '5' vs '5.00', '10.5', '10.005', '0.00' boundary case, alternative formats (whitespace, +sign, etc.). Current rows do not expose these underspecified assumptions."
     },
     {
       "id": "separates-valid-and-invalid",
       "text": "Valid parsing cases and error/exception cases are in separate @TableTest methods",
       "passed": true,
-      "evidence": "parsesInputIntoMoney and rejectsInvalidInput are two distinct @TableTest methods with no row carrying both a Money? and Throws? value"
+      "evidence": "parsesInputIntoMoney and rejectsInvalidInput are two distinct @TableTest methods with no overlap"
     },
     {
       "id": "has-tabletest-dependency",

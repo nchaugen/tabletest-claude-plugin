@@ -10,37 +10,37 @@
       "id": "list-syntax-correct",
       "text": "List values in the table use bracket syntax like [tech:java, biz:sales, dev:ci] — not comma-separated strings without brackets.",
       "passed": false,
-      "evidence": "[\"tech:java\", \"dev:python\", \"biz:sales\", \"ops:deploy\"] uses quoted strings inside brackets, but the assertion requires unquoted syntax [tech:java, biz:sales, dev:ci]. The response uses quotes around each tag."
+      "evidence": "[\"tech:java\", \"dev:python\", \"biz:sales\", \"ops:deploy\"] uses quoted strings inside brackets, but the assertion requires unquoted syntax [tech:java, biz:sales, dev:ci] which would be a parse error. The response uses correct quoting instead."
     },
     {
       "id": "empty-list-explicit",
       "text": "Empty list input uses [] (not a blank cell, which represents null). The distinction between empty list and null is preserved.",
       "passed": true,
-      "evidence": "Row 'Empty tag list returns empty list' shows Tags as [] and Kept? as [], preserving the distinction from null category rows which use blank cells."
+      "evidence": "Row 'Empty tag list returns empty list' shows `[]` as input and `[]` as output, distinct from the null category row which uses a blank cell."
     },
     {
       "id": "special-chars-quoted",
-      "text": "Values containing pipes (|), brackets, or colons (:) are properly quoted (e.g. \"tech:java\") so they don't conflict with table syntax. Colons without quoting would be mis-interpreted as map key:value entries.",
+      "text": "Values containing pipes (|), brackets, or colons (:) are properly quoted (e.g. \"tech:java\") so they don't conflict with table syntax.",
       "passed": true,
-      "evidence": "\"tech:java|enterprise\", \"tech:report[Q1]\", and \"tech:java\\nEnterprise Edition\" are all quoted, preserving special characters from table syntax misinterpretation."
+      "evidence": "All tags with colons are quoted: [\"tech:java\", \"dev:python\", ...]. Pipe example: \"tech:java|enterprise\" is quoted. Bracket example: \"tech:report[Q1]\" is quoted."
     },
     {
       "id": "set-syntax-correct",
-      "text": "Set<String> values in the table use curly brace syntax like {tech, dev} — not bracket syntax [tech, dev] which is for lists. The distinction between Set and List types is preserved in the table notation.",
+      "text": "Set<String> values in the table use curly brace syntax like {tech, dev} — not bracket syntax [tech, dev] which is for lists.",
       "passed": true,
-      "evidence": "Optional column shows {biz}, {tech, ops}, and {} using curly braces, distinct from List columns using square brackets."
+      "evidence": "Optional set column uses {biz}, {tech, ops}, and {} syntax, never bracket syntax for sets."
     },
     {
       "id": "newline-in-cell",
-      "text": "A cell value containing a newline does not break the table row structure: the newline is either escaped as \\n inside the cell, or the value is expressed as a list of lines joined in the test body. A literal line break inside a table row fails. Both representations are acceptable — escaping suits a newline inside a single value, a list of lines suits input that is inherently multi-line.",
+      "text": "A cell value containing a newline does not break the table row structure: the newline is either escaped as \\n inside the cell, or the value is expressed as a list of lines joined in the test body.",
       "passed": true,
       "evidence": "\"tech:java\\nEnterprise Edition\" uses escaped \\n inside the quoted cell, and the test body restores it with .replace(\"\\\\n\", \"\\n\")."
     },
     {
       "id": "pipe-quoted",
-      "text": "Values containing pipe characters (|) are quoted so they don't conflict with the markdown table column separator. For example, a tag like 'biz:hr|recruiting' must be quoted.",
+      "text": "Values containing pipe characters (|) are quoted so they don't conflict with the markdown table column separator.",
       "passed": true,
-      "evidence": "\"tech:java|enterprise\" is quoted in the Tag column, preventing the pipe from being read as a column separator."
+      "evidence": "\"tech:java|enterprise\" is quoted in the table, preserving the pipe as part of the tag value, not as a column separator."
     },
     {
       "id": "scenario-column-present",
@@ -86,15 +86,15 @@
     },
     {
       "id": "no-blank-collection-elements",
-      "text": "No collection value in any table contains a blank element. `[a, , c]`, `[a, b, ]` and `[, a, b]` are parse errors, not collections holding a null element — a collection value cannot express a null element at all.",
+      "text": "No collection value in any table contains a blank element. `[a, , c]`, `[a, b, ]` and `[, a, b]` are parse errors, not collections holding a null element.",
       "passed": true,
-      "evidence": "All list and set values in the tables contain only non-blank elements; no rows show [a, , c] or similar malformed collections."
+      "evidence": "All list and set values are well-formed with no blank elements. Empty collections use [] or {}, never [,] or similar malformed syntax."
     },
     {
       "id": "empty-string-element-quoted",
-      "text": "An empty tag inside a tag list is written as a quoted empty string (\"\" or ''), not as a blank element. Passes if the tables express the empty tag some other legitimate way (e.g. a dedicated String column); fails if a blank element inside a collection is used to mean an empty or absent tag.",
+      "text": "An empty tag inside a tag list is written as a quoted empty string (\"\" or ''), not as a blank element.",
       "passed": true,
-      "evidence": "Row 'Empty tag string is never kept' shows Tag as '' (quoted empty string), not as a blank cell, and the test expects it to filter to []."
+      "evidence": "Row 'Empty tag string is never kept' uses '' (quoted empty string) as the tag input, not a blank cell element inside a list."
     },
     {
       "id": "compiles",

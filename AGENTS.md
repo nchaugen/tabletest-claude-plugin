@@ -196,6 +196,10 @@ exactly one of them changed between the compared iterations.
   Sharper assertion *wording* does not fix grader disagreement and has been tried twice: the
   disagreement is response-level, so it is a sampling problem, not a prompt problem. **Check
   call parameters before rewriting prompts.**
+  `LLM_GRADING_BATCH_SIZE` (10) is part of the regime as well: grading assertions one at a time
+  is systematically *stricter*, not merely less cross-contaminated, and drops every eval's score
+  uniformly. Validate any regime change against *level* — does a known-good eval hold its score —
+  and not only against variance.
 - **Fingerprint guard (automatic).** Each `benchmark.json` result is stamped with a content
   fingerprint of its definition (`prompt.md`, `eval.json`, `expected_output.md`, `project/`);
   reports compare only matching evals and exclude changed ones as "not comparable". Pre-guard

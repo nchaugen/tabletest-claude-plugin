@@ -6,7 +6,7 @@
   "grading_model": "claude-haiku-4-5",
   "skill_commit": "unknown",
   "skill_digest": "unknown",
-  "timestamp": "2026-07-24T17:47:08.964Z",
+  "timestamp": "2026-07-24T19:09:47.303Z",
   "evals": [
     {
       "id": "eval-1-convert-repetitive-tests",
@@ -196,10 +196,12 @@
       "fingerprint": "5575308212ab",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 21,
+        "assertions_passed": 20,
         "assertions_total": 21,
-        "pass_rate": 1,
-        "failed_assertions": [],
+        "pass_rate": 0.9523809523809523,
+        "failed_assertions": [
+          "title-states-system-behaviour"
+        ],
         "total_tokens": 540843,
         "duration_ms": 149866,
         "cost_usd": 0.48218160000000004
@@ -311,10 +313,11 @@
       "fingerprint": "e12143220ae8",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 20,
+        "assertions_passed": 19,
         "assertions_total": 22,
-        "pass_rate": 0.9090909090909091,
+        "pass_rate": 0.8636363636363636,
         "failed_assertions": [
+          "concerns-decomposed",
           "minimal-rows-per-concern",
           "native-collection-output"
         ],
@@ -325,9 +328,9 @@
     }
   ],
   "summary": {
-    "assertions_passed": 309,
+    "assertions_passed": 307,
     "assertions_total": 340,
-    "pass_rate": 0.9088235294117647,
+    "pass_rate": 0.9029411764705882,
     "total_tokens": 20956288,
     "total_duration_ms": 4379343,
     "total_cost_usd": 14.896485799999997
