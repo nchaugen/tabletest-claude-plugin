@@ -384,32 +384,6 @@ At setpoint      | 65       | 65       | 0%             | 65
 
 **Keep a constant expectation column when it is the rule's subject; drop it when it is incidental.** A table whose rows vary the roster shape and whose every row reads `Rostered? no` needs that column — it is what the rule claims. A table about which rest period applies, where every row happens to be a long-haul flight, does not need a constant `Long haul? yes` column; that belongs in `@Description`. This is the converse of Make Thresholds Visible, which is about constant *inputs*.
 
-### Cover the Rule's Range Without Multiplying Rows
-
-Coverage is a property of *which behaviours appear*, not of how many rows appear. Before writing rows, list the concern's obligations — the distinct behaviours the rule must demonstrate. Cover each obligation with at least one row, then stop. **A row that re-covers an obligation another row already covers is not extra coverage, it is a duplicate** — and it makes the rule harder to state, not easier.
-
-**Enumerate along the rule's own axis; never across axes.** This is the whole of it, and the two mistakes are opposite. Along the axis the rule is about, the enumeration must be complete: *every* tier of a ladder, both sides of *every* boundary, all values a quantified title promises. Sampling that axis — three of a ladder's eight tiers, one side of a cliff — is a coverage gap however tidy the table looks. Across axes, enumeration is duplication: a second concern's values multiplied through the first adds rows that re-cover obligations already covered. Complete along one axis, minimal across the rest.
-
-**A quantifier in the title is a promise the rows must keep.** Titles are naturally universal — "whatever the donation type", "regardless of the donor's age", "with or without a recorded rest period". Once the title quantifies, that domain becomes an obligation: all three donation types must appear, both rest states must appear. A quantified title over three arbitrary rows is a claim the table does not support. Either cover the domain or narrow the title.
-
-**Discharge a "regardless of" obligation with a value set, not with more rows.** Where the values are interchangeable — the same outcome for each — one row holding `{whole blood, plasma, platelets}` covers the domain *and* states the independence; three near-identical rows only imply it. Same rule as Use Value Sets for "Regardless Of" Relationships, seen from the coverage side.
-
-**Boundary rows replace central rows; they do not accumulate on top of them.** A rule is understood only when the reader sees where it stops, so spend the row budget at the limits: the row exactly at the deferral cut-off, the row one tick past it, and the case where *no* rule applies. A tier row already carries its own boundaries inside its value set, so a tier table needs no separate "tier begins" and "tier holds" rows — but it does need *one row per tier*, all the way up the ladder, including the last tier and the row proving the ladder stops climbing there.
-
-**One concern, one table.** Over-splitting is as damaging as cramming, and it is the easier mistake to make once you are counting obligations. A concern's sub-rules — the auto-accept case, the outright-refusal case, the fallback — are *rows* of that concern's table, not tables of their own, whenever they share the same columns and the same fixture. Four near-identical two-row tables for one rule cost the reader four contexts to hold; the same obligations as four rows of one table cost one. Split when the columns genuinely differ, not when a sub-rule feels separately nameable.
-
-**Never cover a combination space by multiplying two concerns together.** Nine rows of three donation types × three deferral triggers is not thoroughness; it is two concerns that should have been two tables, and every row past the first few re-covers an obligation. Cross-multiply only where the *combination itself* has behaviour that neither concern shows alone — a precedence between two rules — and then the table holds only the rows that establish that precedence:
-
-```
-// The per-concern tables already cover the duty cap and the missing rest record.
-// This table exists only for what happens when both apply at once.
-Scenario                                  | Duty Hours | Daily Cap | Rest Recorded | Roster?
-Cap exceeded outranks missing rest record | 14         | 13        |               | REJECTED
-Missing rest record within the cap        | 11         | 13        |               | MANUAL_REVIEW
-```
-
-A combining table that re-runs the per-concern cases with one more column added is the commonest way to lose a decomposition you had already got right.
-
 ### Design Black-Box Tables
 
 Model observable inputs and outputs. Avoid internal flags or setup-only columns unless they are part of the public contract.
@@ -491,6 +465,20 @@ Other signs that concerns are mixed:
 
 **Missing concern:** An input to one rule is itself derived from raw data. The derivation has its own edge cases and needs boundary testing in a separate table. The rule table then takes the derived value as a direct input column, not the raw data. Two tables, not one.
 
+**One concern, one table.** Over-splitting damages a table as much as cramming does, and it is the easier mistake once you are naming concerns. A concern's sub-rules — the auto-accept case, the outright refusal, the fallback — are *rows* of that concern's table, not tables of their own, whenever they share the same columns and the same fixture. Four near-identical two-row tables for one rule cost the reader four contexts to hold; the same cases as four rows of one table cost one. Split when the columns genuinely differ, not when a sub-rule feels separately nameable.
+
+**A combining table earns its place only through precedence.** When several rules feed one verdict, the pull is to add a final table demonstrating the whole decision end to end — and that table re-runs cases the per-concern tables already covered, with one more column attached. Add it only for behaviour that *no* single concern shows: which rule wins when two apply at once. Then it holds only the rows that settle that question.
+
+```
+// The per-concern tables already cover the duty cap and the missing rest record.
+// This table exists only for what happens when both apply at once.
+Scenario                                  | Duty Hours | Daily Cap | Rest Recorded | Roster?
+Cap exceeded outranks missing rest record | 14         | 13        |               | REJECTED
+Missing rest record within the cap        | 11         | 13        |               | MANUAL_REVIEW
+```
+
+Re-running the per-concern cases with an extra column is the commonest way to lose a decomposition you had already got right.
+
 ### Match Table Structure to the Logic Being Tested
 
 The type of logic under test determines what each row should represent:
@@ -502,6 +490,8 @@ The type of logic under test determines what each row should represent:
 If rows feel out of place — parsing variations in a decision table, or decision branches in a parsing table — this signals the code under test may be mixing responsibilities. Consider whether the method should be split before adding more test rows.
 
 **Vary values along the axis the rule is about and hold everything else constant.** If the rule decides *which* actuator responds, give every row the same sensor readings and vary only the actuator; the reader then sees one situation in three forms rather than three unrelated cases. Rows that differ in several ways at once force the reader to work out which difference caused the different result.
+
+Isolation has a floor, though: a pair of rows differing by a single tick can be satisfied by an implementation that looks the boundary up and ignores the rule. If the two rows either side of a limit are the only evidence, a plausible wrong implementation still passes — keep a row far enough from the limit that the rule itself has to be right.
 
 ### Name Expectation Columns Clearly
 
@@ -655,7 +645,7 @@ Scenario names appear in test failure messages, so clarity helps diagnose failur
 
 **Name the variation, not the data.** "At the cut-off", "Rest not recorded", "Second donation the same week", "Sensor unreachable" — read that column top to bottom on its own and you get the table's coverage argument. A scenario column reading `Yes / No` beside an input column reading `Yes / No` satisfies the letter of the convention and adds nothing.
 
-**A name that leads with the verdict is an outcome name in disguise.** "Deferred: donated last week" and "Accepted: interval elapsed" put the result first and the condition second, but the expectation column already carries the verdict — the prefix buys nothing and hides the coverage argument. The temptation peaks exactly when a table covers a domain, because the labels start to feel like an index of outcomes. Name the condition that puts the row in the domain.
+**A name that leads with the verdict is an outcome name in disguise.** "Deferred: donated last week" and "Accepted: interval elapsed" put the result first and the condition second, but the expectation column already carries the verdict — the prefix buys nothing and hides the coverage argument. Name the condition that puts the row in the table.
 
 ### Use Concrete Domain Values
 
@@ -878,10 +868,8 @@ After writing, verify:
 - [ ] **Concrete values**: expectation values are traceable to input column values where applicable
 - [ ] **Thresholds visible**: rules that depend on a threshold or limit show it as a column, with boundary rows at and just past the threshold; for date cutoffs, prefer descriptive relative values (`before cutoff`, `on cutoff`) via a `@TypeConverter` — or include the cutoff date as a column if literal dates are used
 - [ ] **Rule statable from the table**: cover the method body with your hand — can a reader state the rule from the table alone? The operation must be visible, not only its endpoints
-- [ ] **A falsifying row**: name the plausible wrong implementation (truncation instead of rounding, returning an input unchanged) and confirm at least one row fails under it
-- [ ] **Obligations covered once**: complete along the rule's own axis — every tier of a ladder, both sides of every boundary, every value a quantified title promises (via a value set where the values are interchangeable) — and no row re-covering an obligation another row already covers. Sampling the axis is a gap; multiplying a second axis through it is a duplicate
-- [ ] **Concern not over-split**: sub-rules that share the same columns and fixture are rows of one table, not a table each
-- [ ] **Concerns not cross-multiplied**: no table multiplies two concerns' values together; a combining table holds only the rows that establish precedence between rules already covered elsewhere
+- [ ] **A falsifying row**: name the plausible wrong implementation (truncation instead of rounding, returning an input unchanged, a bare boundary lookup) and confirm at least one row fails under it
+- [ ] **Concern not over-split**: sub-rules sharing the same columns and fixture are rows of one table, not a table each; a combining table exists only to settle precedence between rules covered elsewhere
 - [ ] **Correct expected values**: arithmetic in expected columns verified independently; every row's output matches the stated rules
 - [ ] **Value set semantics**: value sets only used where every value produces the same result; not used as shorthand for "test multiple values"
 - [ ] **Irrelevance and tiers use value sets**: inputs that don't affect a row's outcome appear as value sets (not a fixed placeholder value mentioned in `@Description`); when a range of input values maps to one tier, the row groups representative values (including both boundaries) into a value set
