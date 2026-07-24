@@ -119,6 +119,35 @@ In row 1 both `{W1, W2}` and `{W2, W3}` give two shipments, but only `{W1, W2}` 
 warehouse — the companion rule breaks the tie. Row 2 shows the preference yielding to feasibility (no
 warehouse stocks both), and it must not manufacture a third shipment to satisfy the preference.
 
+## Scenario coverage — the obligations each concern must hit
+
+The "right number of rows" is a covering problem: each concern has a set of **coverage obligations**
+(distinct behaviours the rule must demonstrate), each row covers some subset, and the optimal table is
+the smallest row set whose union covers them all. Too few rows leaves an obligation uncovered — a wrong
+implementation passes (a falsifiability gap); too many repeats an already-covered obligation or
+cross-multiplies concerns (a `minimal-rows-per-concern` failure). This list is the universe to check a
+solution's rows against; it is not a demand for exactly these rows.
+
+- **Fulfillment type & address** — (a) same type + same address groups into one shipment; (b) different
+  address splits; (c) different fulfillment type (delivery vs pickup) splits; (d) pickup items with no
+  address still group (a null address is not a splitting key). One interaction case — grouping and
+  splitting in the same order — is valuable but optional; it composes (a)+(b), it does not add a rule.
+- **Availability** — (a) all in-stock → one immediate shipment; (b) an in-stock item is *not held* for a
+  delayed item (the two ship separately); (c) delayed items group together, establishing that
+  BACKORDERED and PRE_ORDERED are one state (the deliberately-surfaced assumption). A three-state
+  composition row is optional. Note: a row proving "in-stock not held for pre-ordered" *separately* from
+  "…for backordered" is **redundant** under the two-state model — it re-covers (b). Iteration-40 spends
+  6 rows here where 4 obligations exist; the extra two demonstrate the state-collapse explicitly rather
+  than carelessly, so it is mild over-coverage, not a decomposition error — but it is what the
+  obligation lens flags.
+- **Warehouse allocation** — (a) a single warehouse covers the order → 1 shipment; (b) no single cover →
+  minimal forced split; (c) overlapping stock must not cause a *needless* split; (d) the correct minimal
+  pair is found where a greedy pick fails. Four obligations, four rows — minimal and complete.
+- **Companion grouping** — (a) companions break a tie between equally-minimal warehouse sets (the "when
+  possible" as tie-breaker); (b) companions yield when no warehouse stocks both, without adding a
+  shipment; (c) companions already together need no trade-off (the baseline). Three obligations, three
+  rows.
+
 ## Underspecified → make it an explicit row
 
 - **Backordered vs pre-ordered.** The model can't distinguish their ship times, so they combine; the
