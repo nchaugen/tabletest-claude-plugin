@@ -368,12 +368,15 @@ async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropi
   return data.content[0].text;
 }
 
-// Assertions judged per grading call. One isolates every judgement: a measured experiment
-// showed batching lets one assertion's verdict perturb its batch-mates (editing one assertion's
-// wording flipped an untouched one that shared its batch), and that adding an assertion shifts
-// batch boundaries and flips unrelated assertions. Grading is a rounding error against
-// generation, so the extra calls are free; isolation buys a reproducible, edit-stable baseline.
-const LLM_GRADING_BATCH_SIZE = 1;
+// Assertions judged per grading call. Ten keeps every judgement close to the instructions;
+// the largest evals carry nearly twenty LLM assertions.
+//
+// batch=1 was tried and reverted: grading each assertion in isolation is systematically STRICTER
+// than judging them in a batch, and it collapsed every eval's score uniformly (eval-22 27/27 ->
+// 23/27, eval-30 18 -> 12) — a calibration shift, not the stabilisation it was meant to buy. The
+// batching's cross-contamination (a batch-mate's verdict nudging another) is the price of the
+// calibration the whole suite is tuned against; do not lower this without re-tuning every eval.
+const LLM_GRADING_BATCH_SIZE = 10;
 
 /**
  * Collapses repeated gradings of one batch into a single verdict per assertion.
