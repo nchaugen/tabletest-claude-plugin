@@ -468,11 +468,11 @@ function parseArgs(argv) {
     gradingModel: "haiku",
     provider: "anthropic",
     gradingSuffix: null,
-    // Majority-vote over three grading samples. A measured experiment showed the residual
-    // noise concentrates in a few holistic assertions on borderline solutions (their verdict
-    // is genuinely near the line); single-run grading lets those flip run-to-run. Three samples
-    // + majority vote stabilise the modal verdict. Grading cost is negligible against generation.
-    gradeRuns: 3,
+    // Single grading run is the standard regime. At temperature 0 (GRADING_TEMPERATURE) a
+    // measured 138-slot re-grade found single-run as stable as `--grade-runs 3` (2/138 both);
+    // majority voting pays 3x for no level change. `--grade-runs 3` stays a flag, reserved for
+    // adjudicating a result inside the MDE. See decision grading-regime-and-promotion-batching.
+    gradeRuns: 1,
     nudgeSkill: false,
     parallel: 4,
     gradeOnly: false,
