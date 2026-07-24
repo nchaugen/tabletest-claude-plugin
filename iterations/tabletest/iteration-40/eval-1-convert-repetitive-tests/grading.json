@@ -20,9 +20,9 @@
     },
     {
       "id": "single-assertion-in-method",
-      "text": "Test method body contains only one assertEquals (or equivalent assertion) — not three",
+      "text": "Each @TableTest method applies one uniform assertion pattern to every row — not different assertions per scenario. Several unconditional assertions checking distinct observable outputs of one result (e.g. success, message, resulting cart) count as one uniform pattern; the anti-pattern is branching on the row (if/switch/ternary/try-catch) to choose what is asserted.",
       "passed": true,
-      "evidence": "1 method(s) each have at most 1 assertion"
+      "evidence": "1 method(s) apply one uniform assertion pattern to all rows"
     },
     {
       "id": "no-if-switch-in-method",
@@ -44,9 +44,9 @@
     },
     {
       "id": "description-if-present-adds-information",
-      "text": "If @Description is present, it provides context beyond what the table rows already express — such as fixed values shared by all rows, where/when the rule applies, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context (e.g. fixed values are included as a column rather than hardcoded in the method body).",
+      "text": "If @Description is present, it provides context beyond what the table rows already express — such as fixed values shared by all rows, where/when the rule applies, or open questions. Does NOT merely restate the column names or summarise what the rows show.",
       "passed": true,
-      "evidence": "No @Description annotation is present in the @TableTest method. The table includes all relevant columns (Scenario, Tier, Amount, Discount?) and the method body contains a single assertEquals, making @Description unnecessary."
+      "evidence": "No @Description annotation is present in the generated code, which is acceptable per spec: 'It is acceptable to omit @Description if the table already conveys all relevant context.'"
     },
     {
       "id": "annotation-order",

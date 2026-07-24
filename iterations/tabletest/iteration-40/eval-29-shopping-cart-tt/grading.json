@@ -10,25 +10,25 @@
       "id": "concerns-decomposed",
       "text": "Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing item operations, coupon logic, total calculation, and checkout.",
       "passed": true,
-      "evidence": "5 separate @TableTest methods: addsItemsFromTheCatalogue, removesItemsFromTheCart, appliesCouponsToTheCart, checksOutTheCart, calculatesTheCartTotal"
+      "evidence": "Five separate @TableTest methods: addsItemsFromTheCatalogue, removesItemsFromTheCart, appliesCouponsToTheCart, checksOutTheCart, calculatesTheCartTotal"
     },
     {
       "id": "minimal-rows-per-concern",
       "text": "Each @TableTest has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
       "passed": true,
-      "evidence": "addsItemsFromTheCatalogue has 6 rows (add new, add different, add more, unknown product, zero qty, negative qty); removesItemsFromTheCart has 4 rows; appliesCouponsToTheCart has 7 rows; checksOutTheCart has 7 rows; calculatesTheCartTotal has 10 rows"
+      "evidence": "Add has 6 rows (new, stack, unknown, zero, negative); Remove has 4 rows; Apply has 7 rows; Checkout has 7 rows; Total has 10 rows — each focused on its operation"
     },
     {
       "id": "separates-item-coupon-total-checkout",
       "text": "Item operations (add/remove), coupon application (validity and replacement), cart total calculation (coupon type effects on price), and checkout (stock verification) are in separate @TableTest methods.",
       "passed": true,
-      "evidence": "addsItemsFromTheCatalogue and removesItemsFromTheCart for items; appliesCouponsToTheCart for coupons; calculatesTheCartTotal for totals; checksOutTheCart for checkout"
+      "evidence": "addsItemsFromTheCatalogue, removesItemsFromTheCart, appliesCouponsToTheCart, calculatesTheCartTotal, checksOutTheCart are five distinct methods"
     },
     {
       "id": "rows-independently-executable",
       "text": "Each table row is independently executable — no row depends on a prior row's result. The table expresses rules, not a sequential test script. Each row specifies its own preconditions (e.g. 'Cart with items' as an input column, not implied from a previous row).",
       "passed": true,
-      "evidence": "Each row has explicit input columns (Catalogue, Cart Before/Items, Product Id, etc.) and no row references prior results. Each row is self-contained."
+      "evidence": "Each row has explicit input columns (Catalogue, Cart Before, Product Id, Quantity, etc.) with no sequential dependencies; rows are self-contained"
     },
     {
       "id": "coupon-before-after-columns",
@@ -40,7 +40,7 @@
       "id": "coupon-validity-not-coupon-types",
       "text": "Coupon application table tests validity and replacement (valid code, expired code, nonexistent code, replacing active coupon) — not coupon type effects on price. Coupon type effects belong in the cart total table.",
       "passed": true,
-      "evidence": "appliesCouponsToTheCart tests validity/replacement only (PERCENT, FIXED, PRODUCT, EXPIRED, unknown codes). calculatesTheCartTotal tests coupon type effects on price (Percentage coupon discounts, Fixed coupon, Product coupon)"
+      "evidence": "appliesCouponsToTheCart tests EXPIRED and unknown codes without computing discounts; calculatesTheCartTotal tests PERCENT, FIXED, PRODUCT coupon price effects separately"
     },
     {
       "id": "scenario-column-present",
@@ -58,13 +58,13 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions ('Add to empty cart', 'Replace active coupon with expired') — not outcomes ('Error', 'Success').",
       "passed": true,
-      "evidence": "Scenarios like 'Add new item to empty cart', 'Fixed coupon replaces an active percentage coupon', 'Insufficient stock by one unit' describe conditions, not outcomes"
+      "evidence": "Scenarios like 'Add new item to empty cart', 'Expired coupon does not replace the active coupon', 'Insufficient stock by one unit' describe conditions, not outcomes"
     },
     {
       "id": "business-language-columns",
       "text": "Column names use domain/business language (e.g. 'Product', 'Quantity', 'Message?', 'Cart total?') — not code identifiers like 'productId', 'result'.",
       "passed": false,
-      "evidence": "Column 'Product Id' uses code identifier 'Id' instead of business language like 'Product' or 'Product Name'"
+      "evidence": "Column header 'Product Id' uses code identifier 'Id'; should be 'Product'. Also 'Active Coupon' and 'Coupon In Store' are business language, but 'Product Id' violates the rule"
     },
     {
       "id": "no-if-switch-in-method",
@@ -92,39 +92,39 @@
     },
     {
       "id": "single-assertion-in-method",
-      "text": "Each @TableTest method has a single, uniform assertion pattern applied to all rows — not different assertions per scenario.",
-      "passed": false,
-      "evidence": "Method has 3 assertions; Method has 3 assertions; Method has 3 assertions; Method has 2 assertions"
+      "text": "Each @TableTest method applies one uniform assertion pattern to every row — not different assertions per scenario. Several unconditional assertions checking distinct observable outputs of one result (e.g. success, message, resulting cart) count as one uniform pattern; the anti-pattern is branching on the row (if/switch/ternary/try-catch) to choose what is asserted.",
+      "passed": true,
+      "evidence": "5 method(s) apply one uniform assertion pattern to all rows"
     },
     {
       "id": "test-data-visible",
       "text": "Product prices and coupon rules (type, amount, expiry status) are visible in the table via columns, @Description, or explicit setup — not silently hardcoded. The reader can trace how inputs lead to outputs.",
       "passed": true,
-      "evidence": "Catalogue column shows prices [Widget: 10.00], coupon definitions show type/amount (PERCENT 20, FIXED 5.00, PRODUCT Widget 5.00), @Description explains assumptions"
+      "evidence": "Catalogue column shows prices [Widget: 10.00]; Coupon In Store shows definitions (PERCENT 10, FIXED 5.00, PRODUCT Widget 3.00, EXPIRED); @Description explains assumptions"
     },
     {
       "id": "type-converters-for-complex-objects",
       "text": "TypeConverter methods are used to convert map/string table values into domain objects (e.g. Map → Cart, Map → InventoryService, map → Coupon). Test method bodies contain only arrange-act-assert — no object construction from raw table values.",
       "passed": true,
-      "evidence": "parseCatalogue, parseCart, parseInventory, parseCoupon TypeConverters convert table values. Test bodies use only arrange-act-assert: 'Cart cart = Cart.withItems(Map.of()).withActiveCouponCode(activeCouponBefore); CouponStore store = code -> Optional.ofNullable(couponInStore); CartResult result = CartService.applyCoupon(cart, couponCode, store);'"
+      "evidence": "@TypeConverter methods: parseCatalogue, parseCart, parseInventory, parseCoupon convert table values; method bodies use only arrange-act-assert pattern"
     },
     {
       "id": "coupon-as-single-column",
-      "text": "Coupon data is expressed in a single column with a @TypeConverter — not spread across separate sparse columns for coupon type, value, and target product. The column format may be map syntax (e.g. [type: PERCENTAGE, value: 10]) or readable shorthand (e.g. '20% cart', '$5 off', '50% off widget').",
+      "text": "Coupon data is expressed in a single column with a @TypeConverter — not spread across separate sparse columns for coupon type, value, and target product.",
       "passed": true,
-      "evidence": "appliesCouponsToTheCart has single 'Coupon In Store' column; calculatesTheCartTotal has single 'Active Coupon' column. @TypeConverter parseCoupon converts 'PERCENT 10', 'FIXED 5.00', 'PRODUCT Widget 3.00' strings."
+      "evidence": "The `appliesCouponsToTheCart` table has a single 'Coupon In Store' column with values like 'PERCENT 10', 'FIXED 5.00', 'PRODUCT Widget 3.00', 'EXPIRED', or blank. The `parseCoupon` @TypeConverter parses these into Coupon objects."
     },
     {
       "id": "uses-standard-map-syntax",
-      "text": "Columns representing maps (e.g. cart contents, product catalogue, inventory levels) use standard TableTest map syntax — [k: v, k2: v2] for entries and [:] for empty map — not a custom bracket notation. Custom string-parsing TypeConverters are not needed for data that maps naturally to Map<String, X>.",
+      "text": "Columns representing maps use standard TableTest map syntax — [k: v, k2: v2] for entries and [:] for empty map — not a custom bracket notation.",
       "passed": true,
-      "evidence": "All map columns use [k: v] syntax: '[Widget: 9.99]', '[Widget: 2, Gadget: 1]', '[:]' for empty. TypeConverters receive Map<String, X> directly, not custom strings."
+      "evidence": "Cart, Catalogue, and Inventory columns use standard syntax: '[Widget: 2]', '[Widget: 1, Gadget: 3]', '[:]' for empty. @TypeConverters `parseCart`, `parseCatalogue`, `parseInventory` convert these via Map<String, X>."
     },
     {
       "id": "description-not-redundant-with-scenarios",
-      "text": "@Description annotations do not repeat information that the scenario names already convey. Coupon type behavior (what PERCENTAGE/FIXED/PRODUCT mean) should be expressed through descriptive scenario names, not duplicated in the description.",
-      "passed": true,
-      "evidence": "appliesCouponsToTheCart @Description explains store lookup and EXPIRED/blank handling, not coupon types. Scenario names state behavior: 'Fixed coupon replaces...', 'Product coupon replaces...', 'Percentage coupon with none active'."
+      "text": "@Description annotations do not repeat information that the scenario names already convey.",
+      "passed": false,
+      "evidence": "The `addsItemsFromTheCatalogue` @Description states 'Adding a product already in the cart increases its quantity rather than replacing it', which is already conveyed by the scenario name 'Add more of an item already in the cart'."
     },
     {
       "id": "has-tabletest-dependency",
@@ -134,21 +134,21 @@
     },
     {
       "id": "rule-falsifiable-by-a-row",
-      "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES. Do not fail a table merely because its values are simple or round — only these three conditions matter.",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable.",
       "passed": true,
-      "evidence": "addsItemsFromTheCatalogue: Cart After varies ([Widget: 2], [Widget: 1, Gadget: 3], [Widget: 3], [:], etc.). removesItemsFromTheCart: Cart After varies. appliesCouponsToTheCart: Active Coupon After varies (SAVE10, FIVEOFF, WIDGET3, SAVE10, etc.). checksOutTheCart: Success varies (false, true, true, false, etc.). calculatesTheCartTotal: Total varies (30.00, 40.00, 16.00, 15.00, 0.00, 5.00, etc.)."
+      "evidence": "Each table has varying expectations: add-item's 'Success?' column has both true and false; remove-item's 'Cart After?' differs across rows; apply-coupon's 'Active Coupon After?' shows both replacement and non-replacement; checkout's 'Success?' varies; total's 'Total?' ranges from 0.00 to 40.00."
     },
     {
       "id": "rule-statable-from-table",
-      "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone; (3) a helper method used in the assertion applies a comparison criterion (ordering, tolerance, subset matching) that is stated nowhere in the table, title, or description. Otherwise the assertion PASSES. Setup that merely constructs the objects named by the columns is not a failure.",
+      "text": "A reader can state the rule from the table alone, without the test method body.",
       "passed": false,
-      "evidence": "checksOutTheCart uses 'Message Mentions?' column with List<String> values like '[Cart is empty]', '[Order placed]', '[Widget]'. The assertion loop checks 'result.getMessage().contains(fragment)' but the 'contains' criterion is stated only in @Description ('substrings the checkout message must contain'), not in the column header or table itself."
+      "evidence": "The `calculatesTheCartTotal` table's last row 'Empty cart, any coupon' uses a set notation '{PERCENT 50, FIXED 5.00}' to indicate multiple coupon types produce the same result, but the semantics of this set notation and how it is parsed are not explained in the table, @DisplayName, or @Description."
     },
     {
       "id": "title-states-system-behaviour",
-      "text": "Each @DisplayName (or the method name it falls back to) states what the code under test does, not an external fact it depends on. Apply the check mechanically: strike the system under test from the sentence — if it still reads as true, because it merely restates a regulation, standard, format, or domain fact, the title is about something else and fails.",
+      "text": "Each @DisplayName states what the code under test does, not an external fact it depends on.",
       "passed": true,
-      "evidence": "addsItemsFromTheCatalogue: 'adds items from the catalogue' — removing 'adds' leaves 'items from the catalogue' (domain fact, not system behavior). But the title states the system action 'adds', so it passes. removesItemsFromTheCart: 'removes items from the cart' — system action. appliesCouponsToTheCart: 'applies coupons to the cart' — system action. checksOutTheCart: 'checks out the cart' — system action. calculatesTheCartTotal: 'calculates the cart total' — system action."
+      "evidence": "All five method names state system behaviour: 'addsItemsFromTheCatalogue', 'removesItemsFromTheCart', 'appliesCouponsToTheCart', 'checksOutTheCart', 'calculatesTheCartTotal' — each describes what CartService does, not external facts."
     },
     {
       "id": "compiles",
