@@ -399,18 +399,30 @@ const checkers = {
       return { passed: true, evidence: "Could not parse @TableTest method bodies (checker limitation) — review manually" };
     }
 
+    // A @TableTest body executes identically for every row, so several
+    // unconditional assertions (one per observable output of a result object
+    // that has no value equality) are still a single uniform pattern. What the
+    // assertion forbids is *different assertions per scenario* — a body that
+    // branches on a row value to choose what or how it asserts. That requires
+    // row-dependent control flow: if/switch/ternary (also caught by
+    // no-if-switch-in-method) or a try/catch that asserts exceptions on some
+    // rows and values on others. Count of assertion statements is irrelevant.
     const violations = [];
     for (const m of methods) {
-      const assertCount = (m.body.match(/\bassert\w*\s*\(/g) || []).length;
-      if (assertCount > 1) {
-        violations.push(`Method has ${assertCount} assertions`);
+      const smells = [];
+      if (/\bif\s*\(/.test(m.body)) smells.push("if");
+      if (/\bswitch\s*\(/.test(m.body)) smells.push("switch");
+      if (/\?[^:\n]*:/.test(m.body)) smells.push("ternary");
+      if (/\btry\s*\{/.test(m.body) && /\bcatch\s*\(/.test(m.body)) smells.push("try/catch");
+      if (smells.length > 0) {
+        violations.push(`${m.name} branches the assertion on the row (${smells.join(", ")})`);
       }
     }
 
     return {
       passed: violations.length === 0,
       evidence: violations.length === 0
-        ? `${methods.length} method(s) each have at most 1 assertion`
+        ? `${methods.length} method(s) apply one uniform assertion pattern to all rows`
         : violations.join("; "),
     };
   },

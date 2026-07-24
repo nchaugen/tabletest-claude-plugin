@@ -80,7 +80,7 @@
     },
     {
       "id": "single-assertion-in-method",
-      "text": "Each @TableTest method has a single, uniform assertion pattern applied to all rows — not different assertions per scenario.",
+      "text": "Each @TableTest method applies one uniform assertion pattern to every row — not different assertions per scenario. Several unconditional assertions checking distinct observable outputs of one result (e.g. success, message, resulting cart) count as one uniform pattern; the anti-pattern is branching on the row (if/switch/ternary/try-catch) to choose what is asserted.",
       "type": "deterministic"
     },
     {
