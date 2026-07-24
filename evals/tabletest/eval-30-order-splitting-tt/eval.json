@@ -10,7 +10,7 @@
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing all splitting rules.",
+      "text": "Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing all splitting rules. Closely-related concerns may share one method (e.g. fulfillment type and delivery address, which follow the same 'same shipment iff same type and address' rule), so four methods covering five concerns is fine. FAILS only when a single method carries all the rules; PASSES with two or more concern-focused methods.",
       "type": "llm"
     },
     {

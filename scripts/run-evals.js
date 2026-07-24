@@ -368,9 +368,12 @@ async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropi
   return data.content[0].text;
 }
 
-// Assertions judged per grading call. Ten keeps every judgement close to the instructions;
-// the largest evals carry nearly twenty LLM assertions.
-const LLM_GRADING_BATCH_SIZE = 10;
+// Assertions judged per grading call. One isolates every judgement: a measured experiment
+// showed batching lets one assertion's verdict perturb its batch-mates (editing one assertion's
+// wording flipped an untouched one that shared its batch), and that adding an assertion shifts
+// batch boundaries and flips unrelated assertions. Grading is a rounding error against
+// generation, so the extra calls are free; isolation buys a reproducible, edit-stable baseline.
+const LLM_GRADING_BATCH_SIZE = 1;
 
 /**
  * Collapses repeated gradings of one batch into a single verdict per assertion.
@@ -462,7 +465,11 @@ function parseArgs(argv) {
     gradingModel: "haiku",
     provider: "anthropic",
     gradingSuffix: null,
-    gradeRuns: 1,
+    // Majority-vote over three grading samples. A measured experiment showed the residual
+    // noise concentrates in a few holistic assertions on borderline solutions (their verdict
+    // is genuinely near the line); single-run grading lets those flip run-to-run. Three samples
+    // + majority vote stabilise the modal verdict. Grading cost is negligible against generation.
+    gradeRuns: 3,
     nudgeSkill: false,
     parallel: 4,
     gradeOnly: false,
