@@ -1,0 +1,130 @@
+{
+  "skill_name": "tabletest (next)",
+  "iteration": 6,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-haiku-4-5",
+  "skill_commit": "e80cffb89e2d06e0039a92b07e3948377c122cc9",
+  "skill_digest": "d5ecfa9c6ef53129",
+  "timestamp": "2026-07-24T21:25:45.431Z",
+  "evals": [
+    {
+      "id": "eval-15-reis-discount",
+      "name": "reis discount",
+      "skill": "tabletest",
+      "fingerprint": "64de04067cd2",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 19,
+        "assertions_total": 25,
+        "pass_rate": 0.76,
+        "failed_assertions": [
+          "window-boundary-uses-purchase-time",
+          "2.9-correctness-value-set-tier-semantics",
+          "2.15-ticket-count-uses-value-sets",
+          "zone-independent-counting",
+          "2.20-readability-one-row-per-tier",
+          "minimal-rows-per-concern"
+        ],
+        "total_tokens": 2932356,
+        "duration_ms": 400547,
+        "cost_usd": 1.6961322
+      }
+    },
+    {
+      "id": "eval-18-convert-from-code",
+      "name": "convert from code",
+      "skill": "tabletest",
+      "fingerprint": "cc3d572d88d6",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 15,
+        "assertions_total": 24,
+        "pass_rate": 0.625,
+        "failed_assertions": [
+          "black-box-columns",
+          "observable-io-only",
+          "concerns-decomposed",
+          "minimal-rows-per-concern",
+          "separates-decision-and-premium",
+          "description-no-internals",
+          "depth-decision-boundaries",
+          "depth-premium-boundaries",
+          "rule-statable-from-table"
+        ],
+        "total_tokens": 973033,
+        "duration_ms": 190158,
+        "cost_usd": 0.70581425
+      }
+    },
+    {
+      "id": "eval-22-event-registration-tt",
+      "name": "event registration tt",
+      "skill": "tabletest",
+      "fingerprint": "207ee4b9ee5c",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 26,
+        "assertions_total": 27,
+        "pass_rate": 0.9629629629629629,
+        "failed_assertions": [
+          "minimal-rows-per-concern"
+        ],
+        "total_tokens": 623840,
+        "duration_ms": 214316,
+        "cost_usd": 0.5840556999999998
+      }
+    },
+    {
+      "id": "eval-23-loan-approval-tt",
+      "name": "loan approval tt",
+      "skill": "tabletest",
+      "fingerprint": "5575308212ab",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 17,
+        "assertions_total": 21,
+        "pass_rate": 0.8095238095238095,
+        "failed_assertions": [
+          "business-language-columns",
+          "description-no-redundant-field-values",
+          "rule-statable-from-table",
+          "title-states-system-behaviour"
+        ],
+        "total_tokens": 685625,
+        "duration_ms": 157606,
+        "cost_usd": 0.5642944499999999
+      }
+    },
+    {
+      "id": "eval-29-shopping-cart-tt",
+      "name": "shopping cart tt",
+      "skill": "tabletest",
+      "fingerprint": "f5ffd6211c34",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 23,
+        "assertions_total": 26,
+        "pass_rate": 0.8846153846153846,
+        "failed_assertions": [
+          "business-language-columns",
+          "coupon-as-single-column",
+          "rule-statable-from-table"
+        ],
+        "total_tokens": 1505994,
+        "duration_ms": 424975,
+        "cost_usd": 1.2732482500000002
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 100,
+    "assertions_total": 123,
+    "pass_rate": 0.8130081300813008,
+    "total_tokens": 6720848,
+    "total_duration_ms": 1387602,
+    "total_cost_usd": 4.82354485
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}

@@ -34,6 +34,10 @@ const {
   digestDirectory,
   skillProvenance,
   inheritedProvenance,
+  analysisBaselineOf,
+  movedAssertions,
+  analysisTodoMarkdown,
+  narrationMarkdown,
 } = require("./run-evals.js");
 
 // --- helpers ---------------------------------------------------------------
@@ -727,5 +731,155 @@ describe("inheritedProvenance", () => {
     fs.writeFileSync(path.join(iterationDir, "benchmark.json"), "{ truncated");
 
     assert.equal(inheritedProvenance(iterationDir, "").skill_commit, "unknown");
+  });
+});
+
+// --- the analysis protocol -------------------------------------------------
+//
+// A score delta is not an attribution. These cover the machinery that turns a run into a
+// reading obligation: which baseline a verdict moved against, which verdicts moved, and the
+// two artefacts that explain them surviving in a readable form.
+
+function benchmarkWith(evals) {
+  return { iteration: 40, evals };
+}
+
+function evalResult(id, failed, fingerprint = "fp1") {
+  return {
+    id,
+    fingerprint,
+    results: { assertions_passed: 0, assertions_total: 0, failed_assertions: failed },
+  };
+}
+
+describe("analysisBaselineOf", () => {
+  const previous = benchmarkWith([]);
+  const official = { iteration: 40, evals: [] };
+
+  test("attributes against the official skill when the run asked to compare with it", () => {
+    const chosen = analysisBaselineOf({ compareOfficial: true, iteration: 6 }, previous, official);
+    assert.equal(chosen.benchmark, official);
+    assert.match(chosen.label, /official iteration 40/);
+  });
+
+  test("falls back to the previous iteration when no official comparison was asked for", () => {
+    const chosen = analysisBaselineOf({ iteration: 6 }, previous, official);
+    assert.equal(chosen.benchmark, previous);
+    assert.equal(chosen.label, "iteration 5");
+  });
+
+  test("names the explicitly requested comparison iteration", () => {
+    const chosen = analysisBaselineOf({ iteration: 6, compareIteration: 4 }, previous, official);
+    assert.equal(chosen.label, "iteration 4");
+  });
+
+  test("reports no baseline rather than inventing one", () => {
+    const chosen = analysisBaselineOf({ iteration: 1 }, null, null);
+    assert.equal(chosen.benchmark, null);
+    assert.equal(chosen.label, "no baseline");
+  });
+});
+
+describe("movedAssertions", () => {
+  test("reports verdicts moving in both directions as one list", () => {
+    const moved = movedAssertions(
+      benchmarkWith([evalResult("eval-15-x", ["b-fails-now"])]),
+      benchmarkWith([evalResult("eval-15-x", ["a-passed-now"])])
+    );
+    assert.deepEqual(moved, [
+      { eval: "eval-15-x", assertion: "a-passed-now", direction: "won" },
+      { eval: "eval-15-x", assertion: "b-fails-now", direction: "lost" },
+    ]);
+  });
+
+  test("is empty when every verdict held", () => {
+    const same = [evalResult("eval-15-x", ["still-failing"])];
+    assert.deepEqual(movedAssertions(benchmarkWith(same), benchmarkWith(same)), []);
+  });
+
+  test("excludes an eval whose definition changed, since its verdicts are not comparable", () => {
+    const moved = movedAssertions(
+      benchmarkWith([evalResult("eval-15-x", ["fails"], "fp2")]),
+      benchmarkWith([evalResult("eval-15-x", [], "fp1")])
+    );
+    assert.deepEqual(moved, []);
+  });
+});
+
+describe("analysisTodoMarkdown", () => {
+  const context = { iteration: 6, label: "tabletest variant=next", baselineLabel: "official iteration 40" };
+
+  test("gives every moved verdict an artefact list and an unfilled cause", () => {
+    const md = analysisTodoMarkdown(
+      [{ eval: "eval-18-y", assertion: "rule-falsifiable-by-a-row", direction: "lost" }],
+      context
+    );
+    assert.match(md, /LOST `rule-falsifiable-by-a-row` — eval-18-y/);
+    assert.match(md, /eval-18-y\/outputs\//);
+    assert.match(md, /eval-18-y\/narration\.md/);
+    assert.match(md, /Cause \(from artefact\): *$/m);
+  });
+
+  test("quotes the grader's own words when they are available, as a claim to check", () => {
+    const md = analysisTodoMarkdown(
+      [{ eval: "eval-18-y", assertion: "a", direction: "lost" }],
+      context,
+      () => "both rows have identical inputs"
+    );
+    assert.match(md, /Grader said: _both rows have identical inputs_/);
+  });
+
+  test("survives a grading file it cannot read", () => {
+    const md = analysisTodoMarkdown(
+      [{ eval: "eval-18-y", assertion: "a", direction: "lost" }],
+      context,
+      () => null
+    );
+    assert.doesNotMatch(md, /Grader said/);
+  });
+
+  test("says there is nothing to attribute when no verdict moved", () => {
+    const md = analysisTodoMarkdown([], context);
+    assert.match(md, /No assertion verdicts moved/);
+    assert.doesNotMatch(md, /Cause \(from artefact\)/);
+  });
+});
+
+describe("narrationMarkdown", () => {
+  const line = (content) => JSON.stringify({ message: { role: "assistant", content } }) + "\n";
+
+  test("keeps the agent's visible narration in order", () => {
+    const jsonl =
+      line([{ type: "text", text: "First the counting concern." }]) +
+      line([{ type: "text", text: "Now the ladder concern." }]);
+    const md = narrationMarkdown(jsonl, "eval-15-x");
+    assert.ok(md.indexOf("First the counting concern.") < md.indexOf("Now the ladder concern."));
+  });
+
+  test("records each file write so drafts and revisions stay visible", () => {
+    const jsonl = line([
+      { type: "tool_use", name: "Write", input: { file_path: "/w/T.java", content: "a\nb\nc" } },
+    ]);
+    assert.match(narrationMarkdown(jsonl, "eval-15-x"), /Write \/w\/T\.java \(3 lines\)/);
+  });
+
+  test("includes thinking when the model returned it in the clear", () => {
+    const jsonl = line([{ type: "thinking", thinking: "weighing two tables" }]);
+    assert.match(narrationMarkdown(jsonl, "eval-15-x"), /\(thinking\) weighing two tables/);
+  });
+
+  test("omits the encrypted thinking Claude 5 models return as signature only", () => {
+    const jsonl = line([{ type: "thinking", thinking: "", signature: "abc" }]);
+    assert.match(narrationMarkdown(jsonl, "eval-15-x"), /No narration recorded/);
+  });
+
+  test("ignores tool results, user turns, and unparseable lines", () => {
+    const jsonl =
+      "not json\n" +
+      JSON.stringify({ message: { role: "user", content: [{ type: "text", text: "prompt" }] } }) + "\n" +
+      line([{ type: "tool_use", name: "Bash", input: { command: "ls" } }]);
+    const md = narrationMarkdown(jsonl, "eval-15-x");
+    assert.doesNotMatch(md, /\bprompt\b|\bls\b/);
+    assert.match(md, /No narration recorded/);
   });
 });

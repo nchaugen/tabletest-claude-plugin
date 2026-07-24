@@ -618,6 +618,8 @@ async function main() {
     const previousBenchmark = loadPreviousBenchmark(repoRoot, args);
     const officialBenchmark = args.compareOfficial ? loadOfficialBenchmark(repoRoot, args.skill) : null;
     generateReport(benchmark, previousBenchmark, officialBenchmark, iterationDir, args);
+    const regeneratedBaseline = analysisBaselineOf(args, previousBenchmark, officialBenchmark);
+    writeAnalysisTodo(benchmark, regeneratedBaseline.benchmark, regeneratedBaseline.label, iterationDir, args);
     log("\nReport regenerated. Results in:", iterationDir);
     logFile = null;
     return;
@@ -661,6 +663,8 @@ async function main() {
     const previousBenchmark = loadPreviousBenchmark(repoRoot, args);
     const officialBenchmark = args.compareOfficial ? loadOfficialBenchmark(repoRoot, args.skill) : null;
     generateReport(benchmark, previousBenchmark, officialBenchmark, iterationDir, args);
+    const analysisBaseline = analysisBaselineOf(args, previousBenchmark, officialBenchmark);
+    writeAnalysisTodo(benchmark, analysisBaseline.benchmark, analysisBaseline.label, iterationDir, args);
     log("\nDone. Results in:", iterationDir);
   } finally {
     if (worktreePath) {
@@ -1010,6 +1014,11 @@ async function generateOne(evalDef, worktreePath, iterationDir, args) {
         result._conversationJsonl,
         "utf-8"
       );
+      fs.writeFileSync(
+        path.join(evalDir, "narration.md"),
+        narrationMarkdown(result._conversationJsonl, evalDef.id),
+        "utf-8"
+      );
     }
 
     // Collect generated test files from agent working directory
@@ -1056,6 +1065,11 @@ async function generateOne(evalDef, worktreePath, iterationDir, args) {
     // Save partial conversation trace even on failure
     if (err.stdout) {
       fs.writeFileSync(path.join(evalDir, "conversation.jsonl"), err.stdout, "utf-8");
+      fs.writeFileSync(
+        path.join(evalDir, "narration.md"),
+        narrationMarkdown(err.stdout, evalDef.id),
+        "utf-8"
+      );
     }
     fs.writeFileSync(
       path.join(evalDir, "outputs", "response.md"),
@@ -1744,6 +1758,150 @@ function detectRegressions(benchmark, previousBenchmark) {
   return { regressions, improvements, notComparable };
 }
 
+/**
+ * Every assertion whose verdict differs between a run and the baseline it is compared
+ * against, in a single list. A moved verdict is the unit of analysis: it is what a reader
+ * of the report wants explained, and the direction matters less than the fact it moved.
+ */
+/**
+ * The baseline a run's verdicts should be attributed against: the official skill when the
+ * run asked to be compared with it, otherwise the previous iteration. Named so the report
+ * and the analysis to-do cannot silently disagree about what "moved" means.
+ */
+function analysisBaselineOf(args, previousBenchmark, officialBenchmark) {
+  if (args.compareOfficial && officialBenchmark) {
+    return { benchmark: officialBenchmark, label: `official iteration ${officialBenchmark.iteration}` };
+  }
+  if (previousBenchmark) {
+    const compareIter = args.compareIteration != null ? args.compareIteration : args.iteration - 1;
+    return { benchmark: previousBenchmark, label: `iteration ${compareIter}` };
+  }
+  return { benchmark: null, label: "no baseline" };
+}
+
+function movedAssertions(benchmark, baselineBenchmark) {
+  const { regressions, improvements } = detectRegressions(benchmark, baselineBenchmark);
+  return [
+    ...regressions.map((r) => ({ ...r, direction: "lost" })),
+    ...improvements.map((i) => ({ ...i, direction: "won" })),
+  ].sort((a, b) => a.eval.localeCompare(b.eval) || a.assertion.localeCompare(b.assertion));
+}
+
+/**
+ * The artefact-review form for a run: one entry per moved assertion, naming the files that
+ * can explain it and leaving the cause blank. A score delta is not an attribution — the
+ * grader's justification names the assertion, not reliably the cause — so this exists to
+ * make the reading step visible work rather than remembered advice.
+ *
+ * `evidenceFor` looks up the grader's own words for an assertion; it is injected so this
+ * stays a pure function of the two benchmarks.
+ */
+function analysisTodoMarkdown(moved, context, evidenceFor = () => null) {
+  const { iteration, label, baselineLabel } = context;
+  let md = `# Analysis to-do — ${label}, iteration ${iteration}\n\n`;
+  md += `Compared against **${baselineLabel}**. `;
+  if (moved.length === 0) {
+    md += `No assertion verdicts moved, so there is nothing to attribute.\n`;
+    return md;
+  }
+  md += `**${moved.length} assertion verdict${moved.length === 1 ? "" : "s"} moved.**\n\n`;
+  md += `These are deltas, not attributions. Before explaining any of them, read the generated\n`;
+  md += `output for that eval and its narration — a grader justification can name the right\n`;
+  md += `assertion and still name the wrong cause, and graders do misfire outright. Fill in the\n`;
+  md += `cause line from the artefact, not from the justification.\n\n`;
+  md += `Do not start the next iteration until every line below has a cause.\n`;
+  for (const m of moved) {
+    md += `\n## ${m.direction === "lost" ? "LOST" : "WON"} \`${m.assertion}\` — ${m.eval}\n\n`;
+    const evidence = evidenceFor(m);
+    if (evidence) md += `Grader said: _${evidence.replace(/\s+/g, " ").trim()}_\n\n`;
+    md += `- Output: \`${m.eval}/outputs/\`\n`;
+    md += `- Narration: \`${m.eval}/narration.md\`\n`;
+    md += `- Raw transcript: \`${m.eval}/conversation.jsonl\` (gitignored, trimmed each cycle — mine it now)\n`;
+    md += `- Cause (from artefact): \n`;
+  }
+  return md;
+}
+
+/**
+ * The agent's own account of a run — its visible narration and the order in which it wrote
+ * files — distilled from the raw transcript. Worth keeping because the transcript is
+ * gitignored and trimmed each cycle, while this is small, and because the write order shows
+ * drafts and revisions the final output no longer contains.
+ *
+ * Thinking text is encrypted (signature only) for Claude 5-family models, so it appears
+ * only for models that return it in the clear.
+ */
+function narrationMarkdown(conversationJsonl, evalId) {
+  const steps = [];
+  for (const line of String(conversationJsonl).split("\n")) {
+    if (!line.trim()) continue;
+    let event;
+    try { event = JSON.parse(line); } catch { continue; }
+    if (event?.message?.role !== "assistant") continue;
+    const content = event.message.content;
+    if (!Array.isArray(content)) continue;
+    for (const block of content) {
+      if (block.type === "text" && block.text?.trim()) {
+        steps.push({ kind: "says", body: block.text.trim() });
+      } else if (block.type === "thinking" && block.thinking?.trim()) {
+        steps.push({ kind: "thinks", body: block.thinking.trim() });
+      } else if (block.type === "tool_use" && (block.name === "Write" || block.name === "Edit")) {
+        const file = block.input?.file_path || "?";
+        const written = block.input?.content;
+        const size = typeof written === "string" ? `${written.split("\n").length} lines` : "edit";
+        steps.push({ kind: "writes", body: `${block.name} ${file} (${size})` });
+      }
+    }
+  }
+
+  let md = `# Narration — ${evalId}\n\n`;
+  md += `The agent's visible narration and file writes, in order, distilled from\n`;
+  md += `\`conversation.jsonl\`. Thinking text is absent unless the model returns it in the\n`;
+  md += `clear (Claude 5-family models encrypt it).\n\n`;
+  if (steps.length === 0) {
+    md += `_No narration recorded._\n`;
+    return md;
+  }
+  for (const step of steps) {
+    if (step.kind === "writes") md += `**${step.body}**\n\n`;
+    else if (step.kind === "thinks") md += `> (thinking) ${step.body.replace(/\n/g, "\n> ")}\n\n`;
+    else md += `${step.body}\n\n`;
+  }
+  return md;
+}
+
+function graderEvidenceLookup(iterationDir, gradingSuffix) {
+  const suffix = gradingSuffix ? `-${gradingSuffix}` : "";
+  return ({ eval: evalId, assertion }) => {
+    try {
+      const grading = JSON.parse(
+        fs.readFileSync(path.join(iterationDir, evalId, `grading${suffix}.json`), "utf-8")
+      );
+      const hit = (grading.results || grading.assertions || []).find(
+        (r) => (r.id || r.assertion) === assertion
+      );
+      return hit?.evidence || hit?.reasoning || null;
+    } catch {
+      return null;
+    }
+  };
+}
+
+function writeAnalysisTodo(benchmark, baselineBenchmark, baselineLabel, iterationDir, args) {
+  const moved = movedAssertions(benchmark, baselineBenchmark);
+  const label = args.variant ? `${args.skill} variant=${args.variant}` : args.skill;
+  const md = analysisTodoMarkdown(
+    moved,
+    { iteration: args.iteration, label, baselineLabel },
+    graderEvidenceLookup(iterationDir, args.gradingSuffix)
+  );
+  const suffix = args.gradingSuffix ? `-${args.gradingSuffix}` : "";
+  const todoPath = path.join(iterationDir, `analysis-todo${suffix}.md`);
+  fs.writeFileSync(todoPath, md, "utf-8");
+  log(`Analysis to-do saved: ${todoPath} (${moved.length} moved)`);
+  return moved.length;
+}
+
 function generateReport(benchmark, previousBenchmark, officialBenchmark, iterationDir, args) {
   const { regressions, improvements, notComparable } = detectRegressions(
     benchmark,
@@ -1767,6 +1925,18 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
     md += `\n\n`;
     if (s.total_cost_usd > 0) {
       md += `_Cost figures are Claude Code list-price estimates; actual billing may differ (e.g. promotional pricing). Timed-out evals score 0 with unrecorded token usage._\n\n`;
+    }
+  }
+
+  // Attribution warning — the numbers below are deltas, not causes
+  const analysisBaseline = analysisBaselineOf(args, previousBenchmark, officialBenchmark);
+  if (analysisBaseline.benchmark) {
+    const movedCount = movedAssertions(benchmark, analysisBaseline.benchmark).length;
+    if (movedCount > 0) {
+      md += `> ⚠️ **${movedCount} assertion verdict${movedCount === 1 ? "" : "s"} moved** vs ${analysisBaseline.label}. `;
+      md += `These are deltas, not attributions: read each eval's \`outputs/\` and \`narration.md\` `;
+      md += `before explaining any of them, and do not start the next iteration until every entry in `;
+      md += `\`analysis-todo.md\` has a cause.\n\n`;
     }
   }
 
@@ -2066,6 +2236,11 @@ module.exports = {
   loadEvalsFromDir,
   detectRegressions,
   generateReport,
+  // analysis protocol
+  analysisBaselineOf,
+  movedAssertions,
+  analysisTodoMarkdown,
+  narrationMarkdown,
   // grading pipeline
   parseLlmGrading,
   repairGradingJson,

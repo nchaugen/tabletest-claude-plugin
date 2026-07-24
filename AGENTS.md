@@ -96,16 +96,36 @@ edits apply immediately; `skills/` changes only after committing.
 
 ### Analysing a variant outcome
 
+**Gate: do not start the next iteration until every entry in the run's `analysis-todo.md` has a
+cause filled in from an artefact.** Each run writes that file next to `eval-review.md`, listing
+every assertion whose verdict moved against the comparison baseline, with the grader's words and
+the paths that explain it. It exists because the loss list *reads* like evidence — it arrives
+compact and causal-sounding — so opening the artefacts feels like confirming what you already
+know. That is the trap, and skipping the step has produced a confident wrong fix list and a wasted
+iteration.
+
 **The report tells you which assertions moved. It does not tell you why, and its grader
 justifications are not evidence of cause.** Before attributing a delta to a specific edit, read
 the artefacts under `iterations/<skill>/<variant>/iteration-N/<eval>/`:
 
 - `outputs/` — the generated test code. This is the primary evidence: what the guidance actually
-  produced. Read it for every assertion you intend to explain.
-- `conversation.jsonl` — the agent's narration of what it decided and why. Gitignored and present
-  only until the iteration dir is trimmed, so mine it while it exists. It is narration, not a
-  reasoning trace: it shows which guidance fired ("boundary rows at 64/65"), not which sentence
-  caused it.
+  produced. Read it for every assertion you intend to explain — not one eval and then a
+  generalisation to the rest.
+- `narration.md` — the agent's own account: its visible narration plus the order in which it wrote
+  files. Committed, so it survives trimming. This is where you see whether the guidance *fired*
+  and in what words ("a combining table for the one genuine precedence question"), and the write
+  order shows drafts the final output no longer contains.
+- `conversation.jsonl` — the raw transcript `narration.md` is distilled from. Gitignored and
+  trimmed each cycle. **Thinking text is unavailable for Claude 5-family models** — they return it
+  encrypted (empty `thinking`, signature only), which no runner flag changes. Narration and tool
+  calls are all you get, and they are usually enough.
+
+**Two verdicts that look like findings and are not.** A grader can fail an assertion whose own
+wording the output satisfies — check the assertion text against the artefact before believing a
+loss (`rule-statable-from-table` once failed an output for showing a threshold as a column, which
+is what the skill mandates and what its sibling assertion rewards). And a holistic assertion
+flipping on two structurally identical outputs is noise, not signal: compare the *structure* of
+the two runs' outputs before attributing a flip to wording.
 
 **Check every grader justification against the artefact.** A justification names the right
 assertion and can still name the wrong cause — a `description-*` failure whose real trigger is a

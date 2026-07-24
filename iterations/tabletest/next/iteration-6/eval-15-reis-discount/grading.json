@@ -1,0 +1,157 @@
+{
+  "assertions": [
+    {
+      "id": "2.1-decomposition-concern-separation",
+      "text": "Discount ladder, and traveller eligibility are in separate tables. Rolling window counting as a third table is desirable.",
+      "passed": true,
+      "evidence": "Three separate @TableTest methods: SingleTicketFrequencyCounterTest (rolling window), ReisDiscountLadderTest (ladder), ReisDiscountCalculatorTest (eligibility/precedence)."
+    },
+    {
+      "id": "2.2-children-flat-discount",
+      "text": "Children's flat 20% discount is represented — either as a row in the eligibility table or a separate note.",
+      "passed": true,
+      "evidence": "ReisDiscountCalculatorTest row: 'Child gets the flat discount regardless of history and zone' with CHILD category and Discount? = 20."
+    },
+    {
+      "id": "2.3-depth-tier-boundaries",
+      "text": "The discount ladder has multiple tiers derived from the 'every fifth trip' rule, with boundary values or value sets showing which ticket counts produce which discount. The maximum 40% discount is represented.",
+      "passed": true,
+      "evidence": "ReisDiscountLadderTest has 12 rows covering tiers: 0%, 5% (at ticket 5), 10%, 15%, 20%, 25%, 30%, 35%, 40% (at ticket 40), and 40% cap (at ticket 45)."
+    },
+    {
+      "id": "2.4-depth-rolling-window-boundary",
+      "text": "The 30-day rolling window boundary is tested: a ticket at exactly 30 days is included, at 31 days is excluded.",
+      "passed": true,
+      "evidence": "SingleTicketFrequencyCounterTest rows: 'Single ticket exactly thirty days before purchase | [30-SINGLE] | 1' and 'Single ticket thirty-one days before purchase | [31-SINGLE] | 0'."
+    },
+    {
+      "id": "window-boundary-uses-purchase-time",
+      "text": "The 30-day window is exercised at time-of-purchase granularity, not whole days only. At least one pair of rows must distinguish just-inside from just-outside by less than a day.",
+      "passed": false,
+      "evidence": "SingleTicketFrequencyCounterTest uses only whole-day boundaries (30 vs 31 days). The fixture format 'daysAgo-TicketType' and converter parse only integer days, with no sub-day precision (e.g., 29 days 23 hours vs 30 days 1 hour)."
+    },
+    {
+      "id": "2.9-correctness-value-set-tier-semantics",
+      "text": "Value sets in the tier table contain exactly the values that produce the same discount. No cross-tier contamination.",
+      "passed": false,
+      "evidence": "ReisDiscountLadderTest does not use value sets at all. Each row has a single 'Prior Single Tickets' value, not a set like {4, 5, 6, 7, 8, 9} for the 5% tier."
+    },
+    {
+      "id": "2.15-ticket-count-uses-value-sets",
+      "text": "The discount ladder table uses value sets for the ticket count column to group counts within the same tier — not one row per boundary value.",
+      "passed": false,
+      "evidence": "ReisDiscountLadderTest enumerates one row per boundary (0, 3, 4, 8, 9, 14, 19, 24, 29, 34, 39, 44) rather than grouping tiers with value sets like {4, 5, 6, 7, 8, 9} for 5%."
+    },
+    {
+      "id": "2.16-no-duplicate-tier-mapping",
+      "text": "The tier-to-discount mapping is expressed once — not repeated across multiple tables.",
+      "passed": true,
+      "evidence": "Tier-to-discount mapping appears only in ReisDiscountLadderTest. ReisDiscountCalculatorTest defers to the ladder ('discount follows the ladder') without re-enumerating tiers."
+    },
+    {
+      "id": "2.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "3 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "2.11-format-description",
+      "text": "@Description is present on at least the class or the tier method and provides context beyond what the table rows already express.",
+      "passed": true,
+      "evidence": "All three test classes have @Description annotations. ReisDiscountLadderTest describes the ladder rule, window semantics, and ticket-number logic; SingleTicketFrequencyCounterTest explains the 30-day window and fixture format; ReisDiscountCalculatorTest explains precedence and the 9-ticket history choice."
+    },
+    {
+      "id": "2.13-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "2.14-format-description-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "2.17-zone-irrelevance-visible",
+      "text": "The eligibility/passenger-type table includes a Zone column with a value set to show that the discount applies regardless of zone.",
+      "passed": true,
+      "evidence": "ReisDiscountCalculatorTest has Zone column with value set {ZONE_1, ZONE_2, ZONE_3} in both rows, demonstrating discount is independent of zone."
+    },
+    {
+      "id": "zone-independent-counting",
+      "text": "The rolling-window counting concern shows by row that a past purchase's zone does not affect whether it counts toward the travel count — for example history entries whose zones differ (or a zone value set) reaching the same count.",
+      "passed": false,
+      "evidence": "SingleTicketFrequencyCounterTest has no zone variation in history rows. PastPurchaseFixtures hardcodes ZoneValidity.ZONE_1 for all parsed purchases, making zone irrelevance claimed but not exercised by data."
+    },
+    {
+      "id": "2.18-adult-senior-value-set",
+      "text": "Adult and senior are expressed as a value set {ADULT, SENIOR} (or equivalent) in at least one row of the eligibility table, since they follow identical discount rules.",
+      "passed": true,
+      "evidence": "ReisDiscountCalculatorTest row 2: 'Adult or senior discount follows the ladder regardless of zone | {ADULT, SENIOR}' uses a value set for category."
+    },
+    {
+      "id": "2.19-depth-all-tiers",
+      "text": "All 9 discount tiers are represented in the ladder table: 0% (tickets 1-4), 5% (5-9), 10% (10-14), 15% (15-19), 20% (20-24), 25% (25-29), 30% (30-34), 35% (35-39), and 40% (40+).",
+      "passed": true,
+      "evidence": "ReisDiscountLadderTest has 12 rows covering: 0% (rows 1-2), 5% (rows 3-4), 10% (row 5), 15% (row 6), 20% (row 7), 25% (row 8), 30% (row 9), 35% (row 10), 40% (rows 11-12)."
+    },
+    {
+      "id": "2.20-readability-one-row-per-tier",
+      "text": "Each tier in the discount ladder is expressed as a single row with a value set for ticket counts — not split across multiple rows.",
+      "passed": false,
+      "evidence": "ReisDiscountLadderTest has 12 rows but only 9 tiers. Tiers 0%, 5%, and 40% are split across multiple rows (e.g., rows 1-2 both show 0%, rows 3-4 both show 5%), violating one-row-per-tier."
+    },
+    {
+      "id": "2.21-readability-relative-time",
+      "text": "The rolling window table expresses time relatively (e.g. '14 days ago', '30 days ago', or an integer 'Days ago' column) rather than using absolute dates.",
+      "passed": true,
+      "evidence": "SingleTicketFrequencyCounterTest uses relative format: '[30-SINGLE]', '[31-SINGLE]', '[1-SINGLE, 15-SINGLE, 29-SINGLE]' with daysAgo encoded in the fixture string."
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules.",
+      "passed": true,
+      "evidence": "Three separate @TableTest methods: SingleTicketFrequencyCounterTest (counting), ReisDiscountLadderTest (ladder), ReisDiscountCalculatorTest (precedence/eligibility)."
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
+      "passed": false,
+      "evidence": "ReisDiscountLadderTest has 12 rows for 9 tiers; rows 1-2 (0%), 3-4 (5%), and 11-12 (40%) duplicate tier outcomes without value sets, creating unnecessary rows."
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable. Expectation column must vary and not be verbatim copies of input columns.",
+      "passed": true,
+      "evidence": "All three tables have varying expectation values: SingleTicketFrequencyCounterTest (0, 0, 3, 1, 0, 1), ReisDiscountLadderTest (0, 0, 5, 5, 10, 15, 20, 25, 30, 35, 40, 40), ReisDiscountCalculatorTest (20, 5)."
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without the test method body. No threshold or operation should appear only in method body or field.",
+      "passed": true,
+      "evidence": "All thresholds and operations are visible in tables: 30-day window in SingleTicketFrequencyCounterTest rows (30-SINGLE counts, 31-SINGLE doesn't), ladder tiers in ReisDiscountLadderTest, category dispatch in ReisDiscountCalculatorTest."
+    },
+    {
+      "id": "title-states-system-behaviour",
+      "text": "Each @DisplayName states what the code under test does, not an external fact it depends on. Striking the system should make the sentence false.",
+      "passed": true,
+      "evidence": "ReisDiscountLadderTest: 'calculatesLadderDiscountFromPriorSingleTicketCount' describes the system's action. ReisDiscountCalculatorTest: 'routesSingleTicketDiscountByTravelerCategory' describes routing logic the system performs."
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 19,
+  "assertions_total": 25,
+  "pass_rate": 0.76
+}
