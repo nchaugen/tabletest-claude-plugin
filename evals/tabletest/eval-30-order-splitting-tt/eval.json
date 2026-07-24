@@ -49,11 +49,6 @@
       "type": "llm"
     },
     {
-      "id": "scalar-quantity-for-warehouse",
-      "text": "Warehouse allocation table uses scalar quantity columns (e.g. 'Qty ordered') not item lists, when product identity doesn't matter for the logic.",
-      "type": "llm"
-    },
-    {
       "id": "scenario-column-present",
       "text": "Table has a scenario/description column as the leftmost column",
       "type": "deterministic"
