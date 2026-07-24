@@ -105,7 +105,7 @@
     },
     {
       "id": "description-not-redundant-with-scenarios",
-      "text": "@Description annotations do not repeat information that the scenario names already convey. Coupon type behavior (what PERCENTAGE/FIXED/PRODUCT mean) should be expressed through descriptive scenario names, not duplicated in the description.",
+      "text": "@Description annotations do not merely repeat information that the scenario names already convey — e.g. coupon type behaviour (what PERCENT/FIXED/PRODUCT mean) belongs in descriptive scenario names, not duplicated in the description. It PASSES when the @Description adds what scenario names cannot: naming an interpretation as a deliberate assumption (an underspecified rule resolved a particular way), stating why a choice applies, or fixed constants. Noting an assumption is legitimate even when a row also demonstrates it — that is rationale, not redundancy.",
       "type": "llm"
     },
     {
