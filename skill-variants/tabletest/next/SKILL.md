@@ -363,16 +363,16 @@ Other examples: `5m`/`30s` → milliseconds, `$100` → numeric, `50%` → 0.5, 
 
 ### State the Rule from the Table Alone
 
-A passing test proves the code works. A published table has a second job: a reader who cannot see the method body must be able to *state the rule* from the table. Most of what follows is a particular way of failing that, so check it first.
+A passing test proves the code works. A published table has a second job: a reader who cannot see the method body must be able to *state the rule* from the table alone. Check this first — several rules below are particular ways of failing it.
 
 **Every table needs at least one row that falsifies "nothing happened."** Values chosen only so the assertions can tell columns apart teach nothing — `1 kg` at `1 mg/kg` giving `1 mg` is consistent with a method that returns any of its inputs. `10 kg | 15 mg/kg | 150 mg` states what the operation *is*. The sharper form of the same check: name the plausible wrong implementation and confirm a row fails under it. If the rule rounds half up, the plausible wrong implementation is truncation, and every whole-number row passes under it — only a row like `2.5 → 3` excludes it. The rows a reader needs and the rows a mutation would kill are the same rows.
 
-This applies to invariants too. A rule like "the dose is never rounded below the prescribed minimum" checked only by an assertion in the method body does not read as spec — give it an expectation column and let a row show the minimum being held.
+This applies to invariants too. "The dose is never rounded below the prescribed minimum", checked only by an assertion in the method body, does not read as spec — give it an expectation column and let a row show the minimum being held.
 
-**Choose the observation that lets the rule be inferred, not merely the one that passes.** Any assertion can prove the climate controller ventilated; only the right one lets a reader say what ventilating *does*.
+**Choose the observation that lets the rule be inferred, not merely one that passes.** Any assertion can prove the climate controller ventilated; only the right one lets a reader say what ventilating *does*.
 
 ```
-// Weak — true for any implementation that touched the vent
+// Weak — true of any implementation that touched the vent
 Scenario         | Humidity | Setpoint | Vent opened?
 Above setpoint   | 78       | 65       | true
 
@@ -382,15 +382,29 @@ Above setpoint   | 78       | 65       | 40%            | 71
 At setpoint      | 65       | 65       | 0%             | 65
 ```
 
-**Keep a constant expectation column when it is the rule's subject; drop it when it is incidental.** A table whose rows vary the roster shape and whose every row is `Rejected?  yes` needs that column — it is what the rule claims. A table about which rest period applies, where every row happens to be a long-haul flight, does not need a constant `Long haul?  yes` column; that belongs in `@Description`. This is the converse of Make Thresholds Visible, which is about constant *inputs*.
+**Keep a constant expectation column when it is the rule's subject; drop it when it is incidental.** A table whose rows vary the roster shape and whose every row reads `Rostered? no` needs that column — it is what the rule claims. A table about which rest period applies, where every row happens to be a long-haul flight, does not need a constant `Long haul? yes` column; that belongs in `@Description`. This is the converse of Make Thresholds Visible, which is about constant *inputs*.
 
-### Cover the Rule's Range
+### Cover the Rule's Range Without Multiplying Rows
 
-**A quantifier in the title is a promise the rows must keep.** Titles are naturally universal — "whatever the donation type", "regardless of the donor's age", "with or without a recorded rest period". Once the title quantifies, the rows have to enumerate that domain: all three donation types, both rest states, both ends of the age range. A quantified title over three arbitrary rows is a claim the table does not support. Either cover the domain or narrow the title.
+Coverage is a property of *which behaviours appear*, not of how many rows appear. Before writing rows, list the concern's obligations — the distinct behaviours the rule must demonstrate. Cover each obligation with at least one row, then stop. **A row that re-covers an obligation another row already covers is not extra coverage, it is a duplicate** — and it makes the rule harder to state, not easier.
 
-**A rule is understood only when the reader sees where it stops.** Boundary rows do more work than central ones: the row exactly at the deferral cut-off, the reading one tick outside the setpoint band, and the row that shows what happens when *no* rule applies. A table of central rows is comprehensible only to someone who already knows the rule — a reader cannot tell whether the behaviour continues past the last row or stops there.
+**A quantifier in the title is a promise the rows must keep.** Titles are naturally universal — "whatever the donation type", "regardless of the donor's age", "with or without a recorded rest period". Once the title quantifies, that domain becomes an obligation: all three donation types must appear, both rest states must appear. A quantified title over three arbitrary rows is a claim the table does not support. Either cover the domain or narrow the title.
 
-**Enumerating a combination space is itself an expectation.** Nine rows covering three donation types × three deferral triggers read as "all of them"; three hand-picked rows read as "some of them". Table shape states exhaustiveness that prose cannot, which is why it is worth completing a small grid rather than sampling it.
+**Discharge a "regardless of" obligation with a value set, not with more rows.** Where the values are interchangeable — the same outcome for each — one row holding `{whole blood, plasma, platelets}` covers the domain *and* states the independence; three near-identical rows only imply it. Same rule as Use Value Sets for "Regardless Of" Relationships, seen from the coverage side.
+
+**Boundary rows replace central rows; they do not accumulate on top of them.** A rule is understood only when the reader sees where it stops, so spend the row budget at the limits: the row exactly at the deferral cut-off, the row one tick past it, and the case where *no* rule applies. A tier row already carries its own boundaries inside its value set, so a tier table needs no separate "tier begins" and "tier holds" rows.
+
+**Never cover a combination space by multiplying two concerns together.** Nine rows of three donation types × three deferral triggers is not thoroughness; it is two concerns that should have been two tables, and every row past the first few re-covers an obligation. Cross-multiply only where the *combination itself* has behaviour that neither concern shows alone — a precedence between two rules — and then the table holds only the rows that establish that precedence:
+
+```
+// The per-concern tables already cover the duty cap and the missing rest record.
+// This table exists only for what happens when both apply at once.
+Scenario                                  | Duty Hours | Daily Cap | Rest Recorded | Roster?
+Cap exceeded outranks missing rest record | 14         | 13        |               | REJECTED
+Missing rest record within the cap        | 11         | 13        |               | MANUAL_REVIEW
+```
+
+A combining table that re-runs the per-concern cases with one more column added is the commonest way to lose a decomposition you had already got right.
 
 ### Design Black-Box Tables
 
@@ -637,6 +651,8 @@ Scenario names appear in test failure messages, so clarity helps diagnose failur
 
 **Name the variation, not the data.** "At the cut-off", "Rest not recorded", "Second donation the same week", "Sensor unreachable" — read that column top to bottom on its own and you get the table's coverage argument. A scenario column reading `Yes / No` beside an input column reading `Yes / No` satisfies the letter of the convention and adds nothing.
 
+**A name that leads with the verdict is an outcome name in disguise.** "Deferred: donated last week" and "Accepted: interval elapsed" put the result first and the condition second, but the expectation column already carries the verdict — the prefix buys nothing and hides the coverage argument. The temptation peaks exactly when a table covers a domain, because the labels start to feel like an index of outcomes. Name the condition that puts the row in the domain.
+
 ### Use Concrete Domain Values
 
 Column values should be concrete, meaningful data — not abstract flags or codes. Expectation column values should be traceable to input column values.
@@ -846,9 +862,6 @@ When there is no existing code (empty `src/main/java`), write the tests first �
 ## Quality Checks
 
 After writing, verify:
-- [ ] **Rule statable from the table**: cover the method body with your hand — can a reader state the rule from the table alone? The operation must be visible, not only its endpoints
-- [ ] **A falsifying row**: name the plausible wrong implementation (truncation instead of rounding, returning an input unchanged) and confirm at least one row fails under it
-- [ ] **Range covered**: a quantifier in the title ("regardless of…", "whatever the…") is enumerated by the rows; boundary rows sit at and just past each limit; the case where no rule applies is present
 - [ ] **Multiple rows**: table has 2+ rows; use `@Test` only for a genuinely standalone single case — a lone error, null, or empty-input case related to an existing table belongs in that table as a row (with a `Throws?` column if it throws), not in a separate `@Test`
 - [ ] **Black-box design**: columns represent observable inputs and outputs, not internal flags or implementation details
 - [ ] **Clear communication**: scenario names describe conditions (not outcomes), column names use domain language (not parameter names)
@@ -860,6 +873,10 @@ After writing, verify:
 - [ ] **Expectation columns present**: at least one column uses `?` suffix (not prefix)
 - [ ] **Concrete values**: expectation values are traceable to input column values where applicable
 - [ ] **Thresholds visible**: rules that depend on a threshold or limit show it as a column, with boundary rows at and just past the threshold; for date cutoffs, prefer descriptive relative values (`before cutoff`, `on cutoff`) via a `@TypeConverter` — or include the cutoff date as a column if literal dates are used
+- [ ] **Rule statable from the table**: cover the method body with your hand — can a reader state the rule from the table alone? The operation must be visible, not only its endpoints
+- [ ] **A falsifying row**: name the plausible wrong implementation (truncation instead of rounding, returning an input unchanged) and confirm at least one row fails under it
+- [ ] **Obligations covered once**: every distinct behaviour the rule must demonstrate has a row — title quantifiers enumerated (via a value set where the values are interchangeable), boundary rows at and just past each limit, the no-rule-applies case present — and no row re-covers an obligation another row already covers
+- [ ] **Concerns not cross-multiplied**: no table multiplies two concerns' values together; a combining table holds only the rows that establish precedence between rules already covered elsewhere
 - [ ] **Correct expected values**: arithmetic in expected columns verified independently; every row's output matches the stated rules
 - [ ] **Value set semantics**: value sets only used where every value produces the same result; not used as shorthand for "test multiple values"
 - [ ] **Irrelevance and tiers use value sets**: inputs that don't affect a row's outcome appear as value sets (not a fixed placeholder value mentioned in `@Description`); when a range of input values maps to one tier, the row groups representative values (including both boundaries) into a value set
