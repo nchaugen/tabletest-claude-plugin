@@ -35,6 +35,11 @@
       "type": "llm"
     },
     {
+      "id": "concern-not-over-split",
+      "type": "llm",
+      "text": "Do not fragment a single concern across multiple @TableTest methods that share the same fixture and assertion and differ only in which one sub-rule they exercise. Two or more tables that fix the same setup (e.g. same zone and base cost) and each vary a single option or surcharge, with the same output column, should instead be one table with a column for the varying input. FAILS when two or more such same-fixture, single-sub-rule tables exist for one concern (e.g. a separate table per surcharge). PASSES when each @TableTest addresses a genuinely distinct concern with its own inputs. This is the complement of concerns-decomposed: that forbids cramming unrelated concerns into one table; this forbids scattering one concern across many."
+    },
+    {
       "id": "rule-falsifiable-by-a-row",
       "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES. Do not fail a table merely because its values are simple or round — only these three conditions matter.",
       "type": "llm"
@@ -46,7 +51,7 @@
     },
     {
       "id": "numeric-types-correct",
-      "text": "Parameter types correspond to the ShippingCostCalculator.calculateShippingCost interface — weight, cost, and dimension types match the method signature.",
+      "text": "Parameter types correspond to the ShippingCostCalculator.calculateShippingCost signature: weight is a double, dimensions are a List<Integer>, and cost / insured value are BigDecimal (compared via compareTo, not equals). Do not require BigDecimal for weight or dimensions — match the signature.",
       "type": "llm"
     },
     {

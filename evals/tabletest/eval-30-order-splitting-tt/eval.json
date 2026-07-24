@@ -30,12 +30,12 @@
     },
     {
       "id": "concern-fulfillment-method",
-      "text": "Fulfillment method splitting is represented as its own @TableTest — items with different fulfillment types (store pickup vs home delivery) cannot share a shipment.",
+      "text": "Fulfillment method splitting is represented in a @TableTest — its own, or one shared with the delivery-address split (both follow 'same shipment iff same fulfillment type and address') — showing that items with different fulfillment types (store pickup vs home delivery) cannot share a shipment.",
       "type": "llm"
     },
     {
       "id": "concern-delivery-address",
-      "text": "Delivery address splitting is represented as its own @TableTest — items going to different addresses must be in separate shipments.",
+      "text": "Delivery address splitting is represented in a @TableTest — its own, or one shared with the fulfillment-method split — showing that items going to different addresses must be in separate shipments.",
       "type": "llm"
     },
     {
@@ -57,6 +57,11 @@
       "id": "all-outputs-same-table",
       "text": "Each @TableTest method includes all output columns for its concern in the same table — e.g. warehouse allocation includes both the assignment and shipment count, not split across methods. All outputs of the same concern belong together.",
       "type": "llm"
+    },
+    {
+      "id": "native-collection-output",
+      "type": "llm",
+      "text": "A compound output — a collection of items, or items keyed by a tag — is expressed as a native TableTest list, map, or set (possibly nested, e.g. [[a, b], [c]] or [W1: [a, b]]), not as a hand-rolled string that encodes the structure with embedded brackets or colons (e.g. \"W1:[a,b]\") and is assembled or parsed by a helper. FAILS when an expectation cell packs multiple values into one quoted scalar that the test builds via a stringifying helper. PASSES when the output column is a native collection — sets for order-independent semantics, or ordered lists/maps with a canonical sort. Scalar outputs (a number, an enum, or a single message) are exempt."
     },
     {
       "id": "scenario-column-present",
