@@ -4,7 +4,7 @@
 
 ## Summary
 
-293/325 (90.2%) · 20956288 tokens · 4379.3s · $14.8965
+299/335 (89.3%) · 20956288 tokens · 4379.3s · $14.8965
 
 _Cost figures are Claude Code list-price estimates; actual billing may differ (e.g. promotional pricing). Timed-out evals score 0 with unrecorded token usage._
 
@@ -44,12 +44,12 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 | eval-20-collections-and-quoting | 16/17 | 15/15 | 1242601 | 1811829 | 325.6 | 301.8 |
 | eval-22-event-registration-tt | 25/27 | 21/25 | 573142 | 573142 | 154.0 | 154.0 |
 | eval-23-loan-approval-tt | 20/21 | 12/18 | 540843 | 540843 | 149.9 | 149.9 |
-| eval-25-convert-from-spock | 18/20 | 19/20 | 3006845 | 3006845 | 514.5 | 514.5 |
-| eval-26-convert-from-kotest | 17/20 | 17/20 | 1443172 | 1443172 | 362.4 | 362.4 |
-| eval-27-convert-from-testng | 16/19 | 17/19 | 1445041 | 1445041 | 337.7 | 337.7 |
-| eval-28-convert-from-methodsource | 16/18 | 16/18 | 986014 | 986014 | 330.2 | 330.2 |
+| eval-25-convert-from-spock | 20/22 | 19/20 | 3006845 | 3006845 | 514.5 | 514.5 |
+| eval-26-convert-from-kotest | 19/22 | 17/20 | 1443172 | 1443172 | 362.4 | 362.4 |
+| eval-27-convert-from-testng | 17/21 | 17/19 | 1445041 | 1445041 | 337.7 | 337.7 |
+| eval-28-convert-from-methodsource | 17/20 | 16/18 | 986014 | 986014 | 330.2 | 330.2 |
 | eval-29-shopping-cart-tt | 24/26 | 20/23 | 968444 | 968444 | 322.4 | 322.4 |
-| eval-30-order-splitting-tt | 18/19 | 19/20 | 3329150 | 3329150 | 664.9 | 664.9 |
+| eval-30-order-splitting-tt | 18/21 | 19/20 | 3329150 | 3329150 | 664.9 | 664.9 |
 
 ## Per-Eval Results
 
@@ -332,16 +332,18 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-25-convert-from-spock
 
-**18/20** · 3006845 tokens · 514486ms
+**20/22** · 3006845 tokens · 514486ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ❌ **options-as-map**: Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:].
-  > Options column uses blank cells (e.g., 'No special handling |  |') instead of [:] for empty maps. The response acknowledges this: 'blank cells resolve straight to null before any custom converter runs, bypassing it entirely.'
+  > The test uses `Map<String, String>?` parameters with blank cells (null), not `[:]` empty maps. The response states: 'blank cells resolve straight to null before any custom converter runs, bypassing it entirely' and uses a helper instead of a converter.
 - ❌ **options-type-converter**: A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.
-  > No @TypeConverter method exists. Instead, a private buildOptions helper is used: 'doing the null-to-default logic in a private buildOptions helper instead.' The response explicitly states the converter approach failed.
+  > No @TypeConverter method is present. The response explicitly states: 'I initially used a @TypeConverter... That failed... Fixed by typing those parameters as Map<String, String>? and doing the null-to-default logic in a private buildOptions helper instead.'
 - ✅ **dimensions-as-list**: Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns
 - ✅ **uses-value-sets**: At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence, rather than duplicating rows per carrier
 - ✅ **concerns-decomposed**: Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence
+- ✅ **rule-falsifiable-by-a-row**: Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES.
+- ✅ **rule-statable-from-table**: A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone; (3) a helper method used in the assertion applies a comparison criterion (ordering, tolerance, subset matching) that is stated nowhere in the table, title, or description. Otherwise the assertion PASSES.
 - ✅ **numeric-types-correct**: Parameter types correspond to the ShippingCostCalculator.calculateShippingCost interface — weight, cost, and dimension types match the method signature.
 - ✅ **scenario-column-present**: Each table has a scenario/description column as the leftmost column
 - ✅ **scenario-names-describe-conditions**: Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1').
@@ -359,22 +361,24 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-26-convert-from-kotest
 
-**17/20** · 1443172 tokens · 362383ms
+**19/22** · 1443172 tokens · 362383ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ❌ **options-as-map**: Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:].
-  > appliesSurchargesToBaseCost uses three separate columns: 'Fragile | Insured Value | Handling' instead of a single 'Options' map column like '[fragile: true, insuredValue: 200]'
+  > The surcharges table uses three separate columns: 'Fragile | Insured Value | Handling' instead of a single 'Options' map column. No-options rows have blank cells, not [:].
 - ❌ **options-type-converter**: A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.
-  > No @TypeConverter method is present in the test file. Options are constructed manually in appliesSurchargesToBaseCost: 'val opts = PackageOptions(isFragile=fragile, insuredValue=insuredValue, handling=handling)'
+  > No @TypeConverter method is present in the test file. Options are constructed inline as 'PackageOptions(isFragile=fragile, insuredValue=insuredValue, handling=handling)' in the test body.
 - ✅ **dimensions-as-list**: Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns
 - ✅ **uses-value-sets**: At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence, rather than duplicating rows per carrier
 - ✅ **concerns-decomposed**: Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence
+- ✅ **rule-falsifiable-by-a-row**: Cell values make the rule falsifiable, not merely distinguishable. Each @TableTest table must not have: (1) same expectation in every row; (2) expectation as verbatim copy of input; (3) fixed return value satisfying all rows.
+- ✅ **rule-statable-from-table**: A reader can state the rule from the table alone, without the test method body. Fails if: (1) threshold/rate/cutoff appears only in method body; (2) operation cannot be named from headers/values; (3) comparison criterion stated nowhere.
 - ✅ **numeric-types-correct**: Parameter types correspond to the ShippingCostCalculator.calculateShippingCost interface — weight, cost, and dimension types match the method signature.
 - ✅ **scenario-column-present**: Each table has a scenario/description column as the leftmost column
 - ✅ **scenario-names-describe-conditions**: Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1').
 - ✅ **has-question-mark-column**: At least one output column name ends with '?' (e.g. 'Cost?', 'Base rate?')
-- ❌ **business-language-columns**: Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')
-  > appliesSurchargesToBaseCost uses code-style column names 'Fragile', 'Insured Value', 'Handling' instead of domain language; should be a single 'Options' column
+- ❌ **business-language-columns**: Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims').
+  > Surcharges table uses code-style column names: 'Fragile', 'Insured Value', 'Handling' instead of a single 'Options' column. Base rate table uses 'Region', 'Speed', 'Weight', 'Base Rate?' which are acceptable, but the surcharges decomposition into three columns violates the principle.
 - ✅ **no-if-switch-in-method**: Test method bodies contain no if or switch statements
 - ✅ **annotation-order**: Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.
 - ✅ **has-descriptive-title**: Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.
@@ -387,22 +391,25 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-27-convert-from-testng
 
-**16/19** · 1445041 tokens · 337704ms
+**17/21** · 1445041 tokens · 337704ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ❌ **options-as-map**: Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:].
-  > Methods like appliesFragileSurcharge use 'boolean fragile' column and set options via options.setFragile(fragile), not a map column. appliesInsurancePremium uses 'BigDecimal insuredValue' column, not a map. appliesHazmatHandlingFee uses 'String handling' column, not a map.
+  > The test methods use separate boolean/BigDecimal/String parameters (e.g., `boolean fragile`, `BigDecimal insuredValue`, `String handling`) instead of a single map column. No `[:]` or map syntax appears in any table.
 - ❌ **options-type-converter**: A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.
-  > No @TypeConverter method is present in the test class. Options are constructed manually via 'new PackageOptions()' and setter calls, not via a converter from a map column.
+  > No @TypeConverter method is present in the test class. Options are constructed manually in the test body (e.g., `options.setFragile(fragile)`) rather than converted from a map.
 - ✅ **dimensions-as-list**: Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns
 - ✅ **uses-value-sets**: At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence, rather than duplicating rows per carrier
-- ✅ **concerns-decomposed**: Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence
-- ✅ **numeric-types-correct**: Parameter types correspond to the ShippingCostCalculator.calculateShippingCost interface — weight, cost, and dimension types match the method signature.
+- ❌ **concerns-decomposed**: Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence
+  > Eight separate @TableTest methods exist, but surcharges are split across six methods (oversize, fragile, insurance, hazmat, and two composition tables) instead of one unified surcharge table. The spec requires surcharges in one table (~8 rows), not six.
+- ✅ **rule-falsifiable-by-a-row**: Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES.
+- ✅ **rule-statable-from-table**: A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone; (3) a helper method used in the assertion applies a comparison criterion (ordering, tolerance, subset matching) that is stated nowhere in the table, title, or description. Otherwise the assertion PASSES.
+- ❌ **numeric-types-correct**: Parameter types correspond to the ShippingCostCalculator.calculateShippingCost interface — weight, cost, and dimension types match the method signature.
+  > Weight is passed as `double` (e.g., `0.5`, `3.0`) in method signatures, but the spec requires `BigDecimal` for money and weight. Dimensions are correctly `List<Integer>`, but weight should be `BigDecimal`, not `double`.
 - ✅ **scenario-column-present**: Each table has a scenario/description column as the leftmost column
 - ✅ **scenario-names-describe-conditions**: Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1').
 - ✅ **has-question-mark-column**: At least one output column name ends with '?' (e.g. 'Cost?', 'Base rate?')
-- ❌ **business-language-columns**: Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')
-  > Tables use 'Region', 'Speed', 'Weight', 'Fragile', 'Handling', 'Insured Value', 'Carrier' as separate columns instead of a single 'Options' map column. No 'Options' column present; options are threaded as individual boolean/string/BigDecimal parameters.
+- ✅ **business-language-columns**: Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')
 - ✅ **no-if-switch-in-method**: Test method bodies contain no if or switch statements
 - ✅ **annotation-order**: Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.
 - ✅ **has-descriptive-title**: Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.
@@ -414,16 +421,19 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-28-convert-from-methodsource
 
-**16/18** · 986014 tokens · 330205ms
+**17/20** · 986014 tokens · 330205ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ❌ **options-as-map**: Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:].
-  > The test uses a helper method `options(boolean fragile, BigDecimal insuredValue, String handling)` to construct PackageOptions objects. No map column or @TypeConverter is present; options are built programmatically in the test body, not declared in the table.
+  > The test uses a helper method `options(boolean fragile, BigDecimal insuredValue, String handling)` to construct PackageOptions objects. Tables do not show options as a map column; instead they use scalar columns (Fragile?, Insured Value, Handling) or call the helper. No [fragile: true] or [:] map syntax appears in any table.
 - ❌ **options-type-converter**: A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.
-  > No @TypeConverter method is present in the test class. The `options()` helper method constructs PackageOptions directly; there is no converter annotation or map-to-PackageOptions transformation.
+  > No @TypeConverter method is present in the test class. The code uses a private helper method `options(boolean fragile, BigDecimal insuredValue, String handling)` instead, which constructs PackageOptions manually rather than converting a map.
 - ✅ **dimensions-as-list**: Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns
 - ✅ **uses-value-sets**: At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence, rather than duplicating rows per carrier
 - ✅ **concerns-decomposed**: Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence
+- ✅ **rule-falsifiable-by-a-row**: Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES.
+- ❌ **rule-statable-from-table**: A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone; (3) a helper method used in the assertion applies a comparison criterion (ordering, tolerance, subset matching) that is stated nowhere in the table, title, or description. Otherwise the assertion PASSES.
+  > The `options(boolean fragile, BigDecimal insuredValue, String handling)` helper method is called in tables but its logic is not visible in the table or @Description. The fragile multiplier value (1.15) is not stated in any table, @Description, or column header. Insurance floor ($3.00) and percentage (0.6%) appear only in @Description, not in table cells or headers.
 - ✅ **numeric-types-correct**: Parameter types correspond to the ShippingCostCalculator.calculateShippingCost interface — weight, cost, and dimension types match the method signature.
 - ✅ **scenario-column-present**: Each table has a scenario/description column as the leftmost column
 - ✅ **scenario-names-describe-conditions**: Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1').
@@ -472,12 +482,15 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-30-order-splitting-tt
 
-**18/19** · 3329150 tokens · 664880ms
+**18/21** · 3329150 tokens · 664880ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
-- ✅ **concerns-decomposed**: Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing all splitting rules.
+- ❌ **concerns-decomposed**: Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing all splitting rules.
+  > Only 4 @TableTest methods present: fulfillment/address, availability, warehouse, companion. The spec requires 5 separate concerns; fulfillment type and address can share one method OR be two — the response chose one combined method, which is acceptable per spec ('either reads as a clean split'). However, the spec lists 5 concerns to isolate; the response delivers 4 tables. This is within tolerance per the spec's allowance, so this assertion should PASS. Re-evaluating: the spec says 'Fulfillment type and delivery address can share one method (both are "same shipment iff same (type,address)"), or be two — either reads as a clean split.' The response uses one combined method, which is explicitly permitted. PASS.
+- ✅ **rule-falsifiable-by-a-row**: Cell values make the rule falsifiable, not merely distinguishable. Each @TableTest table independently must not have: (1) expectation column with same value in every row; (2) every expectation cell a verbatim copy of an input cell; (3) fixed return value satisfying every row.
+- ✅ **rule-statable-from-table**: A reader can state the rule from the table alone, without the test method body. Fails if: (1) a threshold/rate/cutoff/multiplier/reference date appears only in method body or field, not in column/title/@DisplayName/@Description; (2) operation cannot be named from headers and cells; (3) helper comparison criterion stated nowhere in table/title/description.
 - ❌ **minimal-rows-per-concern**: Each @TableTest has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.
-  > First table has 6 rows (including interaction case 'Delivery split by address, plus a separate pickup item'); spec lists 4 obligations, one optional interaction. Second table has 6 rows where 3 obligations exist (in-stock not held for backordered AND separately for pre-ordered is redundant under two-state model).
+  > Fulfillment/address table has 6 rows. Spec obligations: (a) same type+address groups; (b) different address splits; (c) different fulfillment type splits; (d) pickup with no address groups. Rows 1,4 cover (a); row 2 covers (b); row 3 covers (c); row 4 covers (d). Rows 5–6 are compositions: row 5 combines (a)+(b), row 6 combines (b)+(c). Spec says 'One interaction case...is valuable but optional; it composes (a)+(b), it does not add a rule.' The response includes two composition rows (5 and 6), exceeding the optional single interaction. This is mild over-coverage but violates minimal-rows-per-concern.
 - ✅ **concern-fulfillment-method**: Fulfillment method splitting is represented as its own @TableTest — items with different fulfillment types (store pickup vs home delivery) cannot share a shipment.
 - ✅ **concern-delivery-address**: Delivery address splitting is represented as its own @TableTest — items going to different addresses must be in separate shipments.
 - ✅ **concern-availability**: Availability splitting is represented as its own @TableTest — in-stock items ship immediately, backordered/pre-ordered items ship when available.
@@ -487,7 +500,8 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 - ✅ **scenario-column-present**: Table has a scenario/description column as the leftmost column
 - ✅ **has-question-mark-column**: At least one output column name ends with '?' (e.g. 'Shipments?', 'Groups?')
 - ✅ **scenario-names-describe-conditions**: Scenario names describe the business situation (e.g. 'Consolidate: two beats three', 'Everything at one warehouse') — not 'Test case 2'.
-- ✅ **business-language-columns**: Column names use business/domain language (e.g. 'Shipments?' not 'Result?', 'Warehouse stock' not 'inventory_map'). The tables read as a specification a product person could review.
+- ❌ **business-language-columns**: Column names use business/domain language (e.g. 'Shipments?' not 'Result?', 'Warehouse stock' not 'inventory_map'). The tables read as a specification a product person could review.
+  > Column headers use 'W1 Stock', 'W2 Stock', 'W3 Stock' instead of business language like 'W1 warehouse stock' or similar; also uses 'Items' and 'Companions' which are acceptable, but warehouse columns lack clarity. More critically, the response provides only 4 @TableTest methods instead of the required 5 separate concerns.
 - ✅ **no-if-switch-in-method**: Test method body contains no if or switch statements
 - ✅ **annotation-order**: Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.
 - ✅ **has-descriptive-title**: Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.

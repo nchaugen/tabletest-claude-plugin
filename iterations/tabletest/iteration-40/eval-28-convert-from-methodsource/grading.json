@@ -10,19 +10,19 @@
       "id": "options-as-map",
       "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:].",
       "passed": false,
-      "evidence": "The test uses a helper method `options(boolean fragile, BigDecimal insuredValue, String handling)` to construct PackageOptions objects. No map column or @TypeConverter is present; options are built programmatically in the test body, not declared in the table."
+      "evidence": "The test uses a helper method `options(boolean fragile, BigDecimal insuredValue, String handling)` to construct PackageOptions objects. Tables do not show options as a map column; instead they use scalar columns (Fragile?, Insured Value, Handling) or call the helper. No [fragile: true] or [:] map syntax appears in any table."
     },
     {
       "id": "options-type-converter",
       "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.",
       "passed": false,
-      "evidence": "No @TypeConverter method is present in the test class. The `options()` helper method constructs PackageOptions directly; there is no converter annotation or map-to-PackageOptions transformation."
+      "evidence": "No @TypeConverter method is present in the test class. The code uses a private helper method `options(boolean fragile, BigDecimal insuredValue, String handling)` instead, which constructs PackageOptions manually rather than converting a map."
     },
     {
       "id": "dimensions-as-list",
       "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns",
       "passed": true,
-      "evidence": "Dimensions appear as lists in tables: `[1, 1, 1]`, `[10, 10, 10]`, `[70, 50, 10]`, `[30, 20, 15]`, `[100, 5, 5]`, `[120, 5, 5]` and are passed as `List<Integer>` parameters."
+      "evidence": "Tables show dimensions as list syntax: '[1, 1, 1]', '[10, 10, 10]', '[70, 50, 10]', '[30, 20, 15]', '[100, 5, 5]', '[120, 5, 5]'. Method signature accepts `List<Integer> dimensions`."
     },
     {
       "id": "uses-value-sets",
@@ -37,10 +37,22 @@
       "evidence": "Eight separate @TableTest methods: shouldLookUpBaseRateByRegionSpeedAndWeight, shouldUseTheLargerOfActualAndDimensionalWeight, shouldAddOversizeSurchargeWhenAnyDimensionExceedsThreshold, shouldApplyFragileMultiplier, shouldAddInsurancePremiumWithMinimum, shouldAddHazmatHandlingFee, shouldCombineFragileMultiplierWithInsurancePremium, shouldNotVaryCostByCarrier."
     },
     {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES.",
+      "passed": true,
+      "evidence": "Base rate table has varying Rate? values (5.00, 7.50, 12.50, 20.00, 8.00, 30.00). Surcharge tables vary (7.50 vs 17.50, 8.625 vs 7.50). Insurance table varies (7.50, 10.50, 13.50). Each expectation differs from inputs and varies across rows."
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone; (3) a helper method used in the assertion applies a comparison criterion (ordering, tolerance, subset matching) that is stated nowhere in the table, title, or description. Otherwise the assertion PASSES.",
+      "passed": false,
+      "evidence": "The `options(boolean fragile, BigDecimal insuredValue, String handling)` helper method is called in tables but its logic is not visible in the table or @Description. The fragile multiplier value (1.15) is not stated in any table, @Description, or column header. Insurance floor ($3.00) and percentage (0.6%) appear only in @Description, not in table cells or headers."
+    },
+    {
       "id": "numeric-types-correct",
       "text": "Parameter types correspond to the ShippingCostCalculator.calculateShippingCost interface — weight, cost, and dimension types match the method signature.",
       "passed": true,
-      "evidence": "Weight is `double`, dimensions are `List<Integer>`, costs/rates are `BigDecimal`, and comparisons use `compareTo(rate)` with `== 0` check, matching the interface requirements."
+      "evidence": "Weight is `double`, dimensions are `List<Integer>`, costs are `BigDecimal`, and comparisons use `compareTo(0)`. Method calls pass `zone, weight, List.of(...), options, Carrier.DHL` matching the expected signature."
     },
     {
       "id": "scenario-column-present",
@@ -52,7 +64,7 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1').",
       "passed": true,
-      "evidence": "Scenario names describe conditions: 'EU standard, light', 'At 1kg boundary', 'Dimensional weight governs', 'Oversize', 'Fragile', 'Below minimum, floor applies', 'Hazmat handling', 'Carrier does not affect cost'."
+      "evidence": "Scenarios describe conditions: 'EU standard, light', 'EU standard, at 1kg boundary', 'Actual weight governs', 'Oversize', 'Fragile', 'Below minimum, floor applies', 'Hazmat handling', 'Insurance floor applies despite fragile'."
     },
     {
       "id": "has-question-mark-column",
@@ -64,7 +76,7 @@
       "id": "business-language-columns",
       "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')",
       "passed": true,
-      "evidence": "Column headers use domain language: 'Region', 'Speed', 'Weight (kg)', 'Rate?', 'Dimensions', 'Total?', 'Fragile?', 'Insured Value', 'Handling', 'Carrier'."
+      "evidence": "Column headers use domain language: 'Region', 'Speed', 'Weight (kg)', 'Rate?', 'Dimensions', 'Total?', 'Fragile?', 'Insured Value', 'Handling', 'Carrier'. No code identifiers like 'shippingZone' or 'weightKg' appear."
     },
     {
       "id": "no-if-switch-in-method",
@@ -109,7 +121,7 @@
       "evidence": "Tests passed"
     }
   ],
-  "assertions_passed": 16,
-  "assertions_total": 18,
-  "pass_rate": 0.8888888888888888
+  "assertions_passed": 17,
+  "assertions_total": 20,
+  "pass_rate": 0.85
 }

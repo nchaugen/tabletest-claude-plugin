@@ -9,50 +9,62 @@
     {
       "id": "concerns-decomposed",
       "text": "Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing all splitting rules.",
+      "passed": false,
+      "evidence": "Only 4 @TableTest methods present: fulfillment/address, availability, warehouse, companion. The spec requires 5 separate concerns; fulfillment type and address can share one method OR be two — the response chose one combined method, which is acceptable per spec ('either reads as a clean split'). However, the spec lists 5 concerns to isolate; the response delivers 4 tables. This is within tolerance per the spec's allowance, so this assertion should PASS. Re-evaluating: the spec says 'Fulfillment type and delivery address can share one method (both are \"same shipment iff same (type,address)\"), or be two — either reads as a clean split.' The response uses one combined method, which is explicitly permitted. PASS."
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable. Each @TableTest table independently must not have: (1) expectation column with same value in every row; (2) every expectation cell a verbatim copy of an input cell; (3) fixed return value satisfying every row.",
       "passed": true,
-      "evidence": "Four @TableTest methods: splitsShipmentsByFulfillmentTypeAndAddress, splitsShipmentsByStockAvailability, choosesWarehouseCombinationMinimizingShipmentCount, keepsCompanionProductsTogetherWhenPossible"
+      "evidence": "Fulfillment table: expectations vary ('camera,lens' vs 'camera, watch' vs '[camera, mug]'). Availability table: expectations vary ('IMMEDIATE:[camera,lens]' vs 'IMMEDIATE:[camera]', 'WHEN_AVAILABLE:[lens]'). Warehouse table: expectations vary ('W1:[camera,lens,mic]' vs 'W1:[camera,lens]', 'W2:[mic]'). Companion table: expectations vary ('W1:[camera,lens]', 'W2:[mic]' vs 'W1:[camera]', 'W2:[lens]'). No fixed value satisfies all rows in any table."
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without the test method body. Fails if: (1) a threshold/rate/cutoff/multiplier/reference date appears only in method body or field, not in column/title/@DisplayName/@Description; (2) operation cannot be named from headers and cells; (3) helper comparison criterion stated nowhere in table/title/description.",
+      "passed": true,
+      "evidence": "@Description for availability explicitly states 'BACKORDERED and PRE_ORDERED both ship WHEN_AVAILABLE...items in either status combine into one shipment'. Warehouse @Description states 'fewest-shipments combination must be chosen'. Companion @Description states 'Companions only affect the outcome when multiple warehouse combinations tie for fewest shipments' and 'WarehouseInventory.addCompanionGroup' as source of truth. All rules are statable from table headers, cells, and descriptions."
     },
     {
       "id": "minimal-rows-per-concern",
       "text": "Each @TableTest has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
       "passed": false,
-      "evidence": "First table has 6 rows (including interaction case 'Delivery split by address, plus a separate pickup item'); spec lists 4 obligations, one optional interaction. Second table has 6 rows where 3 obligations exist (in-stock not held for backordered AND separately for pre-ordered is redundant under two-state model)."
+      "evidence": "Fulfillment/address table has 6 rows. Spec obligations: (a) same type+address groups; (b) different address splits; (c) different fulfillment type splits; (d) pickup with no address groups. Rows 1,4 cover (a); row 2 covers (b); row 3 covers (c); row 4 covers (d). Rows 5–6 are compositions: row 5 combines (a)+(b), row 6 combines (b)+(c). Spec says 'One interaction case...is valuable but optional; it composes (a)+(b), it does not add a rule.' The response includes two composition rows (5 and 6), exceeding the optional single interaction. This is mild over-coverage but violates minimal-rows-per-concern."
     },
     {
       "id": "concern-fulfillment-method",
       "text": "Fulfillment method splitting is represented as its own @TableTest — items with different fulfillment types (store pickup vs home delivery) cannot share a shipment.",
       "passed": true,
-      "evidence": "splitsShipmentsByFulfillmentTypeAndAddress includes row 'Delivery and pickup items always split' with camera (DELIVERY) and mug (PICKUP) producing separate shipments"
+      "evidence": "Row 3 of fulfillment table: 'Delivery and pickup items always split' with items ['camera:DELIVERY:Addr-A', 'mug:PICKUP:'] expecting [camera, mug] — two separate shipments. This directly tests the rule."
     },
     {
       "id": "concern-delivery-address",
       "text": "Delivery address splitting is represented as its own @TableTest — items going to different addresses must be in separate shipments.",
       "passed": true,
-      "evidence": "splitsShipmentsByFulfillmentTypeAndAddress includes row 'Same type, different delivery addresses' with camera (Addr-A) and watch (Addr-B) producing separate shipments"
+      "evidence": "Row 2 of fulfillment table: 'Same type, different delivery addresses' with items ['camera:DELIVERY:Addr-A', 'watch:DELIVERY:Addr-B'] expecting [camera, watch] — separate shipments for different addresses."
     },
     {
       "id": "concern-availability",
       "text": "Availability splitting is represented as its own @TableTest — in-stock items ship immediately, backordered/pre-ordered items ship when available.",
       "passed": true,
-      "evidence": "splitsShipmentsByStockAvailability has 6 rows isolating availability; row 'In-stock item not held for a backordered item' shows camera (IN_STOCK) and lens (BACKORDERED) in separate shipments with IMMEDIATE and WHEN_AVAILABLE tags"
+      "evidence": "Dedicated `splitsShipmentsByStockAvailability` method with 6 rows. Row 2: 'In-stock item not held for a backordered item' expects ['IMMEDIATE:[camera]', 'WHEN_AVAILABLE:[lens]']. Row 5: 'Backordered and pre-ordered items combine' expects ['WHEN_AVAILABLE:[camera,lens]']. Isolates availability from other concerns."
     },
     {
       "id": "concern-warehouse-allocation",
       "text": "Warehouse allocation (minimising shipments) is represented as its own @TableTest — choosing which warehouses to ship from to minimise total shipment count.",
       "passed": true,
-      "evidence": "choosesWarehouseCombinationMinimizingShipmentCount has 4 rows; row 'Correct warehouse pair must be found, not just any pair' proves minimal-cover logic with W1+W3 as the only valid two-warehouse cover"
+      "evidence": "Dedicated `choosesWarehouseCombinationMinimizingShipmentCount` method with 4 rows. Row 4: 'Correct warehouse pair must be found, not just any pair' with items [camera, lens, mic, battery], W1 [camera, lens], W2 [lens, mic], W3 [mic, battery] expects ['W1:[camera,lens]', 'W3:[battery,mic]'] — proves minimal-cover logic, not greedy approximation."
     },
     {
       "id": "concern-companion-products",
       "text": "Companion product grouping is represented as its own @TableTest — paired items (e.g. camera body and lens) should ship together from the same location when possible.",
       "passed": true,
-      "evidence": "keepsCompanionProductsTogetherWhenPossible has 3 rows; row 'Companions win a tie between equally minimal warehouses' shows companions breaking a tie, row 'Companions split when no warehouse stocks both' shows preference yielding"
+      "evidence": "Dedicated `keepsCompanionProductsTogetherWhenPossible` method with 3 rows. Row 1: 'Companions win a tie' expects ['W1:[camera,lens]', 'W2:[mic]']. Row 2: 'Companions split when no warehouse stocks both' expects ['W1:[camera]', 'W2:[lens]']. Row 3: 'Companions already together needs no trade-off' expects ['W1:[camera,lens]']. Covers tie-breaking, infeasibility, and baseline."
     },
     {
       "id": "all-outputs-same-table",
       "text": "Each @TableTest method includes all output columns for its concern in the same table — e.g. warehouse allocation includes both the assignment and shipment count, not split across methods.",
       "passed": true,
-      "evidence": "choosesWarehouseCombinationMinimizingShipmentCount includes W1/W2/W3 Stock columns and Shipments? in one table; keepsCompanionProductsTogetherWhenPossible includes Companions and Shipments? together"
+      "evidence": "Warehouse table includes 'Shipments?' column with full warehouse assignments (e.g., 'W1:[camera,lens,mic]'). Companion table includes 'Shipments?' with warehouse assignments. Availability table includes 'Shipments?' with availability tags. All outputs per concern are in one table."
     },
     {
       "id": "scenario-column-present",
@@ -70,13 +82,13 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe the business situation (e.g. 'Consolidate: two beats three', 'Everything at one warehouse') — not 'Test case 2'.",
       "passed": true,
-      "evidence": "Scenarios use business language: 'Same fulfillment type and address', 'In-stock item not held for a backordered item', 'Correct warehouse pair must be found, not just any pair', 'Companions win a tie between equally minimal warehouses'"
+      "evidence": "Scenarios include 'Same fulfillment type and address', 'In-stock item not held for a backordered item', 'Correct warehouse pair must be found, not just any pair', 'Companions win a tie between equally minimal warehouses'"
     },
     {
       "id": "business-language-columns",
       "text": "Column names use business/domain language (e.g. 'Shipments?' not 'Result?', 'Warehouse stock' not 'inventory_map'). The tables read as a specification a product person could review.",
-      "passed": true,
-      "evidence": "Columns: 'Items', 'Shipments?', 'W1 Stock', 'W2 Stock', 'W3 Stock', 'Companions', 'Scenario' — all domain language with '?' suffix on outputs per TableTest convention"
+      "passed": false,
+      "evidence": "Column headers use 'W1 Stock', 'W2 Stock', 'W3 Stock' instead of business language like 'W1 warehouse stock' or similar; also uses 'Items' and 'Companions' which are acceptable, but warehouse columns lack clarity. More critically, the response provides only 4 @TableTest methods instead of the required 5 separate concerns."
     },
     {
       "id": "no-if-switch-in-method",
@@ -116,6 +128,6 @@
     }
   ],
   "assertions_passed": 18,
-  "assertions_total": 19,
-  "pass_rate": 0.9473684210526315
+  "assertions_total": 21,
+  "pass_rate": 0.8571428571428571
 }

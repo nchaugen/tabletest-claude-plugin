@@ -10,19 +10,19 @@
       "id": "options-as-map",
       "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:].",
       "passed": false,
-      "evidence": "appliesSurchargesToBaseCost uses three separate columns: 'Fragile | Insured Value | Handling' instead of a single 'Options' map column like '[fragile: true, insuredValue: 200]'"
+      "evidence": "The surcharges table uses three separate columns: 'Fragile | Insured Value | Handling' instead of a single 'Options' map column. No-options rows have blank cells, not [:]."
     },
     {
       "id": "options-type-converter",
       "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.",
       "passed": false,
-      "evidence": "No @TypeConverter method is present in the test file. Options are constructed manually in appliesSurchargesToBaseCost: 'val opts = PackageOptions(isFragile=fragile, insuredValue=insuredValue, handling=handling)'"
+      "evidence": "No @TypeConverter method is present in the test file. Options are constructed inline as 'PackageOptions(isFragile=fragile, insuredValue=insuredValue, handling=handling)' in the test body."
     },
     {
       "id": "dimensions-as-list",
       "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns",
       "passed": true,
-      "evidence": "All four @TableTest methods use 'Dimensions' column with list syntax: '[30, 20, 15]', '[70, 50, 10]', '[120, 5, 5]', '[1, 1, 1]'"
+      "evidence": "Dimensions column shows '[30, 20, 15]', '[120, 5, 5]', '[70, 50, 10]', '[10, 10, 10]' — all as lists, not separate columns."
     },
     {
       "id": "uses-value-sets",
@@ -34,13 +34,25 @@
       "id": "concerns-decomposed",
       "text": "Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence",
       "passed": true,
-      "evidence": "Four separate @TableTest methods: calculatesBaseRateByRegionSpeedAndWeight, choosesGreaterOfActualAndDimensionalWeight, appliesSurchargesToBaseCost, carrierDoesNotAffectCost"
+      "evidence": "Four @TableTest methods: calculatesBaseRateByRegionSpeedAndWeight, choosesGreaterOfActualAndDimensionalWeight, appliesSurchargesToBaseCost, carrierDoesNotAffectCost."
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable. Each @TableTest table must not have: (1) same expectation in every row; (2) expectation as verbatim copy of input; (3) fixed return value satisfying all rows.",
+      "passed": true,
+      "evidence": "Base rate table: expectations vary (5.00, 7.50, 12.50, 20.00, 8.00, 12.00, 20.00, 32.00, 7.00, 10.50, 17.50, 28.00, 11.00, 16.50, 30.00, 45.00). Surcharges: 7.50, 17.50, 15.50, 8.625, 10.50, 10.50, 13.50, 11.625. All vary and are computed, not copied."
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without the test method body. Fails if: (1) threshold/rate/cutoff appears only in method body; (2) operation cannot be named from headers/values; (3) comparison criterion stated nowhere.",
+      "passed": true,
+      "evidence": "@Description blocks and column headers make rules explicit: 'base rate by region/speed/weight', 'max(actual, dimensional weight)', 'surcharges in order', 'carrier does not affect'. Comparison is 'compareTo' on BigDecimal, standard for monetary values."
     },
     {
       "id": "numeric-types-correct",
       "text": "Parameter types correspond to the ShippingCostCalculator.calculateShippingCost interface — weight, cost, and dimension types match the method signature.",
       "passed": true,
-      "evidence": "weight is Double, dimensions is List<Int>, costs are BigDecimal; method calls use 'calculator.calculateShippingCost(ShippingZone(...), weight, dimensions, opts, carrier)'"
+      "evidence": "Weight is Double (0.5, 3.0, 10.0, 25.0), dimensions are List<Int> ([1,1,1], [30,20,15], [70,50,10]), costs are BigDecimal (5.00, 7.50, 12.50, etc.). Method call: 'calculator.calculateShippingCost(ShippingZone(...), weight, dimensions, opts, carrier)'."
     },
     {
       "id": "scenario-column-present",
@@ -52,7 +64,7 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1').",
       "passed": true,
-      "evidence": "Scenarios describe conditions: 'EU standard, light parcel', 'Dimensional weight exceeds actual weight', 'Fragile and insured together', 'Carrier choice has no effect on price'"
+      "evidence": "Scenarios: 'EU standard, light parcel', 'EU express, medium parcel', 'One dimension exceeds 100cm', 'Fragile and insured together', 'Carrier choice has no effect on price' — all describe input conditions, not outcomes."
     },
     {
       "id": "has-question-mark-column",
@@ -62,9 +74,9 @@
     },
     {
       "id": "business-language-columns",
-      "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')",
+      "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims').",
       "passed": false,
-      "evidence": "appliesSurchargesToBaseCost uses code-style column names 'Fragile', 'Insured Value', 'Handling' instead of domain language; should be a single 'Options' column"
+      "evidence": "Surcharges table uses code-style column names: 'Fragile', 'Insured Value', 'Handling' instead of a single 'Options' column. Base rate table uses 'Region', 'Speed', 'Weight', 'Base Rate?' which are acceptable, but the surcharges decomposition into three columns violates the principle."
     },
     {
       "id": "no-if-switch-in-method",
@@ -121,7 +133,7 @@
       "evidence": "Build file has no Kotest reference"
     }
   ],
-  "assertions_passed": 17,
-  "assertions_total": 20,
-  "pass_rate": 0.85
+  "assertions_passed": 19,
+  "assertions_total": 22,
+  "pass_rate": 0.8636363636363636
 }
