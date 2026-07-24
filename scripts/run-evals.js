@@ -402,6 +402,18 @@ function majorityVote(samples, batch) {
 const GRADING_SYSTEM_PROMPT = `You are an eval grader. You will receive a model response and a list of assertions.
 For each assertion, determine whether it passes or fails based on the response content.
 
+TableTest syntax you are expected to know (these are built-in library notation, not code smells or
+"unexplained values" — never fail an assertion merely because a cell or column uses them):
+- A column header ending in "?" marks an expected-output column (e.g. "Total?", "Shipments?"). This is
+  the TableTest convention; it is correct business/domain naming, not a violation.
+- "[a, b]" is a list; "[k: v, k2: v2]" is a map; "[:]" is an empty map; "[]" an empty list. They nest
+  ("[[a, b], [c]]", "[W1: [camera, lens]]") and render as structured values.
+- "{a, b}" is a value set: the row runs once per listed value, each an independent case sharing the same
+  expectation. It is not a magic constant and needs no explanation in the description.
+- A blank cell denotes an absent / null value.
+- A @TypeConverter method turns a cell (string, list, or map) into a domain object, so such a parameter
+  arrives already converted and the method body needs no construction code for it.
+
 Return ONLY a JSON object (no markdown fencing, no explanation) with this exact structure:
 {
   "assertions": [
