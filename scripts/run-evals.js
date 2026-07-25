@@ -545,6 +545,7 @@ function parseArgs(argv) {
     nudgeSkill: false,
     parallel: 4,
     gradeOnly: false,
+    rebuild: false,
     reportOnly: false,
     timeoutMs: null,   // null = use each eval's timeout_ms (or runClaude default)
   };
@@ -603,6 +604,16 @@ function parseArgs(argv) {
         break;
       }
       case "--grade-only":
+        args.gradeOnly = true;
+        break;
+      // Rebuild the benchmark from gradings already on disk, calling no API at all.
+      // A fatal grading failure deliberately writes no benchmark, so the gradings that DID
+      // succeed are stranded: the only way to get a whole-suite benchmark was to re-grade
+      // all 17 evals, which costs a full pass (20-90 min) to recover work already done.
+      // aggregateResults already reads grading{suffix}.json off disk — this just lets you
+      // reach it without paying for gradeResponses again.
+      case "--rebuild":
+        args.rebuild = true;
         args.gradeOnly = true;
         break;
       case "--report-only":
@@ -694,7 +705,8 @@ async function main() {
     return;
   }
 
-  if (args.provider === "anthropic" && !process.env.ANTHROPIC_API_KEY) {
+  // --rebuild reads gradings off disk and calls nothing, so it must not require a key.
+  if (args.provider === "anthropic" && !args.rebuild && !process.env.ANTHROPIC_API_KEY) {
     console.error("Error: ANTHROPIC_API_KEY environment variable is not set.");
     console.error("The eval script requires an API key to avoid consuming interactive plan usage.");
     console.error("Set it with: ANTHROPIC_API_KEY=sk-... node scripts/run-evals.js ...");
@@ -727,7 +739,19 @@ async function main() {
     if (!args.gradeOnly) {
       await generateResponses(evals, worktreePath, iterationDir, args);
     }
-    await gradeResponses(evals, iterationDir, args);
+    if (args.rebuild) {
+      const suffix = args.gradingSuffix ? `-${args.gradingSuffix}` : "";
+      const missing = evalsMissingGrading(evals, iterationDir, suffix);
+      if (missing.length > 0) {
+        throw new Error(
+          `--rebuild found no grading${suffix}.json for ${missing.length} eval(s): ${missing.join(", ")}. ` +
+          `Grade them first (--grade-only --evals ${missing.join(",")}${args.gradingSuffix ? ` --grading-suffix ${args.gradingSuffix}` : ""}), then rebuild.`
+        );
+      }
+      log(`Rebuilding benchmark from ${evals.length} stored grading${suffix}.json file(s) — no API calls.`);
+    } else {
+      await gradeResponses(evals, iterationDir, args);
+    }
     const benchmark = aggregateResults(evals, iterationDir, args, worktreePath, repoRoot);
     const previousBenchmark = loadPreviousBenchmark(repoRoot, args);
     const officialBenchmark = args.compareOfficial ? loadOfficialBenchmark(repoRoot, args.skill) : null;
@@ -1461,6 +1485,18 @@ function regradeCommand(failedIds, args) {
   return `node scripts/run-evals.js ${flags.join(" ")}`;
 }
 
+/** The follow-up to regradeCommand: assemble the whole-suite benchmark without re-grading anything. */
+function rebuildCommand(args) {
+  const flags = [
+    `--skill ${args.skill}`,
+    `--iteration ${args.iteration}`,
+    args.variant ? `--variant ${args.variant}` : null,
+    "--rebuild",
+    args.gradingSuffix ? `--grading-suffix ${args.gradingSuffix}` : null,
+  ].filter(Boolean);
+  return `node scripts/run-evals.js ${flags.join(" ")}`;
+}
+
 async function gradeResponses(evals, iterationDir, args) {
   log(`\nGrading responses (model=${args.gradingModel}, parallel=${args.parallel})...`);
 
@@ -1497,8 +1533,10 @@ async function gradeResponses(evals, iterationDir, args) {
       `grading failed for ${failures.length} of ${evals.length} evals — no benchmark or report written.\n\n` +
       `${detail}\n\n` +
       `A benchmark missing these evals would read as a score change rather than an error.\n` +
-      `Successful gradings are saved; re-grade only the failures (no generation cost), then re-run:\n\n` +
-      `  ${regradeCommand(failedIds, args)}\n`
+      `The gradings that succeeded are on disk. Grade only the failures, then REBUILD — do not\n` +
+      `re-run the full command, which re-grades all ${evals.length} evals and throws that work away:\n\n` +
+      `  ${regradeCommand(failedIds, args)}\n` +
+      `  ${rebuildCommand(args)}\n`
     );
   }
 }
@@ -1583,6 +1621,22 @@ function unwrapSummary(benchmark) {
   if (!benchmark || !benchmark.summary) return null;
   if (benchmark.summary.assertions_passed !== undefined) return benchmark.summary;
   return benchmark.summary.with_skill || benchmark.summary.no_skill || Object.values(benchmark.summary)[0] || null;
+}
+
+/**
+ * Evals selected for a `--rebuild` that have no grading file to rebuild from.
+ *
+ * Rebuilding silently over a missing grading would produce a benchmark short of those evals —
+ * indistinguishable from a score change, which is the very hazard the fatal-grading-failure
+ * guard exists to prevent. So the caller refuses rather than writing a partial benchmark.
+ */
+function evalsMissingGrading(evals, iterationDir, suffix) {
+  return evals
+    .filter((e) => {
+      const dir = path.join(iterationDir, `eval-${e.id}-${e.slug}`);
+      return !fs.existsSync(path.join(dir, `grading${suffix}.json`));
+    })
+    .map((e) => e.id);
 }
 
 function aggregateResults(evals, iterationDir, args, worktreePath, repoRoot) {
@@ -2337,6 +2391,8 @@ module.exports = {
   majorityVote,
   gradeResponses,
   regradeCommand,
+  rebuildCommand,
+  evalsMissingGrading,
   GradingIncompleteError,
   // transport
   postGradingRequest,

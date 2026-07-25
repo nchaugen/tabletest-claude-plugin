@@ -21,6 +21,8 @@ const {
   majorityVote,
   gradeResponses,
   regradeCommand,
+  rebuildCommand,
+  evalsMissingGrading,
   GradingIncompleteError,
   postGradingRequest,
   isRetryableStatus,
@@ -367,6 +369,70 @@ describe("regradeCommand", () => {
     assert.doesNotMatch(cmd, /--grade-runs/);
     assert.doesNotMatch(cmd, /--grading-suffix/);
     assert.doesNotMatch(cmd, /--provider/);
+  });
+});
+
+// --- rebuilding a benchmark from gradings already on disk -------------------
+//
+// A fatal grading failure writes no benchmark, stranding the gradings that DID succeed.
+// Before --rebuild the only recovery was re-grading all 17 evals: a full pass (20-90 min)
+// spent recovering work already on disk. This is the cheap path back.
+
+describe("rebuildCommand", () => {
+  const base = { skill: "tabletest", iteration: 40, variant: null, gradingSuffix: null };
+
+  test("rebuilds without grading", () => {
+    const cmd = rebuildCommand(base);
+    assert.match(cmd, /--rebuild/);
+    assert.doesNotMatch(cmd, /--grade-only/);
+    assert.doesNotMatch(cmd, /--evals/);
+  });
+
+  test("keeps the suffix so it rebuilds the right benchmark", () => {
+    assert.match(rebuildCommand({ ...base, gradingSuffix: "t4" }), /--grading-suffix t4/);
+  });
+
+  test("omits the suffix when there is none", () => {
+    assert.doesNotMatch(rebuildCommand(base), /--grading-suffix/);
+  });
+});
+
+describe("evalsMissingGrading", () => {
+  const evals = [{ id: 1, slug: "a" }, { id: 2, slug: "b" }, { id: 3, slug: "c" }];
+  let dir;
+
+  beforeEach(() => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), "rebuild-guard-"));
+  });
+  afterEach(() => fs.rmSync(dir, { recursive: true, force: true }));
+
+  const writeGrading = (id, slug, suffix) => {
+    const d = path.join(dir, `eval-${id}-${slug}`);
+    fs.mkdirSync(d, { recursive: true });
+    fs.writeFileSync(path.join(d, `grading${suffix}.json`), "{}");
+  };
+
+  test("names the evals with nothing to rebuild from", () => {
+    writeGrading(1, "a", "-t4");
+    assert.deepEqual(evalsMissingGrading(evals, dir, "-t4"), [2, 3]);
+  });
+
+  test("reports none when every eval has a grading", () => {
+    evals.forEach((e) => writeGrading(e.id, e.slug, "-t4"));
+    assert.deepEqual(evalsMissingGrading(evals, dir, "-t4"), []);
+  });
+
+  // A grading for a *different* suffix must not satisfy the guard, or a rebuild would
+  // silently mix two regrades into one benchmark.
+  test("ignores gradings written under another suffix", () => {
+    evals.forEach((e) => writeGrading(e.id, e.slug, "-t3"));
+    assert.deepEqual(evalsMissingGrading(evals, dir, "-t4"), [1, 2, 3]);
+  });
+
+  test("distinguishes the unsuffixed baseline from a suffixed regrade", () => {
+    evals.forEach((e) => writeGrading(e.id, e.slug, ""));
+    assert.deepEqual(evalsMissingGrading(evals, dir, ""), []);
+    assert.deepEqual(evalsMissingGrading(evals, dir, "-t4"), [1, 2, 3]);
   });
 });
 
