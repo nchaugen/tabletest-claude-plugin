@@ -184,6 +184,13 @@
     },
     {
       "eval": 18,
+      "assertion": "rule-statable-from-table",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "Added 2026-07-25 to resolve a medium/high grading-effort divergence. Clause (1) triggers only when the value appears ONLY in the method body or a field. The risk-score and premium formulas appear in neither: they are stated in the @Descriptions of rejectsApplicationsAboveRiskThreshold and calculatesPremiumByAgeTier, on the same published class. t4 failed it saying the formula is \"stated only in a different method's @Description\" - which concedes the trigger condition is not met, and imports a per-method scoping the text does not carry. Table 1's own rule (RENEWAL + 0 claims auto-approves, premium 0.00) is fully statable from its rows; the 136.00/106.00 cells are contrast showing the bypass did not fire, not the rule this table states."
+    },
+    {
+      "eval": 18,
       "assertion": "separates-decision-and-premium",
       "expected": false,
       "confidence": "firm",
@@ -195,6 +202,13 @@
       "expected": true,
       "confidence": "firm",
       "basis": "Every list cell uses correct TableTest bracket syntax with quoted elements. Known grader self-contradiction, already recorded in the slice-1 plan as noise."
+    },
+    {
+      "eval": 22,
+      "assertion": "description-no-irrelevant-information",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "Added 2026-07-25 to resolve a medium/high grading-effort divergence. The validation @Description says \"dietaryRequirements and accessibilityNeeds are optional and do not affect acceptance\" - and expected_output.md lines 51-53 assign exactly that point to the rows: \"The first three rows carry the point that the optionals are genuinely optional: present, absent, and half-present all accepted.\" So the sentence restates what the rows are there to show. The pricing description compounds it, restating the 20%/15% discounts the Discount? column holds and the non-stacking rule the \"Both apply, early-bird wins\" row demonstrates (ground truth line 73 confirms the prompt specifies non-stacking, so it is not an interpretation named as an assumption). The description does also add legitimate content (base price, currency, the literal cutoff date the converter hides, held-constant declarations) but the assertion is \"does not include\", not \"mostly adds\". m1 cited only the legitimate additions and never weighed the redundant sentences."
     },
     {
       "eval": 22,
@@ -258,6 +272,13 @@
       "expected": false,
       "confidence": "firm",
       "basis": "Four tables (oversizeSurcharge, hazmatHandlingSurcharge, fragileSurcharge, insuranceSurcharge) all fix EU standard at 3.0 kg with dimensions 30x20x15 and vary one surcharge each, all outputting Fee?. That is the assertion's literal FAIL condition and its literal example ('a separate table per surcharge'). Both guards favour collapsing: one table with an Options column is roughly seven rows, no cross-product, each row's purpose legible from its scenario name."
+    },
+    {
+      "eval": 25,
+      "assertion": "options-as-map",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "Added 2026-07-25 to resolve a medium/high grading-effort divergence. The output collapses the three package options into one Options column bound to Map<String, String>? (hazmatHandlingSurcharge, fragileSurcharge, insuranceSurcharge), which is exactly what the assertion requires, and not three mostly-blank columns. m1 failed it for using a blank cell on the no-options row instead of [:] - but the assertion's own last sentence permits both: \"Rows with no options use a blank cell or [:]\". m1 graded against the skill's [:]-for-empty teaching rather than the assertion text. The genuine defect here (buildOptions as a private helper instead of a @TypeConverter) belongs to options-type-converter, which eval-25 already fails."
     },
     {
       "eval": 25,
@@ -373,6 +394,13 @@
     },
     {
       "eval": 28,
+      "assertion": "minimal-rows-per-concern",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "Added 2026-07-25 to resolve a medium/high grading-effort divergence. expected_output.md states the base-rate obligations and blesses this exact shape: \"a full 16-cell matrix or a boundary-anchored sample (~10) both cover this\" (line 113) and \"Enumerating the full 16-cell matrix instead is equally acceptable... The boundary rows (1 / 5 / 15) are the falsifiability-strong part\" (lines 71-73). The output is an 11-row boundary-anchored sample with the 1/5/15 boundaries present. t4 failed it for the \"EU express, light\" row re-covering discharged obligations, which invents the stricter obligation list the assertion explicitly forbids (\"judge against that list and do not invent a stricter one\"). The four separate surcharge tables are a real defect - repeating one control row per table - but that is concern-not-over-split, which eval-28 correctly fails."
+    },
+    {
+      "eval": 28,
       "assertion": "options-as-map",
       "expected": false,
       "confidence": "firm",
@@ -426,6 +454,13 @@
       "expected": false,
       "confidence": "firm",
       "basis": "calculatesTheCartTotal's @Description claims the total is 'floored at zero regardless of which coupon type produced the discount', but the floor rows cover FIXED (20.00, 25.00) and PERCENT (via the {PERCENT 50, FIXED 5.00} value set) only. No PRODUCT coupon appears in any row reaching zero, so the rows cover two of the three types the claim quantifies over."
+    },
+    {
+      "eval": 29,
+      "assertion": "scenario-names-describe-conditions",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "Added 2026-07-25 to resolve a medium/high grading-effort divergence. checksOutTheCart row 1 is \"Empty cart cannot check out\" beside Success? = false - structurally identical to the assertion's own named example, \"User cannot delete beside an Allowed? cell of false\". A single offending name fails the assertion. t4's second citation (\"Product coupon ignored when product absent\") is wrong: that names the rule, which the carve-out permits, and Total? = 5.00 is not paraphrased by the name. But its first citation is a direct hit. m1 quoted \"Expired coupon does not replace the active coupon\" from a different table and never reached the offending row, despite the \"Judge every @TableTest method in the class\" clause."
     },
     {
       "eval": 29,

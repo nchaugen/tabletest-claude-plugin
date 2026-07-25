@@ -172,6 +172,53 @@ comparisons spanning the change — **re-baseline before comparing anything agai
 irreducible-judgement assertions grade at `high`" generalises to a new eval; the current list is
 fitted to one measurement and should be replaced by a property once the probe exists.
 
+### The split was decided on agreement — re-decided on accuracy, 2026-07-25
+
+The ten-eval list above was chosen by **agreement with `high`**, which is the precision-not-accuracy
+error this document argues against everywhere else: `high` is itself only 93% accurate, so an eval
+where `medium` disagrees may be `medium` being right. Re-deciding it on the answer key needed the
+divergent slots keyed, so the **five divergences with no key entry were authored from the artefacts**
+(`rule-statable-from-table`/18, `description-no-irrelevant-information`/22, `options-as-map`/25,
+`minimal-rows-per-concern`/28, `scenario-names-describe-conditions`/29). Key is now **69 entries**;
+`t4` scores **63/68 (93%)** and `m1` **60/68 (88%)**.
+
+**The two levels have almost disjoint error sets**, and per eval that is decisive:
+
+| Eval | `high` wrong | `medium` wrong | Better |
+|---|---|---|---|
+| 15 | `2.16-no-duplicate-tier-mapping` | — | **medium** |
+| 18 | `rule-statable-from-table` | `depth-premium-boundaries`, `minimal-rows-per-concern`, `separates-decision-and-premium` | high |
+| 22 | — | `description-no-irrelevant-information` | high |
+| 23 | `concerns-decomposed` | — | **medium** |
+| 25 | `rule-statable-from-table` | `options-as-map` | tie |
+| 28 | `minimal-rows-per-concern` | — | **medium** |
+| 29 | — | `quantifier-covered-by-rows`, `scenario-names-describe-conditions`, `type-converters-for-complex-objects` | high |
+
+**The two levels fail in opposite directions.** Seven of `medium`'s eight errors are false PASSes —
+it misses real defects. Four of `high`'s five are false FAILs — it over-fires, and in three of them
+by *inventing a stricter obligation list than the eval's own `expected_output.md` states*, which the
+assertions explicitly forbid. `medium` is not simply a worse `high`; it trades over-firing for
+under-firing.
+
+**The mechanism behind `medium`'s misses, from the evidence text:** it stops at the first confirming
+instance instead of scanning. On `scenario-names`/29 it quoted a row from a different table and never
+reached `Empty cart cannot check out`; on `description-no-irrelevant-information`/22 it cited the
+description's legitimate additions and never weighed the redundant sentence. Both assertions carry an
+explicit "judge every `@TableTest`" clause.
+
+**Candidate split — 14 of 17 at `medium`,** adding **15, 23, 25, 28** (100 slots) to the ten, leaving
+only **18, 22, 29** (83 slots) at `high`. Note this *moves 22 up* and *moves 25 down* relative to the
+noise-floor reasoning above: 25's 2-slot divergence is one error each way, and 22's single divergence
+is `medium` being wrong.
+
+**The property is still not stated, and this measurement does not supply it.** The obvious candidates
+are falsified by the data: it is not eval size (15 and 25 are as large as 18), not failing-set size
+(15 and 28 have *six* genuine failures each and `medium` is perfect on both, while 29 has four and
+`medium` misses three), and not assertion identity (`medium` reads `minimal-rows-per-concern`
+correctly on 15 and 28 and wrongly on 18). **n = 1 per level**, so a real share of this table could be
+instability rather than an effort effect — that is exactly what the repeat passes must settle before
+any of it is pinned.
+
 ## Haiku retested on the rebuilt instrument — 2026-07-25 (`benchmark-h1.json`)
 
 The hypothesis was that three batches of assertion rewrites had lowered the capability bar: the
