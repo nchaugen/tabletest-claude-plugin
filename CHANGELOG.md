@@ -4,13 +4,6 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-### Added
-- **tabletest**: Writing tests from a feature description now starts by committing to one `@TableTest` method per concern *before* any table is written — list the concerns, name the method each becomes, then write them. A feature stated as a list of policy rules is not one concern just because it resolves to a single verdict: eligibility conditions, tier and category boundaries, and status handling are separate concerns, with a combining table for the final verdict where one is needed. The decision is made up front because once a single table exists, the pull is to keep extending it with rows rather than split it
-- **tabletest**: Guidance on where a per-concern constant belongs — a threshold or limit the row's value is tested against stays visible as its own column beside the value it gates, because seeing it is how the reader checks the rule; a value the concern merely holds irrelevant belongs in `@Description` or the method body, not a column
-
-### Changed
-- **tabletest**: Concern decomposition is explicitly about splitting *concerns into methods* — a single domain value (a coupon's type, amount and target; an address's fields) still stays in one column with a `@TypeConverter` rather than being spread across sparse columns
-
 ## [1.6.0] - 2026-07-07
 
 ### Added
