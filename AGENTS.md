@@ -229,8 +229,12 @@ exactly one of them changed between the compared iterations.
   `docs/assertion-triage.md`.
   Those models also run **adaptive thinking by default**, so the verdict JSON is not `content[0]`
   (`extractGradingText` selects the text block) and thinking bills against `max_tokens` — hence the
-  larger budget for them. Grading is ~4× slower than haiku; a full-suite `--grade-only` exceeds ten
-  minutes, so background it.
+  larger budget for them. Grading is ~4× slower than haiku. **Measured 2026-07-25 over four full-suite
+  `--grade-only` passes: 22, 35 and 83 minutes wall clock** (the 83 included retries after a transient
+  `fetch failed` late in the run). Budget **20–90 minutes per full regrade**, not "a bit over ten" —
+  the earlier "exceeds ten minutes" was a floor and reads as an estimate, which is how a session ends
+  up planning three regrades into an afternoon that cannot hold them. Always background it, and price
+  a variance probe (three passes) at **1–4 hours**, not one.
   Sharper assertion *wording* does not fix grader disagreement and has been tried twice: the
   disagreement is response-level, so it is a sampling problem, not a prompt problem. **Check
   call parameters before rewriting prompts.**
