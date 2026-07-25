@@ -16,6 +16,7 @@
     "Two entries record the grader as stably wrong rather than merely noisy: titles-form-a-family/25 (fails an otherwise coherent family for one subject-first outlier) and 1.7-readability-scenario-names/14. A stable wrong verdict is bias, which majority voting entrenches instead of fixing, so these are the entries worth re-checking after any wording change.",
     "Method note, learned while authoring this extension: minimal-rows-per-concern cannot be adjudicated from the assertion text — it must be read against the concern's coverage obligations in expected_output.md, which run-evals.js already puts in the grader's prompt. The minimal-rows-per-concern/30 entry was authored PASS from the text alone and corrected to FAIL once the obligation list was consulted; the grader had it right. Consequence for docs/assertion-triage.md: this assertion is classified 'irreducible — not derivable from source', but the information it needs is in the grader's own prompt and the 192-character assertion text never points at it. That makes it a bounded-judgement fix (name the surface), not an irreducible one.",
     "Tranche 2 landed 2026-07-25 and changed four assertion texts, so every entry hosting one was re-verified against its artefact under the new wording before this key was re-published. titles-form-a-family (25-28), description-no-redundant-field-values (22, 23) and minimal-rows-per-concern (13 hosts) kept every verdict — the edits express what the key already recorded, which is the result to want. rule-falsifiable-by-a-row/27 moved from borderline to firm PASS, because the invariance exemption it was waiting for now exists.",
+    "Pre-registered predictions for the BATCH-3 re-baseline (suffix t3), recorded before it ran. scenario-names-describe-conditions was unified from EIGHT divergent per-eval texts into one and narrowed to a cell-echo test; minimal-rows-per-concern gained a judge-every-table clause. Predictions: scenario-names goes correct on 7, 9, 22 and 23 (each has a name paraphrasing its own expectation cell) and on 27 (which the narrowing deliberately releases to PASS); the six hosts with no key entry — 18, 25, 26, 28, 29, 30 — must NOT start failing, and eval-30's 'Delivery and pickup items always split' plus eval-18's 'would otherwise be standard' are the two most likely over-fires, both named as PASS examples in the new text specifically to prevent that. minimal-rows-per-concern/14 flips to correct if the judge-every-table clause makes the grader reach the fifth table. If 18, 25, 26, 28, 29 or 30 newly fail scenario-names, the narrowing over-fired and the PASS examples are too weak — widen them rather than reverting.",
     "Pre-registered predictions for the tranche-2 re-baseline, recorded before it ran: titles-form-a-family goes 4/4 correct (25 and 26 flip to PASS on the single-outlier exemption, 27 stabilises PASS, 28 stays FAIL on the eight 'should' prefixes); description-no-redundant-field-values/23 flips to PASS; minimal-rows-per-concern improves on 14, 23 and 30 where the obligation list decides it. If titles-form-a-family/25 still fails, the exemption did not work and the majority-shape clause is the suspect, not the outlier sentence."
   ],
   "entries": [
@@ -31,14 +32,14 @@
       "assertion": "scenario-names-describe-conditions",
       "expected": false,
       "confidence": "firm",
-      "basis": "'User cannot delete' and 'Guest cannot write' put the allowed/denied outcome in the name, which the Allowed? column already carries. This is the B5 data-echo residue; haiku passed it, sonnet fails it correctly."
+      "basis": "'User cannot delete' and 'Guest cannot write' sit beside an Allowed? column of false; 'cannot' paraphrases that cell, which is the narrowed criterion's first FAIL condition. Verdict unchanged across the rewording — the cell-echo test was always what made these wrong."
     },
     {
       "eval": 9,
       "assertion": "scenario-names-describe-conditions",
-      "expected": null,
-      "confidence": "borderline",
-      "basis": "One name of five ('Contractor gets no bonus') states an outcome; the other four are pure conditions. Strictly a violation, but the grader offered a bare row quote with no argument, and failing a slot on 1-of-5 is the weakest of the four sonnet flips. Recorded, not scored — decide the bar before making this load-bearing."
+      "expected": false,
+      "confidence": "firm",
+      "basis": "Upgraded from borderline once the narrowed criterion landed. 'Contractor gets no bonus' sits beside a Bonus Percentage? cell of 0.0 — 'no bonus' paraphrases that value, which is now the explicit FAIL condition, and the text states that a single offending name fails. The other four names are pure conditions. What made this borderline was the missing bar, not the reading."
     },
     {
       "eval": 14,
@@ -207,7 +208,7 @@
       "assertion": "scenario-names-describe-conditions",
       "expected": false,
       "confidence": "firm",
-      "basis": "The pricing table names four rows by outcome — 'No discount applies', 'Early-bird discount applies', 'Group discount applies', 'Both apply, early-bird wins' — while Discount? and Price? are the output columns."
+      "basis": "'No discount applies' sits beside a Discount? cell of 0.00, which the narrowed criterion names explicitly as a worked example. Verdict unchanged. Note the triage predicted this narrowing would stop catching eval-22; it does not — 'no discount' paraphrases 0.00 directly. The prediction was wrong, the entry stands."
     },
     {
       "eval": 23,
@@ -235,7 +236,7 @@
       "assertion": "scenario-names-describe-conditions",
       "expected": false,
       "confidence": "firm",
-      "basis": "'Below threshold rejects regardless of stable income' and 'Below threshold rejects even with missing income info' state the verdict the Result? column carries."
+      "basis": "'Below threshold rejects regardless of stable income' and 'Below threshold rejects even with missing income info' sit beside a Result? column of REJECTED; 'rejects' paraphrases that cell. Verdict unchanged across the rewording."
     },
     {
       "eval": 23,
@@ -338,9 +339,9 @@
     {
       "eval": 27,
       "assertion": "scenario-names-describe-conditions",
-      "expected": false,
+      "expected": true,
       "confidence": "firm",
-      "basis": "'Fragile surcharge applied' is verbatim the anti-pattern the assertion cites ('Surcharge applied'). The insurance table compounds it with 'Below minimum premium, minimum charged', 'At minimum premium exactly' and 'Above minimum, premium charged', all of which state the outcome the Total Cost? column carries."
+      "basis": "FLIPPED to PASS by the narrowing, deliberately and with coverage loss accepted. 'Fragile surcharge applied' remains a poor name and was verbatim the old text's cited anti-pattern, but it does not state or paraphrase its expectation cell (Total Cost? 8.625); nor do 'Below minimum premium, minimum charged' or 'Above minimum, premium charged' echo 10.50/13.50. Under the cell-echo test every eval-27 name passes. This is the trade the triage argued for — a narrower stable rule beats a broader random one — and the residual defect (result-qualifier names that do not echo a cell) now has no instrument. Record it as a suite gap, not as a passing output."
     },
     {
       "eval": 27,
