@@ -94,8 +94,54 @@ least one PASS and one FAIL case before it is trusted** (`docs/grader-answer-key
 - **`rule-statable-from-table`, clause (2)** — "the operation applied to the inputs cannot be named
   from the column headers and cell values alone". This is the plan's central question (D(e)) and there
   is no syntactic proxy for it.
-- **`minimal-rows-per-concern`** — row count is only judgeable against the concern's obligations, which
-  live in prose in `expected_output.md`. Not derivable from source.
+- ~~**`minimal-rows-per-concern`**~~ — **reclassified as Bounded, 2026-07-25.** The premise was that the
+  concern's obligations "live in prose in `expected_output.md`" and are therefore unavailable. They are
+  available: `run-evals.js` puts `expected_output.md` into the grader's prompt. What is missing is any
+  instruction to use it — the assertion is 192 characters and never names the obligation list. Evidence:
+  authoring the answer key for eval-30 produced a PASS from the assertion text alone, and the artefact
+  plus the obligation list ("one interaction case … is valuable but optional"; "Iteration-40 spends 6
+  rows here where 4 obligations exist") makes it a FAIL — the grader had it right and cited the
+  obligation list to get there. **Fix: name the surface** ("judge the row set against the coverage
+  obligations stated for this concern in the expected output"), the same edit that worked for items 5,
+  6 and 8 of the `84e6916` tranche. Do not vote it before trying that.
+
+## Accuracy over the whole failing set — measured 2026-07-25
+
+The answer key was extended from 30 entries to 63, covering **every slot in the union of the three
+variance passes' failing sets** (51 slots: 33 stable failures, 18 flippers). Scoring the four gradings
+of identical stored outputs against it:
+
+| Run | Accuracy |
+|---|---|
+| baseline `grading.json` | 53/60 (88%) |
+| pass v1 | 52/60 (87%) |
+| pass v2 | 46/60 (77%) |
+| pass v3 | 52/60 (87%) |
+
+**The 20/21 (95%) that justified the haiku→sonnet switch was measured on 21 entries and overstates the
+grader.** On the slots that actually decide a skill delta, sonnet runs at 77–88% — and accuracy itself
+swings 10 points across byte-identical inputs.
+
+**Bias versus variance, over the four runs:**
+
+- **40 of 60 slots are correct in every pass.**
+- **1 slot is wrong in every pass** — `titles-form-a-family`/25, which fails an otherwise coherent
+  family for one subject-first outlier. Genuine bias, and the tranche-2 exemption already drafted in
+  the slice-1 plan is its fix.
+- **19 slots are wrong in at least one pass**, and five of those are wrong in *three* of four:
+  `scenario-names-describe-conditions` on 7, 23 and 27, `description-no-redundant-field-values`/23, and
+  `rule-statable-from-table`/27.
+
+**The consequence that changes the sequencing.** Majority-of-three voting resolves a slot to whatever
+the grader says most often — so on those five slots **voting converts a 75%-wrong verdict into a
+100%-wrong one**. `scenario-names-describe-conditions` is the clearest case: it would become reliably
+wrong on three separate evals. Voting buys detection power and pays for it in direction, which is the
+worse trade for a plan trying to establish that a skill edit helped. Estimated post-voting accuracy is
+~53/60 — the same headline as a single run, with roughly six slots now *stably* wrong.
+
+**So: narrow and re-score before voting.** `--grade-runs 3` stays necessary for the MDE, but it must be
+applied after the wording fixes, not instead of them, and every fix must be re-scored for accuracy — an
+edit that raises stability while lowering accuracy has made the instrument worse.
 
 ## Sequencing
 

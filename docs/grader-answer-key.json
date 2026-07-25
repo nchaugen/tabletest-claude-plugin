@@ -10,7 +10,12 @@
   "caveats": [
     "Entries are only valid while the assertion text and the stored output both stay unchanged. Changing either invalidates that row, not the whole key.",
     "Four entries (title-states-system-behaviour/23, black-box-columns/18, 1.9/14, concerns-decomposed/30) are cases the 84e6916 tranche was written to fix, so they double as that tranche's own validation. If they still fail after the re-baseline, the surface-scoping clauses did not work.",
-    "Entries marked confidence 'firm' were read directly off the artefact. 'borderline' entries are judgement calls recorded for transparency and excluded from the score."
+    "Entries marked confidence 'firm' were read directly off the artefact. 'borderline' entries are judgement calls recorded for transparency and excluded from the score.",
+    "Extended 2026-07-25 over the whole failing set of the 324/365 baseline: 33 entries covering every slot that failed stably across the three variance passes, plus every slot that flipped between them. The key now covers all 51 slots in the union of those passes' failing sets, so a grading run can be scored for accuracy on exactly the slots where accuracy matters. Passing-everywhere families are still uncovered by design — they are ballast, and a grader that flips one would show up as instability first.",
+    "The sample is deliberately adversarial (40 firm FAIL-expected against 19 firm PASS-expected), because it is drawn from the failing set. The resulting score is accuracy on hard cases, NOT a suite-wide accuracy estimate — do not read it as 'the grader is right N% of the time'.",
+    "Two entries record the grader as stably wrong rather than merely noisy: titles-form-a-family/25 (fails an otherwise coherent family for one subject-first outlier) and 1.7-readability-scenario-names/14. A stable wrong verdict is bias, which majority voting entrenches instead of fixing, so these are the entries worth re-checking after any wording change.",
+    "Method note, learned while authoring this extension: minimal-rows-per-concern cannot be adjudicated from the assertion text — it must be read against the concern's coverage obligations in expected_output.md, which run-evals.js already puts in the grader's prompt. The minimal-rows-per-concern/30 entry was authored PASS from the text alone and corrected to FAIL once the obligation list was consulted; the grader had it right. Consequence for docs/assertion-triage.md: this assertion is classified 'irreducible — not derivable from source', but the information it needs is in the grader's own prompt and the 192-character assertion text never points at it. That makes it a bounded-judgement fix (name the surface), not an irreducible one.",
+    "rule-falsifiable-by-a-row/27 is recorded borderline because the ASSERTION is defective, not the grader: a single-row invariance table ({DHL, UPS, FEDEX} -> 12.00) literally meets its conditions (1) and (3) while being the correct shape for an invariance claim. Evals 25, 26 and 28 carry the same table and pass stably. Fix the assertion to exempt a declared invariance table, then re-enter the slot as firm."
   ],
   "entries": [
     {
@@ -36,10 +41,24 @@
     },
     {
       "eval": 14,
+      "assertion": "1.11-format-description",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "The first @Description opens 'Overtime threshold is fixed at 40 hours/week; hours beyond it are paid at 1.5x' — the threshold and the multiplier are exactly what the assertion forbids restating, and rows 3-5 (40 -> 800.00, 41 -> 830.00) already demonstrate both. Stable FAIL across all three passes and correct."
+    },
+    {
+      "eval": 14,
       "assertion": "1.6-readability-empty-cells",
       "expected": false,
       "confidence": "firm",
       "basis": "Sunday and Holiday hour columns carry explicit 0 rather than blank cells, and every parameter is primitive double so a blank cell could not bind. The readability pattern the assertion asks for is absent."
+    },
+    {
+      "eval": 14,
+      "assertion": "1.7-readability-scenario-names",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "25 of 27 scenario names describe the work pattern ('Hours below the overtime threshold', 'Sunday hours only', 'Negative hours treated as an adjustment'), matching the assertion's own good examples. Two names in the combining table ('Combined pay lands exactly on zero', 'Combined pay would go negative, floored at zero') do lean on the outcome, and that is what the FAIL pass cited — but the assertion names 'Test case 1' and outcome-echoing as a practice, and this class does not exhibit it. Two exceptions in an otherwise exemplary set is the single-outlier case, not the failure."
     },
     {
       "eval": 14,
@@ -49,11 +68,39 @@
       "basis": "The output uses no value sets at all, so there is no misuse to police — a vacuous pass. The iteration-40 grader inverted the criterion and failed it for not using more value sets."
     },
     {
+      "eval": 14,
+      "assertion": "minimal-rows-per-concern",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "The fifth table calculatesWeeklyPay is a superset of the first two: its own @Description says it combines 'the rules from the tables above', and rows 2-4 ('Week with weekday overtime | 45', 'Week with Sunday hours', 'Week with holiday hours') re-prove the overtime rule from table 1 and the 2x premium rule from table 2. Four of its six rows re-cover obligations already discharged; only the all-bands row and the zero-rate row are about integration."
+    },
+    {
+      "eval": 14,
+      "assertion": "separates-classification-and-calculation",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "calculateWeekdayPay(weekdayHours, hourlyRate) goes straight from raw hours to a pound amount ('41 | 20.00 | 830.00'). No table shows the band split (41 hours -> 40 regular + 1 overtime) that expected_output.md asks for; classification and calculation are fused in every table."
+    },
+    {
+      "eval": 15,
+      "assertion": "2.16-no-duplicate-tier-mapping",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "Table 1 owns the trips->discount ladder, and tables 3 and 4 re-enumerate it. Table 3 restates 3 -> 0, 10 -> 10 and 45 -> 40; table 4 derives 4 history entries -> 5% and 9 entries -> 10% a third time. Table 3's concern (CHILD flat vs ADULT/SENIOR ladder) needs only one trip count held constant to make its point."
+    },
+    {
       "eval": 15,
       "assertion": "2.17-zone-irrelevance-visible",
       "expected": false,
       "confidence": "firm",
       "basis": "discountForCategoryAndTripCount has no Zone column. Zone-independence is shown only in the counting table, which is not the eligibility table the requirement's 'regardless of the zones you travel in' attaches to."
+    },
+    {
+      "eval": 15,
+      "assertion": "2.19-depth-all-tiers",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "The ladder table shows tiers 0%, 5%, 10%, 35% and 40% only — trip counts 0-14 and 35-100. The 15%, 20%, 25% and 30% tiers (trips 15-34) appear in no row. The assertion asks for all nine and says explicitly 'Not just a subset of tiers'."
     },
     {
       "eval": 15,
@@ -69,6 +116,13 @@
       "confidence": "firm",
       "basis": "CORRECTED 2026-07-25. The key first said FAIL, on the grounds that the @TypeConverter hardcodes TravelerCategory.ADULT into every PastPurchase. That reading was wrong: countSingleTicketsInWindow(history, purchaseTime) takes no category argument, and calculatesDiscountEndToEnd passes travelerCategory as its own column to calculateDiscount(travelerCategory, purchaseTime) — so the hardcoded ADULT reaches no outcome, and the assertion's explicit 'values that cannot affect the outcome are not failures' carve-out applies. PURCHASE_TIME is likewise indifferent because every history cell is expressed as days-ago relative to it. The sonnet grader made this argument and was right; the haiku grader reached PASS without it.",
       "history": "Caught by the sonnet grading run disagreeing with the key. Kept as a worked example that a disagreement can be the key's fault — re-read the artefact before adjusting an assertion."
+    },
+    {
+      "eval": 15,
+      "assertion": "rule-statable-from-table",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "Every value needed to predict an expectation is published: the ladder's 5-trip step, 5% increment and 40% cap are in table 1's @Description; the 30-day window and the SINGLE-only filter are in table 2's; the CHILD flat 20% and ADULT==SENIOR in table 3's. PURCHASE_TIME is a private field and looks like clause (1)'s 'reference date', but the History cells encode days-ago relative to it ('30/SINGLE/ZONE_1') and the scenario names decode that ('Exactly 30 days ago is still in window'), so its absolute value is never needed. Clause (1) requires the value to be BOTH needed and body-only. NOTE: this is the entry a mechanical clause-(1) checker is most likely to get wrong — a literal 'reference date in a field' proxy fails it."
     },
     {
       "eval": 15,
@@ -93,10 +147,38 @@
     },
     {
       "eval": 18,
+      "assertion": "depth-decision-boundaries",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "The decision table has claim counts 1, 5, 5 and 10 — no 4-claim row, so the 4-approves/5-rejects cliff the assertion names is not demonstrated. NOTE the output found a sharper boundary instead: age 9 vs 10 at 5 claims straddles risk score 75/76 exactly. The assertion's ground truth is arguably over-specified, but as written it is unmet."
+    },
+    {
+      "eval": 18,
+      "assertion": "depth-premium-boundaries",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "The premium table covers the age 64 vs 65 boundary (142.00 vs 273.50 at one claim) but not the 0-to-1 claim jump: its four rows are 64/1, 65/1, 30/0 and 90/0, with no same-age pair differing only in claim count, so the +15 risk-score effect cannot be isolated. Table 1 does happen to contain 30/0 -> 106.00 beside 30/1 -> 136.00, but the assertion scopes the requirement to the approved premium table."
+    },
+    {
+      "eval": 18,
       "assertion": "description-no-internals",
       "expected": false,
       "confidence": "firm",
       "basis": "The second @Description states 'Risk score is age/10 + claimCount * 15' and 'rejected once the score exceeds 75' — the internal formula and threshold, which this eval's ground truth explicitly forbids in the description."
+    },
+    {
+      "eval": 18,
+      "assertion": "minimal-rows-per-concern",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "Three tables of four rows each, one concern apiece, no cross-products. Table 2 compresses applicant type into a {NEW, RENEWAL} value set rather than duplicating rows, and table 3 pairs 64/65 at fixed claim count to isolate the tier switch. This is the compact shape the assertion rewards; the FAIL passes are noise."
+    },
+    {
+      "eval": 18,
+      "assertion": "separates-decision-and-premium",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "Tables 1 and 2 each carry both a Status? and a Premium? expectation column and assert both. Only table 3 is premium-only. Decision logic and premium calculation are therefore not in separate methods — two of three tables do both."
     },
     {
       "eval": 20,
@@ -104,6 +186,13 @@
       "expected": true,
       "confidence": "firm",
       "basis": "Every list cell uses correct TableTest bracket syntax with quoted elements. Known grader self-contradiction, already recorded in the slice-1 plan as noise."
+    },
+    {
+      "eval": 22,
+      "assertion": "minimal-rows-per-concern",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "Two tables, cleanly separated: validation (with date and group size fixed to non-discounting values and declared as such) and pricing. Neither combines concerns and neither permutes. The eleven validation rows are eleven distinct input classes — null/empty/blank name, null/empty email, four distinct malformations. Contrary reading recorded: the four malformed-email rows arguably discharge one obligation four times and a value set would compress them, but the assertion's stated mechanism is permutation from combined concerns, which is absent."
     },
     {
       "eval": 22,
@@ -121,10 +210,24 @@
     },
     {
       "eval": 23,
+      "assertion": "concerns-decomposed",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "The assertion explicitly blesses this shape — 'A single table is acceptable when the concerns share the same input columns and each is covered by only a row or two — as here' — and fails only 'a table that cross-multiplies concerns into redundant rows'. The output is one table of eleven rows with three boundary pairs; that is not a cross-product (a true one would be 27 rows)."
+    },
+    {
+      "eval": 23,
       "assertion": "description-no-redundant-field-values",
       "expected": true,
       "confidence": "firm",
       "basis": "The grader failed it for stating thresholds 650/600 and the age-65 cutoff, but the assertion's own text says 'Stating a constant that is NOT a column — a threshold, a policy figure, a value fixed in the method body — is correct and must not fail this assertion.' No threshold is a column here; Credit Score and Age hold applicant values, not the policy figures. Same misfire class as the four the 84e6916 tranche fixed."
+    },
+    {
+      "eval": 23,
+      "assertion": "minimal-rows-per-concern",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "Two of the eleven rows are cross-concern permutations that add no obligation: 'Senior qualifying score with missing income information' (70/610/null) re-covers senior-threshold and missing-income, both already discharged separately; 'Below threshold rejects even with missing income info' re-covers the below-threshold rule the preceding row already discharges with a {true, false} value set. Compatible with concerns-decomposed passing: the decomposition is right, the row set is not minimal."
     },
     {
       "eval": 23,
@@ -141,6 +244,48 @@
       "basis": "The title is the method name evaluatesLoanApproval, which humanises to 'Evaluates loan approval' — states what the evaluator does. The iteration-40 grader failed it by quoting the @Description instead, which is another assertion's subject."
     },
     {
+      "eval": 25,
+      "assertion": "concern-not-over-split",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "Four tables (oversizeSurcharge, hazmatHandlingSurcharge, fragileSurcharge, insuranceSurcharge) all fix EU standard at 3.0 kg with dimensions 30x20x15 and vary one surcharge each, all outputting Fee?. That is the assertion's literal FAIL condition and its literal example ('a separate table per surcharge'). Both guards favour collapsing: one table with an Options column is roughly seven rows, no cross-product, each row's purpose legible from its scenario name."
+    },
+    {
+      "eval": 25,
+      "assertion": "options-type-converter",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "buildOptions(config: Map<String, String>?) is a private helper, not annotated @TypeConverter, so the conversion happens in the method body rather than on the row's path. The assertion requires the annotated converter."
+    },
+    {
+      "eval": 25,
+      "assertion": "rule-statable-from-table",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "Every predictive value is published in a @Description: the 1.15x fragile multiplier ('so Fee? shows only the 1.15x fragile-handling multiplier'), the 10.00 oversize surcharge, the 8.00 hazmat surcharge, the 0.6%-with-3.00-minimum insurance rule, and the 7.50 base fee each table holds fixed. Contrast evals 27 and 28, where the same fragile multiplier appears nowhere — the three together discriminate this assertion cleanly on one task from three sources."
+    },
+    {
+      "eval": 25,
+      "assertion": "titles-form-a-family",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "GRADER IS STABLY WRONG HERE. Seven titles, six of them subject-first noun phrases (baseRateByRegionSpeedAndWeight, dimensionalWeightOverride, oversizeSurcharge, hazmatHandlingSurcharge, fragileSurcharge, insuranceSurcharge) plus one active sentence (carrierDoesNotAffectCost). No leading 'should/test/verify', the varying subject comes first, and one shape runs across the family — the assertion's stated PASS condition. The single outlier is a negative invariant, which reads best subject-first. The real defect in these titles is that noun phrases do not read as rule statements, which this assertion does not name."
+    },
+    {
+      "eval": 26,
+      "assertion": "options-as-map",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "appliesSurchargesToBaseCost keeps Fragile, Insured Value and Handling as three separate columns with mostly-blank cells — six of its eight rows leave two of the three blank. That is exactly the shape the assertion contrasts against a single [fragile: true, insuredValue: 500] map column."
+    },
+    {
+      "eval": 26,
+      "assertion": "options-type-converter",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "No @TypeConverter anywhere in the class; PackageOptions is constructed inline in the method body from three separate column parameters."
+    },
+    {
       "eval": 26,
       "assertion": "titles-form-a-family",
       "expected": true,
@@ -149,10 +294,59 @@
     },
     {
       "eval": 27,
+      "assertion": "concern-not-over-split",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "Four tables (appliesOversizeSurcharge…, appliesFragileSurcharge, appliesInsurancePremiumWithMinimum, appliesHazmatHandlingFee) all fix EU standard at 3.0 kg with DEFAULT_DIMENSIONS and vary one surcharge each, all outputting Total Cost?. Same over-split as eval-25 and one table worse."
+    },
+    {
+      "eval": 27,
       "assertion": "consistent-quantity-naming",
       "expected": false,
       "confidence": "firm",
       "basis": "'Base Rate?' and 'Rate?' name the same pre-surcharge quantity two ways. Contrast eval-25 and eval-28, where Base Fee?/Fee? and Rate?/Total? distinguish base from total — genuinely two quantities, which the assertion permits and sonnet correctly passed."
+    },
+    {
+      "eval": 27,
+      "assertion": "options-as-map",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "The options are not merely split into columns, they are split across four tables with one option column each (Fragile, Insured Value, Handling, then a combined table). No map column anywhere."
+    },
+    {
+      "eval": 27,
+      "assertion": "options-type-converter",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "No @TypeConverter; PackageOptions is built with setters inside each method body."
+    },
+    {
+      "eval": 27,
+      "assertion": "rule-falsifiable-by-a-row",
+      "expected": null,
+      "confidence": "borderline",
+      "basis": "ASSERTION DEFECT, not a grader error — excluded from scoring deliberately. carrierDoesNotAffectPrice is a single value-set row ({DHL, UPS, FEDEX} -> 12.00) whose expectation column holds one value, so it literally meets conditions (1) and (3); but a constant expectation is the correct shape for an invariance claim, which is the converse of D(d). Evals 25, 26 and 28 carry a structurally identical carrier table and pass this assertion stably, so applying it literally here is inconsistent rather than right. Fix the assertion to exempt a declared invariance table, then re-enter this slot."
+    },
+    {
+      "eval": 27,
+      "assertion": "rule-statable-from-table",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "appliesFragileSurcharge shows false -> 7.50 and true -> 8.625 with an @Description that states only the fixed zone, weight and 7.50 base rate. The 1.15 multiplier needed to predict 8.625 appears in no column, title or description. Same defect as eval-28's entry; eval-25 publishes the multiplier and passes."
+    },
+    {
+      "eval": 27,
+      "assertion": "scenario-names-describe-conditions",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "'Fragile surcharge applied' is verbatim the anti-pattern the assertion cites ('Surcharge applied'). The insurance table compounds it with 'Below minimum premium, minimum charged', 'At minimum premium exactly' and 'Above minimum, premium charged', all of which state the outcome the Total Cost? column carries."
+    },
+    {
+      "eval": 27,
+      "assertion": "titles-form-a-family",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "Eight titles, all active verb-led sentences with informative verbs (calculatesBaseRateByZoneAndWeight, appliesDimensionalWeightWhenGreaterThanActual, appliesOversizeSurcharge…, appliesFragileSurcharge, appliesInsurancePremiumWithMinimum, appliesHazmatHandlingFee, combinesSurchargesInOrder, carrierDoesNotAffectPrice). No 'should/test/verify', one consistent shape across the family, subject early. Contrast eval-28, where all eight begin 'should' and clause (1) fires."
     },
     {
       "eval": 28,
@@ -170,10 +364,31 @@
     },
     {
       "eval": 28,
+      "assertion": "options-as-map",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "Options appear as single-column tables — Fragile? | Total?, Insured Value | Total?, Handling | Total? — never as a map column."
+    },
+    {
+      "eval": 28,
+      "assertion": "options-type-converter",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "A private static options(boolean, BigDecimal, String) factory builds PackageOptions in the method body; no @TypeConverter is present."
+    },
+    {
+      "eval": 28,
       "assertion": "rule-statable-from-table",
       "expected": false,
       "confidence": "firm",
       "basis": "The fragile multiplier (1.15) appears nowhere in any table, title, or description, and shouldApplyFragileMultiplier has no @Description at all — a value needed to predict 8.625 from 7.50 is invisible."
+    },
+    {
+      "eval": 28,
+      "assertion": "titles-form-a-family",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "All eight titles begin 'should' (shouldLookUpBaseRate…, shouldUseTheLargerOf…, shouldAddOversizeSurcharge…, shouldApplyFragileMultiplier, shouldAddInsurancePremium…, shouldAddHazmatHandlingFee, shouldCombineFragileMultiplier…, shouldNotVaryCostByCarrier). Clause (1) fires directly: three or more sharing an uninformative leading word, so the varying subject arrives late in every entry."
     },
     {
       "eval": 29,
@@ -188,6 +403,20 @@
       "expected": null,
       "confidence": "borderline",
       "basis": "'Product Id' carries a code-ism where cells hold product names, and 'Cart Items' / 'Cart Before' name the same quantity two ways. Both are real nits; whether they clear the assertion's bar is a judgement call. Recorded, not scored."
+    },
+    {
+      "eval": 29,
+      "assertion": "consistent-quantity-naming",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "'Cart Before' in addsItemsFromTheCatalogue and removesItemsFromTheCart names the same quantity as 'Cart Items' in checksOutTheCart and calculatesTheCartTotal — the cart's contents on the way in. This is the assertion's own worked example."
+    },
+    {
+      "eval": 29,
+      "assertion": "quantifier-covered-by-rows",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "calculatesTheCartTotal's @Description claims the total is 'floored at zero regardless of which coupon type produced the discount', but the floor rows cover FIXED (20.00, 25.00) and PERCENT (via the {PERCENT 50, FIXED 5.00} value set) only. No PRODUCT coupon appears in any row reaching zero, so the rows cover two of the three types the claim quantifies over."
     },
     {
       "eval": 29,
@@ -216,6 +445,13 @@
       "expected": false,
       "confidence": "firm",
       "basis": "The first table has no @Description at all while its body fixes StockStatus.IN_STOCK and a single warehouse 'W1' — the subjects of tables 2 and 3. Both affect the outcome and appear nowhere on the published surface."
+    },
+    {
+      "eval": 30,
+      "assertion": "minimal-rows-per-concern",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "CORRECTED 2026-07-25: first read as PASS from the assertion text alone, which was the wrong method — this assertion is only judgeable against the concern's coverage obligations, and expected_output.md states them. Fulfillment concern: four obligations (a)-(d), with 'one interaction case … is valuable but optional; it composes (a)+(b), it does not add a rule' — the table spends six rows, using two interaction rows where one is allowed. Availability concern: 'Iteration-40 spends 6 rows here where 4 obligations exist … it is what the obligation lens flags.' The grader reached the same verdict by citing the obligation list directly."
     },
     {
       "eval": 30,
