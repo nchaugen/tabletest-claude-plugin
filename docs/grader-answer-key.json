@@ -1,0 +1,171 @@
+{
+  "purpose": "Answer key for the GRADER, not for the skill. Each entry is a verdict established by reading the stored iteration-40 artefact, so a grading run can be scored for accuracy rather than only for self-agreement. Every prior grader measurement (temperature, --grade-runs, majority voting) measured precision; this measures whether the grader is right.",
+  "scored_against": {
+    "iteration": "iterations/tabletest/iteration-40",
+    "outputs_generated": "2026-07-22",
+    "skill_commit": "170d5b4",
+    "assertion_texts": "post-tranche (tabletest-claude-plugin 84e6916 and later)"
+  },
+  "how_to_use": "node scripts/score-grader.js --iteration 40 [--grading-suffix <s>]. Re-verify an entry against the artefact before trusting a disagreement — the key is a reading, not an oracle.",
+  "caveats": [
+    "Entries are only valid while the assertion text and the stored output both stay unchanged. Changing either invalidates that row, not the whole key.",
+    "Four entries (title-states-system-behaviour/23, black-box-columns/18, 1.9/14, concerns-decomposed/30) are cases the 84e6916 tranche was written to fix, so they double as that tranche's own validation. If they still fail after the re-baseline, the surface-scoping clauses did not work.",
+    "Entries marked confidence 'firm' were read directly off the artefact. 'borderline' entries are judgement calls recorded for transparency and excluded from the score."
+  ],
+  "entries": [
+    {
+      "eval": 23,
+      "assertion": "title-states-system-behaviour",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "The title is the method name evaluatesLoanApproval, which humanises to 'Evaluates loan approval' — states what the evaluator does. The iteration-40 grader failed it by quoting the @Description instead, which is another assertion's subject."
+    },
+    {
+      "eval": 18,
+      "assertion": "black-box-columns",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "Columns are Applicant Type / Age / Claim Count / Status? / Premium? — all public inputs and observable outputs, no internal state. Its near-twin observable-io-only passed the identical bytes; the failure came from grading the @Description."
+    },
+    {
+      "eval": 18,
+      "assertion": "description-no-internals",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "The second @Description states 'Risk score is age/10 + claimCount * 15' and 'rejected once the score exceeds 75' — the internal formula and threshold, which this eval's ground truth explicitly forbids in the description."
+    },
+    {
+      "eval": 18,
+      "assertion": "assertion-criteria-declared",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "Assertions are plain equality plus a conventional 0.001 float delta on a decimal premium column, which the assertion text exempts as numeric hygiene. No ordering, subset matching, or normalisation."
+    },
+    {
+      "eval": 14,
+      "assertion": "1.9-correctness-value-set-semantics",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "The output uses no value sets at all, so there is no misuse to police — a vacuous pass. The iteration-40 grader inverted the criterion and failed it for not using more value sets."
+    },
+    {
+      "eval": 14,
+      "assertion": "1.6-readability-empty-cells",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "Sunday and Holiday hour columns carry explicit 0 rather than blank cells, and every parameter is primitive double so a blank cell could not bind. The readability pattern the assertion asks for is absent."
+    },
+    {
+      "eval": 15,
+      "assertion": "2.17-zone-irrelevance-visible",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "discountForCategoryAndTripCount has no Zone column. Zone-independence is shown only in the counting table, which is not the eligibility table the requirement's 'regardless of the zones you travel in' attaches to."
+    },
+    {
+      "eval": 15,
+      "assertion": "window-boundary-uses-purchase-time",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "The converter parses whole days (PURCHASE_TIME.minusDays(daysAgo)) and the finest boundary distinction is 30 vs 31 days. The assertion explicitly fails a table whose finest distinction is whole days."
+    },
+    {
+      "eval": 15,
+      "assertion": "2.20-readability-one-row-per-tier",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "Each tier is split across two rows — 'Exactly at first tier | 5' beside 'Within first tier | {6, 7, 8, 9}' — which is the tier-kicks-in / tier-holds split the assertion forbids. iteration-40 passed it by looking only at the value-set rows."
+    },
+    {
+      "eval": 15,
+      "assertion": "held-constants-declared",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "The @TypeConverter hardcodes TravelerCategory.ADULT into every PastPurchase, in a class whose third table is about traveller category. Declared in no column, title, or description."
+    },
+    {
+      "eval": 30,
+      "assertion": "concerns-decomposed",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "Four concern-focused @TableTest methods. This eval's own assertion text says 'four methods covering five concerns is fine' and 'FAILS only when a single method carries all the rules'. iteration-40 failed it over the response prose miscounting concerns."
+    },
+    {
+      "eval": 30,
+      "assertion": "assertion-criteria-declared",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "describeByItems, describeByAvailability and describeByWarehouse all call .sorted(), and sortedProductIds sorts within a shipment. Shipment and item ordering are normalised by helpers while no table, title, or description claims anything about order."
+    },
+    {
+      "eval": 30,
+      "assertion": "held-constants-declared",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "The first table has no @Description at all while its body fixes StockStatus.IN_STOCK and a single warehouse 'W1' — the subjects of tables 2 and 3. Both affect the outcome and appear nowhere on the published surface."
+    },
+    {
+      "eval": 30,
+      "assertion": "native-collection-output",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "Expectation cells are hand-rolled strings ('W1:[camera,lens,mic]', 'IMMEDIATE:[camera,lens]') assembled by stringifying helpers, which is the exact form the assertion fails."
+    },
+    {
+      "eval": 28,
+      "assertion": "concern-not-over-split",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "Six tables all fix EU standard at 3.0kg and vary one surcharge each (oversize, fragile, insurance, hazmat, fragile+insurance), with the same output column. That is one concern scattered across same-fixture tables."
+    },
+    {
+      "eval": 28,
+      "assertion": "held-constants-declared",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "Carrier is held at Carrier.DHL for every table and declared only in a // comment above the class, which reaches none of the published surfaces. This is the case the comment clause was written for."
+    },
+    {
+      "eval": 28,
+      "assertion": "rule-statable-from-table",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "The fragile multiplier (1.15) appears nowhere in any table, title, or description, and shouldApplyFragileMultiplier has no @Description at all — a value needed to predict 8.625 from 7.50 is invisible."
+    },
+    {
+      "eval": 20,
+      "assertion": "list-syntax-correct",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "Every list cell uses correct TableTest bracket syntax with quoted elements. Known grader self-contradiction, already recorded in the slice-1 plan as noise."
+    },
+    {
+      "eval": 7,
+      "assertion": "no-duplicate-role-output",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "Rows 6 and 7 are 'GUEST | WRITE | false' and 'GUEST | DELETE | false' — same role, same boolean output, which the assertion forbids in favour of a {WRITE, DELETE} value set."
+    },
+    {
+      "eval": 22,
+      "assertion": "quantifier-covered-by-rows",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "The only quantifying claim is the group-discount threshold, discharged with a {5, 20} value set. No claim quantifies over a domain the rows leave at one value."
+    },
+    {
+      "eval": 29,
+      "assertion": "business-language-columns",
+      "expected": null,
+      "confidence": "borderline",
+      "basis": "'Product Id' carries a code-ism where cells hold product names, and 'Cart Items' / 'Cart Before' name the same quantity two ways. Both are real nits; whether they clear the assertion's bar is a judgement call. Recorded, not scored."
+    },
+    {
+      "eval": 29,
+      "assertion": "assertion-criteria-declared",
+      "expected": true,
+      "confidence": "borderline",
+      "basis": "checksOutTheCart applies substring matching, but the @Description declares it ('Message Mentions? lists the substrings the checkout message must contain'). Should pass; listed as borderline because the declaration is prose rather than a column."
+    }
+  ]
+}
