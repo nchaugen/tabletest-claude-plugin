@@ -1,0 +1,146 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 40,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "skill_commit": "unknown",
+  "skill_digest": "unknown",
+  "timestamp": "2026-07-25T10:02:04.225Z",
+  "evals": [
+    {
+      "id": "eval-25-convert-from-spock",
+      "name": "convert from spock",
+      "skill": "tabletest",
+      "fingerprint": "cdcde3c367a4",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 22,
+        "assertions_total": 26,
+        "pass_rate": 0.8461538461538461,
+        "failed_assertions": [
+          "options-type-converter",
+          "concern-not-over-split",
+          "rule-statable-from-table",
+          "titles-form-a-family"
+        ],
+        "total_tokens": 3006845,
+        "duration_ms": 514486,
+        "cost_usd": 1.8488143000000006
+      }
+    },
+    {
+      "id": "eval-26-convert-from-kotest",
+      "name": "convert from kotest",
+      "skill": "tabletest",
+      "fingerprint": "2a923551da2d",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 23,
+        "assertions_total": 26,
+        "pass_rate": 0.8846153846153846,
+        "failed_assertions": [
+          "options-as-map",
+          "options-type-converter",
+          "titles-form-a-family"
+        ],
+        "total_tokens": 1443172,
+        "duration_ms": 362383,
+        "cost_usd": 1.08674945
+      }
+    },
+    {
+      "id": "eval-27-convert-from-testng",
+      "name": "convert from testng",
+      "skill": "tabletest",
+      "fingerprint": "3cd23930f494",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 21,
+        "assertions_total": 25,
+        "pass_rate": 0.84,
+        "failed_assertions": [
+          "options-as-map",
+          "options-type-converter",
+          "concern-not-over-split",
+          "consistent-quantity-naming"
+        ],
+        "total_tokens": 1445041,
+        "duration_ms": 337704,
+        "cost_usd": 1.034595
+      }
+    },
+    {
+      "id": "eval-28-convert-from-methodsource",
+      "name": "convert from methodsource",
+      "skill": "tabletest",
+      "fingerprint": "1e3460fcd2b6",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 20,
+        "assertions_total": 25,
+        "pass_rate": 0.8,
+        "failed_assertions": [
+          "options-as-map",
+          "options-type-converter",
+          "concern-not-over-split",
+          "titles-form-a-family",
+          "held-constants-declared"
+        ],
+        "total_tokens": 986014,
+        "duration_ms": 330205,
+        "cost_usd": 0.9026856000000001
+      }
+    },
+    {
+      "id": "eval-29-shopping-cart-tt",
+      "name": "shopping cart tt",
+      "skill": "tabletest",
+      "fingerprint": "da4bc394137c",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 27,
+        "assertions_total": 29,
+        "pass_rate": 0.9310344827586207,
+        "failed_assertions": [
+          "quantifier-covered-by-rows",
+          "consistent-quantity-naming"
+        ],
+        "total_tokens": 968444,
+        "duration_ms": 322446,
+        "cost_usd": 0.90542215
+      }
+    },
+    {
+      "id": "eval-30-order-splitting-tt",
+      "name": "order splitting tt",
+      "skill": "tabletest",
+      "fingerprint": "14a4dde3595e",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 20,
+        "assertions_total": 24,
+        "pass_rate": 0.8333333333333334,
+        "failed_assertions": [
+          "minimal-rows-per-concern",
+          "native-collection-output",
+          "held-constants-declared",
+          "assertion-criteria-declared"
+        ],
+        "total_tokens": 3329150,
+        "duration_ms": 664880,
+        "cost_usd": 2.2749969
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 133,
+    "assertions_total": 155,
+    "pass_rate": 0.8580645161290322,
+    "total_tokens": 11178666,
+    "total_duration_ms": 2532104,
+    "total_cost_usd": 8.0532634
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}

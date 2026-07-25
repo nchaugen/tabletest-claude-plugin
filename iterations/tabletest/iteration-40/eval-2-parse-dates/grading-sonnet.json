@@ -16,7 +16,7 @@
       "id": "exception-handled-cleanly",
       "text": "The empty string / exception case is handled — either via a Throws? column, assertThrows inside the method, or a separate @TableTest — rather than being silently omitted",
       "passed": true,
-      "evidence": "\"Throws?\\nEmpty string | '' | java.lang.IllegalArgumentException\" with assertThrows(throws_, ...)"
+      "evidence": "Empty string | '' | java.lang.IllegalArgumentException ... assertThrows(throws_, () -> parser.parseDate(input));"
     },
     {
       "id": "localdate-result-column",
@@ -28,7 +28,7 @@
       "id": "type-conversion-addressed",
       "text": "The response addresses type conversion for non-trivial column types",
       "passed": true,
-      "evidence": "\"Parsed?\" column uses ISO date strings like '2024-01-15' mapping to LocalDate via built-in conversion"
+      "evidence": "The Parsed? column uses ISO date strings (2024-01-15) mapping to LocalDate via built-in conversion"
     },
     {
       "id": "has-descriptive-title",
@@ -40,7 +40,7 @@
       "id": "description-if-present-adds-information",
       "text": "If @Description is present, it provides context beyond what the table rows already express",
       "passed": true,
-      "evidence": "\"Assumption: slash format is day/month/year. Assumption: two-digit years are interpreted as 20xx\""
+      "evidence": "Assumption: slash format is day/month/year. Assumption: two-digit years are interpreted as 20xx"
     },
     {
       "id": "annotation-order",
@@ -64,19 +64,19 @@
       "id": "concerns-decomposed",
       "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern",
       "passed": true,
-      "evidence": "parsesRecognizedFormats and rejectsEmptyInput are two separate @TableTest methods"
+      "evidence": "parsesRecognizedFormats(...) ... rejectsEmptyInput(...) as two separate @TableTest methods"
     },
     {
       "id": "minimal-rows-per-concern",
       "text": "Each table has only the rows needed to express its concern's rules",
       "passed": true,
-      "evidence": "Valid table has 4 rows (ISO, slash, short-year, null); error table has 1 row (empty string)"
+      "evidence": "parsesRecognizedFormats has 4 rows (ISO, slash, short-year, null); rejectsEmptyInput has 1 row (empty string)"
     },
     {
       "id": "separates-valid-and-invalid",
       "text": "Valid parsing cases and error/exception cases are in separate @TableTest methods",
       "passed": true,
-      "evidence": "\"rejectsEmptyInput\" is a separate method from \"parsesRecognizedFormats\""
+      "evidence": "parsesRecognizedFormats uses assertEquals; rejectsEmptyInput uses assertThrows, in separate methods"
     },
     {
       "id": "has-tabletest-dependency",

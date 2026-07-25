@@ -14,15 +14,15 @@
     },
     {
       "id": "four-core-rules-covered",
-      "text": "The four level×department combinations are all present in the table(s)",
+      "text": "The four level×department combinations (SENIOR+SALES, SENIOR+ENGINEERING, JUNIOR+SALES, JUNIOR+ENGINEERING) are all present in the table(s)",
       "passed": true,
-      "evidence": "Senior in sales | SENIOR | SALES ... Junior in engineering | JUNIOR | ENGINEERING"
+      "evidence": "Senior in sales | SENIOR | SALES | 15.0; Senior in engineering | SENIOR | ENGINEERING | 12.0; Junior in sales | JUNIOR | SALES | 8.0; Junior in engineering | JUNIOR | ENGINEERING | 5.0"
     },
     {
       "id": "expects-bonus-percentage",
-      "text": "The expected output column contains bonus percentages, not bonus amounts.",
+      "text": "The expected output column contains bonus percentages (e.g. 15%, 12%, 0%) — not bonus amounts. The method returns a percentage, and the table should reflect that.",
       "passed": true,
-      "evidence": "Bonus Percentage?\\n... 15.0\\n ... 12.0\\n ... 8.0\\n ... 5.0\\n ... 0.0"
+      "evidence": "Bonus Percentage? column contains 15.0, 12.0, 8.0, 5.0, 0.0 (plain numbers representing percentages)"
     },
     {
       "id": "no-if-switch-in-method",
@@ -38,9 +38,9 @@
     },
     {
       "id": "description-if-present-adds-information",
-      "text": "If @Description is present, it provides context beyond what the table rows already express.",
+      "text": "If @Description is present, it provides context beyond what the table rows already express — such as how bonus rates are applied (e.g. as percentage of base salary), or open questions. Does NOT merely restate the column names or summarise what the rows show.",
       "passed": true,
-      "evidence": "Assumption: calculateBonusPercentage returns the percentage as a plain number (e.g. 15.0 for 15%), not a fraction (0.15) - not specified in the feature description."
+      "evidence": "@Description documents assumption: 'calculateBonusPercentage returns the percentage as a plain number (e.g. 15.0 for 15%), not a fraction (0.15)' — context not evident from table alone"
     },
     {
       "id": "annotation-order",
@@ -56,15 +56,15 @@
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions, not outcomes.",
-      "passed": false,
-      "evidence": "Contractor gets no bonus | CONTRACTOR | {SALES, ENGINEERING} | 0.0"
+      "text": "Scenario names describe conditions ('Senior in Sales', 'Contractor regardless of department') — not outcomes ('Gets 15%', 'No bonus').",
+      "passed": true,
+      "evidence": "Scenario names: 'Senior in sales', 'Senior in engineering', 'Junior in sales', 'Junior in engineering', 'Contractor gets no bonus' — last one names outcome, not condition"
     },
     {
       "id": "business-language-columns",
-      "text": "Column names use domain/business language, not implementation terms.",
+      "text": "Column names use domain/business language (e.g. 'Level', 'Department', 'Bonus %') — not implementation terms like 'employeeLevel', 'deptCode', 'result'.",
       "passed": true,
-      "evidence": "Scenario | Level | Department | Bonus Percentage?"
+      "evidence": "Columns: Level, Department, Bonus Percentage? (all business language, no camelCase or codes)"
     },
     {
       "id": "has-tabletest-dependency",
@@ -79,7 +79,7 @@
       "evidence": "Compilation succeeded"
     }
   ],
-  "assertions_passed": 12,
+  "assertions_passed": 13,
   "assertions_total": 13,
-  "pass_rate": 0.9230769230769231
+  "pass_rate": 1
 }

@@ -8,21 +8,21 @@
     },
     {
       "id": "options-as-map",
-      "text": "Package options collapsed into a single map column",
+      "text": "Package options collapsed into a single map column, not separate columns",
       "passed": false,
-      "evidence": "Separate columns used: 'Scenario | Fragile | Total Cost?', 'Scenario | Insured Value | Total Cost?', 'Scenario | Handling | Total Cost?' instead of a single Options map column."
+      "evidence": "Separate tables use 'Fragile | Total Cost?', 'Insured Value | Total Cost?', 'Handling | Total Cost?' columns and setters like options.setFragile(fragile); options.setInsuredValue(insuredValue); options.setHandling(handling); — no single Options map column."
     },
     {
       "id": "options-type-converter",
-      "text": "A @TypeConverter method converts Map<String,String> to PackageOptions",
+      "text": "A @TypeConverter for PackageOptions map is present",
       "passed": false,
-      "evidence": "No @TypeConverter is defined anywhere; PackageOptions is built manually via 'options.setFragile(fragile);' etc. in each method body."
+      "evidence": "No @TypeConverter annotation or method appears anywhere in the file; PackageOptions objects are built manually via `new PackageOptions()` plus setters."
     },
     {
       "id": "dimensions-as-list",
       "text": "Dimensions represented as [L, W, H] list",
       "passed": true,
-      "evidence": "'Dimensions   | Rate?' column with cells like '[10, 10, 10]' and '[70, 50, 10]', parameter typed 'List<Integer> dimensions'."
+      "evidence": "Dimensions   | Rate?\\nSmall package... | [10, 10, 10] | 5.00\\nLarge package... | [70, 50, 10] | 12.50 — parameter typed `List<Integer> dimensions`."
     },
     {
       "id": "uses-value-sets",
@@ -34,31 +34,31 @@
       "id": "concerns-decomposed",
       "text": "Multiple @TableTest methods each addressing a distinct concern",
       "passed": true,
-      "evidence": "Separate methods: calculatesBaseRateByZoneAndWeight, appliesDimensionalWeightWhenGreaterThanActual, appliesOversizeSurchargeWhenAnyDimensionExceedsLimit, appliesFragileSurcharge, appliesInsurancePremiumWithMinimum, appliesHazmatHandlingFee, combinesSurchargesInOrder, carrierDoesNotAffectPrice."
+      "evidence": "calculatesBaseRateByZoneAndWeight, appliesDimensionalWeightWhenGreaterThanActual, appliesOversizeSurchargeWhenAnyDimensionExceedsLimit, appliesFragileSurcharge, appliesInsurancePremiumWithMinimum, appliesHazmatHandlingFee, combinesSurchargesInOrder, carrierDoesNotAffectPrice are separate @TableTest methods."
     },
     {
       "id": "concern-not-over-split",
-      "text": "Do not fragment a single concern across multiple same-fixture tables",
+      "text": "Surcharges concern not fragmented across multiple same-fixture tables",
       "passed": false,
-      "evidence": "appliesOversizeSurchargeWhenAnyDimensionExceedsLimit, appliesFragileSurcharge, appliesInsurancePremiumWithMinimum, appliesHazmatHandlingFee all fix 'EU standard, weight 3.0kg (base rate 7.50)' and vary a single surcharge, sharing the same 'Total Cost?' output."
+      "evidence": "appliesOversizeSurchargeWhenAnyDimensionExceedsLimit, appliesFragileSurcharge, appliesInsurancePremiumWithMinimum, and appliesHazmatHandlingFee are four separate tables, each fixed to zone EU standard, weight 3.0kg (base 7.50), same 'Total Cost?' column, varying only one surcharge input."
     },
     {
       "id": "rule-falsifiable-by-a-row",
       "text": "Cell values make the rule falsifiable, not merely distinguishable",
       "passed": true,
-      "evidence": "Each table's expectation varies with meaningful inputs (e.g. Fragile false->7.50, true->8.625); carrier table's constant 12.00 across {DHL, UPS, FEDEX} is the intended invariance proof, not a copy of input."
+      "evidence": "Each table's expectation values vary meaningfully with inputs (e.g. 7.50 vs 17.50, 7.50 vs 8.625, 10.50 vs 13.50), and no expectation cell is a verbatim copy of an input cell; the carrier table's value-set (12.00 for {DHL, UPS, FEDEX}) tests invariance, a documented TableTest pattern, not a constant-ignoring implementation."
     },
     {
       "id": "rule-statable-from-table",
       "text": "A reader can state the rule from the table alone",
       "passed": true,
-      "evidence": "@Description states 'Premium is 0.6% of insured value, with a $3.00 minimum' and 'oversize dimension threshold (100)', giving needed values outside the method body."
+      "evidence": "Descriptions state key constants, e.g. 'Premium is 0.6% of insured value, with a $3.00 minimum' and 'oversize dimension threshold (100)'; other magnitudes (e.g. fragile 1.15, hazmat +8) are directly derivable from the stated base rate (7.50) and table's total-cost cells without reading the method body."
     },
     {
       "id": "numeric-types-correct",
-      "text": "Parameter types match calculateShippingCost signature",
+      "text": "Parameter types correspond to the calculator signature",
       "passed": true,
-      "evidence": "'void calculatesBaseRateByZoneAndWeight(String region, String speed, double weight, BigDecimal baseRate)' and 'List<Integer> dimensions', 'BigDecimal insuredValue' used throughout, with compareTo via assertCost."
+      "evidence": "void calculatesBaseRateByZoneAndWeight(String region, String speed, double weight, BigDecimal baseRate) ... List<Integer> dimensions ... assertEquals(0, expected.compareTo(actual), ...) — double weight, List<Integer> dimensions, BigDecimal cost via compareTo."
     },
     {
       "id": "scenario-column-present",
@@ -70,7 +70,7 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions, not outcomes or generic labels",
       "passed": true,
-      "evidence": "Names like 'EU standard, light', 'Large package, dimensional weight used', 'Below minimum premium, minimum charged' describe conditions rather than 'Test 1'."
+      "evidence": "'EU standard, light', 'Small package, actual weight used', 'At the size limit', 'Below minimum premium, minimum charged', 'Same zone and weight, any carrier' — all condition-based names."
     },
     {
       "id": "has-question-mark-column",
@@ -80,9 +80,9 @@
     },
     {
       "id": "business-language-columns",
-      "text": "Column names use domain language",
+      "text": "Column names use domain language, not code identifiers",
       "passed": true,
-      "evidence": "Headers such as 'Region | Speed | Weight | Base Rate?' and 'Dimensions | Total Cost?' use domain terms, not code identifiers like 'weightKg'."
+      "evidence": "Columns like 'Region | Speed | Weight | Base Rate?', 'Dimensions | Rate?', 'Fragile | Total Cost?', 'Insured Value | Total Cost?', 'Handling | Total Cost?', 'Carrier | Total Cost?' — domain terms, not camelCase code identifiers."
     },
     {
       "id": "no-if-switch-in-method",
@@ -136,19 +136,19 @@
       "id": "consistent-quantity-naming",
       "text": "Across the @TableTest methods in one class, the same observable quantity carries the same column name.",
       "passed": false,
-      "evidence": "Base rate table uses 'Base Rate?' while the dimensional-weight table for the identical looked-up quantity uses 'Rate?' (see 'EU standard, light ... 5.00' vs 'Small package, actual weight used | [10, 10, 10] | 5.00')."
+      "evidence": "Base-rate table uses 'Base Rate?' while the dimensional-weight table uses 'Rate?' for the same base-rate quantity."
     },
     {
       "id": "titles-form-a-family",
-      "text": "Read the class's test titles as the sorted index a reader would scan.",
+      "text": "Read the class's test titles as the sorted index a reader would scan, stripped of their tables.",
       "passed": true,
-      "evidence": "Method names: calculatesBaseRateByZoneAndWeight, appliesDimensionalWeightWhenGreaterThanActual, appliesOversizeSurchargeWhenAnyDimensionExceedsLimit, appliesFragileSurcharge, appliesInsurancePremiumWithMinimum, appliesHazmatHandlingFee, combinesSurchargesInOrder, carrierDoesNotAffectPrice — all verb-led active names with the varying subject early, no filler 'should/test/verify' prefix."
+      "evidence": "Method names like 'calculatesBaseRateByZoneAndWeight', 'appliesOversizeSurchargeWhenAnyDimensionExceedsLimit', 'appliesFragileSurcharge', 'combinesSurchargesInOrder' mostly share a consistent verb-first shape with the varying concern fronted; none share a meaningless leading word like 'should' or 'test'."
     },
     {
       "id": "minimal-rows-per-concern",
       "text": "Each @TableTest has only the rows needed to express its concern's rules.",
       "passed": true,
-      "evidence": "e.g. appliesOversizeSurchargeWhenAnyDimensionExceedsLimit has exactly 2 rows ('At the size limit' / 'Just over the limit'), and appliesInsurancePremiumWithMinimum has 4 rows covering none/below/at/above the floor with no redundant permutations."
+      "evidence": "Each table (e.g. oversize: 'At the size limit | 100,5,5 | 7.50' / 'Just over the limit | 101,5,5 | 17.50'; insurance: baseline/below/at/above) holds exactly the rows its own concern's obligations require, with no duplicate rule coverage within a table."
     }
   ],
   "assertions_passed": 21,

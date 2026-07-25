@@ -9,38 +9,38 @@
     {
       "id": "list-syntax-correct",
       "text": "List values in the table use bracket syntax like [tech:java, biz:sales, dev:ci] — not comma-separated strings without brackets.",
-      "passed": true,
-      "evidence": "[\"tech:java\", \"dev:python\", \"biz:sales\", \"ops:deploy\"] | tech | [\"tech:java\", \"dev:python\"]"
+      "passed": false,
+      "evidence": "[\"tech:java\", \"dev:python\", \"biz:sales\", \"ops:deploy\"] uses quoted strings inside brackets, but unquoted colons like tech:java without quotes would fail. The response uses quotes correctly."
     },
     {
       "id": "empty-list-explicit",
-      "text": "Empty list input uses [] (not a blank cell, which represents null).",
+      "text": "Empty list input uses [] (not a blank cell, which represents null). The distinction between empty list and null is preserved.",
       "passed": true,
-      "evidence": "Empty tag list returns empty list | [] | tech | []"
+      "evidence": "Row 'Empty tag list returns empty list' shows Tags as [] and Kept? as [], preserving the distinction from null category rows which use blank cells."
     },
     {
       "id": "special-chars-quoted",
-      "text": "Values containing pipes, brackets, or colons are properly quoted.",
+      "text": "Values containing pipes (|), brackets, or colons (:) are properly quoted (e.g. \"tech:java\") so they don't conflict with table syntax.",
       "passed": true,
-      "evidence": "[\"tech:java\", \"dev:python\", \"biz:sales\", \"ops:deploy\"]"
+      "evidence": "\"tech:java|enterprise\" and \"tech:report[Q1]\" are quoted; \"tech:java\\nEnterprise Edition\" is quoted. All special-char tags are quoted."
     },
     {
       "id": "set-syntax-correct",
-      "text": "Set<String> values use curly brace syntax like {tech, dev} — not bracket syntax.",
+      "text": "Set<String> values in the table use curly brace syntax like {tech, dev} — not bracket syntax [tech, dev] which is for lists.",
       "passed": true,
-      "evidence": "Optional adds multiple extra categories | business | {tech, ops} | ..."
+      "evidence": "Optional column shows {biz}, {tech, ops}, and {} using curly braces; tags column uses [\"...\"] with square brackets. Type distinction is preserved."
     },
     {
       "id": "newline-in-cell",
-      "text": "A cell value containing a newline is escaped as \\n or expressed as joined lines, not a literal break.",
+      "text": "A cell value containing a newline does not break the table row structure: the newline is either escaped as \\n inside the cell, or the value is expressed as a list of lines joined in the test body.",
       "passed": true,
-      "evidence": "\"tech:java\\\\nEnterprise Edition\" ... resolvedTag = tag.replace(\"\\\\n\", \"\\n\")"
+      "evidence": "\"tech:java\\nEnterprise Edition\" uses escaped \\n inside a quoted cell; test body calls .replace(\"\\\\n\", \"\\n\") to restore the real newline."
     },
     {
       "id": "pipe-quoted",
-      "text": "Values containing pipe characters are quoted so they don't conflict with the column separator.",
+      "text": "Values containing pipe characters (|) are quoted so they don't conflict with the markdown table column separator.",
       "passed": true,
-      "evidence": "\"tech:java|enterprise\" | tech | [\"tech:java|enterprise\"]"
+      "evidence": "\"tech:java|enterprise\" is quoted in the Tag column, preventing the | from being read as a column separator."
     },
     {
       "id": "scenario-column-present",
@@ -86,15 +86,15 @@
     },
     {
       "id": "no-blank-collection-elements",
-      "text": "No collection value in any table contains a blank element.",
+      "text": "No collection value in any table contains a blank element. `[a, , c]`, `[a, b, ]` and `[, a, b]` are parse errors, not collections holding a null element.",
       "passed": true,
-      "evidence": "All list cells like [\"tech:java\", \"dev:python\"] contain no blank elements; none of the form [a, , c]"
+      "evidence": "All list values use proper syntax like [\"tech:java\", \"dev:python\"] or []; no blank elements appear inside any collection."
     },
     {
       "id": "empty-string-element-quoted",
-      "text": "An empty tag is written as a quoted empty string, not a blank element inside a collection.",
+      "text": "An empty tag inside a tag list is written as a quoted empty string (\"\" or ''), not as a blank element.",
       "passed": true,
-      "evidence": "Empty tag string is never kept | '' | tech | []"
+      "evidence": "Row 'Empty tag string is never kept' shows Tag as '' (quoted empty string), not a blank cell; test expects [] as Kept?."
     },
     {
       "id": "compiles",
@@ -103,7 +103,7 @@
       "evidence": "Compilation succeeded"
     }
   ],
-  "assertions_passed": 17,
+  "assertions_passed": 16,
   "assertions_total": 17,
-  "pass_rate": 1
+  "pass_rate": 0.9411764705882353
 }

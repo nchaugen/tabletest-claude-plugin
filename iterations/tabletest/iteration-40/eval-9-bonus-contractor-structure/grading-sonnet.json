@@ -16,13 +16,13 @@
       "id": "four-core-rules-covered",
       "text": "The four level×department combinations are all present in the table(s)",
       "passed": true,
-      "evidence": "Senior in sales | SENIOR | SALES ... Junior in engineering | JUNIOR | ENGINEERING"
+      "evidence": "Senior in sales | SENIOR | SALES ... Senior in engineering | SENIOR | ENGINEERING ... Junior in sales | JUNIOR | SALES ... Junior in engineering | JUNIOR | ENGINEERING"
     },
     {
       "id": "expects-bonus-percentage",
       "text": "The expected output column contains bonus percentages, not bonus amounts.",
       "passed": true,
-      "evidence": "Bonus Percentage?\\n... 15.0\\n ... 12.0\\n ... 8.0\\n ... 5.0\\n ... 0.0"
+      "evidence": "Bonus Percentage?\\n... | 15.0\\n... | 12.0\\n... | 8.0\\n... | 5.0\\n... | 0.0"
     },
     {
       "id": "no-if-switch-in-method",
@@ -40,7 +40,7 @@
       "id": "description-if-present-adds-information",
       "text": "If @Description is present, it provides context beyond what the table rows already express.",
       "passed": true,
-      "evidence": "Assumption: calculateBonusPercentage returns the percentage as a plain number (e.g. 15.0 for 15%), not a fraction (0.15) - not specified in the feature description."
+      "evidence": "Assumption: calculateBonusPercentage returns the percentage as a plain number (e.g. 15.0 for 15%), not a fraction (0.15)"
     },
     {
       "id": "annotation-order",
@@ -58,13 +58,13 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions, not outcomes.",
       "passed": false,
-      "evidence": "Contractor gets no bonus | CONTRACTOR | {SALES, ENGINEERING} | 0.0"
+      "evidence": "Contractor gets no bonus | CONTRACTOR | {SALES, ENGINEERING}  | 0.0"
     },
     {
       "id": "business-language-columns",
       "text": "Column names use domain/business language, not implementation terms.",
       "passed": true,
-      "evidence": "Scenario | Level | Department | Bonus Percentage?"
+      "evidence": "Scenario                 | Level      | Department            | Bonus Percentage?"
     },
     {
       "id": "has-tabletest-dependency",

@@ -14,15 +14,15 @@
     },
     {
       "id": "exception-has-expected-column",
-      "text": "The exception/invalid-input table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row — rather than hardcoding the exception type in @Description or the method name.",
+      "text": "The exception/invalid-input table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row",
       "passed": true,
-      "evidence": "Scenario | Input | Throws? ... java.lang.IllegalArgumentException"
+      "evidence": "rejectsInvalidInput table includes 'Throws?' column with 'java.lang.IllegalArgumentException' per row"
     },
     {
       "id": "exception-cases-handled",
-      "text": "The exception cases (empty string, letters-only, negative) are handled — via a Throws? column, assertThrows in the method body, or a separate @TableTest — not silently omitted",
+      "text": "The exception cases (empty string, letters-only, negative) are handled — via a Throws? column, assertThrows in the method body, or a separate @TableTest",
       "passed": true,
-      "evidence": "Empty string | '' ... Letters only | abc ... Negative amount | -5.00"
+      "evidence": "Three rows in rejectsInvalidInput: 'Empty string | \\'\\'', 'Letters only | abc', 'Negative amount | -5.00'; assertThrows(throws_, ...) in method body"
     },
     {
       "id": "result-column-with-question-mark",
@@ -44,9 +44,9 @@
     },
     {
       "id": "description-if-present-adds-information",
-      "text": "If @Description is present, it provides context beyond what the table rows already express...",
+      "text": "If @Description is present, it provides context beyond what the table rows already express",
       "passed": true,
-      "evidence": "No @Description annotation present in the code; acceptable to omit."
+      "evidence": "No @Description annotation present; table headers and rows are self-explanatory, so omission is acceptable"
     },
     {
       "id": "annotation-order",
@@ -62,21 +62,21 @@
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern...",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern",
       "passed": true,
-      "evidence": "void parsesInputIntoMoney(...) ... void rejectsInvalidInput(...)"
+      "evidence": "Two separate @TableTest methods: 'parsesInputIntoMoney' for valid cases and 'rejectsInvalidInput' for errors"
     },
     {
       "id": "minimal-rows-per-concern",
-      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
-      "passed": true,
-      "evidence": "Valid table has 3 rows (10.00, 0.01, null); error table has 3 rows (empty, letters, negative) — no mixed concerns."
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations",
+      "passed": false,
+      "evidence": "Valid table has only 3 rows (10.00, 0.01, null). Per spec, should include rows exploring scale/format assumptions (e.g., '5' vs '5.00', '10.5', zero boundary, whitespace, alternative formats) that BigDecimal's scale sensitivity makes critical"
     },
     {
       "id": "separates-valid-and-invalid",
       "text": "Valid parsing cases and error/exception cases are in separate @TableTest methods",
       "passed": true,
-      "evidence": "void parsesInputIntoMoney(String input, Money parsed) ... void rejectsInvalidInput(String input, Class<? extends Exception> throws_)"
+      "evidence": "parsesInputIntoMoney and rejectsInvalidInput are two distinct @TableTest methods with no overlap"
     },
     {
       "id": "has-tabletest-dependency",
@@ -91,7 +91,7 @@
       "evidence": "Compilation succeeded"
     }
   ],
-  "assertions_passed": 15,
+  "assertions_passed": 14,
   "assertions_total": 15,
-  "pass_rate": 1
+  "pass_rate": 0.9333333333333333
 }

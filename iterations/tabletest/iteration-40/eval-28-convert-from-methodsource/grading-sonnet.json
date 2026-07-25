@@ -10,19 +10,19 @@
       "id": "options-as-map",
       "text": "Package options collapsed into a single map column",
       "passed": false,
-      "evidence": "Separate columns used: 'Fragile? | Total?', 'Insured Value | Total?', 'Handling | Total?' instead of one Options map column"
+      "evidence": "Separate columns 'Fragile?', 'Insured Value', 'Handling' used across different @TableTest methods instead of one Options map column."
     },
     {
       "id": "options-type-converter",
-      "text": "@TypeConverter method present for PackageOptions",
+      "text": "A @TypeConverter method accepts a map and returns PackageOptions with defaults",
       "passed": false,
-      "evidence": "private static PackageOptions options(boolean fragile, BigDecimal insuredValue, String handling) { ... } is a manual helper, no @TypeConverter annotation anywhere"
+      "evidence": "private static PackageOptions options(boolean fragile, BigDecimal insuredValue, String handling) { ... } — a helper, not a @TypeConverter."
     },
     {
       "id": "dimensions-as-list",
       "text": "Dimensions represented as [L, W, H] list",
       "passed": true,
-      "evidence": "Dimensions   | Rate?\\nActual weight governs        | 3.0         | [10, 10, 10] | 7.50"
+      "evidence": "Dimensions   | Rate?\\nActual weight governs        | 3.0         | [10, 10, 10] | 7.50 ... List<Integer> dimensions"
     },
     {
       "id": "uses-value-sets",
@@ -32,31 +32,31 @@
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple @TableTest methods, each a distinct concern",
+      "text": "Multiple @TableTest methods each addressing distinct concern",
       "passed": true,
-      "evidence": "8 separate @TableTest methods such as shouldLookUpBaseRateByRegionSpeedAndWeight, shouldUseTheLargerOfActualAndDimensionalWeight, shouldNotVaryCostByCarrier"
+      "evidence": "shouldLookUpBaseRateByRegionSpeedAndWeight, shouldUseTheLargerOfActualAndDimensionalWeight, shouldAddOversizeSurchargeWhenAnyDimensionExceedsThreshold, etc."
     },
     {
       "id": "concern-not-over-split",
-      "text": "Surcharges concern not fragmented across many same-fixture tables",
+      "text": "Concern not fragmented across multiple same-fixture tables",
       "passed": false,
-      "evidence": "shouldAddOversizeSurchargeWhenAnyDimensionExceedsThreshold, shouldApplyFragileMultiplier, shouldAddInsurancePremiumWithMinimum, shouldAddHazmatHandlingFee all fix zone EU standard, weight 3.0kg, same Total? column"
+      "evidence": "Separate tables shouldAddOversizeSurchargeWhenAnyDimensionExceedsThreshold, shouldApplyFragileMultiplier, shouldAddInsurancePremiumWithMinimum, shouldAddHazmatHandlingFee all fix zone EU standard, weight 3.0 and vary a single surcharge."
     },
     {
       "id": "rule-falsifiable-by-a-row",
-      "text": "Cell values make the rule falsifiable, not merely distinguishable",
+      "text": "Cell values make the rule falsifiable",
       "passed": true,
-      "evidence": "e.g. shouldAddInsurancePremiumWithMinimum varies Total? across 7.50, 10.50, 10.50, 13.50, not fixed or copied from input"
+      "evidence": "Oversize table: 'Not oversize | [30,20,15] | 7.50', 'At the oversize threshold | [100,5,5] | 7.50', 'Oversize | [120,5,5] | 17.50' — values vary meaningfully."
     },
     {
       "id": "rule-statable-from-table",
       "text": "A reader can state the rule from the table alone",
       "passed": true,
-      "evidence": "@Description states '0.6% of the insured value, with a $3.00 minimum' and 'exceeds the 100cm oversize threshold' directly"
+      "evidence": "Description states: 'Insurance premium is 0.6% of the insured value, with a $3.00 minimum... 500 sits exactly at the point...'"
     },
     {
       "id": "numeric-types-correct",
-      "text": "Parameter types match signature (double weight, List<Integer> dims, BigDecimal cost)",
+      "text": "Parameter types match calculateShippingCost signature",
       "passed": true,
       "evidence": "void shouldLookUpBaseRateByRegionSpeedAndWeight(String region, String speed, double weight, BigDecimal rate)"
     },
@@ -70,7 +70,7 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions, not outcomes",
       "passed": true,
-      "evidence": "'At the oversize threshold', 'Below minimum, floor applies', 'Insurance floor applies despite fragile'"
+      "evidence": "'EU standard, at 1kg boundary', 'Insurance floor applies despite fragile', 'Carrier does not affect cost'"
     },
     {
       "id": "has-question-mark-column",
@@ -82,7 +82,7 @@
       "id": "business-language-columns",
       "text": "Column names use domain language",
       "passed": true,
-      "evidence": "Scenario                     | Region | Speed    | Weight (kg) | Rate?"
+      "evidence": "Scenario | Region | Speed | Weight (kg) | Rate?  ... Insured Value | Total?"
     },
     {
       "id": "no-if-switch-in-method",
@@ -130,25 +130,25 @@
       "id": "consistent-quantity-naming",
       "text": "Across the @TableTest methods in one class, the same observable quantity carries the same column name.",
       "passed": true,
-      "evidence": "Table 1 and 2 both use 'Rate?' for base rate; tables 3-8 all use 'Total?' for total cost, consistently.',     },     {       'id': 'titles-form-a-family',       'text': 'Read the class's test titles as the sorted index a reader would scan...',       'passed': false,       'evidence': 'All 8 method names share the leading word 'should': shouldLookUpBaseRateByRegionSpeedAndWeight, shouldUseTheLargerOfActualAndDimensionalWeight, shouldAddOversizeSurchargeWhenAnyDimensionExceedsThreshold, etc."
+      "evidence": "Base rate is named 'Rate?' in both shouldLookUpBaseRateByRegionSpeedAndWeight and shouldUseTheLargerOfActualAndDimensionalWeight; total cost is consistently 'Total?' in the surcharge, fragile, insurance, hazmat, combined, and carrier tables."
     },
     {
       "id": "titles-form-a-family",
-      "text": "Read the class's test titles (each @DisplayName, or the method name it falls back to) as the sorted index a reader would scan, stripped of their tables. FAILS when the titles do not function as a catalogue: when three or more share a leading word that carries no information ('should…', 'test…', 'verify…'), so the varying subject arrives last and the list cannot be scanned; or when siblings describing the same kind of rule use unrelated grammatical shapes (a bare noun phrase beside an active sentence beside a should-name), so no scanning pattern exists. PASSES when the varying subject comes first or early and one consistent shape runs across the family. Judge the set, never a title in isolation — a title that reads perfectly on its own page can still be an unscannable entry in the index, which is the failure this assertion exists to catch. A class with fewer than three @TableTest methods PASSES.",
+      "text": "Read the class's test titles as the sorted index a reader would scan.",
       "passed": false,
-      "evidence": "Not graded"
+      "evidence": "All 8 method names share the meaningless leading word 'should': shouldLookUpBaseRateByRegionSpeedAndWeight, shouldUseTheLargerOfActualAndDimensionalWeight, shouldAddOversizeSurchargeWhenAnyDimensionExceedsThreshold, shouldApplyFragileMultiplier, shouldAddInsurancePremiumWithMinimum, shouldAddHazmatHandlingFee, shouldCombineFragileMultiplierWithInsurancePremium, shouldNotVaryCostByCarrier."
     },
     {
       "id": "minimal-rows-per-concern",
-      "text": "Each @TableTest has only the rows needed to express its concern's rules...",
+      "text": "Each @TableTest has only the rows needed to express its concern's rules.",
       "passed": true,
-      "evidence": "Each table (e.g. shouldApplyFragileMultiplier has 2 rows, shouldAddHazmatHandlingFee has 2 rows, shouldAddInsurancePremiumWithMinimum has 4 rows for below/at/above) matches its own concern's minimal obligations without cross-concern permutations."
+      "evidence": "Each table's rows map to distinct sub-rules (e.g. oversize table: 'Not oversize', 'At the oversize threshold', 'Oversize'; insurance table: 'No insurance', 'Below minimum', 'At the minimum', 'Above the minimum') with no cross-concern permutation or repeated rule coverage."
     },
     {
       "id": "held-constants-declared",
-      "text": "A value the rule's outcome depends on, and which the table holds constant for every row, must be visible as a column or named in the @DisplayName/@Description.",
+      "text": "A value the rule's outcome depends on, held constant for every row, must be visible as a column or named in the @DisplayName/@Description.",
       "passed": false,
-      "evidence": "// Carrier never affects cost (see shouldNotVaryCostByCarrier below), so every other table below fixes it to Carrier.DHL rather than treating it as a variable input. -- this is a source-code comment, not a column or per-table @Description, and it fixes carrier in tables 1-7 without declaration there."
+      "evidence": "shouldUseTheLargerOfActualAndDimensionalWeight has no @Description at all yet silently fixes zone = new ShippingZone(\"EU\", \"standard\"); shouldApplyFragileMultiplier and shouldAddHazmatHandlingFee similarly hardcode zone/weight with no description; base rate table's @Description only mentions dimensions, not the held-constant absence of PackageOptions."
     }
   ],
   "assertions_passed": 20,

@@ -10,19 +10,19 @@
       "id": "options-as-map",
       "text": "Package options collapsed into a single map column",
       "passed": false,
-      "evidence": "Scenario | Dimensions | Fragile | Insured Value | Handling | Total Cost? — three separate option columns, not a map"
+      "evidence": "Scenario | Dimensions | Fragile | Insured Value | Handling | Total Cost? -- three separate columns, not a map"
     },
     {
       "id": "options-type-converter",
-      "text": "@TypeConverter for PackageOptions present",
+      "text": "A @TypeConverter method returning PackageOptions is present",
       "passed": false,
-      "evidence": "No @TypeConverter method anywhere; PackageOptions built manually: 'val opts = PackageOptions(isFragile = fragile, insuredValue = insuredValue, handling = handling)'"
+      "evidence": "No @TypeConverter import or method anywhere in the file; PackageOptions built manually: 'val opts = PackageOptions(isFragile = fragile, insuredValue = insuredValue, handling = handling)'"
     },
     {
       "id": "dimensions-as-list",
       "text": "Dimensions represented as [L, W, H] list",
       "passed": true,
-      "evidence": "Dimensions column shows '[30, 20, 15]', '[120, 5, 5]', '[70, 50, 10]' and parameter type 'dimensions: List<Int>'"
+      "evidence": "Dimensions   | Base Rate? ... [30, 20, 15] | ... and [70, 50, 10] used as list literals"
     },
     {
       "id": "uses-value-sets",
@@ -32,33 +32,33 @@
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple @TableTest methods, each a distinct concern",
+      "text": "Multiple @TableTest methods each addressing a distinct concern",
       "passed": true,
-      "evidence": "Four methods: calculatesBaseRateByRegionSpeedAndWeight, choosesGreaterOfActualAndDimensionalWeight, appliesSurchargesToBaseCost, carrierDoesNotAffectCost"
+      "evidence": "calculatesBaseRateByRegionSpeedAndWeight, choosesGreaterOfActualAndDimensionalWeight, appliesSurchargesToBaseCost, carrierDoesNotAffectCost"
     },
     {
       "id": "concern-not-over-split",
-      "text": "Surcharges kept in one table, not split per sub-rule",
+      "text": "Single concern not fragmented across multiple same-fixture tables",
       "passed": true,
-      "evidence": "appliesSurchargesToBaseCost has one 8-row table covering oversize, hazmat, fragile, insurance and order"
+      "evidence": "appliesSurchargesToBaseCost is one table with 8 rows covering oversize, hazmat, fragile, insurance, and order together"
     },
     {
       "id": "rule-falsifiable-by-a-row",
-      "text": "Cell values make the rule falsifiable",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable",
       "passed": true,
-      "evidence": "Base rate table has 16 distinct computed rates (5.00...45.00); surcharge table has 7 distinct computed totals (7.50...13.50) not copied from inputs"
+      "evidence": "Base rate table varies '5.00, 7.50, ... 45.00'; surcharges table varies '7.50, 17.50, 15.50, 8.625, ...'; carrier table's shared 12.00 reflects intentional invariance proof via value set"
     },
     {
       "id": "rule-statable-from-table",
-      "text": "Rule statable from the table alone",
+      "text": "A reader can state the rule from the table alone",
       "passed": true,
-      "evidence": "@Description states '+10.00 oversize fee...x1.15 fragile multiplier...insurance premium (0.6% of insured value, 3.00 minimum)'"
+      "evidence": "@Description states '+10.00 oversize fee (any dimension over 100cm) -> +8.00 hazmat fee -> x1.15 fragile multiplier -> + insurance premium (0.6% ... 3.00 minimum)'"
     },
     {
       "id": "numeric-types-correct",
-      "text": "Parameter types match SUT signature",
+      "text": "Parameter types correspond to signature (double weight, List<Integer> dims, BigDecimal cost/insured)",
       "passed": true,
-      "evidence": "fun calculatesBaseRateByRegionSpeedAndWeight(region: String, speed: String, weight: Double, baseRate: BigDecimal); assertEquals(0, cost.compareTo(baseRate))"
+      "evidence": "fun calculatesBaseRateByRegionSpeedAndWeight(region: String, speed: String, weight: Double, baseRate: BigDecimal) ... assertEquals(0, cost.compareTo(baseRate))"
     },
     {
       "id": "scenario-column-present",
@@ -70,7 +70,7 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions, not outcomes",
       "passed": true,
-      "evidence": "'EU express, light parcel', 'Fragile and insured together', 'Carrier choice has no effect on price'"
+      "evidence": "'EU standard, light parcel', 'Actual weight exceeds dimensional weight', 'Carrier choice has no effect on price'"
     },
     {
       "id": "has-question-mark-column",
@@ -82,7 +82,7 @@
       "id": "business-language-columns",
       "text": "Column names use domain language",
       "passed": true,
-      "evidence": "Scenario | Region | Speed | Weight | Base Rate?; Dimensions | Fragile | Insured Value | Handling | Total Cost?"
+      "evidence": "Scenario | Region | Speed | Weight | Base Rate? ... Dimensions | Fragile | Insured Value | Handling | Total Cost?"
     },
     {
       "id": "no-if-switch-in-method",
@@ -142,19 +142,19 @@
       "id": "consistent-quantity-naming",
       "text": "Across the @TableTest methods in one class, the same observable quantity carries the same column name.",
       "passed": true,
-      "evidence": "Both 'calculatesBaseRateByRegionSpeedAndWeight' and 'choosesGreaterOfActualAndDimensionalWeight' use 'Base Rate?'; both surcharge and carrier tables use 'Total Cost?' consistently."
+      "evidence": "'Base Rate?' used in both calculatesBaseRateByRegionSpeedAndWeight and choosesGreaterOfActualAndDimensionalWeight; 'Total Cost?' used in both appliesSurchargesToBaseCost and carrierDoesNotAffectCost; 'Weight' and 'Dimensions' columns named identically wherever they recur."
     },
     {
       "id": "titles-form-a-family",
-      "text": "Read the class's test titles as the sorted index a reader would scan, stripped of their tables.",
+      "text": "Read the class's test titles as the sorted index a reader would scan; PASSES when a consistent shape runs across the family.",
       "passed": false,
-      "evidence": "Method names: 'calculatesBaseRateByRegionSpeedAndWeight', 'choosesGreaterOfActualAndDimensionalWeight', 'appliesSurchargesToBaseCost' are verb-first, but 'carrierDoesNotAffectCost' is subject-first, breaking the consistent grammatical shape."
+      "evidence": "Method names: 'calculatesBaseRateByRegionSpeedAndWeight', 'choosesGreaterOfActualAndDimensionalWeight', 'appliesSurchargesToBaseCost' are verb-first phrases, but 'carrierDoesNotAffectCost' flips to a subject-first sentence ('Carrier does not affect cost'), breaking the shared grammatical pattern."
     },
     {
       "id": "minimal-rows-per-concern",
       "text": "Each @TableTest has only the rows needed to express its concern's rules.",
       "passed": true,
-      "evidence": "appliesSurchargesToBaseCost has 8 rows matching the reference ~8-row surcharge table with no cross-concern permutations; choosesGreaterOfActualAndDimensionalWeight has exactly 2 rows; carrierDoesNotAffectCost uses one value-set row '{DHL, UPS, FEDEX} | 12.00'."
+      "evidence": "choosesGreaterOfActualAndDimensionalWeight has 2 rows matching the reference exactly; appliesSurchargesToBaseCost has 8 rows, one per sub-rule (oversize, hazmat, fragile, insurance below/at/above floor, fragile+insured order proof); carrierDoesNotAffectCost is a single value-set row '{DHL, UPS, FEDEX}'; base-rate table's 16-row full matrix is explicitly acceptable per spec."
     }
   ],
   "assertions_passed": 23,

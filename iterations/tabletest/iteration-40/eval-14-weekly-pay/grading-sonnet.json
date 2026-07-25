@@ -2,51 +2,51 @@
   "assertions": [
     {
       "id": "1.2-error-has-expected-column",
-      "text": "The error/rejection table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row",
+      "text": "The error/rejection table has an expected column specifying the exception type per row.",
       "passed": true,
       "evidence": "Scenario | Hourly Rate | Throws? ... java.lang.IllegalArgumentException"
     },
     {
       "id": "1.3-depth-overtime-boundary",
-      "text": "Overtime threshold boundary is covered: at least a value at the threshold (40) and just above (41 or similar).",
+      "text": "Overtime threshold boundary is covered at 40 and 41.",
       "passed": true,
       "evidence": "At the overtime threshold | 40 ... Just past the overtime threshold | 41"
     },
     {
       "id": "1.4-depth-combined-scenario",
-      "text": "A combined scenario is present: a row with weekday + Sunday + holiday hours",
+      "text": "A combined scenario with weekday+Sunday+holiday hours.",
       "passed": true,
       "evidence": "Week with overtime, Sunday, and holiday hours | 42 | 6 | 4 | 15.00 | 945.00"
     },
     {
       "id": "1.5-depth-error-edge-cases",
-      "text": "Negative hours handled by a visible example row stating the chosen semantics; negative rate rejected",
+      "text": "Negative hours handled via explicit row with stated semantics; negative rate rejected.",
       "passed": true,
-      "evidence": "Negative hours treated as an adjustment | -5 | 20.00 | -100.00 ; Negative hourly rate | -0.01 | ...Exception"
+      "evidence": "Negative hours treated as an adjustment | -5 | 20.00 | -100.00 ... Negative hourly rate ... Throws?"
     },
     {
       "id": "1.6-readability-empty-cells",
-      "text": "Sunday and Holiday hour columns use empty cells (not 0) when irrelevant; Integer params",
+      "text": "Sunday/Holiday columns use empty cells not 0; Integer params not int.",
       "passed": false,
-      "evidence": "No premium hours worked | 0 | 0 | 20.00 | 0.00 (uses 0, not blank; params are double)"
+      "evidence": "No premium hours worked | 0 | 0 | 20.00 | 0.00 -- uses 0 not blank, and params are double"
     },
     {
       "id": "1.7-readability-scenario-names",
-      "text": "Scenario names describe work patterns, not 'Test case 1' or outcomes",
+      "text": "Scenario names describe work patterns, not outcomes or 'Test case 1'.",
       "passed": true,
-      "evidence": "No hours worked, Hours below the overtime threshold, At the overtime threshold"
+      "evidence": "No hours worked, Hours below the overtime threshold, At the overtime threshold, Week with weekday overtime"
     },
     {
       "id": "1.8-correctness-expected-values",
-      "text": "Expected values in intermediate and total columns are arithmetically correct for every row",
+      "text": "Expected values arithmetically correct for every row.",
       "passed": true,
-      "evidence": "45 | 15.50 | 736.25 (40*15.5+5*1.5*15.5=736.25) and other rows verified correct"
+      "evidence": "45 hours, 15.50 rate => 736.25 (40*15.50 + 5*23.25) matches stated value"
     },
     {
       "id": "1.9-correctness-value-set-semantics",
-      "text": "Value sets only used where all values produce same expected result; vacuous pass if none used",
+      "text": "Value sets only used where results are the same across values.",
       "passed": true,
-      "evidence": "No '{...}' value set syntax appears anywhere in the tables"
+      "evidence": "No {a,b} value-set syntax appears anywhere in the tables, so this passes vacuously"
     },
     {
       "id": "1.10-format-displayname",
@@ -56,9 +56,9 @@
     },
     {
       "id": "1.11-format-description",
-      "text": "@Description provides context beyond rows, does not restate multipliers",
+      "text": "@Description adds context beyond rows, does not restate multipliers/threshold.",
       "passed": false,
-      "evidence": "Overtime threshold is fixed at 40 hours/week; hours beyond it are paid at 1.5x."
+      "evidence": "\"Overtime threshold is fixed at 40 hours/week; hours beyond it are paid at 1.5x.\" restates the rule the rows already show"
     },
     {
       "id": "1.12-format-annotation-order",
@@ -74,7 +74,7 @@
     },
     {
       "id": "1.14-depth-zero-rate",
-      "text": "A row where the hourly rate is zero, showing pay is zero regardless of hours",
+      "text": "A row where the hourly rate is zero, showing pay is zero regardless of hours worked.",
       "passed": true,
       "evidence": "Zero hourly rate is allowed | 40 | 5 | 0 | 0.00 | 0.00"
     },
@@ -82,31 +82,31 @@
       "id": "1.15-format-clean-method",
       "text": "The test method body contains no if/ternary null-handling or parsing logic. Null-to-default conversion (e.g. blank Sunday hours → 0) is handled via a @TypeConverter method or a private helper, keeping the test method limited to arrange/act/assert.",
       "passed": true,
-      "evidence": "void calculatesWeekdayPay(double weekdayHours, double hourlyRate, double weekdayPay) { assertEquals(weekdayPay, ...); }"
+      "evidence": "void calculatesWeekdayPay(...) { assertEquals(weekdayPay, WeeklyPayCalculator.calculateWeekdayPay(weekdayHours, hourlyRate), 0.001); }"
     },
     {
       "id": "business-language-columns",
-      "text": "Column names use domain/business language ... not implementation terms",
+      "text": "Column names use domain/business language ... not implementation terms like 'weekdayHrs', 'int', 'param1'.",
       "passed": true,
       "evidence": "Scenario | Weekday Hours | Hourly Rate | Weekday Pay?"
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern.",
       "passed": true,
-      "evidence": "5 @TableTest methods: calculatesWeekdayPay, calculatesPremiumPay, combinesWeeklyPayAndFloorsAtZero, rejectsNegativeHourlyRate, calculatesWeeklyPay"
+      "evidence": "calculatesWeekdayPay, calculatesPremiumPay, combinesWeeklyPayAndFloorsAtZero, rejectsNegativeHourlyRate, calculatesWeeklyPay are five separate @TableTest methods"
     },
     {
       "id": "minimal-rows-per-concern",
-      "text": "Each table has only the rows needed to express its concern's rules",
-      "passed": true,
-      "evidence": "calculatesPremiumPay table has 6 focused rows: no premium, sunday only, holiday only, combined, different rate, negative"
+      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
+      "passed": false,
+      "evidence": "'Overtime with a different hourly rate | 45 | 15.50 | 736.25' mixes rate-calculation with overtime-classification in one table"
     },
     {
       "id": "separates-classification-and-calculation",
-      "text": "Payable hours categorisation ... and pay calculation ... are in separate @TableTest methods",
+      "text": "Payable hours categorisation ... and pay calculation (hours × rate) are in separate @TableTest methods",
       "passed": false,
-      "evidence": "'Just past the overtime threshold | 41 | 20.00 | 830.00' mixes classification (overtime boundary) with rate multiplication in one table/method"
+      "evidence": "calculateWeekdayPay(weekdayHours, hourlyRate) computes the 1.5x overtime multiplier AND the hours×rate multiplication together in a single method/table"
     },
     {
       "id": "has-tabletest-dependency",
@@ -122,12 +122,12 @@
     },
     {
       "id": "held-constants-declared",
-      "text": "A value the rule's outcome depends on ... must be visible as a column or named in the @DisplayName/@Description",
+      "text": "A value the rule's outcome depends on, and which the table holds constant for every row, must be visible as a column or named in the @DisplayName/@Description.",
       "passed": true,
-      "evidence": "\"Overtime threshold is fixed at 40 hours/week; hours beyond it are paid at 1.5x.\" and \"paid at double time (2x base rate)\""
+      "evidence": "assertThrows(throws_, () -> WeeklyPayCalculator.calculateWeeklyPay(10, 0, 0, hourlyRate)) — the fixed '10' hours doesn't affect the rejection outcome, so it's not a rule-dependent hidden constant"
     }
   ],
-  "assertions_passed": 18,
+  "assertions_passed": 17,
   "assertions_total": 21,
-  "pass_rate": 0.8571428571428571
+  "pass_rate": 0.8095238095238095
 }

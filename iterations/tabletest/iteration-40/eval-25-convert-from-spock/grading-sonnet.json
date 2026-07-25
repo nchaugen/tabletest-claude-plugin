@@ -8,21 +8,21 @@
     },
     {
       "id": "options-as-map",
-      "text": "Package options collapsed into a single map column",
+      "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column...",
       "passed": true,
-      "evidence": "Options | Fee? column with cells like [handling: hazmat], [fragile: true], [fragile: true, insuredValue: 200]"
+      "evidence": "Scenario | Options | Fee? ... Hazmat handling | [handling: hazmat] | 15.50"
     },
     {
       "id": "options-type-converter",
-      "text": "A @TypeConverter method converts Map<String,String> to PackageOptions with defaults",
+      "text": "A @TypeConverter method is present that accepts Map<String, String> and returns PackageOptions...",
       "passed": false,
-      "evidence": "options: Map<String, String>? ... private fun buildOptions(config: Map<String, String>?): PackageOptions { if (config == null) return PackageOptions() ... }"
+      "evidence": "private fun buildOptions(config: Map<String, String>?): PackageOptions { ... } — no @TypeConverter annotation anywhere"
     },
     {
       "id": "dimensions-as-list",
-      "text": "Dimensions represented as [L, W, H] list",
+      "text": "Dimensions are represented as a [L, W, H] list...",
       "passed": true,
-      "evidence": "Dimensions | Base Fee? ... [30, 20, 15] ... fun dimensionalWeightOverride(weight: Double, dimensions: List<Int>, baseFee: BigDecimal)"
+      "evidence": "Dimensions | [30, 20, 15] ... fun dimensionalWeightOverride(weight: Double, dimensions: List<Int>, baseFee: BigDecimal)"
     },
     {
       "id": "uses-value-sets",
@@ -32,33 +32,33 @@
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple @TableTest methods, each a distinct concern",
+      "text": "Multiple @TableTest methods exist, each addressing a distinct concern...",
       "passed": true,
       "evidence": "baseRateByRegionSpeedAndWeight, dimensionalWeightOverride, oversizeSurcharge, hazmatHandlingSurcharge, fragileSurcharge, insuranceSurcharge, carrierDoesNotAffectCost"
     },
     {
       "id": "concern-not-over-split",
-      "text": "Surcharges concern not fragmented across multiple same-fixture tables",
+      "text": "Do not fragment a single concern across multiple @TableTest methods sharing fixture/assertion...",
       "passed": false,
-      "evidence": "oversizeSurcharge, hazmatHandlingSurcharge, fragileSurcharge, insuranceSurcharge all fix EU standard, weight 3.0, dimensions 30x20x15, Fee? column"
+      "evidence": "oversizeSurcharge, hazmatHandlingSurcharge, fragileSurcharge, insuranceSurcharge all fix zone EU standard, weight 3.0, dims [30,20,15], same Fee? column"
     },
     {
       "id": "rule-falsifiable-by-a-row",
-      "text": "Cell values make the rule falsifiable, not merely distinguishable",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable.",
       "passed": true,
-      "evidence": "carrierDoesNotAffectCost uses {DHL, UPS, FEDEX} value set to prove invariance, all other tables vary expectation values (5.00,7.50,12.50,20.00,...) across rows"
+      "evidence": "baseRateByRegionSpeedAndWeight rows yield distinct outputs 5.00,7.50,12.50,20.00,8.00,12.00,7.00,30.00; other tables vary similarly"
     },
     {
       "id": "rule-statable-from-table",
-      "text": "A reader can state the rule from the table alone",
-      "passed": true,
-      "evidence": "Descriptions state surcharge amounts e.g. 'hazmat handling surcharge of 8.00', '1.15x fragile-handling multiplier', '0.6% of insured value with a 3.00 minimum'"
+      "text": "A reader can state the rule from the table alone, without the test method body.",
+      "passed": false,
+      "evidence": "dimensionalWeightOverride table/description never states the L×W×H/5000 volumetric divisor used to compute dimensional weight"
     },
     {
       "id": "numeric-types-correct",
-      "text": "Parameter types correspond to signature (double weight, List<Integer> dims, BigDecimal cost via compareTo)",
+      "text": "Parameter types correspond to the ShippingCostCalculator.calculateShippingCost signature...",
       "passed": true,
-      "evidence": "fun baseRateByRegionSpeedAndWeight(region: String, speed: String, weight: Double, baseFee: BigDecimal) ... assertEquals(0, expected.compareTo(actual))"
+      "evidence": "fun ...(weight: Double, dimensions: List<Int>, ... baseFee: BigDecimal) ... assertEquals(0, expected.compareTo(actual))"
     },
     {
       "id": "scenario-column-present",
@@ -68,9 +68,9 @@
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions, not outcomes",
+      "text": "Scenario names describe conditions, not outcomes or generic labels.",
       "passed": true,
-      "evidence": "'Actual weight wins (heavier than dimensional)', 'Exceeds size limit (one dimension over 100 cm)', 'Fee is identical regardless of carrier'"
+      "evidence": "EU standard light, EU express medium, Exceeds size limit (one dimension over 100 cm), Fee is identical regardless of carrier"
     },
     {
       "id": "has-question-mark-column",
@@ -80,9 +80,9 @@
     },
     {
       "id": "business-language-columns",
-      "text": "Column names use domain language",
+      "text": "Column names use domain language, not code identifiers.",
       "passed": true,
-      "evidence": "Scenario | Region | Speed | Weight | Base Fee? ... Dimensions | Options | Fee?"
+      "evidence": "Scenario | Region | Speed | Weight | Base Fee? ... Dimensions | Options | Fee? | Carrier"
     },
     {
       "id": "no-if-switch-in-method",
@@ -142,22 +142,22 @@
       "id": "consistent-quantity-naming",
       "text": "Across the @TableTest methods in one class, the same observable quantity carries the same column name.",
       "passed": true,
-      "evidence": "Base rate tables use 'Base Fee?' consistently; all four surcharge tables and the carrier table use 'Fee?' consistently for the post-surcharge total, a distinct quantity."
+      "evidence": "\"Base Fee?\" used consistently for base-rate tables; \"Fee?\" used consistently for all surcharge/carrier tables representing total cost."
     },
     {
       "id": "titles-form-a-family",
-      "text": "Titles function as a scannable catalogue with consistent grammatical shape.",
+      "text": "Read the class's test titles as the sorted index a reader would scan; PASSES when one consistent shape runs across the family.",
       "passed": false,
-      "evidence": "Method names are mostly noun phrases (baseRateByRegionSpeedAndWeight, dimensionalWeightOverride, oversizeSurcharge, hazmatHandlingSurcharge, fragileSurcharge, insuranceSurcharge) but 'carrierDoesNotAffectCost' breaks the shape as a full predicate sentence."
+      "evidence": "Method names like 'oversizeSurcharge', 'hazmatHandlingSurcharge', 'fragileSurcharge' are noun phrases, but 'carrierDoesNotAffectCost' is a full active sentence, breaking the shared grammatical shape."
     },
     {
       "id": "minimal-rows-per-concern",
       "text": "Each @TableTest has only the rows needed to express its concern's rules.",
       "passed": true,
-      "evidence": "Each table (e.g. 'oversizeSurcharge' with 2 rows: 'Within size limit' and 'Exceeds size limit') holds only the rows needed for its own narrow concern with no internal redundancy."
+      "evidence": "dimensionalWeightOverride has exactly 2 rows matching the two obligations; carrierDoesNotAffectCost has a single value-set row `{DHL, UPS, FEDEX} | 12.00`; each surcharge table has a baseline plus the specific surcharge row(s) with no unnecessary permutations."
     }
   ],
-  "assertions_passed": 23,
+  "assertions_passed": 22,
   "assertions_total": 26,
-  "pass_rate": 0.8846153846153846
+  "pass_rate": 0.8461538461538461
 }

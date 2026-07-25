@@ -14,31 +14,31 @@
     },
     {
       "id": "empty-list-explicit",
-      "text": "Empty list input uses [] (not a blank cell, which represents null).",
+      "text": "Empty list input uses [] (not a blank cell, which represents null). The distinction between empty list and null is preserved.",
       "passed": true,
       "evidence": "Empty tag list returns empty list | [] | tech | []"
     },
     {
       "id": "special-chars-quoted",
-      "text": "Values containing pipes, brackets, or colons are properly quoted.",
+      "text": "Values containing pipes, brackets, or colons are properly quoted so they don't conflict with table syntax.",
       "passed": true,
-      "evidence": "[\"tech:java\", \"dev:python\", \"biz:sales\", \"ops:deploy\"]"
+      "evidence": "\"tech:report[Q1]\" | tech | [\"tech:report[Q1]\"]"
     },
     {
       "id": "set-syntax-correct",
       "text": "Set<String> values use curly brace syntax like {tech, dev} — not bracket syntax.",
       "passed": true,
-      "evidence": "Optional adds multiple extra categories | business | {tech, ops} | ..."
+      "evidence": "Optional adds multiple extra categories  | business | {tech, ops} | ..."
     },
     {
       "id": "newline-in-cell",
-      "text": "A cell value containing a newline is escaped as \\n or expressed as joined lines, not a literal break.",
+      "text": "A cell value containing a newline does not break the table row structure: escaped as \\n or expressed as a list of lines.",
       "passed": true,
-      "evidence": "\"tech:java\\\\nEnterprise Edition\" ... resolvedTag = tag.replace(\"\\\\n\", \"\\n\")"
+      "evidence": "\"tech:java\\\\nEnterprise Edition\" ... String resolvedTag = tag.replace(\"\\\\n\", \"\\n\");"
     },
     {
       "id": "pipe-quoted",
-      "text": "Values containing pipe characters are quoted so they don't conflict with the column separator.",
+      "text": "Values containing pipe characters are quoted so they don't conflict with the markdown table column separator.",
       "passed": true,
       "evidence": "\"tech:java|enterprise\" | tech | [\"tech:java|enterprise\"]"
     },
@@ -88,11 +88,11 @@
       "id": "no-blank-collection-elements",
       "text": "No collection value in any table contains a blank element.",
       "passed": true,
-      "evidence": "All list cells like [\"tech:java\", \"dev:python\"] contain no blank elements; none of the form [a, , c]"
+      "evidence": "All list literals like [\"tech:java\", \"dev:python\"] contain no blank elements."
     },
     {
       "id": "empty-string-element-quoted",
-      "text": "An empty tag is written as a quoted empty string, not a blank element inside a collection.",
+      "text": "An empty tag inside a tag list is written as a quoted empty string, not as a blank element.",
       "passed": true,
       "evidence": "Empty tag string is never kept | '' | tech | []"
     },

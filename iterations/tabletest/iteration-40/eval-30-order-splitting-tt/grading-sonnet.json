@@ -8,69 +8,69 @@
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing all splitting rules. Closely-related concerns may share one method... four methods covering five concerns is fine.",
+      "text": "Multiple @TableTest methods are used, each addressing a distinct concern",
       "passed": true,
-      "evidence": "Four @TableTest methods: splitsShipmentsByFulfillmentTypeAndAddress, splitsShipmentsByStockAvailability, choosesWarehouseCombinationMinimizingShipmentCount, keepsCompanionProductsTogetherWhenPossible."
+      "evidence": "Four @TableTest methods: splitsShipmentsByFulfillmentTypeAndAddress, splitsShipmentsByStockAvailability, choosesWarehouseCombinationMinimizingShipmentCount, keepsCompanionProductsTogetherWhenPossible"
     },
     {
       "id": "rule-falsifiable-by-a-row",
-      "text": "Cell values make the rule falsifiable, not merely distinguishable.",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable",
       "passed": true,
-      "evidence": "Expectation cells like '[\"camera,lens\"]', '[camera, watch]', 'IMMEDIATE:[camera,lens]' vary per row and are not fixed or verbatim input copies."
+      "evidence": "Expected outputs vary per row and are derived transformations (e.g. 'W1:[camera,lens]' vs input '[camera, lens]'), not fixed or verbatim copies"
     },
     {
       "id": "rule-statable-from-table",
-      "text": "A reader can state the rule from the table alone, without the test method body.",
+      "text": "A reader can state the rule from the table alone",
       "passed": true,
-      "evidence": "@Description states 'BACKORDERED and PRE_ORDERED both ship WHEN_AVAILABLE' and 'the fewest-shipments combination must be chosen', supplementing column/cell data."
+      "evidence": "@Description states the fewest-shipments and companion tie-breaker rules; e.g. 'the fewest-shipments combination must be chosen even when it means overriding a warehouse that only partially covers the order.'"
     },
     {
       "id": "minimal-rows-per-concern",
-      "text": "Each @TableTest has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
+      "text": "Each @TableTest has only the rows needed to express its concern's rules",
       "passed": false,
-      "evidence": "Fulfillment/address table has 6 rows including 'Delivery split by address, plus a separate pickup item' — a second interaction row combining (b)+(c) beyond the single optional interaction allowed."
+      "evidence": "Availability table has 6 rows including both 'In-stock item not held for a backordered item' and 'In-stock item not held for a pre-ordered item', redundantly covering the same obligation (b), and fulfillment/address table has 6 rows including two interaction rows ('Items sharing an address group together...' and 'Delivery split by address, plus a separate pickup item') beyond the single optional interaction case."
     },
     {
       "id": "concern-fulfillment-method",
-      "text": "Fulfillment method splitting is represented in a @TableTest.",
+      "text": "Fulfillment method splitting is represented in a @TableTest",
       "passed": true,
       "evidence": "'Delivery and pickup items always split | [\"camera:DELIVERY:Addr-A\", \"mug:PICKUP:\"] | [camera, mug]'"
     },
     {
       "id": "concern-delivery-address",
-      "text": "Delivery address splitting is represented in a @TableTest.",
+      "text": "Delivery address splitting is represented in a @TableTest",
       "passed": true,
       "evidence": "'Same type, different delivery addresses | [\"camera:DELIVERY:Addr-A\", \"watch:DELIVERY:Addr-B\"] | [camera, watch]'"
     },
     {
       "id": "concern-availability",
-      "text": "Availability splitting is represented as its own @TableTest.",
+      "text": "Availability splitting is represented as its own @TableTest",
       "passed": true,
-      "evidence": "void splitsShipmentsByStockAvailability(...) with rows for IN_STOCK, BACKORDERED, PRE_ORDERED."
+      "evidence": "splitsShipmentsByStockAvailability table with rows like 'In-stock item not held for a backordered item'"
     },
     {
       "id": "concern-warehouse-allocation",
-      "text": "Warehouse allocation (minimising shipments) is represented as its own @TableTest.",
+      "text": "Warehouse allocation is represented as its own @TableTest",
       "passed": true,
-      "evidence": "void choosesWarehouseCombinationMinimizingShipmentCount(...) table with W1/W2/W3 Stock columns."
+      "evidence": "choosesWarehouseCombinationMinimizingShipmentCount table with rows like 'Correct warehouse pair must be found, not just any pair'"
     },
     {
       "id": "concern-companion-products",
-      "text": "Companion product grouping is represented as its own @TableTest.",
+      "text": "Companion product grouping is represented as its own @TableTest",
       "passed": true,
-      "evidence": "void keepsCompanionProductsTogetherWhenPossible(...) table with Companions column."
+      "evidence": "keepsCompanionProductsTogetherWhenPossible table with rows like 'Companions win a tie between equally minimal warehouses'"
     },
     {
       "id": "all-outputs-same-table",
-      "text": "Each @TableTest method includes all output columns for its concern in the same table.",
+      "text": "Each @TableTest method includes all output columns for its concern in the same table",
       "passed": true,
-      "evidence": "Warehouse table's 'Shipments?' column encodes both warehouse assignment and shipment count, e.g. '[\"W1:[camera,lens]\", \"W2:[mic]\"]'."
+      "evidence": "Warehouse table's single 'Shipments?' column encodes both warehouse assignment and shipment count, e.g. '[\"W1:[camera,lens]\", \"W2:[mic]\"]'"
     },
     {
       "id": "native-collection-output",
       "text": "Compound output expressed as native TableTest list/map/set, not hand-rolled string",
       "passed": false,
-      "evidence": "Shipments? cells like [\"IMMEDIATE:[camera,lens]\"] and [\"W1:[camera,lens,mic]\"] built via describeByWarehouse/describeByAvailability helpers that concatenate strings with colons and brackets."
+      "evidence": "Shipments? cells like [\"IMMEDIATE:[camera,lens]\"] and [\"W1:[camera,lens,mic]\"] built via describeByAvailability/describeByWarehouse string-joining helpers"
     },
     {
       "id": "scenario-column-present",
@@ -86,15 +86,15 @@
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe business situations, not 'Test case N'",
+      "text": "Scenario names describe business situations, not generic test case labels",
       "passed": true,
-      "evidence": "\"Companions win a tie between equally minimal warehouses\", \"Overlapping stock does not cause a needless split\""
+      "evidence": "\"Companions win a tie between equally minimal warehouses\", \"Same fulfillment type and address\""
     },
     {
       "id": "business-language-columns",
       "text": "Column names use business/domain language",
       "passed": true,
-      "evidence": "Column headers: \"Scenario | Items | W1 Stock | W2 Stock | W3 Stock | Companions | Shipments?\""
+      "evidence": "Columns: \"Scenario | Items | W1 Stock | W2 Stock | W3 Stock | Companions | Shipments?\""
     },
     {
       "id": "no-if-switch-in-method",
@@ -134,15 +134,15 @@
     },
     {
       "id": "held-constants-declared",
-      "text": "Held-constant values the outcome depends on must be visible as a column or named in @DisplayName/@Description",
+      "text": "Held constants the outcome depends on must be visible as column or named in description",
       "passed": false,
-      "evidence": "splitsShipmentsByFulfillmentTypeAndAddress has no @Description and body silently fixes all items to StockStatus.IN_STOCK and warehouse 'W1' via `inventory.addStock(\"W1\", item.getProductId(), StockStatus.IN_STOCK)` with no column or note stating this."
+      "evidence": "splitsShipmentsByFulfillmentTypeAndAddress has no @Description/@DisplayName stating that all items are IN_STOCK, one warehouse (W1), and no companions are held fixed"
     },
     {
       "id": "assertion-criteria-declared",
-      "text": "Comparison criteria (ordering, normalization) must be stated on the published surface",
+      "text": "Comparison criteria (ordering, normalisation) must be stated on published surface",
       "passed": false,
-      "evidence": "describeByItems/describeByAvailability/describeByWarehouse all call `.sorted()` to canonicalize order, but no @Description or column states shipments/products are compared without regard to order."
+      "evidence": "describeByAvailability/describeByWarehouse/describeByItems all end with .sorted() before assertEquals, with no description stating shipments are compared without regard to order"
     }
   ],
   "assertions_passed": 20,

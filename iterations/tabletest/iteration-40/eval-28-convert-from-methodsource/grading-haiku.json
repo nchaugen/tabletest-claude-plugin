@@ -1,0 +1,157 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "options-as-map",
+      "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:].",
+      "passed": false,
+      "evidence": "The test uses a helper method `options(boolean fragile, BigDecimal insuredValue, String handling)` to construct PackageOptions objects. Tables do not show options as a map column; instead they use scalar columns (Fragile?, Insured Value, Handling) or call the helper. No [fragile: true] or [:] map syntax appears in any table."
+    },
+    {
+      "id": "options-type-converter",
+      "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.",
+      "passed": false,
+      "evidence": "No @TypeConverter method is present in the test class. The code uses a private helper method `options(boolean fragile, BigDecimal insuredValue, String handling)` instead, which constructs PackageOptions manually without a converter annotation."
+    },
+    {
+      "id": "dimensions-as-list",
+      "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns",
+      "passed": true,
+      "evidence": "Dimensions appear as list literals in tables: '[1, 1, 1]', '[10, 10, 10]', '[70, 50, 10]', '[30, 20, 15]', '[100, 5, 5]', '[120, 5, 5]' and are passed as `List<Integer>` parameters to the test methods."
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence, rather than duplicating rows per carrier",
+      "passed": true,
+      "evidence": "Value set syntax found"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence",
+      "passed": true,
+      "evidence": "Eight separate @TableTest methods: shouldLookUpBaseRateByRegionSpeedAndWeight, shouldUseTheLargerOfActualAndDimensionalWeight, shouldAddOversizeSurchargeWhenAnyDimensionExceedsThreshold, shouldApplyFragileMultiplier, shouldAddInsurancePremiumWithMinimum, shouldAddHazmatHandlingFee, shouldCombineFragileMultiplierWithInsurancePremium, shouldNotVaryCostByCarrier."
+    },
+    {
+      "id": "concern-not-over-split",
+      "text": "Do not fragment a single concern across multiple @TableTest methods that share the same fixture and assertion and differ only in which one sub-rule they exercise.",
+      "passed": false,
+      "evidence": "Surcharges are split across 5 separate methods (shouldApplyFragileMultiplier, shouldAddInsurancePremiumWithMinimum, shouldAddHazmatHandlingFee, shouldCombineFragileMultiplierWithInsurancePremium, and shouldAddOversizeSurchargeWhenAnyDimensionExceedsThreshold), each with the same zone/weight fixture and assertEquals assertion, varying only the surcharge type. These should be consolidated into one surcharges table."
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable. An implementation that ignored the input columns entirely and returned a fixed value would not satisfy every row.",
+      "passed": true,
+      "evidence": "Each table has varying expected outputs: base rate table ranges from 5.00 to 30.00; dimensional weight table shows 7.50 vs 12.50; surcharge tables show different totals (7.50 vs 17.50 for oversize, 8.625 vs 7.50 for fragile, etc.). No table has identical expectations across all rows."
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without the test method body. Values needed to predict the expectation (thresholds, rates, cutoffs, multipliers) must appear in a column, @DisplayName, or @Description.",
+      "passed": false,
+      "evidence": "The oversize threshold (100cm) is not stated in the table header or description; it appears only in the test method name 'ExceedsThreshold' and the row value [120, 5, 5]. The fragile multiplier (1.15×) is not shown in the table. The insurance floor ($3.00) and rate (0.6%) are stated in @Description but not in the table itself."
+    },
+    {
+      "id": "numeric-types-correct",
+      "text": "Parameter types correspond to the ShippingCostCalculator.calculateShippingCost signature: weight is a double, dimensions are a List<Integer>, and cost / insured value are BigDecimal (compared via compareTo, not equals).",
+      "passed": true,
+      "evidence": "Weight parameters are double (0.5, 1, 3.0, 5, 10.0, 15, 25.0); dimensions are List<Integer> (List.of(1, 1, 1), etc.); costs and insured values are BigDecimal; all assertions use `assertEquals(0, result.compareTo(rate))` with compareTo."
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Each table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions ('EU express, light package', 'Oversized with fragile') — not outcomes ('8.00', 'Surcharge applied') or generic labels ('Test 1').",
+      "passed": true,
+      "evidence": "Scenario names describe conditions: 'EU standard, light', 'EU standard, at 1kg boundary', 'Actual weight governs', 'Oversize', 'Fragile', 'Below minimum, floor applies', 'Hazmat handling', 'Insurance floor applies despite fragile'."
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Cost?', 'Base rate?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Rate?, Rate?, Total?, Fragile?, Total?, Total?, Total?, Total?, Total?"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims').",
+      "passed": true,
+      "evidence": "Column headers use domain language: 'Region', 'Speed', 'Weight (kg)', 'Rate?', 'Dimensions', 'Total?', 'Fragile?', 'Insured Value', 'Handling', 'Carrier'. No code identifiers like shippingZone, weightKg, or dims appear."
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method bodies contain no if or switch statements",
+      "passed": true,
+      "evidence": "8 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "8 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "no-methodsource-artifacts",
+      "text": "Output contains no @MethodSource syntax: no @MethodSource, Stream<Arguments>, Arguments.of, or JUnit Jupiter parameterized imports (org.junit.jupiter.params.provider.*).",
+      "passed": true,
+      "evidence": "No @MethodSource found"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (pom.xml) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The generated tests pass when executed against ShippingCostCalculator",
+      "passed": true,
+      "evidence": "Tests passed"
+    },
+    {
+      "id": "consistent-quantity-naming",
+      "text": "Across the @TableTest methods in one class, the same observable quantity carries the same column name.",
+      "passed": true,
+      "evidence": "All base-rate outputs use 'Rate?' (methods 1–2); all cost outputs use 'Total?' (methods 3–7); carrier test uses 'Total?'. No quantity appears under multiple names."
+    },
+    {
+      "id": "titles-form-a-family",
+      "text": "Read the class's test titles as a sorted index; titles must function as a catalogue with varying subject early and consistent grammatical shape.",
+      "passed": false,
+      "evidence": "Eight methods use inconsistent shapes: 'shouldLookUp...' (imperative), 'shouldUse...' (imperative), 'shouldAdd...' (imperative), 'shouldApply...' (imperative), 'shouldCombine...' (imperative), 'shouldNotVary...' (imperative negation). All eight share 'should' prefix, making the varying subject arrive late in the scan. No consistent pattern distinguishes concerns."
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each @TableTest has only the rows needed to express its concern's rules — no unnecessary permutations.",
+      "passed": false,
+      "evidence": "Method 3 (oversize surcharge) has 3 rows: 'Not oversize [30,20,15]', 'At the oversize threshold [100,5,5]', 'Oversize [120,5,5]'. The at-threshold row (100cm exactly) is not required by the rule (threshold is >100, strictly); it re-covers the 'not oversize' case and is an unnecessary permutation."
+    },
+    {
+      "id": "held-constants-declared",
+      "text": "A value the rule's outcome depends on, and which the table holds constant for every row, must be visible as a column or named in @DisplayName/@Description.",
+      "passed": false,
+      "evidence": "Methods 3–7 hold ShippingZone fixed to ('EU', 'standard') and weight fixed to 3.0kg in the method body without declaring these in the table or @Description. Method 3's @Description mentions 'Zone is EU standard and weight is 3.0kg throughout' but methods 4–6 have no such declaration. These constants affect the outcome and are not visible in the table."
+    }
+  ],
+  "assertions_passed": 18,
+  "assertions_total": 25,
+  "pass_rate": 0.72
+}

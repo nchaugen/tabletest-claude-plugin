@@ -32,9 +32,9 @@
     },
     {
       "id": "no-duplicate-role-output",
-      "text": "No two rows share both the same Role value and the same boolean output",
+      "text": "No two rows share both the same Role value and the same boolean output — forces value set consolidation (e.g. USER can READ and USER can WRITE, both true, should be one row with {READ, WRITE}).",
       "passed": false,
-      "evidence": "Row 6 (Guest cannot write | GUEST | WRITE | false) and Row 7 (Guest cannot delete | GUEST | DELETE | false) both have GUEST role and false outcome"
+      "evidence": "User can read | USER | READ | true' and 'User can write | USER | WRITE | true' are separate rows with same role/output; also 'Guest cannot write | GUEST | WRITE | false' and 'Guest cannot delete | GUEST | DELETE | false' duplicate role+output."
     },
     {
       "id": "has-descriptive-title",
@@ -44,9 +44,9 @@
     },
     {
       "id": "description-if-present-adds-information",
-      "text": "If @Description is present, it provides context beyond table rows",
+      "text": "If @Description is present, it provides context beyond what the table rows already express... Does NOT merely restate the column names... Acceptable to omit.",
       "passed": true,
-      "evidence": "No @Description annotation present in the test class; omission is acceptable per spec"
+      "evidence": "No @Description annotation appears anywhere in the generated test file, so the rule is vacuously satisfied per the omission allowance."
     },
     {
       "id": "annotation-order",
@@ -62,9 +62,9 @@
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions, not outcomes",
-      "passed": true,
-      "evidence": "Scenarios use condition language: 'Admin can perform any action', 'User can read', 'Guest cannot write' describe the setup/rule, not verdicts"
+      "text": "Scenario names describe conditions ('Admin performs any action', 'Guest reads') — not outcomes ('Allowed', 'Denied').",
+      "passed": false,
+      "evidence": "Scenario names like 'User cannot delete' and 'Guest cannot write' encode the allowed/denied outcome directly in the name rather than describing the condition."
     },
     {
       "id": "has-tabletest-dependency",
@@ -79,7 +79,7 @@
       "evidence": "Compilation succeeded"
     }
   ],
-  "assertions_passed": 12,
+  "assertions_passed": 11,
   "assertions_total": 13,
-  "pass_rate": 0.9230769230769231
+  "pass_rate": 0.8461538461538461
 }

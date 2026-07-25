@@ -10,19 +10,19 @@
       "id": "validation-rules-covered",
       "text": "Email validation and name-required error scenarios are present — at least one row for invalid email and one for missing name.",
       "passed": true,
-      "evidence": "Invalid email, missing @ ... Missing name (null) | | alice@example.com |  |  | false | Name is required"
+      "evidence": "Rows 'Missing name (null)' and 'Invalid email, missing @' etc. present in validatesRegistration table."
     },
     {
       "id": "blank-for-absent-optional",
-      "text": "Dietary requirements and/or accessibility needs use blank cells (null) when not provided — not 'N/A' or 'none'.",
+      "text": "Dietary requirements and/or accessibility needs use blank cells (null) when not provided.",
       "passed": true,
-      "evidence": "Valid registration | Alice | alice@example.com   |                       |                      | true"
+      "evidence": "Rows like 'Missing name (null) | | alice@example.com | | | false | Name is required' show blank Dietary/Accessibility cells."
     },
     {
       "id": "blank-vs-value-set-correct",
-      "text": "Irrelevant inputs (e.g. dietary requirements don't affect price) use value sets or representative values — not blanks.",
+      "text": "Irrelevant inputs use value sets or representative values — not blanks — for pricing.",
       "passed": true,
-      "evidence": "Pricing table omits dietary/accessibility columns entirely, fixed in body: service.register(\"Alice\", \"alice@example.com\", null, null, ...)"
+      "evidence": "Group Size column uses '{5, 20}' value set for group discount rows rather than blanks."
     },
     {
       "id": "scenario-column-present",
@@ -38,15 +38,15 @@
     },
     {
       "id": "business-language-columns",
-      "text": "Column names use domain/business language — not code identifiers.",
+      "text": "Column names use domain/business language.",
       "passed": true,
-      "evidence": "Scenario | Name | Email | Dietary Requirements | Accessibility Needs | Accepted? | Error Message?"
+      "evidence": "Columns: 'Name | Email | Dietary Requirements | Accessibility Needs | Accepted? | Error Message?' and 'Registration Date | Group Size | Discount? | Price?'"
     },
     {
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions, not outcomes.",
       "passed": false,
-      "evidence": "No discount applies | ... | Early-bird discount applies | ... | Group discount applies | ... | Both apply, early-bird wins"
+      "evidence": "Pricing scenario names 'No discount applies', 'Early-bird discount applies', 'Group discount applies' describe outcomes rather than conditions."
     },
     {
       "id": "no-if-switch-in-method",
@@ -74,51 +74,51 @@
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple tables each addressing a distinct concern — not one monolithic table mixing unrelated rules.",
+      "text": "Multiple tables/@TableTest methods each addressing a distinct concern.",
       "passed": true,
-      "evidence": "validatesRegistration(...) and calculatesPricingAndDiscount(...) are two separate @TableTest methods"
+      "evidence": "Two methods: 'validatesRegistration' and 'calculatesPricingAndDiscount'."
     },
     {
       "id": "minimal-rows-per-concern",
-      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
+      "text": "Each table has only the rows needed to express its concern's rules.",
       "passed": true,
-      "evidence": "Validation table varies only name/email/optional fields; pricing table varies only date/group size — no cross-multiplication"
+      "evidence": "Validation table rows test only name/email/optional fields; pricing table rows test only date/group size, no cross-multiplication."
     },
     {
       "id": "separates-validation-and-pricing",
       "text": "Input validation and pricing/discount calculation are in separate @TableTest methods.",
       "passed": true,
-      "evidence": "void validatesRegistration(...) ... void calculatesPricingAndDiscount(...)"
+      "evidence": "validatesRegistration() and calculatesPricingAndDiscount() are distinct methods with distinct tables."
     },
     {
       "id": "validation-includes-optional-fields",
-      "text": "Validation @TableTest includes Dietary Requirements and Accessibility Needs columns, with rows showing both null and non-null values.",
+      "text": "Validation @TableTest includes Dietary Requirements and Accessibility Needs columns with both null and non-null rows.",
       "passed": true,
-      "evidence": "Valid with optional fields | Bob | bob@example.com | Vegetarian | Wheelchair access | true"
+      "evidence": "'Valid with optional fields | Bob | bob@example.com | Vegetarian | Wheelchair access | true' alongside blank rows."
     },
     {
       "id": "descriptive-registration-date",
-      "text": "Registration date uses descriptive values with a @TypeConverter method converting to actual dates.",
+      "text": "Registration date uses descriptive values with a @TypeConverter method.",
       "passed": true,
-      "evidence": "case \"before cutoff\" -> EARLY_BIRD_CUTOFF.minusDays(1); case \"on cutoff\" -> EARLY_BIRD_CUTOFF; case \"after cutoff\" -> EARLY_BIRD_CUTOFF.plusDays(1);"
+      "evidence": "'before cutoff'/'on cutoff'/'after cutoff' rows with '@TypeConverter public static LocalDate parseRegistrationDate(String value)'."
     },
     {
       "id": "cutoff-date-column-if-literal-dates",
-      "text": "If registration dates are literal ... early-bird cutoff date appears as a separate policy column ... Passes automatically if descriptive date values are used.",
+      "text": "If registration dates are literal, the early-bird cutoff date appears as a separate policy column...",
       "passed": true,
-      "evidence": "Scenario column uses 'before cutoff', 'on cutoff', 'after cutoff' converted via @TypeConverter, not literal dates."
+      "evidence": "Table uses descriptive 'before cutoff'/'on cutoff'/'after cutoff' values converted via @TypeConverter, not literal dates."
     },
     {
       "id": "description-no-irrelevant-information",
       "text": "@Description does not include information already visible in the table columns or derivable from the table structure...",
       "passed": true,
-      "evidence": "\"Base price is £100. Early-bird registrations (before 2025-03-01) get 20% off; groups of 5 or more get 15% off... they never stack.\" states constants/thresholds fixed in the method body, not columns."
+      "evidence": "\"Base price is £100. Early-bird registrations (before 2025-03-01) get 20% off; groups of 5 or more get 15% off...\" states constants/thresholds fixed in the method body and clarifies scope (validation covered separately), matching the allowed categories."
     },
     {
       "id": "discount-column-preferred",
-      "text": "Output column is 'Discount?' ... If 'Price?' is used instead, both 'Base price' and 'Price?' columns must be present...",
+      "text": "Output column is 'Discount?' rather than 'Price?'...",
       "passed": true,
-      "evidence": "Table header: 'Registration Date | Group Size | Discount? | Price?' — Discount? is present as the direct output alongside Price?."
+      "evidence": "Table header: \"Scenario | Registration Date | Group Size | Discount? | Price?\" — Discount? is present as the primary output."
     },
     {
       "id": "single-assertion-in-method",
@@ -130,13 +130,13 @@
       "id": "optional-fields-has-expected-column",
       "text": "The optional-fields acceptance table includes an expectation/output column...",
       "passed": true,
-      "evidence": "Validation table header includes 'Accepted? | Error Message?' asserting acceptance for each row."
+      "evidence": "Validation table header includes \"Accepted? | Error Message?\" asserting acceptance for each combination."
     },
     {
       "id": "description-no-redundant-field-values",
-      "text": "Scenario names and @Description text do not restate values the table already shows...",
+      "text": "Scenario names and @Description text do not restate values the table already shows.",
       "passed": true,
-      "evidence": "Scenario names like 'Just under group threshold' and 'Both apply, early-bird wins' contain no literal input values; description states thresholds/constants (£100, 5, 2025-03-01) not shown as columns."
+      "evidence": "Scenario names like 'Missing name (null)', 'Both apply, early-bird wins' do not repeat literal cell values; descriptions state thresholds (£100, 2025-03-01, 5) that are fixed constants, not restating varying column data."
     },
     {
       "id": "has-tabletest-dependency",
@@ -146,15 +146,15 @@
     },
     {
       "id": "rule-falsifiable-by-a-row",
-      "text": "Cell values make the rule falsifiable, not merely distinguishable...",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable.",
       "passed": true,
-      "evidence": "Discount? values vary across rows (0.00, 20.00, 15.00) and Accepted? varies true/false, not constant nor copied from inputs."
+      "evidence": "Discount? values vary across rows (0.00, 20.00, 15.00) and Accepted? varies (true/false), so a fixed-output implementation would fail some rows."
     },
     {
       "id": "rule-statable-from-table",
-      "text": "A reader can state the rule from the table alone, without the test method body...",
+      "text": "A reader can state the rule from the table alone, without the test method body.",
       "passed": true,
-      "evidence": "Description states '£100', 'before 2025-03-01', '20% off', 'groups of 5 or more get 15% off' — all values needed appear in description/columns, not only in method body."
+      "evidence": "\"Base price is £100. Early-bird registrations (before 2025-03-01) get 20% off; groups of 5 or more get 15% off...\" gives thresholds/rates in the @Description, and column headers name the operations."
     },
     {
       "id": "compiles",
@@ -164,9 +164,9 @@
     },
     {
       "id": "quantifier-covered-by-rows",
-      "text": "When a title or description quantifies over a domain... rows must actually cover that domain.",
+      "text": "When a title or description quantifies over a domain, the rows must actually cover that domain.",
       "passed": true,
-      "evidence": "\"dietaryRequirements and accessibilityNeeds are optional and do not affect acceptance\" is covered by rows with optionals present ('Vegetarian', 'Wheelchair access') and absent (blank)."
+      "evidence": "\"Group discount applies\" row uses Group Size value set '{5, 20}' covering the '5 or more' domain, and 'Both apply, early-bird wins' row demonstrates the never-stack claim."
     }
   ],
   "assertions_passed": 27,

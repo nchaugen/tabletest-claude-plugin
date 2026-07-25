@@ -10,13 +10,13 @@
       "id": "threshold-verifiable-from-table",
       "text": "Each policy threshold (650 for non-seniors, 600 for seniors) is verifiable from the table...",
       "passed": true,
-      "evidence": "At the standard threshold... | 650 | REJECTED ... Just above the standard threshold | 651 | APPROVED"
+      "evidence": "Rows 'At the standard threshold...650...REJECTED' and 'Just above...651...APPROVED'; also 600/601 pair for seniors"
     },
     {
       "id": "concrete-domain-values",
       "text": "Cell values use concrete domain terms...",
       "passed": true,
-      "evidence": "40 | 650 | true | REJECTED ... 70 | 601 | true | APPROVED"
+      "evidence": "40 | 650 | true | REJECTED and 70 | 601 | true | APPROVED — concrete numbers/enums, boolean for income"
     },
     {
       "id": "scenario-column-present",
@@ -28,13 +28,13 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names describe conditions, not outcomes.",
       "passed": false,
-      "evidence": "Below threshold rejects regardless of stable income ... Below threshold rejects even with missing income info"
+      "evidence": "'Below threshold rejects regardless of stable income' and 'Below threshold rejects even with missing income info' embed the outcome verb 'rejects'"
     },
     {
       "id": "business-language-columns",
       "text": "Column names use domain/business language.",
       "passed": true,
-      "evidence": "Scenario | Age | Credit Score | Stable Income | Result?"
+      "evidence": "Header row: 'Scenario | Age | Credit Score | Stable Income | Result?'"
     },
     {
       "id": "has-question-mark-column",
@@ -68,33 +68,33 @@
     },
     {
       "id": "concerns-decomposed",
-      "text": "The distinct concerns are each covered without cross-multiplying into redundant rows.",
+      "text": "Distinct concerns are each covered without cross-multiplying into redundant permutations.",
       "passed": true,
-      "evidence": "Single @TableTest table with 11 rows targeting age, credit, and income concerns separately, not a full cartesian product"
+      "evidence": "Single table with 11 rows targeting age, credit, income concerns without a full combinatorial matrix"
     },
     {
       "id": "minimal-rows-per-concern",
       "text": "Each table has only the rows needed to express its concern's rules.",
       "passed": false,
-      "evidence": "Senior qualifying score with missing income information | 70 | 610 | | PENDING_REVIEW (redundant with row 8's null-income case)"
+      "evidence": "'Senior qualifying score with missing income information | 70 | 610 | | PENDING_REVIEW' duplicates the null-income rule already shown at age 40 (row 8), an unnecessary age×income permutation"
     },
     {
       "id": "covers-age-credit-income",
       "text": "Age boundary policy, credit score categorisation, and income status are each covered by minimal scenarios.",
       "passed": true,
-      "evidence": "Rows cover age boundary (64/65), credit boundary (650/651, 600/601), and income (true/false/null) cases"
+      "evidence": "Rows 1-6 cover age/credit boundaries; rows 7-11 vary income (false, null) at qualifying and non-qualifying scores"
     },
     {
       "id": "description-no-redundant-field-values",
       "text": "Scenario names and @Description text do not restate values the table already shows.",
       "passed": false,
-      "evidence": "Standard applicants are approved above a credit score of 650... lower threshold of 600... senior age cutoff is inclusive at 65."
+      "evidence": "@Description states 'approved above a credit score of 650...lower threshold of 600...senior age cutoff is inclusive at 65' — restating thresholds and age cut the rows already carry"
     },
     {
       "id": "depth-stable-income-effect",
       "text": "The effect of stable income on the outcome is visible from table rows.",
       "passed": true,
-      "evidence": "Qualifying score with unstable income | 40 | 700 | false | REJECTED vs Qualifying score with missing income information | 40 | 700 | | PENDING_REVIEW"
+      "evidence": "'Qualifying score with unstable income | 40 | 700 | false | REJECTED' vs 'Qualifying score with missing income information | 40 | 700 | | PENDING_REVIEW' — same age/score, differing income and decision"
     },
     {
       "id": "has-tabletest-dependency",
@@ -106,19 +106,19 @@
       "id": "rule-falsifiable-by-a-row",
       "text": "Cell values make the rule falsifiable, not merely distinguishable.",
       "passed": true,
-      "evidence": "Result column varies (REJECTED, APPROVED, PENDING_REVIEW) and depends on inputs, not a fixed value or copy of input cells"
+      "evidence": "Decisions vary (REJECTED, APPROVED, PENDING_REVIEW) and none are verbatim copies of input cells, so a fixed-value stub would fail multiple rows"
     },
     {
       "id": "rule-statable-from-table",
       "text": "A reader can state the rule from the table alone, without the test method body.",
       "passed": true,
-      "evidence": "Boundary rows (650/651, 600/601) and description text 'approved above a credit score of 650... lower threshold of 600' make thresholds and age cutoff explicit in both columns and description."
+      "evidence": "Boundary rows like '650 | true | REJECTED' and '651 | true | APPROVED' plus '600'/'601' and '64'/'65' rows make thresholds and age cutoff inferable from the table itself."
     },
     {
       "id": "title-states-system-behaviour",
-      "text": "Each @DisplayName (or method name) states what the code under test does, not an external fact.",
+      "text": "Each @DisplayName (or fallback method name) states what the code under test does, not an external fact.",
       "passed": true,
-      "evidence": "Method name 'evaluatesLoanApproval' describes the action performed by the code, not a restated policy fact."
+      "evidence": "void evaluatesLoanApproval(...) — the method name describes the evaluator's action, not a restated domain threshold or policy fact."
     },
     {
       "id": "compiles",
@@ -128,9 +128,9 @@
     },
     {
       "id": "held-constants-declared",
-      "text": "A value the rule's outcome depends on, held constant across rows, must be visible as a column or named in title/description.",
+      "text": "A value the rule's outcome depends on and held constant across rows must be visible as a column or named in title/description.",
       "passed": true,
-      "evidence": "Age, Credit Score, and Stable Income all vary as explicit columns; no hidden field or constant fixes an outcome-affecting value: 'private final LoanEvaluator evaluator = new LoanEvaluator();' has no fixed parameters."
+      "evidence": "All outcome-relevant values (Age, Credit Score, Stable Income) vary as columns across rows; no hidden constant threshold sits only in the method body, since 650/600/601/651 appear as explicit cell values."
     }
   ],
   "assertions_passed": 19,
