@@ -105,6 +105,32 @@ least one PASS and one FAIL case before it is trusted** (`docs/grader-answer-key
   obligations stated for this concern in the expected output"), the same edit that worked for items 5,
   6 and 8 of the `84e6916` tranche. Do not vote it before trying that.
 
+## Batch-3 re-baseline — measured 2026-07-25 (`benchmark-t3.json`)
+
+**Accuracy 59/63 (94%)**, from 89% (t2) and 77–88% pre-tranche. **New level 318/365** — the current
+baseline for any skill comparison. t2's 323/365 and the original 324/365 are both dead.
+
+**The level fell and that is the instrument working.** Batch 3 made two assertions catch defects they
+were previously blind to, so the same unchanged skill output scores lower. A level drop that follows an
+accuracy rise is not a regression — it is the instrument becoming less wrong. Never read these two
+numbers in the same direction.
+
+**Every prediction held, including the falsifier.** `scenario-names-describe-conditions` is correct on
+all five key-covered hosts (7, 9, 22, 23 FAIL; 27 the deliberate PASS release), and — the check that
+mattered — **none of the six uncovered hosts started failing**. 18, 25, 26, 28, 29 and 30 all still
+PASS, so the narrowing did not over-fire; the two names flagged in advance as likeliest over-fires
+(eval-30's "Delivery and pickup items always split", eval-18's "would otherwise be standard") both held.
+
+**The judge-every-table clause worked and found one the key had missed.** eval-14 flipped to FAIL as
+predicted; **eval-15 also flipped**, with no key entry to predict it. Adjudicated from the artefact
+before reading the grader's evidence, and the two agree: `calculatesDiscountEndToEnd` spends six rows
+re-proving rules tables 1 and 3 already established. Correct failure; entry added, key now 64 entries
+with **one borderline left** (`business-language-columns`/29).
+
+**Four slots remain wrong and three are one assertion** — `rule-statable-from-table` on 25, 27 and 28,
+which this batch did not touch and which is next in the queue, plus
+`type-converters-for-complex-objects`/29.
+
 ## Tranche-2 re-baseline — measured 2026-07-25 (`benchmark-t2.json`)
 
 **Accuracy 54/61 (89%)**, against pre-tranche passes of 88% / 87% / 77% / 87%. New level is

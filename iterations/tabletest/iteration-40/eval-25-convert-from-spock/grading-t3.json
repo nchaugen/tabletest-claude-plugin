@@ -1,0 +1,163 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "options-as-map",
+      "text": "Package options collapsed into a single map column...",
+      "passed": true,
+      "evidence": "\"Scenario | Options | Fee?\" with cells like \"[handling: hazmat]\", \"[fragile: true, insuredValue: 200]\""
+    },
+    {
+      "id": "options-type-converter",
+      "text": "A @TypeConverter method is present that accepts Map<String, String> and returns PackageOptions...",
+      "passed": false,
+      "evidence": "\"Fixed by typing those parameters as `Map<String, String>?` and doing the null-to-default logic in a private `buildOptions` helper instead.\""
+    },
+    {
+      "id": "dimensions-as-list",
+      "text": "Dimensions are represented as a [L, W, H] list...",
+      "passed": true,
+      "evidence": "\"Weight | Dimensions | Base Fee?\" rows with \"[30, 20, 15]\" and param \"dimensions: List<Int>\""
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence, rather than duplicating rows per carrier",
+      "passed": true,
+      "evidence": "Value set syntax found"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods exist, each addressing a distinct concern...",
+      "passed": true,
+      "evidence": "Seven separate fun methods: baseRateByRegionSpeedAndWeight, dimensionalWeightOverride, oversizeSurcharge, etc."
+    },
+    {
+      "id": "concern-not-over-split",
+      "text": "Do not fragment a single concern across multiple @TableTest methods that share the same fixture...",
+      "passed": false,
+      "evidence": "hazmatHandlingSurcharge, fragileSurcharge, insuranceSurcharge, oversizeSurcharge all fix zone EU standard, weight 3.0, dims 30x20x15, output Fee?"
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable...",
+      "passed": true,
+      "evidence": "Each table's expectation values vary across rows and are not verbatim copies of inputs, e.g. hazmat: 7.50 vs 15.50"
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without the test method body.",
+      "passed": false,
+      "evidence": "dimensionalWeightOverride's @Description omits the volumetric divisor (L×W×H/5000) needed to predict 12.50"
+    },
+    {
+      "id": "numeric-types-correct",
+      "text": "Parameter types correspond to the ShippingCostCalculator.calculateShippingCost signature...",
+      "passed": true,
+      "evidence": "\"fun ...(weight: Double, dimensions: List<Int>, baseFee: BigDecimal)\" and \"assertEquals(0, expected.compareTo(actual))\""
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Each table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names name the variation the row exercises, not the result it produces.",
+      "passed": true,
+      "evidence": "\"Actual weight wins (heavier than dimensional)\", \"Not fragile\", \"Fee is identical regardless of carrier\""
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Cost?', 'Base rate?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Base Fee?, Base Fee?, Fee?, Fee?, Fee?, Fee?, Fee?"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain language...",
+      "passed": true,
+      "evidence": "\"Scenario | Region | Speed | Weight | Base Fee?\" and \"Dimensions | Options | Fee?\""
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method bodies contain no if or switch statements",
+      "passed": true,
+      "evidence": "7 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "7 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "output-is-kotlin",
+      "text": "The generated test file is written in Kotlin (.kt), not Java or Groovy. Uses Kotlin syntax: fun, val/var, Kotlin imports.",
+      "passed": true,
+      "evidence": "Found 1 Kotlin test file(s): src/test/kotlin/com/example/ShippingCostCalculatorTest.kt"
+    },
+    {
+      "id": "no-groovy-syntax",
+      "text": "Output contains no Groovy or Spock syntax: no def, where:, expect:, given:, GString interpolation (#variable), Spock assertions (thrown(), old()), or Groovy list literals ([] as Set).",
+      "passed": true,
+      "evidence": "No Groovy/Spock syntax found"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle.kts) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The generated tests pass when executed against ShippingCostCalculator",
+      "passed": true,
+      "evidence": "Tests passed"
+    },
+    {
+      "id": "spock-dependency-removed",
+      "text": "The build file no longer declares Spock or Groovy dependencies — the old framework is fully removed, not just the test code.",
+      "passed": true,
+      "evidence": "Build file has no Spock/Groovy reference"
+    },
+    {
+      "id": "consistent-quantity-naming",
+      "text": "Across the @TableTest methods in one class, the same observable quantity carries the same column name.",
+      "passed": false,
+      "evidence": "First two tables use 'Base Fee?' (e.g. 'EU standard light ... 5.00') while the four surcharge tables and carrier table use 'Fee?' (e.g. 'Fragile | 8.625') for the same function output value."
+    },
+    {
+      "id": "titles-form-a-family",
+      "text": "Read the class's test titles as the sorted index a reader would scan.",
+      "passed": true,
+      "evidence": "Method names: 'oversizeSurcharge', 'hazmatHandlingSurcharge', 'fragileSurcharge', 'insuranceSurcharge' share a consistent noun+Surcharge shape; only 'carrierDoesNotAffectCost' differs as an invariant claim."
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each @TableTest has only the rows needed to express its concern's rules.",
+      "passed": true,
+      "evidence": "Tables like 'dimensionalWeightOverride' have exactly 2 rows matching the reference obligations, and no table re-covers a rule an earlier row in the same table already covers."
+    }
+  ],
+  "assertions_passed": 22,
+  "assertions_total": 26,
+  "pass_rate": 0.8461538461538461
+}

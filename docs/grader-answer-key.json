@@ -121,6 +121,13 @@
     },
     {
       "eval": 15,
+      "assertion": "minimal-rows-per-concern",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "Added 2026-07-25 after the batch-3 judge-every-table clause surfaced it; verified against the artefact before the grader's evidence was read, and the two agree. calculatesDiscountEndToEnd spends six rows re-proving rules the earlier tables already established: 'Child ignores history entirely' re-covers table 3's CHILD flat rule, 'New adult rider has not reached the first tier' and 'Adult reaches the fifth trip' re-cover table 1's ladder, 'Senior with the same trip pattern gets the same tier' re-covers table 3's ADULT==SENIOR. eval-15's expected_output states no obligation list, so the assertion's fallback applies and the re-coverage is plain from the artefact. This is the integration-table case the clause was written for."
+    },
+    {
+      "eval": 15,
       "assertion": "rule-statable-from-table",
       "expected": true,
       "confidence": "firm",
