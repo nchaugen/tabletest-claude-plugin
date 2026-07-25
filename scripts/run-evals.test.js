@@ -23,6 +23,9 @@ const {
   regradeCommand,
   rebuildCommand,
   evalsMissingGrading,
+  acceptsEffort,
+  gradingEffortFor,
+  GRADING_EFFORT_LEVELS,
   priceGradingUsage,
   addUsage,
   summariseGradingUsage,
@@ -397,6 +400,54 @@ describe("rebuildCommand", () => {
 
   test("omits the suffix when there is none", () => {
     assert.doesNotMatch(rebuildCommand(base), /--grading-suffix/);
+  });
+});
+
+// --- grading effort --------------------------------------------------------
+//
+// Effort is part of the grading regime, like the model and the batch size: a comparison across a
+// change of effort is not a comparison. Per-eval effort is therefore a property of the eval
+// definition (and so of its fingerprint), never an ad-hoc runtime choice.
+
+describe("acceptsEffort", () => {
+  test("newer families take effort and reject sampling params", () => {
+    assert.equal(acceptsEffort("claude-sonnet-5"), true);
+    assert.equal(acceptsEffort("claude-opus-5"), true);
+  });
+
+  test("haiku takes sampling params and rejects effort", () => {
+    assert.equal(acceptsEffort("claude-haiku-4-5"), false);
+    assert.equal(acceptsEffort("claude-haiku-4-5-20251001"), false);
+  });
+});
+
+describe("gradingEffortFor", () => {
+  test("sends nothing by default, preserving the pre-flag regime", () => {
+    assert.equal(gradingEffortFor({ id: 7 }, {}), null);
+  });
+
+  test("uses the run-wide flag when the eval has no preference", () => {
+    assert.equal(gradingEffortFor({ id: 7 }, { gradingEffort: "medium" }), "medium");
+  });
+
+  // The whole point of the per-eval knob: cheap evals can sit at medium while hard ones stay
+  // high, and each eval still grades at the same effort on every run.
+  test("an eval's own effort wins over the run-wide flag", () => {
+    assert.equal(
+      gradingEffortFor({ id: 18, grading_effort: "high" }, { gradingEffort: "medium" }),
+      "high"
+    );
+  });
+
+  test("rejects a level the API does not accept", () => {
+    assert.throws(() => gradingEffortFor({ id: 7, grading_effort: "maximum" }, {}), /not one of/);
+    assert.throws(() => gradingEffortFor({ id: 7 }, { gradingEffort: "ultra" }), /not one of/);
+  });
+
+  test("accepts every documented level", () => {
+    for (const level of GRADING_EFFORT_LEVELS) {
+      assert.equal(gradingEffortFor({ id: 7, grading_effort: level }, {}), level);
+    }
   });
 });
 

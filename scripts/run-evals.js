@@ -352,6 +352,45 @@ function acceptsTemperature(resolvedModel) {
   return !MODELS_WITHOUT_SAMPLING_PARAMS.some((id) => resolvedModel.startsWith(id));
 }
 
+/** Effort levels `output_config.effort` accepts, cheapest first. */
+const GRADING_EFFORT_LEVELS = ["low", "medium", "high", "xhigh", "max"];
+
+/**
+ * Whether a model accepts `output_config.effort`.
+ *
+ * The same newer families that dropped sampling parameters are the ones that gained effort, so
+ * one predicate covers both. haiku-4-5 takes `temperature` and rejects `effort`; sonnet-5 is the
+ * reverse. Grading omits `output_config` entirely unless `--grading-effort` is passed, so the
+ * default regime stays byte-identical to every run recorded before this flag existed — the API
+ * default is `high`, which is what every measurement to date was taken at.
+ */
+function acceptsEffort(resolvedModel) {
+  return !acceptsTemperature(resolvedModel);
+}
+
+/**
+ * The grading effort for one eval: its own `grading_effort`, else the run-wide `--grading-effort`,
+ * else null (send nothing — the API default, `high`).
+ *
+ * Per-eval effort is deliberately a property of the eval *definition*, not a runtime choice, and it
+ * feeds the fingerprint like `timeout_ms` does: an eval always grades at the same effort, so
+ * comparing an eval to itself across runs stays valid even when the suite mixes levels. Choosing
+ * levels ad hoc per run would silently make two runs incomparable.
+ *
+ * Effort is per-request and assertions are batched, so this is the finest granularity available
+ * without regrouping assertions across calls — and regrouping is exactly what LLM_GRADING_BATCH_SIZE
+ * is pinned to prevent, batch composition having already been measured to move verdicts.
+ */
+function gradingEffortFor(evalDef, args) {
+  const effort = (evalDef && evalDef.grading_effort) || args.gradingEffort || null;
+  if (effort && !GRADING_EFFORT_LEVELS.includes(effort)) {
+    throw new Error(
+      `eval ${evalDef && evalDef.id}: grading_effort "${effort}" is not one of ${GRADING_EFFORT_LEVELS.join(", ")}`
+    );
+  }
+  return effort;
+}
+
 // The same newer families also run adaptive thinking by DEFAULT, so the response opens with a
 // thinking block and the verdict JSON is no longer content[0]. Thinking is billed against
 // max_tokens too, so a budget sized for a pure JSON answer truncates the verdicts instead.
@@ -390,7 +429,7 @@ function extractGradingText(data) {
   return text.text;
 }
 
-async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropic") {
+async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropic", effort = null) {
   if (provider === "ollama") {
     const resp = await postGradingRequest("http://localhost:11434/api/chat", {
       method: "POST",
@@ -421,6 +460,7 @@ async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropi
       model: resolved,
       max_tokens: acceptsTemperature(resolved) ? GRADING_MAX_TOKENS : GRADING_MAX_TOKENS_WITH_THINKING,
       ...(acceptsTemperature(resolved) ? { temperature: GRADING_TEMPERATURE } : {}),
+      ...(effort && acceptsEffort(resolved) ? { output_config: { effort } } : {}),
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
     }),
@@ -577,6 +617,7 @@ function parseArgs(argv) {
     evals: null,       // null = all, or array of ids
     model: "sonnet",
     gradingModel: "sonnet",
+    gradingEffort: null,
     provider: "anthropic",
     gradingSuffix: null,
     // Single grading run is the standard regime. At temperature 0 (GRADING_TEMPERATURE) a
@@ -643,6 +684,18 @@ function parseArgs(argv) {
           process.exit(1);
         }
         args.timeoutMs = seconds * 1000;
+        break;
+      }
+      // Run-wide grading effort. Omitted by default so the request stays byte-identical to every
+      // measurement taken before this flag existed (the API default is `high`). An eval's own
+      // `grading_effort` overrides this.
+      case "--grading-effort": {
+        const level = argv[++i];
+        if (!GRADING_EFFORT_LEVELS.includes(level)) {
+          console.error(`Error: --grading-effort must be one of ${GRADING_EFFORT_LEVELS.join(", ")}`);
+          process.exit(1);
+        }
+        args.gradingEffort = level;
         break;
       }
       case "--grade-only":
@@ -1372,7 +1425,7 @@ function parseLlmGrading(gradingText) {
   return null;
 }
 
-async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, provider = "anthropic", gradeRuns = 1) {
+async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, provider = "anthropic", gradeRuns = 1, effort = null) {
   const evalDir = path.join(
     iterationDir,
     `eval-${evalDef.id}-${evalDef.slug}`
@@ -1444,7 +1497,7 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, prov
       let llmGrading = null;
       let missing = [];
       for (let attempt = 1; attempt <= 2; attempt++) {
-        const { text: gradingText, usage } = await gradeViaApi(GRADING_SYSTEM_PROMPT, gradingPrompt, model, provider);
+        const { text: gradingText, usage } = await gradeViaApi(GRADING_SYSTEM_PROMPT, gradingPrompt, model, provider, effort);
         gradingUsage = addUsage(gradingUsage, usage);
         llmGrading = parseLlmGrading(gradingText);
         if (!llmGrading) {
@@ -1551,7 +1604,7 @@ async function gradeResponses(evals, iterationDir, args) {
     const batch = evals.slice(i, i + args.parallel);
     await Promise.all(
       batch.map((evalDef) =>
-        gradeOne(evalDef, iterationDir, args.gradingModel, args.gradingSuffix, args.provider, args.gradeRuns).catch((err) => {
+        gradeOne(evalDef, iterationDir, args.gradingModel, args.gradingSuffix, args.provider, args.gradeRuns, gradingEffortFor(evalDef, args)).catch((err) => {
           logError(`  ✗ Eval ${evalDef.id} — GRADING FAILED: ${err.message}`);
           failures.push({ evalDef, message: err.message });
           const errDir = path.join(iterationDir, `eval-${evalDef.id}-${evalDef.slug}`);
@@ -1719,6 +1772,9 @@ function aggregateResults(evals, iterationDir, args, worktreePath, repoRoot) {
     provider: args.provider,
     ...(args.nudgeSkill ? { nudge_skill: true } : {}),
     grading_model: resolveModel(args.gradingModel),
+    // Part of the grading regime: a comparison across a change of effort is not a comparison.
+    // null means the API default (high) — what every run before the flag existed used.
+    grading_effort: args.gradingEffort || null,
     ...(args.gradeOnly
       ? inheritedProvenance(iterationDir, suffix)
       : skillProvenance(worktreePath, args.skill, repoRoot)),
@@ -2465,6 +2521,9 @@ module.exports = {
   regradeCommand,
   rebuildCommand,
   evalsMissingGrading,
+  acceptsEffort,
+  gradingEffortFor,
+  GRADING_EFFORT_LEVELS,
   priceGradingUsage,
   addUsage,
   summariseGradingUsage,
