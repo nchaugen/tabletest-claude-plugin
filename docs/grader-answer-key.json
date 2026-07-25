@@ -79,9 +79,10 @@
     {
       "eval": 15,
       "assertion": "held-constants-declared",
-      "expected": false,
+      "expected": true,
       "confidence": "firm",
-      "basis": "The @TypeConverter hardcodes TravelerCategory.ADULT into every PastPurchase, in a class whose third table is about traveller category. Declared in no column, title, or description."
+      "basis": "CORRECTED 2026-07-25. The key first said FAIL, on the grounds that the @TypeConverter hardcodes TravelerCategory.ADULT into every PastPurchase. That reading was wrong: countSingleTicketsInWindow(history, purchaseTime) takes no category argument, and calculatesDiscountEndToEnd passes travelerCategory as its own column to calculateDiscount(travelerCategory, purchaseTime) — so the hardcoded ADULT reaches no outcome, and the assertion's explicit 'values that cannot affect the outcome are not failures' carve-out applies. PURCHASE_TIME is likewise indifferent because every history cell is expressed as days-ago relative to it. The sonnet grader made this argument and was right; the haiku grader reached PASS without it.",
+      "history": "Caught by the sonnet grading run disagreeing with the key. Kept as a worked example that a disagreement can be the key's fault — re-read the artefact before adjusting an assertion."
     },
     {
       "eval": 30,
