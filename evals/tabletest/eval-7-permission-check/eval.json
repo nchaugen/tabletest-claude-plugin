@@ -1,6 +1,7 @@
 {
   "id": 7,
   "slug": "permission-check",
+  "grading_effort": "medium",
   "skill": "tabletest",
   "assertions": [
     {

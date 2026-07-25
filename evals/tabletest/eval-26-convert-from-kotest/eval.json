@@ -1,6 +1,7 @@
 {
   "id": 26,
   "slug": "convert-from-kotest",
+  "grading_effort": "medium",
   "skill": "tabletest",
   "timeout_ms": 1500000,
   "assertions": [

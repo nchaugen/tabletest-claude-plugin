@@ -1,6 +1,7 @@
 {
   "id": 2,
   "slug": "parse-dates",
+  "grading_effort": "medium",
   "skill": "tabletest",
   "assertions": [
     {

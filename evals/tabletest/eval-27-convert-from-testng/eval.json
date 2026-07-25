@@ -1,6 +1,7 @@
 {
   "id": 27,
   "slug": "convert-from-testng",
+  "grading_effort": "medium",
   "skill": "tabletest",
   "timeout_ms": 1500000,
   "assertions": [

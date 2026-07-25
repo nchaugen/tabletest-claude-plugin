@@ -1,6 +1,7 @@
 {
   "id": 9,
   "slug": "bonus-contractor-structure",
+  "grading_effort": "medium",
   "skill": "tabletest",
   "assertions": [
     {

@@ -1,6 +1,7 @@
 {
   "id": 30,
   "slug": "order-splitting-tt",
+  "grading_effort": "medium",
   "skill": "tabletest",
   "assertions": [
     {

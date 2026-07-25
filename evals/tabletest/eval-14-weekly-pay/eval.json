@@ -1,6 +1,7 @@
 {
   "id": 14,
   "slug": "weekly-pay",
+  "grading_effort": "medium",
   "skill": "tabletest",
   "timeout_ms": 1500000,
   "assertions": [

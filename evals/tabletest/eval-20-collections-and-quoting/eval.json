@@ -1,6 +1,7 @@
 {
   "id": 20,
   "slug": "collections-and-quoting",
+  "grading_effort": "medium",
   "skill": "tabletest",
   "assertions": [
     {

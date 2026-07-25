@@ -136,16 +136,41 @@ slots. **So mixed effort is viable in principle: cheap evals at `medium`, hard e
 `--grading-effort` (run-wide) and `grading_effort` in `eval.json` (per eval, feeds the fingerprint)
 both exist for this as of `07a898e`.
 
-**Do not act on this yet — n is 5 and the run is single-pass.** Medium also got **3 slots right that
-high got wrong** (`2.16`/15, `concerns-decomposed`/23, `rule-statable-from-table`/25), which is
-direct evidence that ordinary slot instability is mixed into these numbers. With one pass per level
-there is no way to separate "medium is worse on 18 and 29" from "those slots flip anyway". Confirming
-it needs repeat passes at each level — and **that is a measurement to run when the cost of a variance
-probe is the thing being optimised, not before the skill has moved.**
+### Per-eval agreement — the measurement that decided it
 
-**If it is confirmed, pick the split by a stated property, not by this error list.** "Evals whose
-failing set contains irreducible-judgement assertions grade at `high`" is a rule that generalises to
-a new eval; "18 and 29 grade at `high`" is a lookup table fitted to 64 answer-key entries.
+Comparing **every** slot (not only the answer-key-covered ones) between `m1` and `t4`:
+
+**351 of 365 slots identical — 96.2% — and 10 of 17 evals agree perfectly.**
+
+| Disagreement | Evals |
+|---|---|
+| 4 slots | 18, 29 |
+| 2 slots | 25 |
+| 1 slot | 15, 22, 23, 28 |
+| **0 slots** | **1, 2, 7, 8, 9, 14, 20, 26, 27, 30** |
+
+**Read the 1-slot cases against the noise floor.** Instability at `high` is 4.9%, so on a ~27-slot
+eval **~1.3 slots of disagreement is what noise alone produces**. Evals 15, 22, 23 and 28 are
+therefore indistinguishable from identical; only 18, 29 and 25 differ above the floor — and 18 is
+the suite's weakest eval, 29 its largest.
+
+### LANDED: `medium` on the ten fully-agreeing evals
+
+`grading_effort: "medium"` is pinned in `eval.json` for evals **1, 2, 7, 8, 9, 14, 20, 26, 27, 30** —
+**182 of 365 slots, exactly half the suite**. Everything else stays at the `high` default.
+
+Deliberately the *conservative* split: it claims `medium` only where the two levels produced
+**identical verdicts on every slot**, and declines to adjudicate the 1-slot cases even though they
+are almost certainly noise. Adopting `medium` where verdicts were identical is provably free for
+this run; the residual risk is only that a future run diverges, which accuracy scoring would catch.
+
+Being a per-eval property it feeds each eval's fingerprint, so the guard excludes those evals from
+comparisons spanning the change — **re-baseline before comparing anything against t4 on them.**
+
+**Still owed, and now cheaper to get:** repeat passes per level to separate signal from noise on 18,
+29 and 25, and a principled rule for the split. "Evals whose failing set contains
+irreducible-judgement assertions grade at `high`" generalises to a new eval; the current list is
+fitted to one measurement and should be replaced by a property once the probe exists.
 
 ## Haiku retested on the rebuilt instrument — 2026-07-25 (`benchmark-h1.json`)
 
