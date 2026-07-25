@@ -14,39 +14,25 @@
   ],
   "entries": [
     {
-      "eval": 23,
-      "assertion": "title-states-system-behaviour",
-      "expected": true,
-      "confidence": "firm",
-      "basis": "The title is the method name evaluatesLoanApproval, which humanises to 'Evaluates loan approval' — states what the evaluator does. The iteration-40 grader failed it by quoting the @Description instead, which is another assertion's subject."
-    },
-    {
-      "eval": 18,
-      "assertion": "black-box-columns",
-      "expected": true,
-      "confidence": "firm",
-      "basis": "Columns are Applicant Type / Age / Claim Count / Status? / Premium? — all public inputs and observable outputs, no internal state. Its near-twin observable-io-only passed the identical bytes; the failure came from grading the @Description."
-    },
-    {
-      "eval": 18,
-      "assertion": "description-no-internals",
+      "eval": 7,
+      "assertion": "no-duplicate-role-output",
       "expected": false,
       "confidence": "firm",
-      "basis": "The second @Description states 'Risk score is age/10 + claimCount * 15' and 'rejected once the score exceeds 75' — the internal formula and threshold, which this eval's ground truth explicitly forbids in the description."
+      "basis": "Rows 6 and 7 are 'GUEST | WRITE | false' and 'GUEST | DELETE | false' — same role, same boolean output, which the assertion forbids in favour of a {WRITE, DELETE} value set."
     },
     {
-      "eval": 18,
-      "assertion": "assertion-criteria-declared",
-      "expected": true,
+      "eval": 7,
+      "assertion": "scenario-names-describe-conditions",
+      "expected": false,
       "confidence": "firm",
-      "basis": "Assertions are plain equality plus a conventional 0.001 float delta on a decimal premium column, which the assertion text exempts as numeric hygiene. No ordering, subset matching, or normalisation."
+      "basis": "'User cannot delete' and 'Guest cannot write' put the allowed/denied outcome in the name, which the Allowed? column already carries. This is the B5 data-echo residue; haiku passed it, sonnet fails it correctly."
     },
     {
-      "eval": 14,
-      "assertion": "1.9-correctness-value-set-semantics",
-      "expected": true,
-      "confidence": "firm",
-      "basis": "The output uses no value sets at all, so there is no misuse to police — a vacuous pass. The iteration-40 grader inverted the criterion and failed it for not using more value sets."
+      "eval": 9,
+      "assertion": "scenario-names-describe-conditions",
+      "expected": null,
+      "confidence": "borderline",
+      "basis": "One name of five ('Contractor gets no bonus') states an outcome; the other four are pure conditions. Strictly a violation, but the grader offered a bare row quote with no argument, and failing a slot on 1-of-5 is the weakest of the four sonnet flips. Recorded, not scored — decide the bar before making this load-bearing."
     },
     {
       "eval": 14,
@@ -56,18 +42,18 @@
       "basis": "Sunday and Holiday hour columns carry explicit 0 rather than blank cells, and every parameter is primitive double so a blank cell could not bind. The readability pattern the assertion asks for is absent."
     },
     {
+      "eval": 14,
+      "assertion": "1.9-correctness-value-set-semantics",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "The output uses no value sets at all, so there is no misuse to police — a vacuous pass. The iteration-40 grader inverted the criterion and failed it for not using more value sets."
+    },
+    {
       "eval": 15,
       "assertion": "2.17-zone-irrelevance-visible",
       "expected": false,
       "confidence": "firm",
       "basis": "discountForCategoryAndTripCount has no Zone column. Zone-independence is shown only in the counting table, which is not the eligibility table the requirement's 'regardless of the zones you travel in' attaches to."
-    },
-    {
-      "eval": 15,
-      "assertion": "window-boundary-uses-purchase-time",
-      "expected": false,
-      "confidence": "firm",
-      "basis": "The converter parses whole days (PURCHASE_TIME.minusDays(daysAgo)) and the finest boundary distinction is 30 vs 31 days. The assertion explicitly fails a table whose finest distinction is whole days."
     },
     {
       "eval": 15,
@@ -85,32 +71,88 @@
       "history": "Caught by the sonnet grading run disagreeing with the key. Kept as a worked example that a disagreement can be the key's fault — re-read the artefact before adjusting an assertion."
     },
     {
-      "eval": 30,
-      "assertion": "concerns-decomposed",
+      "eval": 15,
+      "assertion": "window-boundary-uses-purchase-time",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "The converter parses whole days (PURCHASE_TIME.minusDays(daysAgo)) and the finest boundary distinction is 30 vs 31 days. The assertion explicitly fails a table whose finest distinction is whole days."
+    },
+    {
+      "eval": 18,
+      "assertion": "assertion-criteria-declared",
       "expected": true,
       "confidence": "firm",
-      "basis": "Four concern-focused @TableTest methods. This eval's own assertion text says 'four methods covering five concerns is fine' and 'FAILS only when a single method carries all the rules'. iteration-40 failed it over the response prose miscounting concerns."
+      "basis": "Assertions are plain equality plus a conventional 0.001 float delta on a decimal premium column, which the assertion text exempts as numeric hygiene. No ordering, subset matching, or normalisation."
     },
     {
-      "eval": 30,
-      "assertion": "assertion-criteria-declared",
-      "expected": false,
+      "eval": 18,
+      "assertion": "black-box-columns",
+      "expected": true,
       "confidence": "firm",
-      "basis": "describeByItems, describeByAvailability and describeByWarehouse all call .sorted(), and sortedProductIds sorts within a shipment. Shipment and item ordering are normalised by helpers while no table, title, or description claims anything about order."
+      "basis": "Columns are Applicant Type / Age / Claim Count / Status? / Premium? — all public inputs and observable outputs, no internal state. Its near-twin observable-io-only passed the identical bytes; the failure came from grading the @Description."
     },
     {
-      "eval": 30,
-      "assertion": "held-constants-declared",
+      "eval": 18,
+      "assertion": "description-no-internals",
       "expected": false,
       "confidence": "firm",
-      "basis": "The first table has no @Description at all while its body fixes StockStatus.IN_STOCK and a single warehouse 'W1' — the subjects of tables 2 and 3. Both affect the outcome and appear nowhere on the published surface."
+      "basis": "The second @Description states 'Risk score is age/10 + claimCount * 15' and 'rejected once the score exceeds 75' — the internal formula and threshold, which this eval's ground truth explicitly forbids in the description."
     },
     {
-      "eval": 30,
-      "assertion": "native-collection-output",
+      "eval": 20,
+      "assertion": "list-syntax-correct",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "Every list cell uses correct TableTest bracket syntax with quoted elements. Known grader self-contradiction, already recorded in the slice-1 plan as noise."
+    },
+    {
+      "eval": 22,
+      "assertion": "quantifier-covered-by-rows",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "The only quantifying claim is the group-discount threshold, discharged with a {5, 20} value set. No claim quantifies over a domain the rows leave at one value."
+    },
+    {
+      "eval": 22,
+      "assertion": "scenario-names-describe-conditions",
       "expected": false,
       "confidence": "firm",
-      "basis": "Expectation cells are hand-rolled strings ('W1:[camera,lens,mic]', 'IMMEDIATE:[camera,lens]') assembled by stringifying helpers, which is the exact form the assertion fails."
+      "basis": "The pricing table names four rows by outcome — 'No discount applies', 'Early-bird discount applies', 'Group discount applies', 'Both apply, early-bird wins' — while Discount? and Price? are the output columns."
+    },
+    {
+      "eval": 23,
+      "assertion": "description-no-redundant-field-values",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "The grader failed it for stating thresholds 650/600 and the age-65 cutoff, but the assertion's own text says 'Stating a constant that is NOT a column — a threshold, a policy figure, a value fixed in the method body — is correct and must not fail this assertion.' No threshold is a column here; Credit Score and Age hold applicant values, not the policy figures. Same misfire class as the four the 84e6916 tranche fixed."
+    },
+    {
+      "eval": 23,
+      "assertion": "scenario-names-describe-conditions",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "'Below threshold rejects regardless of stable income' and 'Below threshold rejects even with missing income info' state the verdict the Result? column carries."
+    },
+    {
+      "eval": 23,
+      "assertion": "title-states-system-behaviour",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "The title is the method name evaluatesLoanApproval, which humanises to 'Evaluates loan approval' — states what the evaluator does. The iteration-40 grader failed it by quoting the @Description instead, which is another assertion's subject."
+    },
+    {
+      "eval": 26,
+      "assertion": "titles-form-a-family",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "calculatesBaseRateByRegionSpeedAndWeight / choosesGreaterOfActualAndDimensionalWeight / appliesSurchargesToBaseCost is a coherent verb-first family; the one subject-first name, carrierDoesNotAffectCost, is the natural wording for a negative invariant and is not A8's phenomenon. Failing an otherwise-consistent family of four for a single justified outlier is over-firing."
+    },
+    {
+      "eval": 27,
+      "assertion": "consistent-quantity-naming",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "'Base Rate?' and 'Rate?' name the same pre-surcharge quantity two ways. Contrast eval-25 and eval-28, where Base Fee?/Fee? and Rate?/Total? distinguish base from total — genuinely two quantities, which the assertion permits and sonnet correctly passed."
     },
     {
       "eval": 28,
@@ -134,25 +176,11 @@
       "basis": "The fragile multiplier (1.15) appears nowhere in any table, title, or description, and shouldApplyFragileMultiplier has no @Description at all — a value needed to predict 8.625 from 7.50 is invisible."
     },
     {
-      "eval": 20,
-      "assertion": "list-syntax-correct",
+      "eval": 29,
+      "assertion": "assertion-criteria-declared",
       "expected": true,
-      "confidence": "firm",
-      "basis": "Every list cell uses correct TableTest bracket syntax with quoted elements. Known grader self-contradiction, already recorded in the slice-1 plan as noise."
-    },
-    {
-      "eval": 7,
-      "assertion": "no-duplicate-role-output",
-      "expected": false,
-      "confidence": "firm",
-      "basis": "Rows 6 and 7 are 'GUEST | WRITE | false' and 'GUEST | DELETE | false' — same role, same boolean output, which the assertion forbids in favour of a {WRITE, DELETE} value set."
-    },
-    {
-      "eval": 22,
-      "assertion": "quantifier-covered-by-rows",
-      "expected": true,
-      "confidence": "firm",
-      "basis": "The only quantifying claim is the group-discount threshold, discharged with a {5, 20} value set. No claim quantifies over a domain the rows leave at one value."
+      "confidence": "borderline",
+      "basis": "checksOutTheCart applies substring matching, but the @Description declares it ('Message Mentions? lists the substrings the checkout message must contain'). Should pass; listed as borderline because the declaration is prose rather than a column."
     },
     {
       "eval": 29,
@@ -163,10 +191,38 @@
     },
     {
       "eval": 29,
+      "assertion": "type-converters-for-complex-objects",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "appliesCouponsToTheCart builds Cart.withItems(Map.of()).withActiveCouponCode(activeCouponBefore) and a CouponStore lambda in the method body from raw cell values instead of routing them through a @TypeConverter."
+    },
+    {
+      "eval": 30,
       "assertion": "assertion-criteria-declared",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "describeByItems, describeByAvailability and describeByWarehouse all call .sorted(), and sortedProductIds sorts within a shipment. Shipment and item ordering are normalised by helpers while no table, title, or description claims anything about order."
+    },
+    {
+      "eval": 30,
+      "assertion": "concerns-decomposed",
       "expected": true,
-      "confidence": "borderline",
-      "basis": "checksOutTheCart applies substring matching, but the @Description declares it ('Message Mentions? lists the substrings the checkout message must contain'). Should pass; listed as borderline because the declaration is prose rather than a column."
+      "confidence": "firm",
+      "basis": "Four concern-focused @TableTest methods. This eval's own assertion text says 'four methods covering five concerns is fine' and 'FAILS only when a single method carries all the rules'. iteration-40 failed it over the response prose miscounting concerns."
+    },
+    {
+      "eval": 30,
+      "assertion": "held-constants-declared",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "The first table has no @Description at all while its body fixes StockStatus.IN_STOCK and a single warehouse 'W1' — the subjects of tables 2 and 3. Both affect the outcome and appear nowhere on the published surface."
+    },
+    {
+      "eval": 30,
+      "assertion": "native-collection-output",
+      "expected": false,
+      "confidence": "firm",
+      "basis": "Expectation cells are hand-rolled strings ('W1:[camera,lens,mic]', 'IMMEDIATE:[camera,lens]') assembled by stringifying helpers, which is the exact form the assertion fails."
     }
   ]
 }
