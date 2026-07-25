@@ -170,9 +170,9 @@
     {
       "eval": 18,
       "assertion": "minimal-rows-per-concern",
-      "expected": true,
+      "expected": false,
       "confidence": "firm",
-      "basis": "Three tables of four rows each, one concern apiece, no cross-products. Table 2 compresses applicant type into a {NEW, RENEWAL} value set rather than duplicating rows, and table 3 pairs 64/65 at fixed claim count to isolate the tier switch. This is the compact shape the assertion rewards; the FAIL passes are noise."
+      "basis": "CORRECTED 2026-07-25 after the tranche-2 regrade: first read as PASS from the assertion text, the same error the method note above warns about. The reference decision table in expected_output.md has no 'well above threshold' row — the rejection obligation is discharged at 5 claims ('the rejection cliff sits cleanly between 4 claims (approved) and 5 claims (rejected)'). Iteration-40's 'Well above threshold | NEW | 50 | 10 | REJECTED' re-covers it, and the table spends that row while omitting the 4-claim row entirely (which is also why depth-decision-boundaries fails). The grader cited exactly this."
     },
     {
       "eval": 18,
@@ -191,9 +191,9 @@
     {
       "eval": 22,
       "assertion": "minimal-rows-per-concern",
-      "expected": true,
+      "expected": false,
       "confidence": "firm",
-      "basis": "Two tables, cleanly separated: validation (with date and group size fixed to non-discounting values and declared as such) and pricing. Neither combines concerns and neither permutes. The eleven validation rows are eleven distinct input classes — null/empty/blank name, null/empty email, four distinct malformations. Contrary reading recorded: the four malformed-email rows arguably discharge one obligation four times and a value set would compress them, but the assertion's stated mechanism is permutation from combined concerns, which is absent."
+      "basis": "CORRECTED 2026-07-25 after the tranche-2 regrade: first read as PASS, with the contrary reading recorded as merely 'arguable'. expected_output.md settles it explicitly — 'two representative invalids (no @, no domain) are enough. Enumerating an RFC is neither expected nor rewarded.' The validation table carries four malformed-email rows (no @, no local part, no domain, no TLD) plus three missing-name rows. That is the enumeration the ground truth declines to reward. The grader quoted the two-invalids bar directly."
     },
     {
       "eval": 22,

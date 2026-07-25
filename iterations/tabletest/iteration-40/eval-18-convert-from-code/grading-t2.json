@@ -1,0 +1,163 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "black-box-columns",
+      "text": "Table columns represent the method's public inputs and observable outputs — not internal state.",
+      "passed": true,
+      "evidence": "Scenario | Applicant Type | Age | Claim Count | Status? | Premium?"
+    },
+    {
+      "id": "observable-io-only",
+      "text": "No column is named after private fields or internal variables.",
+      "passed": true,
+      "evidence": "Columns used: Applicant Type, Age, Claim Count, Status?, Premium? — no riskScore/hasActivePolicy column"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language, not code identifiers.",
+      "passed": true,
+      "evidence": "'Applicant Type | Age | Claim Count | Status? | Premium?'"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions, not outcomes.",
+      "passed": true,
+      "evidence": "'Renewal, no claims, would otherwise be standard', 'Risk score exactly at threshold', 'Just below senior threshold (64)'"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Decision?' or 'Premium?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Status?, Premium?, Status?, Premium?, Premium?"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "3 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "3 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables each addressing a distinct concern, not one monolithic table.",
+      "passed": true,
+      "evidence": "Three @TableTest methods: autoApprovesRenewalsWithNoClaims, rejectsApplicationsAboveRiskThreshold, calculatesPremiumByAgeTier"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each @TableTest has only the rows needed; no re-covering rules already demonstrated.",
+      "passed": false,
+      "evidence": "'Well above threshold | NEW | 50 | 10 | REJECTED | 0.00' duplicates the rejection already shown by the age10/claims5 row"
+    },
+    {
+      "id": "separates-decision-and-premium",
+      "text": "Decision logic and premium calculation are in separate @TableTest methods.",
+      "passed": false,
+      "evidence": "autoApprovesRenewalsWithNoClaims table asserts both 'Status?' and 'Premium?' columns together (e.g. 'AUTO_APPROVED | 0.00', 'APPROVED | 136.00')"
+    },
+    {
+      "id": "no-reimplemented-internals",
+      "text": "Test method body does not recompute internal formulas.",
+      "passed": true,
+      "evidence": "'EvaluationResult result = evaluator.evaluateApplication(...); assertEquals(status, result.decision()); assertEquals(premium, result.premium(), 0.001);'"
+    },
+    {
+      "id": "description-no-internals",
+      "text": "@Description explains business context, not internal formulas.",
+      "passed": false,
+      "evidence": "'Risk score is age/10 + claimCount * 15. Applications are rejected once the score exceeds 75.'"
+    },
+    {
+      "id": "depth-decision-boundaries",
+      "text": "Approval decision table covers the 4-vs-5-claims rejection cliff independent of age; senior threshold not in decision table.",
+      "passed": false,
+      "evidence": "Rows use 'age 9, claims 5, APPROVED' and 'age 10, claims 5, REJECTED' — boundary is age-driven, not the claims 4-vs-5 cliff required"
+    },
+    {
+      "id": "depth-premium-boundaries",
+      "text": "Approved premium table covers boundary effects: the premium jump from 0 to 1 claim, and age 64 vs 65.",
+      "passed": false,
+      "evidence": "calculatesPremiumByAgeTier rows: 64/1/142.00, 65/1/273.50, 30/0/106.00, 90/0/231.50 - no same-age 0-vs-1-claim pair"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable.",
+      "passed": true,
+      "evidence": "Status?/Premium? values vary per row (APPROVED, AUTO_APPROVED, REJECTED; 142.00, 273.50, 106.00, 231.50)"
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without the test method body.",
+      "passed": false,
+      "evidence": "calculatesPremiumByAgeTier description uses 'riskScore' without restating age/10+claimCount*15 defined only in a sibling method's @Description"
+    },
+    {
+      "id": "title-states-system-behaviour",
+      "text": "Each @DisplayName states what the code under test does.",
+      "passed": true,
+      "evidence": "void autoApprovesRenewalsWithNoClaims(...), void rejectsApplicationsAboveRiskThreshold(...), void calculatesPremiumByAgeTier(...)"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The generated tests pass when executed against InsuranceEvaluator",
+      "passed": true,
+      "evidence": "Tests passed"
+    },
+    {
+      "id": "held-constants-declared",
+      "text": "A value the rule depends on and holds constant must be declared.",
+      "passed": true,
+      "evidence": "\"Applicant type does not affect premium ... so it is held fixed at NEW here.\""
+    },
+    {
+      "id": "assertion-criteria-declared",
+      "text": "A comparison criterion applied by the assertion must be stated on the published surface.",
+      "passed": true,
+      "evidence": "assertEquals(premium, result.premium(), 0.001) is a conventional floating-point epsilon, exempt"
+    }
+  ],
+  "assertions_passed": 20,
+  "assertions_total": 26,
+  "pass_rate": 0.7692307692307693
+}

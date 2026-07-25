@@ -105,31 +105,44 @@ least one PASS and one FAIL case before it is trusted** (`docs/grader-answer-key
   obligations stated for this concern in the expected output"), the same edit that worked for items 5,
   6 and 8 of the `84e6916` tranche. Do not vote it before trying that.
 
-## ⚠ Re-baseline owed — the suite has changed and no benchmark matches it
+## Tranche-2 re-baseline — measured 2026-07-25 (`benchmark-t2.json`)
 
-Tranche 2 (`2dcad47`) changed four assertion texts across 29 slots in 13 evals. **The `--grade-only`
-re-baseline was attempted 2026-07-25 and failed: Anthropic API 400, "credit balance is too low",
-all 17 evals.** Nothing was written — the runner refused to emit a partial benchmark, which is the
-`c329bf7` guard doing its job.
+**Accuracy 54/61 (89%)**, against pre-tranche passes of 88% / 87% / 77% / 87%. New level is
+**323/365**, which is *not* comparable to the old 324/365 — different assertion texts.
 
-**So `iterations/tabletest/iteration-40/grading.json` (324/365) was graded under assertion texts that
-no longer exist.** Until the regrade runs, that number is not comparable to anything, and neither is
-the 53/60 accuracy score below — both measure the pre-tranche-2 instrument.
+**Both title predictions confirmed exactly.** `titles-form-a-family` went 4/4 correct: eval-25, the
+suite's **only stably-wrong slot** (0/4 before), is now right, and 26 (3/4) and 27 (2/4) stabilised
+while 28 correctly stays FAIL on its eight `should` prefixes. `description-no-redundant-field-values`/23
+went 1/4 → correct. `rule-falsifiable-by-a-row`/27 is correct now that the invariance exemption exists.
+**The bias slot is gone.**
 
-Once credits are available:
+**The `minimal-rows-per-concern` prediction was wrong, and the reason matters more than the miss.**
+It first read as a regression — 18 and 22 flipped from mostly-agreeing to disagreeing. Reading the
+grader's evidence against the ground truth showed **the key was wrong, not the assertion**:
 
-```
-node scripts/run-evals.js --skill tabletest --iteration 40 --grade-only --grading-suffix t2
-node scripts/score-grader.js --iteration 40 --grading-suffix t2
-```
+- eval-22 — the grader cited "two representative invalids (no `@`, no domain) are enough. Enumerating
+  an RFC is neither expected nor rewarded." The output carries four malformed-email rows. Grounded.
+- eval-18 — the reference decision table discharges rejection at 5 claims and has no "well above
+  threshold" row; the output spends one on `50 | 10 | REJECTED` while omitting the 4-claim row.
+  Grounded.
 
-Predictions were pre-registered in `docs/grader-answer-key.json` before the run and must be read
-against it rather than reconstructed afterwards: `titles-form-a-family` to 4/4 correct (25 and 26 flip
-to PASS on the single-outlier exemption, 27 stabilises PASS, 28 stays FAIL on its eight `should`
-prefixes); `description-no-redundant-field-values`/23 flips to PASS; `minimal-rows-per-concern`
-improves on 14, 23 and 30 where the obligation list decides it. **If `titles-form-a-family`/25 still
-fails, the exemption did not work** and the majority-shape clause is the suspect, not the outlier
-sentence.
+Both entries were corrected to FAIL. **I had made the exact error this file's own method note warns
+about — adjudicating from the assertion text instead of the obligation list — twice more, on the very
+assertion the note is about.** Against the corrected key the assertion went from **11/20 to 4/5
+correct**. Naming the surface worked.
+
+**The one remaining miss is a different defect.** eval-14 now PASSES with the evidence
+"calculatesWeekdayPay rows progress from 0, below-threshold, at-threshold … no obvious duplicate rows"
+— the grader judged **one table and never looked at the other four**, including the fifth, whose own
+`@Description` says it combines the rules from the tables above. That is a *coverage* failure, not a
+criterion failure, and its fix is the same surface-naming pattern: say "judge every `@TableTest` in the
+class, not the first one". Add it to the next tranche.
+
+**Six unedited slots also moved wrong** (`1.7`/14, `scenario-names`/23 and /27, `rule-statable`/27,
+`quantifier-covered-by-rows`/29, `type-converters-for-complex-objects`/29). This is one single run
+against a 32%-variance-affected slot set, so treat it as noise until a probe says otherwise — except
+`scenario-names-describe-conditions`, which was already majority-wrong and stays wrong. It remains the
+top of the queue.
 
 ## Accuracy over the whole failing set — measured 2026-07-25 (pre-tranche-2 texts)
 
