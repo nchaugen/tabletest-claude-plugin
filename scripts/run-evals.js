@@ -359,6 +359,12 @@ function acceptsTemperature(resolvedModel) {
 const GRADING_MAX_TOKENS_WITH_THINKING = 16000;
 const GRADING_MAX_TOKENS = 4096;
 
+/** Assertion ids the grader was asked about but did not return a verdict for. */
+function missingAssertionIds(batch, returned) {
+  const seen = new Set((returned || []).map((a) => a && a.id));
+  return batch.map((a) => a.id).filter((id) => !seen.has(id));
+}
+
 /** The grader's verdict text, wherever the model put it among thinking/text blocks. */
 function extractGradingText(data) {
   if (!data || !Array.isArray(data.content)) {
@@ -1340,11 +1346,27 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, prov
 
     const samples = [];
     for (let run = 0; run < gradeRuns; run++) {
-      const gradingText = await gradeViaApi(GRADING_SYSTEM_PROMPT, gradingPrompt, model, provider);
-      const llmGrading = parseLlmGrading(gradingText);
-      if (!llmGrading) {
+      // A grader that silently omits an assertion from its JSON used to fall through to
+      // `passed: false, evidence: "Not graded"` — a fabricated failure that reads exactly
+      // like a finding. Retry the batch once, then fail loudly: the caller already keeps
+      // the gradings that succeeded, so a hard error costs only this eval's re-grade.
+      let llmGrading = null;
+      let missing = [];
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        const gradingText = await gradeViaApi(GRADING_SYSTEM_PROMPT, gradingPrompt, model, provider);
+        llmGrading = parseLlmGrading(gradingText);
+        if (!llmGrading) {
+          throw new Error(
+            `Failed to parse grading JSON for eval ${evalDef.id} (assertions ${i + 1}-${i + batch.length}, run ${run + 1}): ${gradingText.slice(0, 200)}`
+          );
+        }
+        missing = missingAssertionIds(batch, llmGrading.assertions);
+        if (missing.length === 0) break;
+        log(`  ⟳ Eval ${evalDef.id} — grader omitted ${missing.join(", ")}; retrying batch`);
+      }
+      if (missing.length > 0) {
         throw new Error(
-          `Failed to parse grading JSON for eval ${evalDef.id} (assertions ${i + 1}-${i + batch.length}, run ${run + 1}): ${gradingText.slice(0, 200)}`
+          `Grader omitted ${missing.length} assertion(s) twice for eval ${evalDef.id}: ${missing.join(", ")}`
         );
       }
       samples.push(llmGrading.assertions);
@@ -2308,4 +2330,5 @@ module.exports = {
   resolveModel,
   acceptsTemperature,
   extractGradingText,
+  missingAssertionIds,
 };

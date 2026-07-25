@@ -31,6 +31,7 @@ const {
   resolveModel,
   acceptsTemperature,
   extractGradingText,
+  missingAssertionIds,
   computeEvalFingerprint,
   fingerprintsDiffer,
   digestDirectory,
@@ -933,5 +934,24 @@ describe("extractGradingText", () => {
 
   test("throws when the response has no content array at all", () => {
     assert.throws(() => extractGradingText({ error: "boom" }), /no content array/);
+  });
+});
+
+describe("missingAssertionIds", () => {
+  const batch = [{ id: "a" }, { id: "b" }, { id: "c" }];
+
+  test("reports nothing when every assertion came back", () => {
+    const returned = [{ id: "c" }, { id: "a" }, { id: "b" }];
+    assert.deepEqual(missingAssertionIds(batch, returned), []);
+  });
+
+  test("names the assertions the grader dropped", () => {
+    // A dropped verdict used to become a fabricated failure, which reads like a finding.
+    assert.deepEqual(missingAssertionIds(batch, [{ id: "a" }]), ["b", "c"]);
+  });
+
+  test("treats a missing or malformed assertion list as everything missing", () => {
+    assert.deepEqual(missingAssertionIds(batch, undefined), ["a", "b", "c"]);
+    assert.deepEqual(missingAssertionIds(batch, [null]), ["a", "b", "c"]);
   });
 });
