@@ -4,7 +4,7 @@
     "iteration": "iterations/tabletest/iteration-40",
     "outputs_generated": "2026-07-22",
     "skill_commit": "170d5b4",
-    "assertion_texts": "post-tranche (tabletest-claude-plugin 84e6916 and later)"
+    "assertion_texts": "post-tranche-2 (tabletest-claude-plugin 84e6916, then the titles/description/minimal-rows/falsifiable edits of 2026-07-25)"
   },
   "how_to_use": "node scripts/score-grader.js --iteration 40 [--grading-suffix <s>]. Re-verify an entry against the artefact before trusting a disagreement — the key is a reading, not an oracle.",
   "caveats": [
@@ -15,7 +15,8 @@
     "The sample is deliberately adversarial (40 firm FAIL-expected against 19 firm PASS-expected), because it is drawn from the failing set. The resulting score is accuracy on hard cases, NOT a suite-wide accuracy estimate — do not read it as 'the grader is right N% of the time'.",
     "Two entries record the grader as stably wrong rather than merely noisy: titles-form-a-family/25 (fails an otherwise coherent family for one subject-first outlier) and 1.7-readability-scenario-names/14. A stable wrong verdict is bias, which majority voting entrenches instead of fixing, so these are the entries worth re-checking after any wording change.",
     "Method note, learned while authoring this extension: minimal-rows-per-concern cannot be adjudicated from the assertion text — it must be read against the concern's coverage obligations in expected_output.md, which run-evals.js already puts in the grader's prompt. The minimal-rows-per-concern/30 entry was authored PASS from the text alone and corrected to FAIL once the obligation list was consulted; the grader had it right. Consequence for docs/assertion-triage.md: this assertion is classified 'irreducible — not derivable from source', but the information it needs is in the grader's own prompt and the 192-character assertion text never points at it. That makes it a bounded-judgement fix (name the surface), not an irreducible one.",
-    "rule-falsifiable-by-a-row/27 is recorded borderline because the ASSERTION is defective, not the grader: a single-row invariance table ({DHL, UPS, FEDEX} -> 12.00) literally meets its conditions (1) and (3) while being the correct shape for an invariance claim. Evals 25, 26 and 28 carry the same table and pass stably. Fix the assertion to exempt a declared invariance table, then re-enter the slot as firm."
+    "Tranche 2 landed 2026-07-25 and changed four assertion texts, so every entry hosting one was re-verified against its artefact under the new wording before this key was re-published. titles-form-a-family (25-28), description-no-redundant-field-values (22, 23) and minimal-rows-per-concern (13 hosts) kept every verdict — the edits express what the key already recorded, which is the result to want. rule-falsifiable-by-a-row/27 moved from borderline to firm PASS, because the invariance exemption it was waiting for now exists.",
+    "Pre-registered predictions for the tranche-2 re-baseline, recorded before it ran: titles-form-a-family goes 4/4 correct (25 and 26 flip to PASS on the single-outlier exemption, 27 stabilises PASS, 28 stays FAIL on the eight 'should' prefixes); description-no-redundant-field-values/23 flips to PASS; minimal-rows-per-concern improves on 14, 23 and 30 where the obligation list decides it. If titles-form-a-family/25 still fails, the exemption did not work and the majority-shape clause is the suspect, not the outlier sentence."
   ],
   "entries": [
     {
@@ -323,9 +324,9 @@
     {
       "eval": 27,
       "assertion": "rule-falsifiable-by-a-row",
-      "expected": null,
-      "confidence": "borderline",
-      "basis": "ASSERTION DEFECT, not a grader error — excluded from scoring deliberately. carrierDoesNotAffectPrice is a single value-set row ({DHL, UPS, FEDEX} -> 12.00) whose expectation column holds one value, so it literally meets conditions (1) and (3); but a constant expectation is the correct shape for an invariance claim, which is the converse of D(d). Evals 25, 26 and 28 carry a structurally identical carrier table and pass this assertion stably, so applying it literally here is inconsistent rather than right. Fix the assertion to exempt a declared invariance table, then re-enter this slot."
+      "expected": true,
+      "confidence": "firm",
+      "basis": "Upgraded from borderline once the invariance exemption landed. carrierDoesNotAffectPrice is a single value-set row ({DHL, UPS, FEDEX} -> 12.00) whose expectation column holds one value, which met conditions (1) and (3) under the old text; the exemption now covers it, since the title and @Description both state the invariance and a constant expectation is the rule's subject. The other seven tables vary their expectations. Evals 25, 26 and 28 carry a structurally identical carrier table and passed stably even under the old text."
     },
     {
       "eval": 27,
