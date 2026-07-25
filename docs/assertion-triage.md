@@ -315,6 +315,13 @@ slots (85%)**. **Evals 18 and 29 stay at `high`**, on the accuracy gaps above.
 unstable at **both** levels. They are intrinsically hard, so effort is not a lever on them; wording or
 a checker is.
 
+**Re-baselined: `benchmark-t5.json` — 318/365, accuracy 62/68 (91%), grading $1.83, ~13 min.**
+This is the current baseline for any skill comparison; **`t4` (314/365) is dead**, and the level
+difference is not readable as a change — five evals carry new fingerprints, and both benchmarks grade
+the same stored pre-tranche outputs. Against the all-`high` regime's 22–83 minutes a full regrade is
+now ~13 minutes, which is the point of the exercise. The 1-slot accuracy difference from `t4`'s 63/68
+is inside the measured per-pass spread, and the error set *moved* rather than grew.
+
 ## Haiku retested on the rebuilt instrument — 2026-07-25 (`benchmark-h1.json`)
 
 The hypothesis was that three batches of assertion rewrites had lowered the capability bar: the
