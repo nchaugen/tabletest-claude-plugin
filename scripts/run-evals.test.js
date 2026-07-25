@@ -955,3 +955,16 @@ describe("missingAssertionIds", () => {
     assert.deepEqual(missingAssertionIds(batch, [null]), ["a", "b", "c"]);
   });
 });
+
+describe("extractGradingText — budget exhaustion", () => {
+  test("names max_tokens as the cause when only thinking came back", () => {
+    // The realistic failure on a thinking-by-default grader: the whole budget went on
+    // reasoning and the verdict was never written. The error must point at the budget.
+    const data = {
+      stop_reason: "max_tokens",
+      content: [{ type: "thinking", thinking: "", signature: "abc" }],
+    };
+    assert.throws(() => extractGradingText(data), /stop_reason=max_tokens/);
+    assert.throws(() => extractGradingText(data), /budget was exhausted/);
+  });
+});

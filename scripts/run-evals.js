@@ -356,7 +356,13 @@ function acceptsTemperature(resolvedModel) {
 // thinking block and the verdict JSON is no longer content[0]. Thinking is billed against
 // max_tokens too, so a budget sized for a pure JSON answer truncates the verdicts instead.
 // Grading keeps thinking on — a judgement is exactly the work it helps — and pays for the room.
-const GRADING_MAX_TOKENS_WITH_THINKING = 16000;
+// 16000 was not enough: on eval-23 the grader spent the entire budget thinking and returned a
+// thinking block with no verdict at all (`stop_reason: max_tokens`). The budget has to cover the
+// thinking AND the JSON, so it is sized for the worst batch rather than the average one.
+// The cheaper lever would be `output_config.effort`, but grader accuracy was measured at the
+// default effort — changing it invalidates that measurement, so buy room instead and re-measure
+// accuracy first if effort ever needs lowering.
+const GRADING_MAX_TOKENS_WITH_THINKING = 32000;
 const GRADING_MAX_TOKENS = 4096;
 
 /** Assertion ids the grader was asked about but did not return a verdict for. */
@@ -372,8 +378,14 @@ function extractGradingText(data) {
   }
   const text = data.content.find((block) => block.type === "text" && typeof block.text === "string");
   if (!text) {
+    // Name the cause, not just the symptom: `stop_reason: max_tokens` with only a thinking block
+    // means the budget was spent reasoning and the verdict never got written — raise
+    // GRADING_MAX_TOKENS_WITH_THINKING rather than hunting for a parsing bug.
     const kinds = data.content.map((b) => b.type).join(", ") || "none";
-    throw new Error(`Grading response carried no text block (blocks: ${kinds})`);
+    const cause = data.stop_reason === "max_tokens"
+      ? " — stop_reason=max_tokens, so the token budget was exhausted before the verdict was written"
+      : ` — stop_reason=${data.stop_reason}`;
+    throw new Error(`Grading response carried no text block (blocks: ${kinds})${cause}`);
   }
   return text.text;
 }
