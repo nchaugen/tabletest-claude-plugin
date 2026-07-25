@@ -4,8 +4,41 @@ Instability is not one problem. Sorting the unstable assertions by *what kind of
 ask for* points each at a different fix, and one of those fixes removes variance rather than
 averaging it.
 
-Source: the 10 slots that flipped between two independent gradings of byte-identical
-iteration-40 outputs (2.7%), sonnet grader, 2026-07-25.
+Source: three independent gradings of byte-identical iteration-40 outputs, sonnet grader,
+2026-07-25. **18 of 365 slots unstable = 4.9%**, level ranging 320–327 (a 7-slot spread on the same
+bytes). Single-run MDE is therefore ~7–8 slots, which is why `--grade-runs 3` is now required for any
+comparison rather than reserved for adjudication.
+
+**44% of the instability is two assertions:** `rule-statable-from-table` (4 flips: evals 15, 25, 27,
+28) and `minimal-rows-per-concern` (4: evals 14, 18, 22, 30). Then
+`scenario-names-describe-conditions` (2), and one flip each from `1.7-readability-scenario-names`,
+`depth-premium-boundaries`, `concerns-decomposed`, `description-no-redundant-field-values`,
+`rule-falsifiable-by-a-row`, `titles-form-a-family`, `business-language-columns`,
+`quantifier-covered-by-rows`. Fixing the top two roughly halves the rate on its own.
+
+## Split on decidability boundaries, not on size
+
+Length does not predict instability. The flippers average 521 chars against 292 for stable ones, but
+**the five longest assertions in the suite are all stable** — `assertion-criteria-declared` (1290),
+`held-constants-declared` (1275), `concern-not-over-split` (1211), `consistent-quantity-naming` (871),
+`native-collection-output` (652) — while three of the worst flippers are among the shortest:
+`scenario-names-describe-conditions` (127), `business-language-columns` (173),
+`minimal-rows-per-concern` (192).
+
+What tracks stability is whether the assertion states a **decision procedure**. The long stable ones
+are long *because* they say "FAILS when X. PASSES when Y. Z is explicitly not a failure." The short
+unstable ones only illustrate — "like this, not like that" — leaving the grader to invent the cut, and
+it invents a different one each time.
+
+So:
+- **Split when clauses differ in decidability.** `rule-statable-from-table` is the case: clause (1) is
+  mechanical, clause (2) irreducible, and compounding them permanently *masks* the mechanical verdict.
+  Proof it works: `assertion-criteria-declared`, split out of it on 2026-07-25, graded identically on
+  all three hosts across all three passes (9/9) while its parent flipped four times.
+- **Do not split equally-decidable clauses.** That inflates slots for no gain, and 55% of slots already
+  sit in families that never fail — ballast divides any real effect.
+- **Grow, don't split, the short ones.** `scenario-names-describe-conditions` needs a decision rule
+  added, not division.
 
 ## The three buckets
 

@@ -1,0 +1,181 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing item operations, coupon logic, total calculation, and checkout.",
+      "passed": true,
+      "evidence": "Five methods: addsItemsFromTheCatalogue, removesItemsFromTheCart, appliesCouponsToTheCart, checksOutTheCart, calculatesTheCartTotal"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each @TableTest has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns.",
+      "passed": true,
+      "evidence": "Coupon table rows cover validity/replacement only (7 rows); total table covers price effects only (10 rows) — no cross-multiplication"
+    },
+    {
+      "id": "separates-item-coupon-total-checkout",
+      "text": "Item operations (add/remove), coupon application (validity and replacement), cart total calculation (coupon type effects on price), and checkout (stock verification) are in separate @TableTest methods.",
+      "passed": true,
+      "evidence": "addsItemsFromTheCatalogue, removesItemsFromTheCart, appliesCouponsToTheCart, calculatesTheCartTotal, checksOutTheCart are all distinct methods"
+    },
+    {
+      "id": "rows-independently-executable",
+      "text": "Each table row is independently executable — no row depends on a prior row's result.",
+      "passed": true,
+      "evidence": "Each row specifies 'Cart Before', 'Active Coupon Before', 'Cart Items', 'Stock' as explicit input columns"
+    },
+    {
+      "id": "coupon-before-after-columns",
+      "text": "Coupon application table uses before/after columns to specify the state change.",
+      "passed": true,
+      "evidence": "'Active Coupon Before | Coupon Code | Coupon In Store | Active Coupon After?' header row"
+    },
+    {
+      "id": "coupon-validity-not-coupon-types",
+      "text": "Coupon application table tests validity and replacement — not coupon type effects on price.",
+      "passed": true,
+      "evidence": "appliesCouponsToTheCart asserts only success/message/activeCouponAfter, no discount computed; price effects are in calculatesTheCartTotal"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Message?', 'Total?', 'Active coupon after?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Cart After?, Success?, Message?, Cart After?, Success?, Message?, Active Coupon After?, Success?, Message?, Success?, Message Mentions?, Total?"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions — not outcomes.",
+      "passed": true,
+      "evidence": "'Insufficient stock by one unit', 'Fixed coupon exceeds the subtotal, floored' — describe conditions, not 'Error'/'Success'"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language — not code identifiers like 'productId', 'result'.",
+      "passed": false,
+      "evidence": "'Product Id' column header used in addsItemsFromTheCatalogue and removesItemsFromTheCart tables"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "5 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "5 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "single-assertion-in-method",
+      "text": "Each @TableTest method applies one uniform assertion pattern to every row — not different assertions per scenario. Several unconditional assertions checking distinct observable outputs of one result (e.g. success, message, resulting cart) count as one uniform pattern; the anti-pattern is branching on the row (if/switch/ternary/try-catch) to choose what is asserted.",
+      "passed": true,
+      "evidence": "5 method(s) apply one uniform assertion pattern to all rows"
+    },
+    {
+      "id": "test-data-visible",
+      "text": "Product prices and coupon rules are visible in the table via columns.",
+      "passed": true,
+      "evidence": "Catalogue column shows '[Widget: 10.00]' and coupon rules shown as 'PERCENT 20', 'FIXED 5.00', 'PRODUCT Widget 5.00'"
+    },
+    {
+      "id": "type-converters-for-complex-objects",
+      "text": "TypeConverter methods are used to convert map/string table values into domain objects; method bodies contain only arrange-act-assert.",
+      "passed": false,
+      "evidence": "'Cart cart = Cart.withItems(Map.of()).withActiveCouponCode(activeCouponBefore);' constructs object in method body"
+    },
+    {
+      "id": "coupon-as-single-column",
+      "text": "Coupon data is expressed in a single column with a @TypeConverter",
+      "passed": true,
+      "evidence": "Coupon In Store | PERCENT 10 ... parseCoupon(String definition) @TypeConverter"
+    },
+    {
+      "id": "uses-standard-map-syntax",
+      "text": "Columns representing maps use standard TableTest map syntax",
+      "passed": true,
+      "evidence": "Catalogue [Widget: 9.99], Cart Before [Widget: 1], Stock [Widget: 5], [:] for empty"
+    },
+    {
+      "id": "description-not-redundant-with-scenarios",
+      "text": "@Description does not merely repeat scenario names",
+      "passed": true,
+      "evidence": "'Adding a product already in the cart increases its quantity rather than replacing it (assumption...)'"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable",
+      "passed": true,
+      "evidence": "Active Coupon After varies (SAVE10, FIVEOFF, WIDGET3, blank) based on validity, not constant"
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone",
+      "passed": true,
+      "evidence": "'The total is floored at zero regardless of which coupon type produced the discount' + PERCENT/FIXED cell values"
+    },
+    {
+      "id": "title-states-system-behaviour",
+      "text": "Each @DisplayName/method name states system behaviour",
+      "passed": true,
+      "evidence": "void checksOutTheCart(...), void calculatesTheCartTotal(...) describe actions performed"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "quantifier-covered-by-rows",
+      "text": "Rows cover the domain quantified by title/description",
+      "passed": true,
+      "evidence": "'Empty cart, any coupon | ... | {PERCENT 50, FIXED 5.00} | 0.00' matches reference's two-type value set design"
+    },
+    {
+      "id": "assertion-criteria-declared",
+      "text": "Comparison criteria are stated on the published surface",
+      "passed": true,
+      "evidence": "'Message Mentions?\" lists the substrings the checkout message must contain' and BigDecimal.compareTo is exempt"
+    },
+    {
+      "id": "consistent-quantity-naming",
+      "text": "Same observable quantity carries the same column name across tables",
+      "passed": false,
+      "evidence": "'Cart Before'/'Cart After?' in add/remove tables vs 'Cart Items' in checkout/total tables for the same cart quantity"
+    }
+  ],
+  "assertions_passed": 26,
+  "assertions_total": 29,
+  "pass_rate": 0.896551724137931
+}

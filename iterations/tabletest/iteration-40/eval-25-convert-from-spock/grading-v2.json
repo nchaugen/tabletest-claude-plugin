@@ -1,0 +1,163 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "options-as-map",
+      "text": "Package options collapsed into single map column, not three separate columns; blank or [:] for no-options rows",
+      "passed": true,
+      "evidence": "Scenario | Options | Fee? ... Hazmat handling | [handling: hazmat] | 15.50 — single Options column used with blank cells for no-options rows"
+    },
+    {
+      "id": "options-type-converter",
+      "text": "A @TypeConverter method accepts Map<String,String> and returns PackageOptions with defaults",
+      "passed": false,
+      "evidence": "Fixed by typing those parameters as Map<String, String>? and doing the null-to-default logic in a private buildOptions helper instead."
+    },
+    {
+      "id": "dimensions-as-list",
+      "text": "Dimensions represented as [L, W, H] list, not three scalar columns",
+      "passed": true,
+      "evidence": "Dimensions   | Base Fee?\\n... [30, 20, 15] | 7.50 ... fun dimensionalWeightOverride(weight: Double, dimensions: List<Int>, baseFee: BigDecimal)"
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence, rather than duplicating rows per carrier",
+      "passed": true,
+      "evidence": "Value set syntax found"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods each addressing a distinct concern, not one monolithic table",
+      "passed": true,
+      "evidence": "fun baseRateByRegionSpeedAndWeight..., fun dimensionalWeightOverride..., fun oversizeSurcharge..., fun carrierDoesNotAffectCost..."
+    },
+    {
+      "id": "concern-not-over-split",
+      "text": "Do not fragment a single concern across multiple tables sharing the same fixture and assertion",
+      "passed": false,
+      "evidence": "oversizeSurcharge, hazmatHandlingSurcharge, fragileSurcharge, insuranceSurcharge all fix zone EU standard/weight 3.0 (base 7.50) and vary one surcharge each with same Fee? column"
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable",
+      "passed": true,
+      "evidence": "oversizeSurcharge: 7.50/17.50; hazmatHandlingSurcharge: 7.50/15.50; fragileSurcharge: 7.50/8.625 — all vary meaningfully with inputs"
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without the test method body",
+      "passed": false,
+      "evidence": "dimensionalWeightOverride description omits the volumetric divisor: 'so Base Fee? shows only the effect of dimensional weight overriding the actual weight' — no L×W×H/5000 formula stated anywhere"
+    },
+    {
+      "id": "numeric-types-correct",
+      "text": "weight is double, dimensions List<Integer>, cost/insuredValue BigDecimal via compareTo",
+      "passed": true,
+      "evidence": "fun baseRateByRegionSpeedAndWeight(region: String, speed: String, weight: Double, baseFee: BigDecimal) ... assertEquals(0, expected.compareTo(actual))"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Each table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions, not outcomes or generic labels",
+      "passed": true,
+      "evidence": "'Exceeds size limit (one dimension over 100 cm)', 'Fee is identical regardless of carrier', 'EU standard very heavy'"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Cost?', 'Base rate?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Base Fee?, Base Fee?, Fee?, Fee?, Fee?, Fee?, Fee?"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain language, not code identifiers",
+      "passed": true,
+      "evidence": "Scenario | Region | Speed | Weight | Base Fee? ... Scenario | Options | Fee? ... Scenario | Carrier | Fee?"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method bodies contain no if or switch statements",
+      "passed": true,
+      "evidence": "7 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "7 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "output-is-kotlin",
+      "text": "The generated test file is written in Kotlin (.kt), not Java or Groovy. Uses Kotlin syntax: fun, val/var, Kotlin imports.",
+      "passed": true,
+      "evidence": "Found 1 Kotlin test file(s): src/test/kotlin/com/example/ShippingCostCalculatorTest.kt"
+    },
+    {
+      "id": "no-groovy-syntax",
+      "text": "Output contains no Groovy or Spock syntax: no def, where:, expect:, given:, GString interpolation (#variable), Spock assertions (thrown(), old()), or Groovy list literals ([] as Set).",
+      "passed": true,
+      "evidence": "No Groovy/Spock syntax found"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle.kts) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The generated tests pass when executed against ShippingCostCalculator",
+      "passed": true,
+      "evidence": "Tests passed"
+    },
+    {
+      "id": "spock-dependency-removed",
+      "text": "The build file no longer declares Spock or Groovy dependencies — the old framework is fully removed, not just the test code.",
+      "passed": true,
+      "evidence": "Build file has no Spock/Groovy reference"
+    },
+    {
+      "id": "consistent-quantity-naming",
+      "text": "Across the @TableTest methods in one class, the same observable quantity carries the same column name.",
+      "passed": true,
+      "evidence": "Base-rate tables use 'Base Fee?' consistently (baseRateByRegionSpeedAndWeight, dimensionalWeightOverride); all post-surcharge total-cost tables use 'Fee?' consistently (oversizeSurcharge, hazmatHandlingSurcharge, fragileSurcharge, insuranceSurcharge, carrierDoesNotAffectCost)."
+    },
+    {
+      "id": "titles-form-a-family",
+      "text": "Read the class's test titles as the sorted index a reader would scan, stripped of their tables.",
+      "passed": false,
+      "evidence": "Six method names are compound-noun phrases (e.g. 'oversizeSurcharge', 'fragileSurcharge', 'insuranceSurcharge') while 'carrierDoesNotAffectCost' is a full subject-verb-object sentence, breaking the consistent grammatical shape across the family."
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each @TableTest has only the rows needed to express its concern's rules.",
+      "passed": true,
+      "evidence": "Each table (e.g. 'oversizeSurcharge' with 2 rows, 'dimensionalWeightOverride' with 2 rows, 'insuranceSurcharge' with 3 rows) contains only rows distinct to its own concern with no repeated/redundant permutations within the same table."
+    }
+  ],
+  "assertions_passed": 22,
+  "assertions_total": 26,
+  "pass_rate": 0.8461538461538461
+}

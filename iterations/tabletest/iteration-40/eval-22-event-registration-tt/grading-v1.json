@@ -1,0 +1,175 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "validation-rules-covered",
+      "text": "Email validation and name-required error scenarios are present — at least one row for invalid email and one for missing name.",
+      "passed": true,
+      "evidence": "Missing name (null) ... false | Name is required ; Invalid email, missing @ ... false | Invalid email format"
+    },
+    {
+      "id": "blank-for-absent-optional",
+      "text": "Dietary requirements and/or accessibility needs use blank cells (null) when not provided — not 'N/A' or 'none'.",
+      "passed": true,
+      "evidence": "Valid registration                | Alice | alice@example.com   |                       |                      | true"
+    },
+    {
+      "id": "blank-vs-value-set-correct",
+      "text": "Irrelevant inputs for pricing use value sets or representative values, not blanks.",
+      "passed": true,
+      "evidence": "Group discount applies       | after cutoff       | {5, 20}    | 15.00     | 85.00"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Result?', 'Price?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Accepted?, Error Message?, Discount?, Price?"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language.",
+      "passed": true,
+      "evidence": "Scenario | Name | Email | Dietary Requirements | Accessibility Needs | Accepted? | Error Message?"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions, not outcomes.",
+      "passed": false,
+      "evidence": "No discount applies ... Early-bird discount applies ... Group discount applies"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "2 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "2 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables each addressing a distinct concern.",
+      "passed": true,
+      "evidence": "validatesRegistration(...) ... calculatesPricingAndDiscount(...)"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules.",
+      "passed": true,
+      "evidence": "Registration date and group size are fixed to non-discounted values here since pricing is covered separately."
+    },
+    {
+      "id": "separates-validation-and-pricing",
+      "text": "Input validation and pricing/discount calculation are in separate @TableTest methods.",
+      "passed": true,
+      "evidence": "void validatesRegistration(...) ... void calculatesPricingAndDiscount(...)"
+    },
+    {
+      "id": "validation-includes-optional-fields",
+      "text": "Validation @TableTest includes Dietary Requirements and Accessibility Needs columns, with null and non-null rows.",
+      "passed": true,
+      "evidence": "Valid with optional fields        | Bob   | bob@example.com     | Vegetarian            | Wheelchair access    | true"
+    },
+    {
+      "id": "descriptive-registration-date",
+      "text": "Registration date uses descriptive values with a @TypeConverter method.",
+      "passed": true,
+      "evidence": "case \"before cutoff\" -> EARLY_BIRD_CUTOFF.minusDays(1);"
+    },
+    {
+      "id": "cutoff-date-column-if-literal-dates",
+      "text": "If registration dates are literal, cutoff appears as separate policy column; passes automatically if descriptive values used.",
+      "passed": true,
+      "evidence": "Registration Date column uses 'before cutoff', 'on cutoff', 'after cutoff' via @TypeConverter."
+    },
+    {
+      "id": "description-no-irrelevant-information",
+      "text": "@Description adds threshold/constant/currency/rationale not derivable from columns alone.",
+      "passed": true,
+      "evidence": "\"Base price is £100. Early-bird registrations (before 2025-03-01) get 20% off; groups of 5 or more get 15% off... they never stack.\""
+    },
+    {
+      "id": "discount-column-preferred",
+      "text": "Output column is 'Discount?' rather than 'Price?'.",
+      "passed": true,
+      "evidence": "\"Scenario | Registration Date | Group Size | Discount? | Price?\" — Discount? present as primary output."
+    },
+    {
+      "id": "single-assertion-in-method",
+      "text": "Each @TableTest method applies one uniform assertion pattern to every row — not different assertions per scenario. Several unconditional assertions checking distinct observable outputs of one result (e.g. success, message, resulting cart) count as one uniform pattern; the anti-pattern is branching on the row (if/switch/ternary/try-catch) to choose what is asserted.",
+      "passed": true,
+      "evidence": "2 method(s) apply one uniform assertion pattern to all rows"
+    },
+    {
+      "id": "optional-fields-has-expected-column",
+      "text": "Validation table includes an expectation column.",
+      "passed": true,
+      "evidence": "\"Scenario | Name | Email | Dietary Requirements | Accessibility Needs | Accepted? | Error Message?\""
+    },
+    {
+      "id": "description-no-redundant-field-values",
+      "text": "Scenario names/@Description do not restate values already shown as columns.",
+      "passed": true,
+      "evidence": "Scenario names like 'Just under group threshold' and 'Both apply, early-bird wins' do not restate literal cell values; description states thresholds/constants (£100, 5+, 20%/15%) not column-restatements."
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Expectation cells are not uniform, not verbatim copies, not ignorable-input-satisfiable.",
+      "passed": true,
+      "evidence": "Discount? values vary: \"0.00 | 20.00 | 0.00 | 0.00 | 15.00 | 20.00\" and Accepted? varies true/false across rows."
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "Reader can state the rule from table alone without method body.",
+      "passed": true,
+      "evidence": "\"Base price is £100... 20% off; groups of 5 or more get 15% off... only the higher discount... used\" stated in @Description, not only in body."
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "quantifier-covered-by-rows",
+      "text": "Quantifying claims match row coverage.",
+      "passed": true,
+      "evidence": "\"dietaryRequirements and accessibilityNeeds are optional and do not affect acceptance\" — rows show both present (Vegetarian/Wheelchair) and absent (blank) values."
+    }
+  ],
+  "assertions_passed": 27,
+  "assertions_total": 28,
+  "pass_rate": 0.9642857142857143
+}

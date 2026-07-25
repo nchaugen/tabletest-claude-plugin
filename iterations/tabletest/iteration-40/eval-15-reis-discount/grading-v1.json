@@ -1,0 +1,169 @@
+{
+  "assertions": [
+    {
+      "id": "2.1-decomposition-concern-separation",
+      "text": "Discount ladder, and traveller eligibility are in separate tables. Rolling window counting as a third table is desirable.",
+      "passed": true,
+      "evidence": "discountForTripCount, countSingleTicketsInWindow, discountForCategoryAndTripCount are three separate @TableTest methods"
+    },
+    {
+      "id": "2.2-children-flat-discount",
+      "text": "Children's flat 20% discount is represented",
+      "passed": true,
+      "evidence": "\"Child gets a flat discount regardless of trips | CHILD | {1, 5, 40} | 20\""
+    },
+    {
+      "id": "2.3-depth-tier-boundaries",
+      "text": "Multiple tiers derived from 'every fifth trip' rule, boundaries, max 40% represented",
+      "passed": true,
+      "evidence": "\"Exactly at the cap | 40 | 40\" and \"Beyond the cap stays capped | {41, 45, 100} | 40\""
+    },
+    {
+      "id": "2.4-depth-rolling-window-boundary",
+      "text": "30-day rolling window boundary tested: 30 included, 31 excluded",
+      "passed": true,
+      "evidence": "\"Exactly 30 days ago is still in window ... 1\" and \"31 days ago has fallen out of the window ... 0\""
+    },
+    {
+      "id": "window-boundary-uses-purchase-time",
+      "text": "30-day window exercised at time-of-purchase granularity, not whole days only",
+      "passed": false,
+      "evidence": "All history entries use whole 'daysAgo' integers like 29/SINGLE, 30/SINGLE, 31/SINGLE; no hour-level distinction present"
+    },
+    {
+      "id": "2.9-correctness-value-set-tier-semantics",
+      "text": "Value sets contain exactly the values that produce the same discount, no cross-tier contamination",
+      "passed": true,
+      "evidence": "\"Below first tier | {1, 2, 3, 4} | 0\" and \"Within first tier | {6, 7, 8, 9} | 5\" correctly grouped"
+    },
+    {
+      "id": "2.15-ticket-count-uses-value-sets",
+      "text": "Discount ladder table uses value sets for ticket count column to group counts within same tier",
+      "passed": true,
+      "evidence": "\"Within seventh tier | {36, 37, 38, 39} | 35\""
+    },
+    {
+      "id": "2.16-no-duplicate-tier-mapping",
+      "text": "Tier-to-discount mapping expressed once, not repeated across multiple tables",
+      "passed": false,
+      "evidence": "discountForCategoryAndTripCount and calculatesDiscountEndToEnd both re-test specific tier mappings (e.g. 10→10%, 5→5%) alongside discountForTripCount"
+    },
+    {
+      "id": "2.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "4 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "2.11-format-description",
+      "text": "@Description present and provides context beyond rows",
+      "passed": true,
+      "evidence": "\"The trip ladder: every 5th single ticket in the rolling 30-day window ... Trips In Window is the derived count fed in directly...\""
+    },
+    {
+      "id": "2.13-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "2.14-format-description-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "2.17-zone-irrelevance-visible",
+      "text": "Eligibility/passenger-type table includes a Zone column with value set showing discount applies regardless of zone",
+      "passed": false,
+      "evidence": "discountForCategoryAndTripCount table columns are 'Traveler Category | Trips In Window | Discount?' with no Zone column"
+    },
+    {
+      "id": "zone-independent-counting",
+      "text": "The rolling-window counting concern shows by row that a past purchase's zone does not affect whether it counts toward the travel count",
+      "passed": true,
+      "evidence": "\"Zone does not affect the count | [1/SINGLE/ZONE_1, 2/SINGLE/ZONE_2, 3/SINGLE/ZONE_3] | 3\""
+    },
+    {
+      "id": "2.18-adult-senior-value-set",
+      "text": "Adult and senior are expressed as a value set {ADULT, SENIOR} in at least one row",
+      "passed": true,
+      "evidence": "\"Adult and senior are capped the same | {ADULT, SENIOR} | 45 | 40\""
+    },
+    {
+      "id": "2.19-depth-all-tiers",
+      "text": "All 9 discount tiers are represented in the ladder table",
+      "passed": false,
+      "evidence": "Only tiers 0,5,10,35,40 appear explicitly; 15,20,25,30 tiers are missing from the discountForTripCount table."
+    },
+    {
+      "id": "2.20-readability-one-row-per-tier",
+      "text": "Each tier is expressed as a single row with a value set for ticket counts, not split across multiple rows",
+      "passed": false,
+      "evidence": "\"Exactly at first tier | 5 | 5\" and \"Within first tier | {6, 7, 8, 9} | 5\" are two separate rows for the same tier."
+    },
+    {
+      "id": "2.21-readability-relative-time",
+      "text": "The rolling window table expresses time relatively",
+      "passed": true,
+      "evidence": "\"[1/SINGLE/ZONE_1, 15/SINGLE/ZONE_2, 29/SINGLE/ZONE_1]\" encodes days-ago values rather than absolute dates."
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables address distinct concerns, not one monolithic table",
+      "passed": true,
+      "evidence": "Separate methods: discountForTripCount, countSingleTicketsInWindow, discountForCategoryAndTripCount, calculatesDiscountEndToEnd."
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules",
+      "passed": true,
+      "evidence": "Each @TableTest table (e.g. countSingleTicketsInWindow with 7 rows) targets a single concern without combining unrelated dimensions."
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable",
+      "passed": true,
+      "evidence": "Expectation values vary across rows, e.g. \"Below first tier | {1,2,3,4} | 0\" vs \"Exactly at first tier | 5 | 5\", not a fixed value."
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without the test method body",
+      "passed": true,
+      "evidence": "Description states \"every 5th single ticket ... raises the discount by 5%, up to a 40% cap\", and 30-day boundary rule is described in the counting table's @Description."
+    },
+    {
+      "id": "title-states-system-behaviour",
+      "text": "Each @DisplayName (or fallback method name) states what the code under test does",
+      "passed": true,
+      "evidence": "Method names like \"discountForTripCount\" and \"countSingleTicketsInWindow\" describe the computation performed, not an external regulation."
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "held-constants-declared",
+      "text": "A value the rule's outcome depends on, and which the table holds constant for every row, must be visible as a column or named in the @DisplayName/@Description as deliberately held fixed.",
+      "passed": true,
+      "evidence": "PURCHASE_TIME field only used to construct relative days-ago timestamps; outcome depends on relative offset (encoded in History column via daysAgo), not the absolute PURCHASE_TIME value, so it is a fixture value the rule is indifferent to."
+    },
+    {
+      "id": "quantifier-covered-by-rows",
+      "text": "When a title or description quantifies over a domain, the rows must actually cover that domain.",
+      "passed": true,
+      "evidence": "\"Zone must never affect the count.\" is backed by rows using ZONE_1, ZONE_2, ZONE_3; \"CHILD ... independent of travel frequency\" is backed by \"Child gets a flat discount regardless of trips | CHILD | {1, 5, 40} | 20\"."
+    }
+  ],
+  "assertions_passed": 22,
+  "assertions_total": 27,
+  "pass_rate": 0.8148148148148148
+}

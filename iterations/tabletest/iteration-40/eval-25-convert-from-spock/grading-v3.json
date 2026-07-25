@@ -1,0 +1,173 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "options-as-map",
+      "text": "Package options collapsed into a single map column, not three separate columns; no-options rows use blank or [:].",
+      "passed": true,
+      "evidence": "Hazmat handling      | [handling: hazmat] | 15.50 with No special handling row left blank in the same 'Options' column",
+      "evidence_full": ""
+    },
+    {
+      "id": "options-type-converter",
+      "text": "A @TypeConverter method converts a map cell to PackageOptions with defaults.",
+      "passed": false,
+      "evidence": "typing those parameters as Map<String, String>? and doing the null-to-default logic in a private buildOptions helper instead",
+      "evidence_full": ""
+    },
+    {
+      "id": "dimensions-as-list",
+      "text": "Dimensions represented as [L, W, H] list, not three scalar columns.",
+      "passed": true,
+      "evidence": "dimensions: List<Int>, with cell values like [70, 50, 10]",
+      "evidence_full": ""
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence, rather than duplicating rows per carrier",
+      "passed": true,
+      "evidence": "Value set syntax found"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods, each a distinct concern, not one monolithic table.",
+      "passed": true,
+      "evidence": "fun baseRateByRegionSpeedAndWeight ... fun dimensionalWeightOverride ... fun carrierDoesNotAffectCost",
+      "evidence_full": ""
+    },
+    {
+      "id": "concern-not-over-split",
+      "text": "Do not fragment a single concern (surcharges) across multiple same-fixture tables.",
+      "passed": false,
+      "evidence": "fun hazmatHandlingSurcharge, fun fragileSurcharge, fun insuranceSurcharge all fix zone EU standard, weight 3.0, dims 30x20x15",
+      "evidence_full": ""
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable.",
+      "passed": true,
+      "evidence": "EU standard light | ... | 5.00 vs EU standard very heavy | ... | 20.00, distinct outputs across rows",
+      "evidence_full": ""
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without the method body.",
+      "passed": true,
+      "evidence": "Insurance premium is 0.6% of insured value with a 3.00 minimum, added after any fragile multiplier has been applied",
+      "evidence_full": ""
+    },
+    {
+      "id": "numeric-types-correct",
+      "text": "Weight double, dimensions List<Integer>, cost/insuredValue BigDecimal compared via compareTo.",
+      "passed": true,
+      "evidence": "assertEquals(0, expected.compareTo(actual)) { \"expected $expected but was $actual\" }",
+      "evidence_full": ""
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Each table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions, not outcomes or generic labels.",
+      "passed": true,
+      "evidence": "Insurance combined with fragile surcharge | [fragile: true, insuredValue: 200] | 11.625",
+      "evidence_full": ""
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Cost?', 'Base rate?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Base Fee?, Base Fee?, Fee?, Fee?, Fee?, Fee?, Fee?"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain language, not code identifiers.",
+      "passed": true,
+      "evidence": "Scenario | Region | Speed | Weight | Base Fee?",
+      "evidence_full": ""
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method bodies contain no if or switch statements",
+      "passed": true,
+      "evidence": "7 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "7 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "output-is-kotlin",
+      "text": "The generated test file is written in Kotlin (.kt), not Java or Groovy. Uses Kotlin syntax: fun, val/var, Kotlin imports.",
+      "passed": true,
+      "evidence": "Found 1 Kotlin test file(s): src/test/kotlin/com/example/ShippingCostCalculatorTest.kt"
+    },
+    {
+      "id": "no-groovy-syntax",
+      "text": "Output contains no Groovy or Spock syntax: no def, where:, expect:, given:, GString interpolation (#variable), Spock assertions (thrown(), old()), or Groovy list literals ([] as Set).",
+      "passed": true,
+      "evidence": "No Groovy/Spock syntax found"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle.kts) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The generated tests pass when executed against ShippingCostCalculator",
+      "passed": true,
+      "evidence": "Tests passed"
+    },
+    {
+      "id": "spock-dependency-removed",
+      "text": "The build file no longer declares Spock or Groovy dependencies — the old framework is fully removed, not just the test code.",
+      "passed": true,
+      "evidence": "Build file has no Spock/Groovy reference"
+    },
+    {
+      "id": "consistent-quantity-naming",
+      "text": "Across the @TableTest methods in one class, the same observable quantity carries the same column name.",
+      "passed": true,
+      "evidence": "\"Base Fee?\" used consistently in baseRateByRegionSpeedAndWeight and dimensionalWeightOverride; \"Fee?\" used consistently in oversizeSurcharge, hazmatHandlingSurcharge, fragileSurcharge, insuranceSurcharge, carrierDoesNotAffectCost."
+    },
+    {
+      "id": "titles-form-a-family",
+      "text": "Read the class's test titles as the sorted index a reader would scan... FAILS when siblings use unrelated grammatical shapes.",
+      "passed": false,
+      "evidence": "Method names 'baseRateByRegionSpeedAndWeight', 'dimensionalWeightOverride', 'oversizeSurcharge', etc. are noun phrases, but 'carrierDoesNotAffectCost' is a full predicate sentence, breaking the consistent shape."
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each @TableTest has only the rows needed to express its concern's rules — no unnecessary permutations or re-covering rows.",
+      "passed": true,
+      "evidence": "e.g. oversizeSurcharge has 2 rows ('Within size limit' 7.50, 'Exceeds size limit' 17.50) — exactly the obligations for its narrow concern, no redundant permutations."
+    }
+  ],
+  "assertions_passed": 23,
+  "assertions_total": 26,
+  "pass_rate": 0.8846153846153846
+}

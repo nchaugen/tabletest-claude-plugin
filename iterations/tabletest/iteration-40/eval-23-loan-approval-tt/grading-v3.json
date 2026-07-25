@@ -1,0 +1,139 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "threshold-verifiable-from-table",
+      "text": "Each policy threshold (650 for non-seniors, 600 for seniors) is verifiable from the table via boundary rows or a policy column.",
+      "passed": true,
+      "evidence": "Rows: 'At the standard threshold...650...REJECTED' / 'Just above...651...APPROVED'; 'at the lower threshold...600...REJECTED' / 'just above the lower threshold...601...APPROVED'"
+    },
+    {
+      "id": "concrete-domain-values",
+      "text": "Cell values use concrete domain terms, not abstract codes.",
+      "passed": true,
+      "evidence": "Cells like '650', '651', 'true', 'false', 'REJECTED', 'APPROVED', 'PENDING_REVIEW' are concrete domain values."
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\""
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions, not outcomes.",
+      "passed": true,
+      "evidence": "'At the standard threshold, not above it', 'Qualifying score with unstable income', 'Senior age boundary, lower threshold applies' — all condition-based names."
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language, not code identifiers.",
+      "passed": true,
+      "evidence": "Header row: 'Scenario | Age | Credit Score | Stable Income | Result?'"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Decision?' or 'Status?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Result?"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "1 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "1 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Distinct concerns are covered without cross-multiplying into redundant permutations.",
+      "passed": false,
+      "evidence": "Rows 'Qualifying score with missing income information' (age40) and 'Senior qualifying score with missing income information' (age70) re-prove the same null-income→PENDING_REVIEW rule across both age tiers, an unnecessary age×income cross-permutation."
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules, no unnecessary permutations.",
+      "passed": false,
+      "evidence": "'Below threshold rejects regardless of stable income | 40 | 500 | {true, false} | REJECTED' re-tests the true case (already shown in row 1) alongside the age-tier duplicate row for null income, both unnecessary permutations."
+    },
+    {
+      "id": "covers-age-credit-income",
+      "text": "Age boundary policy, credit score categorisation, and income status are each covered by minimal scenarios.",
+      "passed": true,
+      "evidence": "Age/credit rows 1-6 cover thresholds; rows 7-11 vary income (false, null, value-set) against fixed/near-fixed scores."
+    },
+    {
+      "id": "description-no-redundant-field-values",
+      "text": "Scenario names and @Description do not restate values the table already shows.",
+      "passed": true,
+      "evidence": "@Description states thresholds '650'/'600'/'65' as policy constants, not fixed values of a column already held constant in the table — permitted per the stated carve-out."
+    },
+    {
+      "id": "depth-stable-income-effect",
+      "text": "Effect of stable income is visible via a held-constant row pair with different decisions.",
+      "passed": true,
+      "evidence": "'Qualifying score with unstable income | 40 | 700 | false | REJECTED' vs 'Qualifying score with missing income information | 40 | 700 | | PENDING_REVIEW' — same age/score, differing income, differing decision."
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Expectation values vary and are not copies of input cells or a fixed constant.",
+      "passed": true,
+      "evidence": "Result column varies across REJECTED/APPROVED/PENDING_REVIEW and never matches an input cell verbatim (e.g. 'APPROVED' vs '651','true')."
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without the test method body.",
+      "passed": true,
+      "evidence": "Boundary rows '650|REJECTED' vs '651|APPROVED' and '600|REJECTED' vs '601|APPROVED', plus age rows '64|610|REJECTED' vs '65|610|APPROVED' make thresholds and age cutoff inferable from the table; assertEquals has no hidden logic."
+    },
+    {
+      "id": "title-states-system-behaviour",
+      "text": "Each @DisplayName (or fallback method name) states what the code under test does.",
+      "passed": true,
+      "evidence": "Method name 'evaluatesLoanApproval' describes the action performed by the code, not a restated domain fact."
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "held-constants-declared",
+      "text": "A value the rule's outcome depends on, held constant across rows, must be visible as a column or declared.",
+      "passed": true,
+      "evidence": "Age, Credit Score, and Stable Income all vary across rows (e.g. '40,64,65,70' and '650,651,600,601,500,700'); no outcome-relevant value is silently fixed in the method body."
+    }
+  ],
+  "assertions_passed": 20,
+  "assertions_total": 22,
+  "pass_rate": 0.9090909090909091
+}

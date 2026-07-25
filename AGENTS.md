@@ -217,10 +217,16 @@ exactly one of them changed between the compared iterations.
   **There is no `temperature` on the current grading model.** Sampling parameters were removed from
   the newer model families: a non-default `temperature` is a 400, so `acceptsTemperature()` omits it
   and grading runs at model-default sampling. "Temperature 0" was a haiku-era regime and cannot be
-  restored on sonnet — which also means **sonnet's residual instability is not yet measured**; the
-  ~1–2% figure came from haiku at temperature 0. Until someone runs three `--grade-only` passes over
-  one set of stored outputs and recounts, treat the MDE as unknown-but-larger and read the failing
-  *set*, never the headline rate. `--grade-runs 3` majority voting is the lever if it proves high.
+  restored on sonnet. **Measured 2026-07-25 over three `--grade-only` passes on identical stored
+  outputs: 18 of 365 slots unstable — 4.9%, level ranging 320–327.** A 7-slot spread on byte-identical
+  inputs, so the **single-run MDE is ~7–8 slots** — wider than the entire headroom most skill changes
+  have (slice 1's whole realistic ceiling was estimated at +5 to +7). Practical consequence:
+  **`--grade-runs 3` is required for any comparison, not reserved for adjudicating one inside the MDE.**
+  Majority voting took haiku from ~4% to 1.4% and should do the same here; without it no skill delta
+  this project can produce is attributable. Read the failing *set*, never the headline rate.
+  **44% of the instability is two assertions** — `rule-statable-from-table` (4 flips) and
+  `minimal-rows-per-concern` (4) — so fixing or voting just those two roughly halves the rate. See
+  `docs/assertion-triage.md`.
   Those models also run **adaptive thinking by default**, so the verdict JSON is not `content[0]`
   (`extractGradingText` selects the text block) and thinking bills against `max_tokens` — hence the
   larger budget for them. Grading is ~4× slower than haiku; a full-suite `--grade-only` exceeds ten

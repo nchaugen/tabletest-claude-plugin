@@ -1,0 +1,157 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "options-as-map",
+      "text": "Package options collapsed into a single map column",
+      "passed": false,
+      "evidence": "Separate columns like 'Fragile | Total Cost?', 'Insured Value | Total Cost?', 'Handling | Total Cost?' are used instead of one Options map column."
+    },
+    {
+      "id": "options-type-converter",
+      "text": "@TypeConverter method for PackageOptions map",
+      "passed": false,
+      "evidence": "No @TypeConverter is defined anywhere in the file; PackageOptions is built manually via options.setFragile(fragile) etc."
+    },
+    {
+      "id": "dimensions-as-list",
+      "text": "Dimensions represented as [L, W, H] list",
+      "passed": true,
+      "evidence": "'Large package, dimensional weight used | [70, 50, 10] | 12.50' shows dimensions as a bracketed list."
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence, rather than duplicating rows per carrier",
+      "passed": true,
+      "evidence": "Value set syntax found"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods each addressing a distinct concern",
+      "passed": true,
+      "evidence": "calculatesBaseRateByZoneAndWeight, appliesDimensionalWeightWhenGreaterThanActual, appliesOversizeSurchargeWhenAnyDimensionExceedsLimit, appliesFragileSurcharge, appliesInsurancePremiumWithMinimum, appliesHazmatHandlingFee, combinesSurchargesInOrder, carrierDoesNotAffectPrice are separate methods."
+    },
+    {
+      "id": "concern-not-over-split",
+      "text": "Surcharges concern should not be fragmented across many same-fixture tables",
+      "passed": false,
+      "evidence": "appliesOversizeSurchargeWhenAnyDimensionExceedsLimit, appliesFragileSurcharge, appliesInsurancePremiumWithMinimum, appliesHazmatHandlingFee are four separate tables all fixed to 'Zone is fixed to EU standard, weight fixed to 3.0kg (base rate 7.50)'."
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable",
+      "passed": true,
+      "evidence": "e.g. 'At the size limit | [100, 5, 5] | 7.50' vs 'Just over the limit | [101, 5, 5] | 17.50' shows expectation varies with input; the carrier table's constant value is the intentional invariance proof endorsed by the eval design."
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone",
+      "passed": true,
+      "evidence": "'Premium is 0.6% of insured value, with a $3.00 minimum...' is stated in @Description, and surcharge flat amounts are derivable from row deltas (e.g. 17.50-7.50=10.00)."
+    },
+    {
+      "id": "numeric-types-correct",
+      "text": "Parameter types match signature (double weight, List<Integer> dimensions, BigDecimal cost/insuredValue)",
+      "passed": true,
+      "evidence": "void calculatesBaseRateByZoneAndWeight(String region, String speed, double weight, BigDecimal baseRate) and List<Integer> dimensions, BigDecimal insuredValue used throughout."
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Each table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions, not outcomes or generic labels",
+      "passed": false,
+      "evidence": "'Fragile surcharge applied' names the outcome (surcharge applied) rather than the condition, mirroring the flagged bad example 'Surcharge applied'."
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Cost?', 'Base rate?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Base Rate?, Rate?, Total Cost?, Total Cost?, Total Cost?, Total Cost?, Total Cost?, Total Cost?"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain language, not code identifiers",
+      "passed": true,
+      "evidence": "Columns like 'Region | Speed | Weight | Base Rate?' and 'Dimensions | Total Cost?' use domain terms, not code identifiers."
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method bodies contain no if or switch statements",
+      "passed": true,
+      "evidence": "8 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "8 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "no-testng-artifacts",
+      "text": "Output contains no TestNG syntax: no @DataProvider, @Test(dataProvider=...), Object[][], or TestNG imports (org.testng.*).",
+      "passed": true,
+      "evidence": "No TestNG artifacts found"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The generated tests pass when executed against ShippingCostCalculator",
+      "passed": true,
+      "evidence": "Tests passed"
+    },
+    {
+      "id": "testng-dependency-removed",
+      "text": "The build file no longer declares a TestNG dependency — the old framework is fully removed, not just the test code.",
+      "passed": true,
+      "evidence": "Build file has no TestNG reference"
+    },
+    {
+      "id": "consistent-quantity-naming",
+      "text": "Across the @TableTest methods in one class, the same observable quantity carries the same column name.",
+      "passed": false,
+      "evidence": "calculatesBaseRateByZoneAndWeight uses column 'Base Rate?' while appliesDimensionalWeightWhenGreaterThanActual uses 'Rate?' for the same base-rate quantity (5.00, 12.50 values)."
+    },
+    {
+      "id": "titles-form-a-family",
+      "text": "Read the class's test titles as the sorted index a reader would scan, stripped of their tables.",
+      "passed": false,
+      "evidence": "appliesDimensionalWeightWhenGreaterThanActual, appliesOversizeSurchargeWhenAnyDimensionExceedsLimit, appliesFragileSurcharge, appliesInsurancePremiumWithMinimum, appliesHazmatHandlingFee all lead with 'applies', pushing the distinguishing subject to arrive second across 5 of 8 titles."
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each @TableTest has only the rows needed to express its concern's rules.",
+      "passed": true,
+      "evidence": "Each table (e.g. appliesOversizeSurchargeWhenAnyDimensionExceedsLimit with 2 rows, appliesFragileSurcharge with 2 rows, appliesInsurancePremiumWithMinimum with 4 distinct boundary rows) contains only distinct, non-redundant rows covering its own concern's obligations."
+    }
+  ],
+  "assertions_passed": 19,
+  "assertions_total": 25,
+  "pass_rate": 0.76
+}

@@ -1,0 +1,163 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "black-box-columns",
+      "text": "Table columns represent public inputs and observable outputs, not internal state.",
+      "passed": true,
+      "evidence": "Scenario | Applicant Type | Age | Claim Count | Status? | Premium?"
+    },
+    {
+      "id": "observable-io-only",
+      "text": "No column named after private fields or internal variables.",
+      "passed": true,
+      "evidence": "Columns used: Applicant Type, Age, Claim Count, Status?, Premium? — no riskScore or hasActivePolicy column"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language.",
+      "passed": true,
+      "evidence": "Scenario | Applicant Type | Age | Claim Count | Status? | Premium?"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions, not outcomes.",
+      "passed": true,
+      "evidence": "\"Renewal, no claims, would otherwise be standard\", \"Risk score exactly at threshold\""
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Decision?' or 'Premium?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Status?, Premium?, Status?, Premium?, Premium?"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "3 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "3 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables each addressing a distinct concern.",
+      "passed": true,
+      "evidence": "Three @TableTest methods: autoApprovesRenewalsWithNoClaims, rejectsApplicationsAboveRiskThreshold, calculatesPremiumByAgeTier"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each table has only the rows needed to express its concern's rules.",
+      "passed": true,
+      "evidence": "Each table has 4 rows targeted at its specific boundary/bypass condition, no extra permutations added"
+    },
+    {
+      "id": "separates-decision-and-premium",
+      "text": "Decision logic and premium calculation are in separate @TableTest methods.",
+      "passed": false,
+      "evidence": "autoApprovesRenewalsWithNoClaims and rejectsApplicationsAboveRiskThreshold both assert 'Status?' and 'Premium?' in the same table/method"
+    },
+    {
+      "id": "no-reimplemented-internals",
+      "text": "Test method body does not recompute internal formulas.",
+      "passed": true,
+      "evidence": "EvaluationResult result = evaluator.evaluateApplication(...); assertEquals(status, result.decision());"
+    },
+    {
+      "id": "description-no-internals",
+      "text": "@Description explains business context, not internal formulas.",
+      "passed": false,
+      "evidence": "\"Risk score is age/10 + claimCount * 15. Applications are rejected once the score exceeds 75.\""
+    },
+    {
+      "id": "depth-decision-boundaries",
+      "text": "Approval decision table covers the rejection boundary (4 vs 5 claims) across realistic ages.",
+      "passed": false,
+      "evidence": "Uses age 9 vs age 10 with 5 claims to hit exact threshold instead of 4-vs-5 claims across realistic ages"
+    },
+    {
+      "id": "depth-premium-boundaries",
+      "text": "Approved premium table covers boundary effects: the premium jump from 0 to 1 claim (impact of +15 risk score on premium), and the premium difference at age 64 vs 65 (standard vs senior formula). These boundary conditions document how premium changes at each threshold.",
+      "passed": false,
+      "evidence": "calculatesPremiumByAgeTier rows are 64/1->142, 65/1->273.50, 30/0->106, 90/0->231.50 — no row pair isolates a 0-to-1 claim jump; that comparison (106 vs 136) only appears in the separate autoApprovesRenewalsWithNoClaims table mixed with applicant-type change."
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable.",
+      "passed": true,
+      "evidence": "Status/Premium values vary across rows in every table, e.g. 'APPROVED | 106.00' vs 'REJECTED | 0.00' vs 'AUTO_APPROVED | 0.00' — no table has a constant expectation column or copies input verbatim as output."
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without the test method body.",
+      "passed": true,
+      "evidence": "@Description states 'Risk score is age/10 + claimCount * 15... rejected once the score exceeds 75' and '100 + riskScore * 2.0 below age 65, and 200 + riskScore * 3.5 from age 65 onward', giving all needed values outside the method body."
+    },
+    {
+      "id": "title-states-system-behaviour",
+      "text": "Each @DisplayName (or the method name it falls back to) states what the code under test does, not an external fact it depends on.",
+      "passed": true,
+      "evidence": "Method names 'autoApprovesRenewalsWithNoClaims', 'rejectsApplicationsAboveRiskThreshold', 'calculatesPremiumByAgeTier' are active-voice descriptions of the evaluator's computed action, not standalone domain facts."
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The generated tests pass when executed against InsuranceEvaluator",
+      "passed": true,
+      "evidence": "Tests passed"
+    },
+    {
+      "id": "held-constants-declared",
+      "text": "A value the rule's outcome depends on, and which the table holds constant for every row, must be visible as a column or named in the @DisplayName/@Description as deliberately held fixed.",
+      "passed": true,
+      "evidence": "@Description: 'Applicant type does not affect premium ... so it is held fixed at NEW here.' explicitly declares the fixed applicant type in calculatesPremiumByAgeTier."
+    },
+    {
+      "id": "assertion-criteria-declared",
+      "text": "A comparison criterion applied by the assertion must be stated on the published surface.",
+      "passed": true,
+      "evidence": "All assertions use 'assertEquals(premium, result.premium(), 0.001)' — a conventional floating-point epsilon, exempt as numeric hygiene, with no ordering/subset/normalisation logic present."
+    }
+  ],
+  "assertions_passed": 22,
+  "assertions_total": 26,
+  "pass_rate": 0.8461538461538461
+}

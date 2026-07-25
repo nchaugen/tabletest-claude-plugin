@@ -1,0 +1,157 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "options-as-map",
+      "text": "Package options collapsed into a single map column, not separate columns",
+      "passed": false,
+      "evidence": "Separate columns like 'Fragile? | Total?' and 'Insured Value | Total?' and 'Handling | Total?' are used instead of a single map column."
+    },
+    {
+      "id": "options-type-converter",
+      "text": "A @TypeConverter method converts Map<String,String> to PackageOptions with defaults",
+      "passed": false,
+      "evidence": "private static PackageOptions options(boolean fragile, BigDecimal insuredValue, String handling) { ... } is a plain helper, not a @TypeConverter."
+    },
+    {
+      "id": "dimensions-as-list",
+      "text": "Dimensions represented as [L, W, H] list, not scalar columns",
+      "passed": true,
+      "evidence": "Dimensions   | [10, 10, 10] ... [70, 50, 10] ... [30, 20, 15]"
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence, rather than duplicating rows per carrier",
+      "passed": true,
+      "evidence": "Value set syntax found"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods, each a distinct concern",
+      "passed": true,
+      "evidence": "shouldLookUpBaseRateByRegionSpeedAndWeight, shouldUseTheLargerOfActualAndDimensionalWeight, shouldAddOversizeSurchargeWhenAnyDimensionExceedsThreshold, etc. are separate @TableTest methods."
+    },
+    {
+      "id": "concern-not-over-split",
+      "text": "Surcharges concern not fragmented across multiple same-fixture tables",
+      "passed": false,
+      "evidence": "shouldAddOversizeSurchargeWhenAnyDimensionExceedsThreshold, shouldApplyFragileMultiplier, shouldAddInsurancePremiumWithMinimum, shouldAddHazmatHandlingFee are four separate tables all fixed to zone EU standard, weight 3.0kg, Total? column."
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable",
+      "passed": true,
+      "evidence": "Tables like the oversize table vary expectation (7.50, 7.50, 17.50) tied to input changes; the carrier table's single fixed value follows the reference-endorsed invariance pattern."
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone",
+      "passed": false,
+      "evidence": "shouldUseTheLargerOfActualAndDimensionalWeight gives '[70, 50, 10]' -> 12.50 with no column, @Description, or title stating the volumetric divisor (L*W*H/5000) needed to derive it."
+    },
+    {
+      "id": "numeric-types-correct",
+      "text": "Parameter types match calculateShippingCost signature",
+      "passed": true,
+      "evidence": "void shouldLookUpBaseRateByRegionSpeedAndWeight(String region, String speed, double weight, BigDecimal rate) ... assertEquals(0, result.compareTo(rate));"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Each table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe conditions, not outcomes or generic labels",
+      "passed": true,
+      "evidence": "'EU standard, at 1kg boundary', 'Not oversize', 'Below minimum, floor applies', 'Carrier does not affect cost'"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Cost?', 'Base rate?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Rate?, Rate?, Total?, Fragile?, Total?, Total?, Total?, Total?, Total?"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain language, not code identifiers",
+      "passed": true,
+      "evidence": "Scenario | Region | Speed | Weight (kg) | Rate? ... Dimensions | Total? ... Insured Value | Total?"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method bodies contain no if or switch statements",
+      "passed": true,
+      "evidence": "8 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "8 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "no-methodsource-artifacts",
+      "text": "Output contains no @MethodSource syntax: no @MethodSource, Stream<Arguments>, Arguments.of, or JUnit Jupiter parameterized imports (org.junit.jupiter.params.provider.*).",
+      "passed": true,
+      "evidence": "No @MethodSource found"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (pom.xml) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The generated tests pass when executed against ShippingCostCalculator",
+      "passed": true,
+      "evidence": "Tests passed"
+    },
+    {
+      "id": "consistent-quantity-naming",
+      "text": "Across the @TableTest methods in one class, the same observable quantity carries the same column name.",
+      "passed": true,
+      "evidence": "Base-rate-only tables use 'Rate?' consistently (methods 1 and 2), while surcharge/total tables use 'Total?' consistently (methods 3-8), matching the base-rate-vs-total distinction."
+    },
+    {
+      "id": "titles-form-a-family",
+      "text": "Read the class's test titles as the sorted index a reader would scan.",
+      "passed": false,
+      "evidence": "All 8 method names share the leading word 'should': 'shouldLookUpBaseRate...', 'shouldUseTheLarger...', 'shouldAddOversizeSurcharge...', 'shouldApplyFragileMultiplier', 'shouldAddInsurancePremium...', 'shouldAddHazmatHandlingFee', 'shouldCombineFragileMultiplier...', 'shouldNotVaryCostByCarrier'."
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each @TableTest has only the rows needed to express its concern's rules.",
+      "passed": true,
+      "evidence": "Each table's rows map to its narrowed concern's obligations, e.g. oversize table has 'Not oversize / At threshold / Oversize' (3 rows), insurance table has below/at/above floor (4 rows), no cross-product bloat."
+    },
+    {
+      "id": "held-constants-declared",
+      "text": "A value the rule's outcome depends on, held constant for every row, must be visible as a column or named in the @DisplayName/@Description.",
+      "passed": false,
+      "evidence": "// Carrier never affects cost ... so every other table below fixes it to Carrier.DHL rather than treating it as a variable input. -- declared only in a top-of-class source comment, not in any @Description or column."
+    }
+  ],
+  "assertions_passed": 19,
+  "assertions_total": 25,
+  "pass_rate": 0.76
+}

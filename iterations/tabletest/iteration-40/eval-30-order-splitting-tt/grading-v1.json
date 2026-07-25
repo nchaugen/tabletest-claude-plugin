@@ -1,0 +1,151 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods are used, each addressing a distinct concern",
+      "passed": true,
+      "evidence": "Four @TableTest methods: splitsShipmentsByFulfillmentTypeAndAddress, splitsShipmentsByStockAvailability, choosesWarehouseCombinationMinimizingShipmentCount, keepsCompanionProductsTogetherWhenPossible."
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable.",
+      "passed": true,
+      "evidence": "Expectation cells like '[\"camera,lens\"]', '[\"IMMEDIATE:[camera,lens]\"]', '[\"W1:[camera,lens]\", \"W3:[battery,mic]\"]' vary per row and are not verbatim copies of input cells nor constant across rows."
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without the test method body.",
+      "passed": true,
+      "evidence": "@Description for availability states 'BACKORDERED and PRE_ORDERED both ship WHEN_AVAILABLE' and for warehouse/companion tables explains 'fewest-shipments combination' and 'tie for fewest shipments', all outside the method body."
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each @TableTest has only the rows needed to express its concern's rules.",
+      "passed": false,
+      "evidence": "Fulfillment/address table has 6 rows including two interaction rows ('Items sharing an address group together, others split' and 'Delivery split by address, plus a separate pickup item') though only one optional interaction row is warranted; availability table repeats the 'not held' obligation separately for backordered and pre-ordered ('In-stock item not held for a backordered item' and 'In-stock item not held for a pre-ordered item'), exceeding the minimal 4 rows."
+    },
+    {
+      "id": "concern-fulfillment-method",
+      "text": "Fulfillment method splitting is represented in a @TableTest",
+      "passed": true,
+      "evidence": "Row 'Delivery and pickup items always split | [\"camera:DELIVERY:Addr-A\", \"mug:PICKUP:\"] | [camera, mug]'"
+    },
+    {
+      "id": "concern-delivery-address",
+      "text": "Delivery address splitting is represented in a @TableTest",
+      "passed": true,
+      "evidence": "Row 'Same type, different delivery addresses | [\"camera:DELIVERY:Addr-A\", \"watch:DELIVERY:Addr-B\"] | [camera, watch]'"
+    },
+    {
+      "id": "concern-availability",
+      "text": "Availability splitting is represented as its own @TableTest",
+      "passed": true,
+      "evidence": "void splitsShipmentsByStockAvailability(...) table with rows for IN_STOCK, BACKORDERED, PRE_ORDERED items."
+    },
+    {
+      "id": "concern-warehouse-allocation",
+      "text": "Warehouse allocation is represented as its own @TableTest",
+      "passed": true,
+      "evidence": "void choosesWarehouseCombinationMinimizingShipmentCount(...) table with W1/W2/W3 stock columns and Shipments? output."
+    },
+    {
+      "id": "concern-companion-products",
+      "text": "Companion product grouping is represented as its own @TableTest",
+      "passed": true,
+      "evidence": "void keepsCompanionProductsTogetherWhenPossible(...) table with Companions column and tie-breaking rows."
+    },
+    {
+      "id": "all-outputs-same-table",
+      "text": "Each @TableTest method includes all output columns for its concern in the same table.",
+      "passed": true,
+      "evidence": "Warehouse table's Shipments? column e.g. '[\"W1:[camera,lens]\", \"W2:[mic]\"]' encodes both warehouse assignment and shipment count together."
+    },
+    {
+      "id": "native-collection-output",
+      "text": "A compound output is expressed as a native TableTest list/map/set, not a hand-rolled string encoded with brackets/colons and assembled/parsed by a helper.",
+      "passed": false,
+      "evidence": "Shipments? cells like [\"IMMEDIATE:[camera,lens]\"] and [\"W1:[camera,lens,mic]\"] built via describeByAvailability/describeByWarehouse string-concatenation helpers."
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Shipments?', 'Groups?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Shipments?, Shipments?, Shipments?, Shipments?"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names describe the business situation, not 'Test case 2'.",
+      "passed": true,
+      "evidence": "\"Companions win a tie between equally minimal warehouses\", \"No single warehouse covers everything, split is forced\""
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use business/domain language.",
+      "passed": true,
+      "evidence": "Columns: 'Scenario | Items | W1 Stock | W2 Stock | W3 Stock | Companions | Shipments?'"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "4 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "4 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "held-constants-declared",
+      "text": "A value the outcome depends on and held constant every row must be visible as a column or named in @DisplayName/@Description.",
+      "passed": false,
+      "evidence": "splitsShipmentsByFulfillmentTypeAndAddress has no @Description and fixes all items to IN_STOCK/W1 via 'inventory.addStock(\"W1\", item.getProductId(), StockStatus.IN_STOCK)' with no mention of this held fact."
+    },
+    {
+      "id": "assertion-criteria-declared",
+      "text": "A comparison criterion (ordering, tolerance, subset matching, normalisation) applied by the assertion must be stated on the published surface.",
+      "passed": false,
+      "evidence": "describeByItems/describeByAvailability/describeByWarehouse all call '.sorted()' before assertEquals, but no description or column states shipments are compared without regard to order."
+    }
+  ],
+  "assertions_passed": 20,
+  "assertions_total": 24,
+  "pass_rate": 0.8333333333333334
+}
