@@ -413,6 +413,18 @@ describe("priceGradingUsage", () => {
     assert.equal(p.total_tokens, 2e6);
   });
 
+  // A real haiku run priced at $0 because the table was keyed on a dated id while resolveModel
+  // returns the bare alias. The `priced: false` flag made it visible instead of silently wrong.
+  test("prices a model whose resolved id is a bare alias", () => {
+    const p = priceGradingUsage({ input_tokens: 1e6, output_tokens: 1e6 }, "claude-haiku-4-5");
+    assert.equal(p.cost_usd, 6); // 1 in + 5 out
+  });
+
+  test("prices a dated id from the same family", () => {
+    const p = priceGradingUsage({ input_tokens: 1e6, output_tokens: 0 }, "claude-haiku-4-5-20251001");
+    assert.equal(p.cost_usd, 1);
+  });
+
   test("records zero cost but keeps the tokens for an unknown model", () => {
     const p = priceGradingUsage({ input_tokens: 1000, output_tokens: 500 }, "some-future-model");
     assert.equal(p.cost_usd, 0);

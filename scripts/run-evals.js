@@ -437,14 +437,19 @@ async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropi
 // so a stale entry here shows up in the artefact instead of silently skewing a figure. Cache
 // reads and writes are not priced: grading sends a fresh prompt per batch and neither field has
 // ever come back non-zero.
+// Keyed by prefix, not exact id: resolveModel returns bare aliases ("claude-haiku-4-5") for some
+// families and dated ids for others, and an exact-match table silently priced a real run at $0.
 const GRADING_PRICES_USD_PER_MTOK = {
   "claude-sonnet-5": { input: 3, output: 15 },
-  "claude-haiku-4-5-20251001": { input: 1, output: 5 },
+  "claude-haiku-4-5": { input: 1, output: 5 },
 };
 
 /** Sums grading token usage and prices it, returning zeros for a model with no known rate. */
 function priceGradingUsage(usage, model) {
-  const rate = GRADING_PRICES_USD_PER_MTOK[model];
+  const key = Object.keys(GRADING_PRICES_USD_PER_MTOK)
+    .filter((k) => (model || "").startsWith(k))
+    .sort((a, b) => b.length - a.length)[0];
+  const rate = key ? GRADING_PRICES_USD_PER_MTOK[key] : undefined;
   const input = usage.input_tokens || 0;
   const output = usage.output_tokens || 0;
   return {

@@ -105,6 +105,44 @@ least one PASS and one FAIL case before it is trusted** (`docs/grader-answer-key
   obligations stated for this concern in the expected output"), the same edit that worked for items 5,
   6 and 8 of the `84e6916` tranche. Do not vote it before trying that.
 
+## Haiku retested on the rebuilt instrument — 2026-07-25 (`benchmark-h1.json`)
+
+The hypothesis was that three batches of assertion rewrites had lowered the capability bar: the
+stable assertions are long *because* they state a decision procedure, and applying a stated procedure
+should be easier than inventing one. Dropping the `text` echo also freed haiku's much smaller 4096
+budget. **Predicted 80–90%. Measured 46/63 (73%)** against sonnet's 60/63 (95%) on identical stored
+outputs and identical assertion text — essentially unchanged from haiku's original 76%.
+
+**The hypothesis is wrong, and the error set says why.** Of the 16 slots haiku gets wrong that sonnet
+gets right, the failures are *not* confined to the irreducible judgement calls. They include the
+assertions deliberately made decidable:
+
+- `titles-form-a-family`/28 — eight sibling titles all begin `should`, and clause (1) says "FAILS when
+  three or more share a leading word that carries no information ('should…')". That is nearly a regex,
+  and haiku missed it. The single most damning case.
+- `2.19-depth-all-tiers`/15 — the ladder shows five of nine tiers; the assertion says "not just a
+  subset". Countable.
+- `black-box-columns`/18 and `assertion-criteria-declared`/18 — both surface-scoped in the `84e6916`
+  tranche precisely to remove judgement; `assertion-criteria-declared` graded 9/9 on sonnet.
+- `held-constants-declared`/15 — explicit FAILS/PASSES/not-a-failure structure.
+
+**So the decision-procedure rewrites buy stability on a capable grader; they do not substitute for
+grader capability.** Those are separate axes and this measurement separates them. It is also a
+caution on the triage's own core claim: converting an assertion to a decision procedure is not a route
+to grading it with a cheaper model.
+
+Direction of haiku's errors: **11 missed real FAILs (said PASS), 6 wrongly failed real PASSes** — a
+PASS lean, but wrong in both directions, so not a bias a threshold could correct. Its level (294/365)
+sits *below* sonnet's 314 despite missing more real failures, i.e. it is noisier both ways.
+
+**Economics, now measured rather than estimated:** haiku graded the full suite in **3m17s for $0.27**
+(169k input, 20k output, 29 calls) against sonnet's tens of minutes. Roughly 10× faster and ~5× cheaper
+— and unusable at 73%. **Grader thrift stays false economy**; the speed would have made a three-pass
+variance probe cheap, but voting a 73% grader three times just makes 73% stable.
+
+Recorded as a closed question: do not re-test haiku on a wording change alone. It would take a
+capability change, not an assertion change.
+
 ## Batch-3 re-baseline — measured 2026-07-25 (`benchmark-t3.json`)
 
 **Accuracy 59/63 (94%)**, from 89% (t2) and 77–88% pre-tranche. **New level 318/365** — the current
