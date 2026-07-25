@@ -426,7 +426,44 @@ async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropi
     }),
   }, "Anthropic");
   const data = await resp.json();
-  return extractGradingText(data);
+  return { text: extractGradingText(data), usage: data.usage || {} };
+}
+
+// List prices per million tokens for the models this project grades with. Grading cost was
+// folklore ("~$0.65 a run") until 2026-07-25 because the runner recorded usage for generation
+// only — the grading API returns token counts and no cost, so nothing added them up.
+//
+// Rates are stamped into every benchmark alongside the totals (`grading_rates_usd_per_mtok`),
+// so a stale entry here shows up in the artefact instead of silently skewing a figure. Cache
+// reads and writes are not priced: grading sends a fresh prompt per batch and neither field has
+// ever come back non-zero.
+const GRADING_PRICES_USD_PER_MTOK = {
+  "claude-sonnet-5": { input: 3, output: 15 },
+  "claude-haiku-4-5-20251001": { input: 1, output: 5 },
+};
+
+/** Sums grading token usage and prices it, returning zeros for a model with no known rate. */
+function priceGradingUsage(usage, model) {
+  const rate = GRADING_PRICES_USD_PER_MTOK[model];
+  const input = usage.input_tokens || 0;
+  const output = usage.output_tokens || 0;
+  return {
+    input_tokens: input,
+    output_tokens: output,
+    total_tokens: input + output,
+    calls: usage.calls || 0,
+    cost_usd: rate ? (input * rate.input + output * rate.output) / 1e6 : 0,
+    rates_usd_per_mtok: rate || null,
+  };
+}
+
+/** Accumulates one grading response's usage into a running per-eval total. */
+function addUsage(total, usage) {
+  return {
+    input_tokens: (total.input_tokens || 0) + (usage.input_tokens || 0),
+    output_tokens: (total.output_tokens || 0) + (usage.output_tokens || 0),
+    calls: (total.calls || 0) + 1,
+  };
 }
 
 // Assertions judged per grading call. Ten keeps every judgement close to the instructions;
@@ -1387,6 +1424,7 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, prov
   // instructions. Grading is a rounding error against generation cost, so the extra
   // calls are free in practice.
   let llmResults = [];
+  let gradingUsage = {};
   for (let i = 0; i < llmAssertions.length; i += LLM_GRADING_BATCH_SIZE) {
     const batch = llmAssertions.slice(i, i + LLM_GRADING_BATCH_SIZE);
     const llmEvalDef = { ...evalDef, assertions: batch };
@@ -1401,7 +1439,8 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, prov
       let llmGrading = null;
       let missing = [];
       for (let attempt = 1; attempt <= 2; attempt++) {
-        const gradingText = await gradeViaApi(GRADING_SYSTEM_PROMPT, gradingPrompt, model, provider);
+        const { text: gradingText, usage } = await gradeViaApi(GRADING_SYSTEM_PROMPT, gradingPrompt, model, provider);
+        gradingUsage = addUsage(gradingUsage, usage);
         llmGrading = parseLlmGrading(gradingText);
         if (!llmGrading) {
           throw new Error(
@@ -1438,6 +1477,7 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, prov
   grading.pass_rate = grading.assertions_total > 0
     ? grading.assertions_passed / grading.assertions_total
     : 0;
+  grading.grading_usage = priceGradingUsage(gradingUsage, resolveModel(model));
 
   const gradingFile = gradingSuffix ? `grading-${gradingSuffix}.json` : "grading.json";
   fs.writeFileSync(
@@ -1639,6 +1679,29 @@ function evalsMissingGrading(evals, iterationDir, suffix) {
     .map((e) => e.id);
 }
 
+/**
+ * Whole-run grading spend, so "what does a regrade cost?" is answerable from the artefact.
+ *
+ * Reports `null` when nothing recorded usage — a benchmark rebuilt from gradings written before
+ * this existed must read as unknown, never as free.
+ */
+function summariseGradingUsage(results) {
+  const usages = results.map((r) => r.grading_usage).filter(Boolean);
+  if (usages.length === 0) return null;
+  const sum = (k) => usages.reduce((s, u) => s + (u[k] || 0), 0);
+  const rates = usages.find((u) => u.rates_usd_per_mtok)?.rates_usd_per_mtok || null;
+  return {
+    input_tokens: sum("input_tokens"),
+    output_tokens: sum("output_tokens"),
+    total_tokens: sum("total_tokens"),
+    calls: sum("calls"),
+    cost_usd: usages.reduce((s, u) => s + (u.cost_usd || 0), 0),
+    evals_measured: usages.length,
+    rates_usd_per_mtok: rates,
+    priced: rates !== null,
+  };
+}
+
 function aggregateResults(evals, iterationDir, args, worktreePath, repoRoot) {
   // A grading suffix isolates an entire re-grade: read grading-<suffix>.json
   // and write benchmark-<suffix>.json so the original results stay intact.
@@ -1694,6 +1757,9 @@ function aggregateResults(evals, iterationDir, args, worktreePath, repoRoot) {
         total_tokens: timing.total_tokens || 0,
         duration_ms: timing.duration_ms || 0,
         cost_usd: timing.cost_usd || 0,
+        // Generation cost above is inherited from the run that produced the outputs; grading
+        // cost is this pass's own, and a --grade-only run spends only the latter.
+        ...(grading.grading_usage ? { grading_usage: grading.grading_usage } : {}),
       };
     } else {
       // No grading exists. If generation errored (timeout, crash), score the
@@ -1764,6 +1830,7 @@ function aggregateResults(evals, iterationDir, args, worktreePath, repoRoot) {
     total_tokens: results.reduce((sum, r) => sum + r.total_tokens, 0),
     total_duration_ms: results.reduce((sum, r) => sum + r.duration_ms, 0),
     total_cost_usd: results.reduce((sum, r) => sum + r.cost_usd, 0),
+    grading: summariseGradingUsage(results),
   };
 
   fs.writeFileSync(benchPath, JSON.stringify(benchmark, null, 2), "utf-8");
@@ -2393,6 +2460,9 @@ module.exports = {
   regradeCommand,
   rebuildCommand,
   evalsMissingGrading,
+  priceGradingUsage,
+  addUsage,
+  summariseGradingUsage,
   GradingIncompleteError,
   // transport
   postGradingRequest,

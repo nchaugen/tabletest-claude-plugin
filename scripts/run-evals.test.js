@@ -23,6 +23,9 @@ const {
   regradeCommand,
   rebuildCommand,
   evalsMissingGrading,
+  priceGradingUsage,
+  addUsage,
+  summariseGradingUsage,
   GradingIncompleteError,
   postGradingRequest,
   isRetryableStatus,
@@ -394,6 +397,75 @@ describe("rebuildCommand", () => {
 
   test("omits the suffix when there is none", () => {
     assert.doesNotMatch(rebuildCommand(base), /--grading-suffix/);
+  });
+});
+
+// --- grading cost accounting ----------------------------------------------
+//
+// Grading cost was folklore until this existed: the runner recorded usage for generation only,
+// so "~$0.65 a run" survived unchallenged while assertion texts tripled in length. The rates
+// are stamped into the artefact so a stale one is visible rather than silently skewing a figure.
+
+describe("priceGradingUsage", () => {
+  test("prices sonnet input and output at their separate rates", () => {
+    const p = priceGradingUsage({ input_tokens: 1e6, output_tokens: 1e6 }, "claude-sonnet-5");
+    assert.equal(p.cost_usd, 18); // 3 in + 15 out
+    assert.equal(p.total_tokens, 2e6);
+  });
+
+  test("records zero cost but keeps the tokens for an unknown model", () => {
+    const p = priceGradingUsage({ input_tokens: 1000, output_tokens: 500 }, "some-future-model");
+    assert.equal(p.cost_usd, 0);
+    assert.equal(p.total_tokens, 1500);
+    assert.equal(p.rates_usd_per_mtok, null);
+  });
+
+  test("treats absent usage as zero rather than NaN", () => {
+    const p = priceGradingUsage({}, "claude-sonnet-5");
+    assert.equal(p.cost_usd, 0);
+    assert.equal(p.total_tokens, 0);
+  });
+});
+
+describe("addUsage", () => {
+  test("accumulates tokens and counts calls across batches", () => {
+    let t = {};
+    t = addUsage(t, { input_tokens: 10, output_tokens: 2 });
+    t = addUsage(t, { input_tokens: 5, output_tokens: 3 });
+    assert.deepEqual(t, { input_tokens: 15, output_tokens: 5, calls: 2 });
+  });
+
+  test("still counts a call that reported no usage", () => {
+    assert.equal(addUsage({}, {}).calls, 1);
+  });
+});
+
+describe("summariseGradingUsage", () => {
+  const usage = (i, o, cost) => ({
+    grading_usage: {
+      input_tokens: i, output_tokens: o, total_tokens: i + o, calls: 1,
+      cost_usd: cost, rates_usd_per_mtok: { input: 3, output: 15 },
+    },
+  });
+
+  test("sums spend across evals", () => {
+    const s = summariseGradingUsage([usage(100, 10, 0.5), usage(200, 20, 1.5)]);
+    assert.equal(s.cost_usd, 2);
+    assert.equal(s.input_tokens, 300);
+    assert.equal(s.evals_measured, 2);
+    assert.equal(s.priced, true);
+  });
+
+  // A benchmark rebuilt from gradings written before usage was recorded must read as
+  // unknown, never as free — a zero would look like a measurement.
+  test("reports null when nothing recorded usage", () => {
+    assert.equal(summariseGradingUsage([{}, {}]), null);
+  });
+
+  test("counts only the evals that carry usage", () => {
+    const s = summariseGradingUsage([usage(100, 10, 0.5), {}]);
+    assert.equal(s.evals_measured, 1);
+    assert.equal(s.cost_usd, 0.5);
   });
 });
 
