@@ -105,7 +105,33 @@ least one PASS and one FAIL case before it is trusted** (`docs/grader-answer-key
   obligations stated for this concern in the expected output"), the same edit that worked for items 5,
   6 and 8 of the `84e6916` tranche. Do not vote it before trying that.
 
-## Accuracy over the whole failing set — measured 2026-07-25
+## ⚠ Re-baseline owed — the suite has changed and no benchmark matches it
+
+Tranche 2 (`2dcad47`) changed four assertion texts across 29 slots in 13 evals. **The `--grade-only`
+re-baseline was attempted 2026-07-25 and failed: Anthropic API 400, "credit balance is too low",
+all 17 evals.** Nothing was written — the runner refused to emit a partial benchmark, which is the
+`c329bf7` guard doing its job.
+
+**So `iterations/tabletest/iteration-40/grading.json` (324/365) was graded under assertion texts that
+no longer exist.** Until the regrade runs, that number is not comparable to anything, and neither is
+the 53/60 accuracy score below — both measure the pre-tranche-2 instrument.
+
+Once credits are available:
+
+```
+node scripts/run-evals.js --skill tabletest --iteration 40 --grade-only --grading-suffix t2
+node scripts/score-grader.js --iteration 40 --grading-suffix t2
+```
+
+Predictions were pre-registered in `docs/grader-answer-key.json` before the run and must be read
+against it rather than reconstructed afterwards: `titles-form-a-family` to 4/4 correct (25 and 26 flip
+to PASS on the single-outlier exemption, 27 stabilises PASS, 28 stays FAIL on its eight `should`
+prefixes); `description-no-redundant-field-values`/23 flips to PASS; `minimal-rows-per-concern`
+improves on 14, 23 and 30 where the obligation list decides it. **If `titles-form-a-family`/25 still
+fails, the exemption did not work** and the majority-shape clause is the suspect, not the outlier
+sentence.
+
+## Accuracy over the whole failing set — measured 2026-07-25 (pre-tranche-2 texts)
 
 The answer key was extended from 30 entries to 63, covering **every slot in the union of the three
 variance passes' failing sets** (51 slots: 33 stable failures, 18 flippers). Scoring the four gradings
@@ -145,7 +171,31 @@ edit that raises stability while lowering accuracy has made the instrument worse
 
 ## Sequencing
 
-1. Convert the four mechanical items, each with answer-key entries. Free per run, permanently stable,
+**Revised 2026-07-25 by the accuracy measurement, and by tranche 2 landing (`2dcad47`).** Steps marked
+✅ are done; the order of what remains changed because bias now outranks variance.
+
+- ✅ **`minimal-rows-per-concern`** — reclassified bounded and fixed by naming the surface, across all
+  13 hosts (it had drifted into three divergent texts). Not voted.
+- ✅ **`rule-falsifiable-by-a-row`** — invariance exemption added on all 10 hosts; a table whose claim
+  *is* an invariance correctly holds one expectation value, and conditions (1) and (3) no longer fire
+  on it where the title or description states the invariance.
+- ✅ **`titles-form-a-family`** — clause (2) replaced with a majority-shape test plus a single-outlier
+  exemption, which is the fix for the suite's only stably-wrong slot. **It is therefore no longer a
+  delete-clause-(2) candidate**; measure the new wording before reaching for the regex.
+- **Next: `scenario-names-describe-conditions`**, promoted ahead of `rule-statable-from-table`. It is
+  *majority*-wrong on evals 7, 23 and 27 — three of four passes each — so voting would lock in three
+  wrong verdicts. Narrow it to the decidable core; do not add examples.
+- **Then `rule-statable-from-table` clause (1) → checker**, as below. Note the trap the answer key
+  found: eval-15 holds `PURCHASE_TIME` in a private field, which a literal "reference date in a field"
+  proxy fails, but the cells encode days-ago relative to it and the scenario names decode that, so the
+  correct verdict is PASS. Evals 25 (PASSes, publishes the 1.15 multiplier) and 27/28 (FAIL, it appears
+  nowhere) are the discriminating fixtures.
+- **Then the two remaining mechanical conversions**: `business-language-columns`,
+  `consistent-quantity-naming`.
+
+Original numbering, still current for the mechanical work:
+
+1. Convert the mechanical items, each with answer-key entries. Free per run, permanently stable,
    and it shrinks the batched LLM calls (cost and latency).
 2. Narrow the two bounded items.
 3. Re-measure: three passes for instability, plus answer-key accuracy. Both must improve, or accuracy
