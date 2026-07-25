@@ -61,7 +61,9 @@ format assertion "improving"; those do not improve on their own.
 **Cost control (tabletest):** almost all run cost is *generation* — solving the eval, not
 grading it. Assertion count is close to free (deterministic assertions are code checkers, LLM
 assertions share one batched call per eval), so cost is controlled by choosing which evals to
-run, never by trimming assertions.
+run, never by trimming assertions. Measured on the full suite: ~$14.90 generation against ~$0.65
+grading on sonnet (~$0.33 on haiku) — grading is ~4% of a run, which is why grader *quality* is
+worth paying for and grader *thrift* is not.
 
 **An eval earns a place in the iteration loop by having at least one assertion that is unique
 to it and has failed in a recent baseline.** Everything else is promotion-time regression
@@ -208,11 +210,21 @@ exactly one of them changed between the compared iterations.
   for the affected `--evals`; `--compare-official` merges the newest result per eval.
 - **Cross-suite regression reports are noise** — added/renamed assertions show as spurious
   regressions. Re-baseline instead of interpreting them.
-- **Grading regime is part of the instrument too.** The standard regime is `temperature: 0`
-  (`GRADING_TEMPERATURE`) with a single grading run; `--grade-runs 3` is reserved for
-  adjudicating a result that lands inside the MDE. A comparison across a change of temperature
-  or of `--grade-runs` is not a comparison. Residual instability is ~1–2% of slots, which sets
-  the MDE at a few slots — read the failing *set*, never the headline rate.
+- **Grading regime is part of the instrument too.** The standard grading model is **sonnet**
+  (`claude-sonnet-5`), switched from haiku on 2026-07-25 on measured grader *accuracy* — see
+  "Grader accuracy" below. A comparison across a change of grading model, of `--grade-runs`, or of
+  `LLM_GRADING_BATCH_SIZE` is not a comparison.
+  **There is no `temperature` on the current grading model.** Sampling parameters were removed from
+  the newer model families: a non-default `temperature` is a 400, so `acceptsTemperature()` omits it
+  and grading runs at model-default sampling. "Temperature 0" was a haiku-era regime and cannot be
+  restored on sonnet — which also means **sonnet's residual instability is not yet measured**; the
+  ~1–2% figure came from haiku at temperature 0. Until someone runs three `--grade-only` passes over
+  one set of stored outputs and recounts, treat the MDE as unknown-but-larger and read the failing
+  *set*, never the headline rate. `--grade-runs 3` majority voting is the lever if it proves high.
+  Those models also run **adaptive thinking by default**, so the verdict JSON is not `content[0]`
+  (`extractGradingText` selects the text block) and thinking bills against `max_tokens` — hence the
+  larger budget for them. Grading is ~4× slower than haiku; a full-suite `--grade-only` exceeds ten
+  minutes, so background it.
   Sharper assertion *wording* does not fix grader disagreement and has been tried twice: the
   disagreement is response-level, so it is a sampling problem, not a prompt problem. **Check
   call parameters before rewriting prompts.**
@@ -220,6 +232,18 @@ exactly one of them changed between the compared iterations.
   is systematically *stricter*, not merely less cross-contaminated, and drops every eval's score
   uniformly. Validate any regime change against *level* — does a known-good eval hold its score —
   and not only against variance.
+
+- **Grader accuracy — measure it, don't infer it from agreement.** Every earlier grader measurement
+  (temperature, `--grade-runs`, majority voting) measured *precision*: whether the grader agrees with
+  itself. None measured whether it is *right*. Majority-voting a reproducibly wrong verdict just
+  makes it stable. `docs/grader-answer-key.json` holds verdicts established by reading the stored
+  iteration-40 artefacts; `node scripts/score-grader.js --iteration N [--grading-suffix S]` scores a
+  grading run against it. Measured 2026-07-25 on identical stored outputs and identical assertion
+  text: **haiku 16/21, sonnet 20/21** — the switch is worth ~19 accuracy points for about +$0.32 per
+  full run. Re-score after any assertion-wording change; a wording fix that does not move the score
+  did not work. **A disagreement is not automatically the grader's fault** — one key entry was itself
+  wrong and the sonnet grader disproved it (kept in the file as a worked example). Re-read the
+  artefact before changing an assertion.
 - **Fingerprint guard (automatic).** Each `benchmark.json` result is stamped with a content
   fingerprint of its definition (`prompt.md`, `eval.json`, `expected_output.md`, `project/`);
   reports compare only matching evals and exclude changed ones as "not comparable". Pre-guard

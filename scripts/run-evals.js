@@ -508,7 +508,7 @@ function parseArgs(argv) {
     compareIteration: null,
     evals: null,       // null = all, or array of ids
     model: "sonnet",
-    gradingModel: "haiku",
+    gradingModel: "sonnet",
     provider: "anthropic",
     gradingSuffix: null,
     // Single grading run is the standard regime. At temperature 0 (GRADING_TEMPERATURE) a
@@ -599,7 +599,7 @@ function parseArgs(argv) {
     console.error("  --evals 1,2,3       Run specific evals (supports ranges: 1-13)");
     console.error("  --provider PROV     Provider to use (anthropic, ollama) (default: anthropic)");
     console.error("  --model MODEL       Model to use (default: sonnet)");
-    console.error("  --grading-model M   Model for grading (default: haiku)");
+    console.error("  --grading-model M   Model for grading (default: sonnet)");
     console.error("  --nudge-skill       Append a prompt nudge to invoke the relevant skill (for models that don't trigger skills on their own)");
     console.error("  --grading-suffix S  Isolate a re-grade: write grading-S.json, benchmark-S.json, eval-review-S.md");
     console.error("  --parallel N        Max parallel evals (default: 4)");
