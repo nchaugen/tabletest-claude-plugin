@@ -219,6 +219,58 @@ correctly on 15 and 28 and wrongly on 18). **n = 1 per level**, so a real share 
 instability rather than an effort effect — that is exactly what the repeat passes must settle before
 any of it is pinned.
 
+> **⚠️ SUPERSEDED by the probe below.** Every per-eval verdict in the table above is an n = 1
+> artefact. At n = 3 per level **all five "stable divergences" dissolve into grader instability** and
+> the two levels are indistinguishable. The table is kept only as the record of what a single pass
+> per level wrongly appeared to show — do not cite it.
+
+### The probe: n = 3 per level — 2026-07-25 (`m1/m2/m3`, `t4/h2/h3`)
+
+Three grade-only passes at each effort over the five evals where the decision was close (15, 22, 23,
+25, 28 — 128 slots, 29 of them answer-keyed). Identical stored outputs, identical assertion text,
+nothing else changed.
+
+| | `medium` | `high` |
+|---|---|---|
+| Accuracy per pass (of 29) | 27, 26, 27 | 25, 27, 28 |
+| **Mean accuracy** | **26.67 (92.0%)** | **26.67 (92.0%)** |
+| Accuracy spread | **1** | 3 |
+| Level per pass (of 128) | 109, 112, 109 | 107, 110, — |
+| Unstable slots | **4/128 (3.1%)** | 7/128 (5.5%) |
+| **Stable divergences** | **zero** | |
+| Grading cost per pass | **$0.67** | $1.03 |
+
+**The two levels are indistinguishable in quality.** Mean accuracy is identical to three significant
+figures; `medium` is the *more consistent* of the two (spread 1 against 3) and shows fewer unstable
+slots — while costing about two-thirds as much.
+
+**Every apparent per-eval difference was `high` sampling its own noise.** Each of the five slots that
+looked like a level effect turned out to be a slot `high` itself flips on:
+
+| Eval | Slot | What n = 3 shows |
+|---|---|---|
+| 15 | `2.16-no-duplicate-tier-mapping` | `high` wrong once, right twice |
+| 22 | `description-no-irrelevant-information` | `high` right once, wrong twice |
+| 23 | `concerns-decomposed` | `high` wrong once, right twice |
+| 25 | `rule-statable-from-table` | unstable at **both** levels |
+| 28 | `minimal-rows-per-concern` | `high` unstable |
+
+**So there is no property to state, because there is no eval-level effect to explain.** The owed
+"principled rule for the split" was owed on a false premise: the fitted list was fitted to noise. The
+honest formulation is the negative one — *no eval-level property distinguishes `medium` from `high`
+on this suite; effort is not the variable the divergences were measuring.*
+
+**What the probe does confirm is which slots are genuinely hard.** The unstable set concentrates on
+`rule-statable-from-table` (both levels, evals 25 and 28) and `minimal-rows-per-concern` (both levels)
+— already this document's #1 and #2 noise sources. They are hard *irrespective of effort*, so raising
+effort is not a lever on them; only wording or a checker is.
+
+**A methodological note worth keeping.** The original sweep compared one `medium` pass against one
+`high` pass and read every difference as an effort effect. With `high`'s own instability at ~5%, a
+single-pass comparison over 128 slots is expected to show ~6 spurious divergences — which is
+approximately what it showed. **Never compare two grading configurations at n = 1**; the instrument's
+own noise exceeds any effect being looked for, exactly as it does for skill deltas.
+
 ## Haiku retested on the rebuilt instrument — 2026-07-25 (`benchmark-h1.json`)
 
 The hypothesis was that three batches of assertion rewrites had lowered the capability bar: the
