@@ -105,6 +105,48 @@ least one PASS and one FAIL case before it is trusted** (`docs/grader-answer-key
   obligations stated for this concern in the expected output"), the same edit that worked for items 5,
   6 and 8 of the `84e6916` tranche. Do not vote it before trying that.
 
+## Grading effort swept — 2026-07-25 (`benchmark-m1.json`)
+
+Grading sends no `output_config`, so every measurement to date was taken at the API default,
+**effort `high`**. Sweeping to `medium` on identical stored outputs:
+
+| | high (t4) | medium (m1) |
+|---|---|---|
+| Accuracy | 60/63 (95%) | **58/63 (92%)** |
+| Level | 314/365 | 322/365 |
+| Wall clock | 22–83 min | **9m32s** |
+| Grading cost | not recorded | $1.65 |
+
+**Medium is faster by 3–8× and more lenient by 8 slots** — it misses real failures rather than
+inventing them, which is the expected shape for less deliberation.
+
+**The losses are eval-shaped, not assertion-shaped — which is the result that matters.** All five
+slots medium gets wrong and high gets right sit in **two evals**, and each is a *different*
+assertion:
+
+| | Losses |
+|---|---|
+| **By eval** | 18 → 3, 29 → 2 |
+| **By assertion** | five assertions, one each — no pattern |
+
+Had the losses clustered by assertion (every `rule-statable-from-table` host, say), per-eval effort
+would buy nothing, because the hard assertions are spread across the suite. They cluster by eval
+instead, and on the two hardest evals — 18 is the suite's weakest at 18/24, 29 its largest at 29
+slots. **So mixed effort is viable in principle: cheap evals at `medium`, hard evals at `high`.**
+`--grading-effort` (run-wide) and `grading_effort` in `eval.json` (per eval, feeds the fingerprint)
+both exist for this as of `07a898e`.
+
+**Do not act on this yet — n is 5 and the run is single-pass.** Medium also got **3 slots right that
+high got wrong** (`2.16`/15, `concerns-decomposed`/23, `rule-statable-from-table`/25), which is
+direct evidence that ordinary slot instability is mixed into these numbers. With one pass per level
+there is no way to separate "medium is worse on 18 and 29" from "those slots flip anyway". Confirming
+it needs repeat passes at each level — and **that is a measurement to run when the cost of a variance
+probe is the thing being optimised, not before the skill has moved.**
+
+**If it is confirmed, pick the split by a stated property, not by this error list.** "Evals whose
+failing set contains irreducible-judgement assertions grade at `high`" is a rule that generalises to
+a new eval; "18 and 29 grade at `high`" is a lookup table fitted to 64 answer-key entries.
+
 ## Haiku retested on the rebuilt instrument — 2026-07-25 (`benchmark-h1.json`)
 
 The hypothesis was that three batches of assertion rewrites had lowered the capability bar: the
