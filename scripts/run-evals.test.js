@@ -134,6 +134,22 @@ describe("repairGradingJson", () => {
   test("returns null when no assertion survives", () => {
     assert.equal(repairGradingJson("{}"), null);
   });
+
+  // The grader is no longer asked to echo `text` back — that field cost output budget which
+  // thinking also draws on, and truncated verdicts mid-token once assertion wording grew.
+  test("recovers assertions from a response carrying no text field", () => {
+    const truncated = `{"assertions":[
+      {"id":"a1","passed":true,"evidence":"yes"},
+      {"id":"a2","passed":false,"evidence":"no"}`;
+    const result = repairGradingJson(truncated);
+    assert.deepEqual(result.assertions.map(a => a.id), ["a1", "a2"]);
+    assert.deepEqual(result.assertions.map(a => a.passed), [true, false]);
+  });
+
+  test("still parses a stored response from before text was dropped", () => {
+    const legacy = `{"assertions":[{"id":"a1","text":"first","passed":true,"evidence":"yes"}]}`;
+    assert.deepEqual(repairGradingJson(legacy).assertions.map(a => a.passed), [true]);
+  });
 });
 
 describe("extractJson", () => {
@@ -155,9 +171,25 @@ describe("extractJson", () => {
 describe("majorityVote", () => {
   const batch = [{ id: "a1", text: "a1 holds" }];
 
-  test("passes a single sample through untouched", () => {
+  test("keeps a single sample's verdict and evidence", () => {
     const sample = [assertion("a1", true)];
     assert.deepEqual(majorityVote([sample], batch), sample);
+  });
+
+  // `text` is authoritative from the eval definition, never from the grader's response. The
+  // single-sample path used to pass the grader's echo straight through while the voting path
+  // already rebuilt it from `batch`, so the two disagreed whenever the grader paraphrased.
+  test("takes text from the eval definition, not the grader, on a single sample", () => {
+    const sample = [{ id: "a1", passed: true, evidence: "found it" }];
+    const [result] = majorityVote([sample], batch);
+    assert.equal(result.text, "a1 holds");
+    assert.equal(result.passed, true);
+    assert.equal(result.evidence, "found it");
+  });
+
+  test("overrides a grader that echoes the wrong text back", () => {
+    const sample = [{ id: "a1", text: "something the grader made up", passed: false, evidence: "no" }];
+    assert.equal(majorityVote([sample], batch)[0].text, "a1 holds");
   });
 
   test("takes the majority verdict when graders disagree", () => {

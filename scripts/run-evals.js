@@ -447,8 +447,17 @@ const LLM_GRADING_BATCH_SIZE = 10;
  * A split vote is recorded in the evidence, making an unreliable assertion visible
  * instead of silently contributing noise to the score.
  */
+// `text` always comes from the eval definition, never from the grader's response: the grader is no
+// longer asked to echo it, and even when it volunteers one the definition is the authoritative copy.
+// This also removes an old inconsistency — the single-sample path used to pass the grader's echo
+// through verbatim while the voting path already rebuilt it from `batch`.
 function majorityVote(samples, batch) {
-  if (samples.length === 1) return samples[0];
+  if (samples.length === 1) {
+    return batch.map(a => {
+      const r = samples[0].find(x => x.id === a.id) || {};
+      return { id: a.id, text: a.text, passed: !!r.passed, evidence: r.evidence || "" };
+    });
+  }
   return batch.map(a => {
     const votes = samples.map(s => s.find(r => r.id === a.id)).filter(Boolean);
     const passes = votes.filter(v => v.passed).length;
@@ -486,7 +495,6 @@ Return ONLY a JSON object (no markdown fencing, no explanation) with this exact 
   "assertions": [
     {
       "id": "<assertion id>",
-      "text": "<assertion text>",
       "passed": true or false,
       "evidence": "<direct quote or specific reference from the response supporting your judgement>"
     }
@@ -1248,17 +1256,21 @@ function extractJson(text) {
   return text.slice(start, end + 1);
 }
 
+// The grader is no longer asked to echo each assertion's `text` back (it cost output budget that
+// thinking also draws on, and truncated verdicts mid-token once the assertion wording grew). An
+// optional `text` group is still tolerated here so a stored response from before that change, or a
+// grader that volunteers the field anyway, still parses. `text` is authoritative from the eval
+// definition regardless — see majorityVote.
 function repairGradingJson(text) {
   const json = extractJson(text) || text;
   const assertions = [];
-  const pattern = /"id"\s*:\s*"([^"]*)"[\s\S]*?"text"\s*:\s*"((?:[^"\\]|\\.)*)"[\s\S]*?"passed"\s*:\s*(true|false)[\s\S]*?"evidence"\s*:\s*"([\s\S]*?)"\s*\n?\s*[}\]]/g;
+  const pattern = /"id"\s*:\s*"([^"]*)"[\s\S]*?(?:"text"\s*:\s*"(?:(?:[^"\\]|\\.)*)"[\s\S]*?)?"passed"\s*:\s*(true|false)[\s\S]*?"evidence"\s*:\s*"([\s\S]*?)"\s*\n?\s*[}\]]/g;
   let m;
   while ((m = pattern.exec(json)) !== null) {
     assertions.push({
       id: m[1],
-      text: m[2].replace(/\\"/g, '"'),
-      passed: m[3] === "true",
-      evidence: m[4].replace(/\\"/g, '"').replace(/"/g, "'").replace(/\n/g, " ").trim(),
+      passed: m[2] === "true",
+      evidence: m[3].replace(/\\"/g, '"').replace(/"/g, "'").replace(/\n/g, " ").trim(),
     });
   }
   if (assertions.length === 0) return null;
