@@ -271,6 +271,50 @@ single-pass comparison over 128 slots is expected to show ~6 spurious divergence
 approximately what it showed. **Never compare two grading configurations at n = 1**; the instrument's
 own noise exceeds any effect being looked for, exactly as it does for skill deltas.
 
+### Evals 18 and 29 probed the same way — and they are genuinely different
+
+The five evals above showed no effect, so 18 and 29 were probed at n = 3 per level too. They do not
+behave like the other five:
+
+| Eval set | keyed slots | `medium` (n = 3) | `high` (n = 3) | Gap |
+|---|---|---|---|---|
+| 15, 22, 23, 25, 28 | 29 | 27, 26, 27 → **26.67** | 25, 27, 28 → **26.67** | **0.00** |
+| 18 | 8 | 5, 7, 7 → **6.33** | 7, 8, 8 → **7.67** | 1.33 |
+| 29 | 5 | 2, 3, 2 → **2.33** | 5, 4, 4 → **4.33** | 2.00 |
+
+On eval-29 the two levels' ranges **do not overlap at all** — `medium`'s best pass is worse than
+`high`'s worst. On eval-18 `medium` is both less accurate and three times noisier (3 unstable slots
+against 1).
+
+**This corrects the selection rule proposed above.** "Pin `medium` where n = 3 shows no *stable
+divergence*" is too strict a test: at n = 3 even eval-29's last stable divergence dissolved, because
+when both levels are noisy on *different* slots no single slot diverges consistently while aggregate
+accuracy still differs sharply. **The criterion is mean accuracy over repeated passes**, and
+per-slot stability is a diagnostic, not the decision.
+
+**The mechanism behind `medium`'s losses, evidenced twice on eval-29.** `medium` reasons from a
+confirming instance and stops. On `scenario-names-describe-conditions` it wrote *"'Expired coupon does
+not replace the active coupon' names the rule, not a literal expectation value"* — true of that row,
+while never scanning back to `Empty cart cannot check out | … | Success? false` in the first table. On
+`type-converters-for-complex-objects` it listed the four converters that exist without checking what
+was missing. Both assertions carry an explicit "judge every `@TableTest`" clause; `high` honours it.
+
+**The eval-level predictor is still not established.** `medium` finds the buried offender on eval-22's
+`scenario-names` and misses it on eval-29's; slot count and genuine-failure count both fail to
+separate the two groups (eval-22 has 28 slots and behaves safely, eval-18 has 26 and does not;
+eval-15 has six genuine failures with `medium` perfect, eval-18 has five with `medium` struggling).
+Plausibly it is the number of tables to scan — eval-29 is the suite's largest — but seven evals cannot
+establish that. **Treat the split as measured, not derived**, and re-measure when the suite changes.
+
+### LANDED: `medium` on fifteen of seventeen evals
+
+`grading_effort: "medium"` now covers the original ten plus **15, 22, 23, 25, 28** — **310 of 365
+slots (85%)**. **Evals 18 and 29 stay at `high`**, on the accuracy gaps above.
+
+`rule-statable-from-table`, `minimal-rows-per-concern` and `scenario-names-describe-conditions` are
+unstable at **both** levels. They are intrinsically hard, so effort is not a lever on them; wording or
+a checker is.
+
 ## Haiku retested on the rebuilt instrument — 2026-07-25 (`benchmark-h1.json`)
 
 The hypothesis was that three batches of assertion rewrites had lowered the capability bar: the

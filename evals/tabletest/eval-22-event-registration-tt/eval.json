@@ -1,6 +1,7 @@
 {
   "id": 22,
   "slug": "event-registration-tt",
+  "grading_effort": "medium",
   "skill": "tabletest",
   "assertions": [
     {

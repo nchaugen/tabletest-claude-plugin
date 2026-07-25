@@ -1,6 +1,7 @@
 {
   "id": 23,
   "slug": "loan-approval-tt",
+  "grading_effort": "medium",
   "skill": "tabletest",
   "assertions": [
     {

@@ -1,0 +1,99 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 40,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": "medium",
+  "skill_commit": "unknown",
+  "skill_digest": "unknown",
+  "timestamp": "2026-07-25T20:15:36.111Z",
+  "evals": [
+    {
+      "id": "eval-18-convert-from-code",
+      "name": "convert from code",
+      "skill": "tabletest",
+      "fingerprint": "e91ac5af6285",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 22,
+        "assertions_total": 26,
+        "pass_rate": 0.8461538461538461,
+        "failed_assertions": [
+          "minimal-rows-per-concern",
+          "separates-decision-and-premium",
+          "description-no-internals",
+          "depth-decision-boundaries"
+        ],
+        "total_tokens": 826034,
+        "duration_ms": 148196,
+        "cost_usd": 0.5551305999999999,
+        "grading_usage": {
+          "input_tokens": 13601,
+          "output_tokens": 8006,
+          "total_tokens": 21607,
+          "calls": 2,
+          "cost_usd": 0.160893,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-29-shopping-cart-tt",
+      "name": "shopping cart tt",
+      "skill": "tabletest",
+      "fingerprint": "3db28ef3809d",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 26,
+        "assertions_total": 29,
+        "pass_rate": 0.896551724137931,
+        "failed_assertions": [
+          "minimal-rows-per-concern",
+          "quantifier-covered-by-rows",
+          "consistent-quantity-naming"
+        ],
+        "total_tokens": 968444,
+        "duration_ms": 322446,
+        "cost_usd": 0.90542215,
+        "grading_usage": {
+          "input_tokens": 24185,
+          "output_tokens": 5984,
+          "total_tokens": 30169,
+          "calls": 2,
+          "cost_usd": 0.162315,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 48,
+    "assertions_total": 55,
+    "pass_rate": 0.8727272727272727,
+    "total_tokens": 1794478,
+    "total_duration_ms": 470642,
+    "total_cost_usd": 1.46055275,
+    "grading": {
+      "input_tokens": 37786,
+      "output_tokens": 13990,
+      "total_tokens": 51776,
+      "calls": 4,
+      "cost_usd": 0.323208,
+      "evals_measured": 2,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}

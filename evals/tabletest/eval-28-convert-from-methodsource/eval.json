@@ -1,6 +1,7 @@
 {
   "id": 28,
   "slug": "convert-from-methodsource",
+  "grading_effort": "medium",
   "skill": "tabletest",
   "timeout_ms": 1500000,
   "assertions": [
