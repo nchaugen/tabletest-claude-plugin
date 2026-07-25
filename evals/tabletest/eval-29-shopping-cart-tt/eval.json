@@ -120,18 +120,33 @@
     },
     {
       "id": "rule-statable-from-table",
-      "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone; (3) a helper method used in the assertion applies a comparison criterion (ordering, tolerance, subset matching) that is stated nowhere in the table, title, or description. Otherwise the assertion PASSES. Setup that merely constructs the objects named by the columns is not a failure.",
+      "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone. Otherwise the assertion PASSES. Setup that merely constructs the objects named by the columns is not a failure. Comparison criteria applied by a helper or the assertion body are graded by assertion-criteria-declared, not here.",
       "type": "llm"
     },
     {
       "id": "title-states-system-behaviour",
-      "text": "Each @DisplayName (or the method name it falls back to) states what the code under test does, not an external fact it depends on. Apply the check mechanically: strike the system under test from the sentence — if it still reads as true, because it merely restates a regulation, standard, format, or domain fact, the title is about something else and fails.",
+      "text": "Each @DisplayName (or the method name it falls back to) states what the code under test does, not an external fact it depends on. Apply the check mechanically: strike the system under test from the sentence — if it still reads as true, because it merely restates a regulation, standard, format, or domain fact, the title is about something else and fails. Judge ONLY the title — the @DisplayName, or the method name it falls back to. The @Description and the scenario names are other assertions' subject; a description that restates a domain rule is not this assertion's failure and must not be cited as one.",
       "type": "llm"
     },
     {
       "id": "compiles",
       "text": "The generated test code compiles successfully against the project scaffolding",
       "type": "build"
+    },
+    {
+      "id": "quantifier-covered-by-rows",
+      "text": "When a title or description quantifies over a domain — 'regardless of X', 'any X', 'whatever the X', 'with or without X' — the rows must actually cover that domain. A value set discharges the promise and is the preferred way to do so: one row holding {A, B, C} both covers the domain and states the independence. Additional near-identical rows are NOT required and are NOT credited. FAILS when a quantifying claim appears and the tables show only one value of the quantified domain, or fewer values than the claim needs (e.g. 'regardless of category' with a single category anywhere in the table). PASSES when the quantified values appear, whether as a value set in one row or as separate rows; also passes when no quantifying claim is made. This assertion is about the claim matching the rows, NOT about row count. Satisfying it by adding rows where a value set would do is not an improvement and must not be scored as one, and it never requires cross-multiplying two quantified domains.",
+      "type": "llm"
+    },
+    {
+      "id": "assertion-criteria-declared",
+      "text": "A comparison criterion applied by the assertion must be stated on the published surface — the table, the @DisplayName, or the @Description. FAILS when a helper or the assertion body applies ordering (sorting either side before comparing), a numeric tolerance, subset or 'contains' matching, or normalisation of the actual or expected value, and no column, title or description says so. Such a criterion is a rule the test enforces and no table claims: a reader cannot tell whether order is part of the behaviour or an artefact of the comparison. PASSES when each such criterion is named — a description sentence ('the expected column lists substrings the message must contain', 'shipments are compared without regard to order') or a column that makes it evident — and passes when the assertion is a plain equality on the values the columns name. Constructing the objects the columns name is not a criterion. A conventional floating-point epsilon (an assertEquals delta of the order of 0.001 on a decimal column, or BigDecimal.compareTo) is numeric hygiene, not a rule, and is exempt. What this assertion is for is a criterion that changes which behaviours the test would accept — ordering, subset matching, normalisation — since those are rules the test enforces while no table claims them.",
+      "type": "llm"
+    },
+    {
+      "id": "consistent-quantity-naming",
+      "text": "Across the @TableTest methods in one class, the same observable quantity carries the same column name. FAILS when one output quantity appears under two or more names in sibling tables (e.g. 'Base Rate?' in one table, 'Rate?' in a second and 'Total Cost?' in a third for the same computed cost; or 'Cart Items' in one table and 'Cart Before' in another for the same input). A genuinely different quantity may of course have a different name — a base rate before surcharges and a final total are two quantities, and naming them differently is correct, provided the same quantity is named the same wherever it recurs. PASSES when each recurring quantity has one name throughout, and passes trivially for a class with a single table. This assertion is about naming only: it never asks for more tables or more rows, and collapsing tables satisfies it rather than violating it.",
+      "type": "llm"
     }
   ],
   "timeout_ms": 1500000

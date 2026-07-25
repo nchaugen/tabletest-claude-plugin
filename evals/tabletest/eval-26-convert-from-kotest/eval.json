@@ -37,7 +37,7 @@
     {
       "id": "concern-not-over-split",
       "type": "llm",
-      "text": "Do not fragment a single concern across multiple @TableTest methods that share the same fixture and assertion and differ only in which one sub-rule they exercise. Two or more tables that fix the same setup (e.g. same zone and base cost) and each vary a single option or surcharge, with the same output column, should instead be one table with a column for the varying input. FAILS when two or more such same-fixture, single-sub-rule tables exist for one concern (e.g. a separate table per surcharge). PASSES when each @TableTest addresses a genuinely distinct concern with its own inputs. This is the complement of concerns-decomposed: that forbids cramming unrelated concerns into one table; this forbids scattering one concern across many."
+      "text": "Do not fragment a single concern across multiple @TableTest methods that share the same fixture and assertion and differ only in which one sub-rule they exercise. Two or more tables that fix the same setup (e.g. same zone and base cost) and each vary a single option or surcharge, with the same output column, should instead be one table with a column for the varying input. FAILS when two or more such same-fixture, single-sub-rule tables exist for one concern (e.g. a separate table per surcharge). PASSES when each @TableTest addresses a genuinely distinct concern with its own inputs. This is the complement of concerns-decomposed: that forbids cramming unrelated concerns into one table; this forbids scattering one concern across many. Apply two guards when judging whether tables should be collapsed. Collapsing is right when the combined table's total row count stays small — a handful, never a cross-product — and each row still makes clear which sub-rule it demonstrates, normally through its scenario name and the varying column. Where collapsing would multiply into a cross-product, or would leave rows whose purpose is no longer legible, the tables are genuinely distinct and separate methods PASS."
     },
     {
       "id": "rule-falsifiable-by-a-row",
@@ -118,6 +118,21 @@
       "id": "kotest-dependency-removed",
       "text": "The build file no longer declares Kotest dependencies — the old framework is fully removed, not just the test code.",
       "type": "deterministic"
+    },
+    {
+      "id": "consistent-quantity-naming",
+      "text": "Across the @TableTest methods in one class, the same observable quantity carries the same column name. FAILS when one output quantity appears under two or more names in sibling tables (e.g. 'Base Rate?' in one table, 'Rate?' in a second and 'Total Cost?' in a third for the same computed cost; or 'Cart Items' in one table and 'Cart Before' in another for the same input). A genuinely different quantity may of course have a different name — a base rate before surcharges and a final total are two quantities, and naming them differently is correct, provided the same quantity is named the same wherever it recurs. PASSES when each recurring quantity has one name throughout, and passes trivially for a class with a single table. This assertion is about naming only: it never asks for more tables or more rows, and collapsing tables satisfies it rather than violating it.",
+      "type": "llm"
+    },
+    {
+      "id": "titles-form-a-family",
+      "text": "Read the class's test titles (each @DisplayName, or the method name it falls back to) as the sorted index a reader would scan, stripped of their tables. FAILS when the titles do not function as a catalogue: when three or more share a leading word that carries no information ('should…', 'test…', 'verify…'), so the varying subject arrives last and the list cannot be scanned; or when siblings describing the same kind of rule use unrelated grammatical shapes (a bare noun phrase beside an active sentence beside a should-name), so no scanning pattern exists. PASSES when the varying subject comes first or early and one consistent shape runs across the family. Judge the set, never a title in isolation — a title that reads perfectly on its own page can still be an unscannable entry in the index, which is the failure this assertion exists to catch. A class with fewer than three @TableTest methods PASSES.",
+      "type": "llm"
+    },
+    {
+      "id": "minimal-rows-per-concern",
+      "text": "Each @TableTest has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns, and no rows re-covering a rule an earlier row in the same table already covers (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its own concern's obligations. Collapsing several same-fixture tables into one, as concern-not-over-split requires, is not a row-count failure: the collapsed table legitimately holds one row per sub-rule.",
+      "type": "llm"
     }
   ]
 }
