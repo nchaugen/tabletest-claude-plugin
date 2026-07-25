@@ -330,6 +330,48 @@ async function postGradingRequest(url, options, apiName, retryPolicy = DEFAULT_R
 // The API default is 1.0, which was what `--grade-runs` majority voting was averaging out.
 const GRADING_TEMPERATURE = 0;
 
+// Sampling parameters were removed from the newer model families: a non-default `temperature`
+// is rejected with `400 temperature is deprecated for this model`, while omitting it is accepted.
+//
+// The consequence is a regime fact, not a detail. On these models the grading regime CANNOT be
+// "temperature 0" — there is no knob, so grading runs at the model's default sampling and is
+// inherently less repeatable than haiku-at-0. A grading-model change is therefore a bigger regime
+// change than it looks: it moves level AND the achievable precision floor at the same time.
+// Expect to need `--grade-runs 3` majority voting to recover stability on these models, and never
+// compare a temperature-0 number against one of these runs.
+const MODELS_WITHOUT_SAMPLING_PARAMS = [
+  "claude-sonnet-5",
+  "claude-opus-5",
+  "claude-opus-4-7",
+  "claude-opus-4-8",
+  "claude-fable-5",
+  "claude-mythos-5",
+];
+
+function acceptsTemperature(resolvedModel) {
+  return !MODELS_WITHOUT_SAMPLING_PARAMS.some((id) => resolvedModel.startsWith(id));
+}
+
+// The same newer families also run adaptive thinking by DEFAULT, so the response opens with a
+// thinking block and the verdict JSON is no longer content[0]. Thinking is billed against
+// max_tokens too, so a budget sized for a pure JSON answer truncates the verdicts instead.
+// Grading keeps thinking on — a judgement is exactly the work it helps — and pays for the room.
+const GRADING_MAX_TOKENS_WITH_THINKING = 16000;
+const GRADING_MAX_TOKENS = 4096;
+
+/** The grader's verdict text, wherever the model put it among thinking/text blocks. */
+function extractGradingText(data) {
+  if (!data || !Array.isArray(data.content)) {
+    throw new Error(`Grading response had no content array: ${JSON.stringify(data).slice(0, 300)}`);
+  }
+  const text = data.content.find((block) => block.type === "text" && typeof block.text === "string");
+  if (!text) {
+    const kinds = data.content.map((b) => b.type).join(", ") || "none";
+    throw new Error(`Grading response carried no text block (blocks: ${kinds})`);
+  }
+  return text.text;
+}
+
 async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropic") {
   if (provider === "ollama") {
     const resp = await postGradingRequest("http://localhost:11434/api/chat", {
@@ -349,6 +391,7 @@ async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropi
     return data.message.content;
   }
 
+  const resolved = resolveModel(model);
   const resp = await postGradingRequest("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -357,15 +400,15 @@ async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropi
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      model: resolveModel(model),
-      max_tokens: 4096,
-      temperature: GRADING_TEMPERATURE,
+      model: resolved,
+      max_tokens: acceptsTemperature(resolved) ? GRADING_MAX_TOKENS : GRADING_MAX_TOKENS_WITH_THINKING,
+      ...(acceptsTemperature(resolved) ? { temperature: GRADING_TEMPERATURE } : {}),
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
     }),
   }, "Anthropic");
   const data = await resp.json();
-  return data.content[0].text;
+  return extractGradingText(data);
 }
 
 // Assertions judged per grading call. Ten keeps every judgement close to the instructions;
@@ -2263,4 +2306,6 @@ module.exports = {
   // cli
   parseEvalIds,
   resolveModel,
+  acceptsTemperature,
+  extractGradingText,
 };

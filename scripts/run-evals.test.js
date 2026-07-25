@@ -29,6 +29,8 @@ const {
   unwrapSummary,
   parseEvalIds,
   resolveModel,
+  acceptsTemperature,
+  extractGradingText,
   computeEvalFingerprint,
   fingerprintsDiffer,
   digestDirectory,
@@ -339,8 +341,10 @@ describe("gradeResponses", () => {
   // A grading failure must stop the run. An ungraded eval is not scored zero — generation
   // succeeded, so there is no timing.error — it just leaves the totals, and the run reads as
   // a smaller suite that scored differently.
+  // Real responses always carry a block `type`; the grader now selects the text block by it
+  // rather than trusting content[0], since thinking-by-default models put a thinking block first.
   const GOOD_GRADING = {
-    content: [{ text: '{"assertions":[{"id":"a1","text":"t","passed":true,"evidence":"e"}]}' }],
+    content: [{ type: "text", text: '{"assertions":[{"id":"a1","text":"t","passed":true,"evidence":"e"}]}' }],
   };
 
   let iterationDir;
@@ -881,5 +885,53 @@ describe("narrationMarkdown", () => {
     const md = narrationMarkdown(jsonl, "eval-15-x");
     assert.doesNotMatch(md, /\bprompt\b|\bls\b/);
     assert.match(md, /No narration recorded/);
+  });
+});
+
+describe("acceptsTemperature", () => {
+  test("keeps temperature 0 on models that still accept sampling parameters", () => {
+    assert.equal(acceptsTemperature("claude-haiku-4-5"), true);
+    assert.equal(acceptsTemperature("claude-sonnet-4-6"), true);
+  });
+
+  test("omits temperature on models that reject non-default sampling parameters", () => {
+    // A non-default temperature is a 400 on these; omitting it is accepted. Grading there
+    // runs at model-default sampling, so the regime cannot be "temperature 0".
+    assert.equal(acceptsTemperature("claude-sonnet-5"), false);
+    assert.equal(acceptsTemperature("claude-opus-5"), false);
+    assert.equal(acceptsTemperature("claude-opus-4-8"), false);
+    assert.equal(acceptsTemperature("claude-fable-5"), false);
+  });
+
+  test("matches dated snapshots of a rejecting model, not just the bare alias", () => {
+    assert.equal(acceptsTemperature("claude-sonnet-5-20260115"), false);
+  });
+});
+
+describe("extractGradingText", () => {
+  test("reads the verdict from a plain text-only response", () => {
+    const data = { content: [{ type: "text", text: '{"assertions":[]}' }] };
+    assert.equal(extractGradingText(data), '{"assertions":[]}');
+  });
+
+  test("skips a leading thinking block", () => {
+    // Newer models run adaptive thinking by default, so content[0] is a thinking
+    // block (empty text, since display defaults to omitted) and the verdict follows.
+    const data = {
+      content: [
+        { type: "thinking", thinking: "", signature: "abc" },
+        { type: "text", text: '{"assertions":[{"id":"x","passed":true}]}' },
+      ],
+    };
+    assert.match(extractGradingText(data), /"passed":true/);
+  });
+
+  test("throws a diagnosable error when no text block came back", () => {
+    const data = { content: [{ type: "thinking", thinking: "", signature: "abc" }] };
+    assert.throws(() => extractGradingText(data), /no text block \(blocks: thinking\)/);
+  });
+
+  test("throws when the response has no content array at all", () => {
+    assert.throws(() => extractGradingText({ error: "boom" }), /no content array/);
   });
 });
