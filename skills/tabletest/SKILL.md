@@ -145,6 +145,8 @@ void testHighestScore(Map<String, Integer> scores, int highest) { ... }
 
 **Note**: Empty collections are explicit: `[]` for empty list, `{}` for empty set, `[:]` for empty map.
 
+**A collection value cannot hold a null element.** The blank-cell-means-null rule stops at the cell boundary — `[a, , c]`, `[a, b, ]` and `[, a, b]` are parse errors, not lists containing a null. Blank the whole cell to get a null collection.
+
 ### Built-in Value Conversion
 
 JUnit converts many standard types automatically: primitives, `String`, `Path`, `File`, `URI`, `URL`, `UUID`, `LocalDate`, `LocalTime`, `LocalDateTime`, enums, and more. Prefer direct parameter types that JUnit can convert.
@@ -318,19 +320,14 @@ void test(String value, long time) { ... }  // blank cell causes error
 void test(String value, Long time) { ... }  // blank cell becomes null
 ```
 
-Converter methods receive `null` for blank cells — handle this explicitly:
-```java
-@TypeConverter
-public static Long parseResponseTime(String value) {
-    if (value == null || value.isBlank()) {
-        return null;
-    }
-    if (value.startsWith("<")) {
-        return Long.valueOf(value.substring(1));
-    }
-    return Long.parseLong(value);
-}
-```
+**A blank cell bypasses your `@TypeConverter` — the converter never runs.** Blank becomes `null`
+before any conversion is attempted, so the parameter receives `null` directly and no converter,
+built-in or custom, is consulted. A null guard inside a converter is dead code.
+
+When a row means "nothing set" and you still want the converter to supply defaults, write the
+**empty value** rather than leaving the cell blank: `[:]` for a map, `[]` for a list, `{}` for a
+set, `''` for a string. Those all reach the converter. Reserve the blank cell for rows where `null`
+itself is the value under test.
 
 ### Domain-Specific Formatting
 
@@ -347,11 +344,15 @@ void testResponseTime(Long maxResponseTimeMs) { ... }
 
 @TypeConverter
 public static Long parseResponseTime(String value) {
-    if (value == null || value.isBlank()) return null;
     if (value.startsWith("<")) return Long.valueOf(value.substring(1));
     return Long.parseLong(value);
 }
 ```
+
+**Expectation columns go through custom converters too.** A converter is chosen by parameter type,
+not by the column's role. Register a `Yes/No → Boolean` converter and an expectation column written
+`true` arrives as **`false`**, because `true` is not `Yes`. A converter must accept every spelling
+that appears anywhere in the class, expectation columns included.
 
 Other examples: `5m`/`30s` → milliseconds, `$100` → numeric, `50%` → 0.5, `10KB` → bytes.
 
@@ -460,6 +461,8 @@ Examples: `Valid?`, `Formatted?`, `Result?`, `Throws?`, `Expected?`
 
 **Prefer the rule's direct output.** Use `Fee?` over `Total?` — the fee is what the rule decides; verifying the total requires knowing the base amount. If you use a derived value like total, include the base as a column so readers can trace it. Input columns never have `?` suffixes — including yes/no flag columns that describe scenario state.
 
+**A compound result stays a collection.** When the value under test is several items — or items grouped under a key — the expectation column is a native list, set, or map, nesting where needed: `[camera, lens]`, `{DHL, UPS}`, `[W1: [camera, lens], W2: [tripod]]`. Compare it against the collection the system returns. Do not flatten it into a quoted string like `"W1:[camera,lens]"` assembled by a stringifying helper: that tests your formatter rather than the rule, hides the structure from the reader, and puts formatting code back in the method body. Use a set where order is not part of the rule, and a list with a canonical sort where it is.
+
 **Common mistake** — `?` as prefix instead of suffix:
 ```
 ?Source        ← WRONG
@@ -547,12 +550,20 @@ void shouldParseAmount(String input, BigDecimal result) {
 
 ### Collapse Sparse Columns into a Map
 
-When several columns are mostly blank, collapse them into a single map column with a `@TypeConverter` that constructs the target object. This is especially appropriate when the sparse columns correspond to a single parameter of the method under test — typically an object with several optional fields where each row sets only one or two. A blank cell means "all defaults"; the converter supplies them:
+**Decide this from the signature, before drafting columns.** When one parameter of the method under
+test is an object with several optional fields, it is *one* map column with a `@TypeConverter` that
+constructs it — never one column per field. Deciding after the table is drafted is too late: by
+then every field has a column, most rows carry a blank or a `false` in it, and the sea of near-empty
+cells reads as deliberate.
+
+The "nothing set" row is **`[:]`, not a blank cell.** A blank bypasses the converter and hands the
+method `null` (see Handling Null Values); `[:]` calls the converter with an empty map, which returns
+the defaults.
 
 ```java
 @TableTest("""
     Scenario         | Config                        | Timeout Used?
-    All defaults     |                               | 3000
+    All defaults     | [:]                           | 3000
     Explicit timeout | [timeout: 5000]               | 5000
     Several options  | [method: POST, timeout: 1000] | 1000
     """)
@@ -562,7 +573,6 @@ void appliesConfiguredTimeout(RequestConfig config, int timeoutMs) {
 
 @TypeConverter
 public static RequestConfig parseRequestConfig(Map<String, String> config) {
-    if (config == null) return RequestConfig.defaults();
     return new RequestConfig(
         config.getOrDefault("method", "GET"),
         Integer.parseInt(config.getOrDefault("timeout", "3000")),
@@ -570,7 +580,11 @@ public static RequestConfig parseRequestConfig(Map<String, String> config) {
 }
 ```
 
-The map keeps the table compact, each row states only what differs from the defaults, and all construction and null-defaulting logic lives in the converter — never in the test method body. This applies however the object is normally built (constructor, setters, or builder), and even when a table exercises only one or two of the optional fields: if a method body news up a parameter object and mutates it, that construction belongs in a `@TypeConverter` behind a map column.
+**The converter returns the domain object, not the map.** Declaring the parameter `Map<String,
+String>` and building the object with a private helper in the test class leaves construction in the
+test and defeats the point — the converter *is* the construction.
+
+The map keeps the table compact, each row states only what differs from the defaults, and all construction and defaulting logic lives in the converter — never in the test method body. This applies however the object is normally built (constructor, setters, or builder), and even when a table exercises only one or two of the optional fields: if a method body news up a parameter object and mutates it, that construction belongs in a `@TypeConverter` behind a map column.
 
 ### Include Traceability Columns
 

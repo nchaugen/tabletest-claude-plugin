@@ -26,20 +26,17 @@ Converter methods can provide sensible defaults for missing map entries, making 
 ```java
 @TableTest("""
     Scenario          | Config                                  | Expected?
+    All defaults      | [:]                                     | OK
     Basic request     | [method: GET]                           | OK
     With timeout      | [method: POST, timeout: 5000]           | OK
     Full config       | [method: POST, timeout: 5000, retry: 3] | OK
     """)
-void testRequest(Map<String, String> config, String expected) {
-    RequestConfig request = buildRequestConfig(config);
-    assertEquals(expected, process(request));
+void testRequest(RequestConfig config, String expected) {
+    assertEquals(expected, process(config));
 }
 
 @TypeConverter
 public static RequestConfig buildRequestConfig(Map<String, String> config) {
-    if (config == null || config.isEmpty()) {
-        return RequestConfig.defaults();
-    }
     return new RequestConfig(
         config.getOrDefault("method", "GET"),           // Default: GET
         parseInt(config.getOrDefault("timeout", "3000")), // Default: 3000ms
@@ -49,6 +46,10 @@ public static RequestConfig buildRequestConfig(Map<String, String> config) {
     );
 }
 ```
+
+The parameter is the **domain type**, so the converter runs and the method body stays
+arrange-act-assert. The all-defaults row must be `[:]` — a blank cell short-circuits to `null`
+without ever calling the converter.
 
 **Benefits:**
 - Each scenario only specifies what varies from defaults

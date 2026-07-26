@@ -72,17 +72,18 @@ void test(String method, Integer timeout, String auth, Integer retry, Boolean ca
 // ✅ EASIER TO READ - map with defaults when properties vary
 @TableTest("""
     Scenario          | Request Config                                  | Expected?
+    All defaults      | [:]                                             | OK
     Basic request     | [method: GET]                                   | OK
     With timeout      | [method: POST, timeout: 5000]                   | OK
     With auth         | [method: GET, auth: Bearer xyz]                 | OK
     Full config       | [method: POST, timeout: 5000, auth: Bearer xyz, retry: 3, cache: true] | OK
     """)
-void test(Map<String, String> config, String expected) {
-    RequestConfig request = buildRequest(config);  // Applies defaults
-    assertEquals(expected, process(request));
+void test(RequestConfig config, String expected) {
+    assertEquals(expected, process(config));
 }
 
-private RequestConfig buildRequest(Map<String, String> config) {
+@TypeConverter
+public static RequestConfig parseRequestConfig(Map<String, String> config) {
     return new RequestConfig(
         config.getOrDefault("method", "GET"),
         parseInt(config.getOrDefault("timeout", "3000")),
@@ -92,6 +93,11 @@ private RequestConfig buildRequest(Map<String, String> config) {
     );
 }
 ```
+
+Declare the parameter as the **domain type**, not `Map<String, String>` — a map parameter plus a
+private `buildRequest` helper leaves construction in the test, which is what the map column was
+meant to remove. The "all defaults" row is `[:]`; a blank cell would skip the converter and pass
+`null`.
 
 **Why maps work better here:**
 - Each scenario only specifies what's relevant
@@ -111,8 +117,8 @@ private RequestConfig buildRequest(Map<String, String> config) {
        With timeout  | [method: POST, timeout: 5000]         | OK
        Full options  | [method: POST, timeout: 5000, retry: 3, auth: Bearer xyz] | OK
        """)
-   void test(Map<String, String> config, String expected) {
-       RequestConfig req = buildRequest(config);  // Provides defaults
+   void test(RequestConfig config, String expected) {   // @TypeConverter applies defaults
+       assertEquals(expected, process(config));
    }
    ```
 
@@ -612,16 +618,20 @@ void shouldCalculateTotalFare(BigDecimal baseFare, BigDecimal peakSurcharge,
     assertThat(FareCalculator.calculate(baseFare, peakSurcharge, airportFee))
             .isEqualTo(totalFare);
 }
+```
 
+A blank cell arrives as `null` — **the converter is not consulted**, so it cannot supply the default.
+That is the right shape when the system under test accepts an absent surcharge. When it needs a
+value, write the empty string `''` instead of leaving the cell blank; that reaches the converter:
+
+```java
 @TypeConverter
-BigDecimal toBigDecimal(String value) {
-    return value == null ? BigDecimal.ZERO : new BigDecimal(value);
+public static BigDecimal toBigDecimal(String value) {
+    return value.isBlank() ? BigDecimal.ZERO : new BigDecimal(value);
 }
 ```
 
-The `@TypeConverter` keeps the null-to-default logic out of the test method. Blank cells arrive as `null` strings; the converter translates them to `BigDecimal.ZERO` so every parameter is non-null by the time the test runs.
-
-Use `Integer` (not `int`) for primitive parameters that may be blank — primitive types cannot represent null. For reference types like `BigDecimal`, a `@TypeConverter` with a null check is the cleanest approach.
+Use `Integer` (not `int`) for primitive parameters that may be blank — primitive types cannot represent null.
 
 ## When Reviewing Multiple Tables
 

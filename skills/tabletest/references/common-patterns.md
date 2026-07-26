@@ -75,7 +75,7 @@ Requires 6 columns and cross-referencing to understand "Primary succeeded" or "S
 ```java
 @TypeConverter
 public static ServiceResponse parseServiceResponse(String value) {
-    if (value == null || value.isBlank()) return null;
+    if (value.isBlank()) return null;
 
     return switch (value.trim()) {
         case "Primary OK" -> ServiceResponse.PRIMARY_OK;
