@@ -463,6 +463,53 @@ worse trade for a plan trying to establish that a skill edit helped. Estimated p
 applied after the wording fixes, not instead of them, and every fix must be re-scored for accuracy — an
 edit that raises stability while lowering accuracy has made the instrument worse.
 
+## The noise floor, per slot — v1/v2/v3, distilled 2026-07-26
+
+`benchmark-v1/v2/v3.json` are one generation graded three times under one regime (322 / 320 / 327),
+on the **pre-tranche-2 instrument** (`42388839`, the same as `iteration-40/benchmark.json`). **18 of
+365 slots flip; 33 fail in all three.** `p` = passed, `F` = failed, in v1/v2/v3 order:
+
+| Eval | Assertion | v1 v2 v3 |
+|---|---|---|
+| 14 | `1.7-readability-scenario-names` | p F p |
+| 14 | `minimal-rows-per-concern` | F p F |
+| 15 | `rule-statable-from-table` | p F p |
+| 18 | `depth-premium-boundaries` | F p F |
+| 18 | `minimal-rows-per-concern` | p F p |
+| 22 | `minimal-rows-per-concern` | p F p |
+| 22 | `scenario-names-describe-conditions` | F p F |
+| 23 | `concerns-decomposed` | p p F |
+| 23 | `description-no-redundant-field-values` | F F p |
+| 25 | `rule-statable-from-table` | F F p |
+| 27 | `rule-falsifiable-by-a-row` | p F p |
+| 27 | `rule-statable-from-table` | p F p |
+| 27 | `scenario-names-describe-conditions` | F p p |
+| 27 | `titles-form-a-family` | F F p |
+| 28 | `rule-statable-from-table` | F F p |
+| 29 | `business-language-columns` | F p p |
+| 29 | `quantifier-covered-by-rows` | p F F |
+| 30 | `minimal-rows-per-concern` | F F p |
+
+By assertion: `rule-statable-from-table` ×4, `minimal-rows-per-concern` ×4,
+`scenario-names-describe-conditions` ×2, and one each of `1.7-readability-scenario-names`,
+`depth-premium-boundaries`, `concerns-decomposed`, `description-no-redundant-field-values`,
+`rule-falsifiable-by-a-row`, `titles-form-a-family`, `business-language-columns`,
+`quantifier-covered-by-rows`.
+
+**A second, unplanned variance pair corroborates it.** `benchmark-t3` and `benchmark-t4` share an
+instrument (`804b7490`) *and* a regime, so they are two more identical re-grades: 318 vs 314. A
+4-slot gap, consistent with the v-probe's 320–327 range.
+
+**Consequences.** A whole-suite score has a **±3–4 slot run-to-run spread**, so no single run's *net*
+is evidence — judge a change by whether its *targeted* slots moved. A moved verdict landing on any
+row above needs a confirming re-grade of the same stored outputs before it is attributed.
+
+**This probe is on a dead instrument.** Tranche 2 and the mixed-effort change re-fingerprinted every
+eval, so the current instrument (`8425750f`, `benchmark-t5`) has **no variance probe at all**. Three
+`--grade-only` passes over iteration-40's stored outputs would cost ~$5.50 and ~40 minutes with no
+generation spend. Until that exists, the table above is the best available prior, not a current
+measurement.
+
 ## Sequencing
 
 **Revised 2026-07-25 by the accuracy measurement, and by tranche 2 landing (`2dcad47`).** Steps marked
