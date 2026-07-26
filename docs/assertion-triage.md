@@ -463,6 +463,55 @@ worse trade for a plan trying to establish that a skill edit helped. Estimated p
 applied after the wording fixes, not instead of them, and every fix must be re-scored for accuracy — an
 edit that raises stability while lowering accuracy has made the instrument worse.
 
+## The two-assertion fix: one worked, one backfired — measured 2026-07-26 (`s1`/`s2`/`s3`)
+
+Three passes after splitting `minimal-rows-per-concern` and adding a per-method enumeration clause to
+`rule-statable-from-table`. Scores 331 / 334 / 328 of 378; **12 of 378 slots flip** against 17 of 365
+before. Level held (87.6% vs 87.9%), so no calibration break.
+
+**The split worked.** `minimal-rows-per-concern` contributed 4 flips across 13 slots; its two
+successors contribute **2 flips across 26 slots** — `no-duplicate-rows-within-a-table` ×2 and
+`no-table-reproves-another` ×0. The class-wide half is completely stable, which is what separating the
+two judgements was for. No accuracy read yet: the answer-key rows are `pending-reread`.
+
+**The enumeration clause backfired, and the wording was mine.** `rule-statable-from-table` kept 3
+flips *and* lost accuracy badly:
+
+| | s1/s2/s3 (post) | plain/p1/p2 (pre) |
+|---|---|---|
+| `rule-statable-from-table` | 0/5 · 2/5 · 1/5 | 3/5 · 4/5 · 3/5 |
+| all 61 comparable slots | 53 · 54 · 57 | 56 · 55 · 55 |
+
+Evals 15 and 18 are now wrong in **all three** passes, and the key had already written down why. Its
+eval-18 basis records an earlier failure that "imports a per-method scoping the text does not carry",
+and its eval-15 basis warns it "is the entry a mechanical clause-(1) checker is most likely to get
+wrong". The added clause listed the published surface as *that method's own* `@DisplayName`/
+`@Description`, its table's columns, or the class-level `@Description` — **omitting another method's
+`@Description` on the same class**, which is precisely what eval-18 relies on. The clause hard-coded
+the error the key warns against.
+
+**A second, separate effect worth keeping.** Where the grader did enumerate (eval-27, all three
+passes list every method with a verdict), the residual disagreement became *substantive and visible*:
+s1/s2 pass `appliesDimensionalWeightWhenGreaterThanActual`, s3 fails it because the `L*W*H/5000`
+volumetric divisor is stated nowhere. On eval-25 the grader still sampled (no enumeration) and split
+on the same divisor. So enumeration does what it was meant to; the criterion underneath is what
+disagrees.
+
+**That exposes an open question about the key, not the grader.** Clause (1) lists value *kinds* —
+threshold, rate, cutoff, multiplier, reference date — and a derivation formula like `/5000` is not
+obviously among them. The key discriminates evals 25/27/28 on the **1.15 fragile multiplier** (25
+publishes it and passes; 27 and 28 do not and fail) and never addresses the volumetric divisor at
+all, though the same method exists in all three. If `/5000` is genuinely needed to predict `12.50`
+from `[70,50,10]` and appears nowhere, then by the assertion's own words eval-25 should fail and the
+key is incomplete. **Settle this by reading eval-25's artefact before touching either again** — a
+disagreement is not automatically the grader's fault.
+
+**Next step, cheapest first.** Correct the surface clause to "any `@DisplayName` or `@Description` on
+the same test class, or a column of the table" and re-grade one pass: `rule-statable` is only 5 keyed
+slots, so a single pass separates 0/5 from 3/5 decisively. Only buy a three-pass probe if that reads
+well. Do not add further clauses on top — two rounds of rewording failed before this one, and this
+round is the third.
+
 ## The noise floor on the CURRENT instrument — measured 2026-07-26 (`p1`/`p2`)
 
 Three gradings of the same stored outputs under the live regime: `benchmark.json` (318),

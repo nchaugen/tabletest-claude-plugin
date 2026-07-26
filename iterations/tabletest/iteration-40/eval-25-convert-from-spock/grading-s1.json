@@ -1,0 +1,180 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "options-as-map",
+      "text": "Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:].",
+      "passed": true,
+      "evidence": "Options | Fee? column with `[handling: hazmat]`, `[fragile: true]` etc.; blank cell explicitly allowed by rule text"
+    },
+    {
+      "id": "options-type-converter",
+      "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.",
+      "passed": false,
+      "evidence": "buildOptions(config: Map<String, String>?): PackageOptions - private helper, not a @TypeConverter"
+    },
+    {
+      "id": "dimensions-as-list",
+      "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns",
+      "passed": true,
+      "evidence": "dimensions: List<Int> and table cells like `[30, 20, 15]`"
+    },
+    {
+      "id": "uses-value-sets",
+      "text": "At least one table uses value set syntax {DHL, UPS, FEDEX} (or subset) to express carrier equivalence, rather than duplicating rows per carrier",
+      "passed": true,
+      "evidence": "Value set syntax found"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods exist, each addressing a distinct concern — not one monolithic table mixing base rates, surcharges, dimensional weight, and carrier equivalence",
+      "passed": true,
+      "evidence": "Separate methods: baseRateByRegionSpeedAndWeight, dimensionalWeightOverride, ... carrierDoesNotAffectCost"
+    },
+    {
+      "id": "concern-not-over-split",
+      "text": "Do not fragment a single concern across multiple @TableTest methods that share the same fixture and assertion and differ only in which one sub-rule they exercise. Two or more tables that fix the same setup (e.g. same zone and base cost) and each vary a single option or surcharge, with the same output column, should instead be one table with a column for the varying input. FAILS when two or more such same-fixture, single-sub-rule tables exist for one concern (e.g. a separate table per surcharge). PASSES when each @TableTest addresses a genuinely distinct concern with its own inputs. This is the complement of concerns-decomposed: that forbids cramming unrelated concerns into one table; this forbids scattering one concern across many. Apply two guards when judging whether tables should be collapsed. Collapsing is right when the combined table's total row count stays small — a handful, never a cross-product — and each row still makes clear which sub-rule it demonstrates, normally through its scenario name and the varying column. Where collapsing would multiply into a cross-product, or would leave rows whose purpose is no longer legible, the tables are genuinely distinct and separate methods PASS.",
+      "passed": false,
+      "evidence": "oversizeSurcharge, hazmatHandlingSurcharge, fragileSurcharge, insuranceSurcharge each fix EU standard/3.0kg/30x20x15 and vary one option with same Fee? column"
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES. Do not fail a table merely because its values are simple or round — only these three conditions matter. One exemption applies to conditions (1) and (3): a table whose claim IS an invariance — that some input does not affect the outcome — correctly holds one expectation value across every row, because that constant is the rule's subject rather than evidence of a weak table. A single row varying that input over a value set (e.g. '{DHL, UPS, FEDEX} | 12.00') is the correct compact form and PASSES, provided the title or description states the invariance. Condition (2) is not exempted.",
+      "passed": true,
+      "evidence": "Tables like insuranceSurcharge vary Fee? (7.50, 10.50, 11.625); carrier table exempted as invariance claim with description"
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone; (3) a helper method used in the assertion applies a comparison criterion (ordering, tolerance, subset matching) that is stated nowhere in the table, title, or description. Otherwise the assertion PASSES. Setup that merely constructs the objects named by the columns is not a failure. Judge every @TableTest method in the class. Your evidence must list each method name with PASS or FAIL beside it; a verdict reported from a subset of the methods is not a verdict. A value counts as published if it appears in that method's own @DisplayName or @Description, in a column of its table, or in the class-level @Description.",
+      "passed": false,
+      "evidence": "dimensionalWeightOverride description omits the volumetric formula (L×W×H/5000) needed to predict 12.50 for [70,50,10]"
+    },
+    {
+      "id": "numeric-types-correct",
+      "text": "Parameter types correspond to the ShippingCostCalculator.calculateShippingCost signature: weight is a double, dimensions are a List<Integer>, and cost / insured value are BigDecimal (compared via compareTo, not equals). Do not require BigDecimal for weight or dimensions — match the signature.",
+      "passed": true,
+      "evidence": "weight: Double, dimensions: List<Int>, fee: BigDecimal, assertEquals(0, expected.compareTo(actual))"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Each table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names name the variation the row exercises, not the result it produces. The decidable test: FAILS when a scenario name states or paraphrases a value that appears in an expectation column of that same row — 'User cannot delete' beside an Allowed? cell of false, 'No discount applies' beside a Discount? cell of 0.00, 'Contractor gets no bonus' beside a Bonus? cell of 0. Also FAILS on generic labels ('Test 1', 'Test case 2'), which name no variation at all. PASSES otherwise. Naming the rule or the situation is correct even when it makes the outcome inferable — 'Delivery and pickup items always split', 'At the standard threshold, not above it', 'EU express, light package', 'Renewal with no claims', 'Missing name' all PASS. The failure this catches is a name echoing its own expectation cell, not a name that describes what the row is about, and not a name from which a reader who knows the rule could predict the outcome. A single offending name fails the assertion. Judge every @TableTest method in the class.",
+      "passed": true,
+      "evidence": "'Within size limit', 'Exceeds size limit (one dimension over 100 cm)', 'Fee is identical regardless of carrier'"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Cost?', 'Base rate?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Base Fee?, Base Fee?, Fee?, Fee?, Fee?, Fee?, Fee?"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain language ('Zone', 'Weight (kg)', 'Dimensions', 'Options', 'Cost?') — not code identifiers ('shippingZone', 'weightKg', 'dims')",
+      "passed": true,
+      "evidence": "Scenario | Region | Speed | Weight | Base Fee? and Scenario | Options | Fee?"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method bodies contain no if or switch statements",
+      "passed": true,
+      "evidence": "7 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Each test method has a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "7 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "output-is-kotlin",
+      "text": "The generated test file is written in Kotlin (.kt), not Java or Groovy. Uses Kotlin syntax: fun, val/var, Kotlin imports.",
+      "passed": true,
+      "evidence": "Found 1 Kotlin test file(s): src/test/kotlin/com/example/ShippingCostCalculatorTest.kt"
+    },
+    {
+      "id": "no-groovy-syntax",
+      "text": "Output contains no Groovy or Spock syntax: no def, where:, expect:, given:, GString interpolation (#variable), Spock assertions (thrown(), old()), or Groovy list literals ([] as Set).",
+      "passed": true,
+      "evidence": "No Groovy/Spock syntax found"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle.kts) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The generated tests pass when executed against ShippingCostCalculator",
+      "passed": true,
+      "evidence": "Tests passed"
+    },
+    {
+      "id": "spock-dependency-removed",
+      "text": "The build file no longer declares Spock or Groovy dependencies — the old framework is fully removed, not just the test code.",
+      "passed": true,
+      "evidence": "Build file has no Spock/Groovy reference"
+    },
+    {
+      "id": "consistent-quantity-naming",
+      "text": "Across the @TableTest methods in one class, the same observable quantity carries the same column name. FAILS when one output quantity appears under two or more names in sibling tables (e.g. 'Base Rate?' in one table, 'Rate?' in a second and 'Total Cost?' in a third for the same computed cost; or 'Cart Items' in one table and 'Cart Before' in another for the same input). A genuinely different quantity may of course have a different name — a base rate before surcharges and a final total are two quantities, and naming them differently is correct, provided the same quantity is named the same wherever it recurs. PASSES when each recurring quantity has one name throughout, and passes trivially for a class with a single table. This assertion is about naming only: it never asks for more tables or more rows, and collapsing tables satisfies it rather than violating it.",
+      "passed": true,
+      "evidence": "Base-rate quantity named 'Base Fee?' consistently in baseRateByRegionSpeedAndWeight and dimensionalWeightOverride; post-surcharge total consistently named 'Fee?' across oversizeSurcharge, hazmatHandlingSurcharge, fragileSurcharge, insuranceSurcharge, carrierDoesNotAffectCost."
+    },
+    {
+      "id": "titles-form-a-family",
+      "text": "Read the class's test titles (each @DisplayName, or the method name it falls back to) as the sorted index a reader would scan, stripped of their tables. FAILS when the titles do not function as a catalogue: when three or more share a leading word that carries no information ('should…', 'test…', 'verify…'), so the varying subject arrives last and the list cannot be scanned; or when no single grammatical shape accounts for a majority of the titles, so no scanning pattern exists. PASSES when the varying subject comes first or early and one consistent shape runs across the family. A single title that differs from an otherwise consistent family is NOT a failure: negative and invariant claims ('carrier does not affect cost') often read best subject-first, and one such outlier does not make an index unscannable. Judge whether a reader scanning the list would find a pattern, not whether every entry matches it. Judge the set, never a title in isolation — a title that reads perfectly on its own page can still be an unscannable entry in the index, which is the failure this assertion exists to catch. A class with fewer than three @TableTest methods PASSES.",
+      "passed": true,
+      "evidence": "Method names: 'oversizeSurcharge', 'hazmatHandlingSurcharge', 'fragileSurcharge', 'insuranceSurcharge' share a consistent 'XSurcharge' shape; 'carrierDoesNotAffectCost' is a legitimate negative-claim outlier."
+    },
+    {
+      "id": "no-duplicate-rows-within-a-table",
+      "text": "Judge each @TableTest in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by 2.19-covers-every-tier and quantifier-covered-by-rows. Judge every @TableTest method in the class; your evidence must name each method with PASS or FAIL.",
+      "passed": true,
+      "evidence": "baseRateByRegionSpeedAndWeight: 8 distinct region/speed/weight rows - PASS. dimensionalWeightOverride: 2 distinct rows - PASS. oversizeSurcharge: 2 distinct rows - PASS. hazmatHandlingSurcharge: 2 distinct rows - PASS. fragileSurcharge: 2 distinct rows - PASS. insuranceSurcharge: 3 distinct rows ('No insurance', 'Insurance premium at minimum', 'Insurance combined with fragile') - PASS. carrierDoesNotAffectCost: 1 value-set row - PASS. No row re-covers an obligation already discharged in the same table."
+    },
+    {
+      "id": "no-table-reproves-another",
+      "text": "Judge the class as a whole. The assertion FAILS if a whole @TableTest re-proves rules that earlier tables already established — an integration or end-to-end table whose rows re-prove established rules is the common case, and it fails however clean the other tables are. Sibling tables that each isolate one rule are NOT duplication merely because they share a baseline row: four surcharge tables that each show 'no surcharge' then 'surcharge applied' are four legitimate tables, not one duplicated four times. Collapsing several same-fixture tables into one, as concern-not-over-split requires, is likewise not a failure here. Rows you think are missing are never a failure here. Your evidence must name the re-proving table and the table it duplicates.",
+      "passed": true,
+      "evidence": "The four surcharge tables (oversizeSurcharge, hazmatHandlingSurcharge, fragileSurcharge, insuranceSurcharge) each isolate one rule with a shared baseline '7.50' row, matching the explicitly allowed pattern: 'four surcharge tables that each show no surcharge then surcharge applied are four legitimate tables, not one duplicated four times.'"
+    }
+  ],
+  "assertions_passed": 24,
+  "assertions_total": 27,
+  "pass_rate": 0.8888888888888888,
+  "grading_usage": {
+    "input_tokens": 20207,
+    "output_tokens": 4942,
+    "total_tokens": 25149,
+    "calls": 2,
+    "cost_usd": 0.134751,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}

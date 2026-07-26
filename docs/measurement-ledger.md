@@ -79,3 +79,7 @@ here on do carry them.
 | 2026-07-26 | `iteration-40 [p2]` | regrade | 17 | — | claude-sonnet-5/default | `8425750f` | 322/365 | — | $1.95 | — | Pass 3 of 3. Across the three: **17 of 365 slots flip**, score spread 318/323/322 — the plain baseline is the LOW draw (mean 321). Majority-of-3 accuracy 61/68, no better than one pass. Per-slot list and diagnosis in `assertion-triage.md`. |
 | 2026-07-26 | `iteration-41 [p1]` | regrade | 4 | `85686277bf` | claude-sonnet-5/default | `9eb3645a` | 90/96 | — | $0.70 | — | vs iteration 40: 4/4 comparable, 11 moved. Variance probe on the post-promotion outputs, pass 2 of 3. |
 | 2026-07-26 | `iteration-41 [p2]` | regrade | 4 | `85686277bf` | claude-sonnet-5/default | `9eb3645a` | 89/96 | — | $0.67 | — | vs iteration 40: 4/4 comparable, 8 moved. Pass 3 of 3. **6 of 96 flip.** Settles two open slots: `concern-not-over-split`/26 is a stable failure (real cluster-1 regression), `held-constants-declared`/30 flips (noise). Answer key does NOT apply to these outputs. |
+| 2026-07-26 | `iteration-40 [s1]` | regrade | 17 | — | claude-sonnet-5/default | `bab90af8` | 331/378 | — | $2.02 | — | |
+| 2026-07-26 | `iteration-40 [s2]` | regrade | 17 | — | claude-sonnet-5/default | `bab90af8` | 334/378 | — | $1.91 | — | |
+| 2026-07-26 | `iteration-40 [s3]` | regrade | 17 | — | claude-sonnet-5/default | `bab90af8` | 328/378 | — | $2.15 | — | |
+| 2026-07-26 | `iteration-41 [s1]` | regrade | 4 | `85686277bf` | claude-sonnet-5/default | `f096477b` | 90/99 | — | $0.67 | — | vs iteration 40: 1/4 comparable, 0 moved. |
