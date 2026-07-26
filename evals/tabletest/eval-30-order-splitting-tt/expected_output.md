@@ -125,7 +125,7 @@ The "right number of rows" is a covering problem: each concern has a set of **co
 (distinct behaviours the rule must demonstrate), each row covers some subset, and the optimal table is
 the smallest row set whose union covers them all. Too few rows leaves an obligation uncovered — a wrong
 implementation passes (a falsifiability gap); too many repeats an already-covered obligation or
-cross-multiplies concerns (a `minimal-rows-per-concern` failure). This list is the universe to check a
+cross-multiplies concerns (a `no-duplicate-rows-within-a-table` failure). This list is the universe to check a
 solution's rows against; it is not a demand for exactly these rows.
 
 - **Fulfillment type & address** — (a) same type + same address groups into one shipment; (b) different

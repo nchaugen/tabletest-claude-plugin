@@ -4,7 +4,7 @@
     "iteration": "iterations/tabletest/iteration-40",
     "outputs_generated": "2026-07-22",
     "skill_commit": "170d5b4",
-    "assertion_texts": "post-tranche-2 (tabletest-claude-plugin 84e6916, then the titles/description/minimal-rows/falsifiable edits of 2026-07-25)"
+    "assertion_texts": "post-tranche-2 (tabletest-claude-plugin 84e6916, then the titles/description/minimal-rows/falsifiable edits of 2026-07-25); then 2026-07-26: rule-statable-from-table gained a per-method enumeration requirement (its recorded verdicts stand — they were read by checking every method, which is what the clause now asks the grader to do), and minimal-rows-per-concern was split into no-duplicate-rows-within-a-table + no-table-reproves-another (verdicts pending re-read)"
   },
   "how_to_use": "node scripts/score-grader.js --iteration 40 [--grading-suffix <s>]. Re-verify an entry against the artefact before trusting a disagreement — the key is a reading, not an oracle.",
   "caveats": [
@@ -17,7 +17,8 @@
     "Method note, learned while authoring this extension: minimal-rows-per-concern cannot be adjudicated from the assertion text — it must be read against the concern's coverage obligations in expected_output.md, which run-evals.js already puts in the grader's prompt. The minimal-rows-per-concern/30 entry was authored PASS from the text alone and corrected to FAIL once the obligation list was consulted; the grader had it right. Consequence for docs/assertion-triage.md: this assertion is classified 'irreducible — not derivable from source', but the information it needs is in the grader's own prompt and the 192-character assertion text never points at it. That makes it a bounded-judgement fix (name the surface), not an irreducible one.",
     "Tranche 2 landed 2026-07-25 and changed four assertion texts, so every entry hosting one was re-verified against its artefact under the new wording before this key was re-published. titles-form-a-family (25-28), description-no-redundant-field-values (22, 23) and minimal-rows-per-concern (13 hosts) kept every verdict — the edits express what the key already recorded, which is the result to want. rule-falsifiable-by-a-row/27 moved from borderline to firm PASS, because the invariance exemption it was waiting for now exists.",
     "Pre-registered predictions for the BATCH-3 re-baseline (suffix t3), recorded before it ran. scenario-names-describe-conditions was unified from EIGHT divergent per-eval texts into one and narrowed to a cell-echo test; minimal-rows-per-concern gained a judge-every-table clause. Predictions: scenario-names goes correct on 7, 9, 22 and 23 (each has a name paraphrasing its own expectation cell) and on 27 (which the narrowing deliberately releases to PASS); the six hosts with no key entry — 18, 25, 26, 28, 29, 30 — must NOT start failing, and eval-30's 'Delivery and pickup items always split' plus eval-18's 'would otherwise be standard' are the two most likely over-fires, both named as PASS examples in the new text specifically to prevent that. minimal-rows-per-concern/14 flips to correct if the judge-every-table clause makes the grader reach the fifth table. If 18, 25, 26, 28, 29 or 30 newly fail scenario-names, the narrowing over-fired and the PASS examples are too weak — widen them rather than reverting.",
-    "Pre-registered predictions for the tranche-2 re-baseline, recorded before it ran: titles-form-a-family goes 4/4 correct (25 and 26 flip to PASS on the single-outlier exemption, 27 stabilises PASS, 28 stays FAIL on the eight 'should' prefixes); description-no-redundant-field-values/23 flips to PASS; minimal-rows-per-concern improves on 14, 23 and 30 where the obligation list decides it. If titles-form-a-family/25 still fails, the exemption did not work and the majority-shape clause is the suspect, not the outlier sentence."
+    "Pre-registered predictions for the tranche-2 re-baseline, recorded before it ran: titles-form-a-family goes 4/4 correct (25 and 26 flip to PASS on the single-outlier exemption, 27 stabilises PASS, 28 stays FAIL on the eight 'should' prefixes); description-no-redundant-field-values/23 flips to PASS; minimal-rows-per-concern improves on 14, 23 and 30 where the obligation list decides it. If titles-form-a-family/25 still fails, the exemption did not work and the majority-shape clause is the suspect, not the outlier sentence.",
+    "Entries with confidence 'pending-reread' carry expected: null and are excluded from scoring. They exist so the earlier reading is not lost; re-read the artefact and set expected before treating that slot as measured."
   ],
   "entries": [
     {
@@ -71,10 +72,17 @@
     },
     {
       "eval": 14,
-      "assertion": "minimal-rows-per-concern",
-      "expected": false,
-      "confidence": "firm",
-      "basis": "The fifth table calculatesWeeklyPay is a superset of the first two: its own @Description says it combines 'the rules from the tables above', and rows 2-4 ('Week with weekday overtime | 45', 'Week with Sunday hours', 'Week with holiday hours') re-prove the overtime rule from table 1 and the 2x premium rule from table 2. Four of its six rows re-cover obligations already discharged; only the all-bands row and the zero-rate row are about integration."
+      "assertion": "no-duplicate-rows-within-a-table",
+      "expected": null,
+      "confidence": "pending-reread",
+      "basis": "PENDING RE-READ after minimal-rows-per-concern was split (2026-07-26). The combined assertion was read as false on this eval, but that verdict conflated within-table duplication with cross-table re-proving and cannot be assigned to one half. Original basis: The fifth table calculatesWeeklyPay is a superset of the first two: its own @Description says it combines 'the rules from the tables above', and rows 2-4 ('Week with weekday overtime | 45', 'Week with Sunday hours', 'Week with holiday hours') re-prove the overtime rule from table 1 and the 2x premium rule from table 2. Four of its six rows re-cover obligations already discharged; only the all-bands row and the zero-rate row are about integration."
+    },
+    {
+      "eval": 14,
+      "assertion": "no-table-reproves-another",
+      "expected": null,
+      "confidence": "pending-reread",
+      "basis": "PENDING RE-READ after minimal-rows-per-concern was split (2026-07-26). The combined assertion was read as false on this eval, but that verdict conflated within-table duplication with cross-table re-proving and cannot be assigned to one half. Original basis: The fifth table calculatesWeeklyPay is a superset of the first two: its own @Description says it combines 'the rules from the tables above', and rows 2-4 ('Week with weekday overtime | 45', 'Week with Sunday hours', 'Week with holiday hours') re-prove the overtime rule from table 1 and the 2x premium rule from table 2. Four of its six rows re-cover obligations already discharged; only the all-bands row and the zero-rate row are about integration."
     },
     {
       "eval": 14,
@@ -121,10 +129,17 @@
     },
     {
       "eval": 15,
-      "assertion": "minimal-rows-per-concern",
-      "expected": false,
-      "confidence": "firm",
-      "basis": "Added 2026-07-25 after the batch-3 judge-every-table clause surfaced it; verified against the artefact before the grader's evidence was read, and the two agree. calculatesDiscountEndToEnd spends six rows re-proving rules the earlier tables already established: 'Child ignores history entirely' re-covers table 3's CHILD flat rule, 'New adult rider has not reached the first tier' and 'Adult reaches the fifth trip' re-cover table 1's ladder, 'Senior with the same trip pattern gets the same tier' re-covers table 3's ADULT==SENIOR. eval-15's expected_output states no obligation list, so the assertion's fallback applies and the re-coverage is plain from the artefact. This is the integration-table case the clause was written for."
+      "assertion": "no-duplicate-rows-within-a-table",
+      "expected": null,
+      "confidence": "pending-reread",
+      "basis": "PENDING RE-READ after minimal-rows-per-concern was split (2026-07-26). The combined assertion was read as false on this eval, but that verdict conflated within-table duplication with cross-table re-proving and cannot be assigned to one half. Original basis: Added 2026-07-25 after the batch-3 judge-every-table clause surfaced it; verified against the artefact before the grader's evidence was read, and the two agree. calculatesDiscountEndToEnd spends six rows re-proving rules the earlier tables already established: 'Child ignores history entirely' re-covers table 3's CHILD flat rule, 'New adult rider has not reached the first tier' and 'Adult reaches the fifth trip' re-cover table 1's ladder, 'Senior with the same trip pattern gets the same tier' re-covers table 3's ADULT==SENIOR. eval-15's expected_output states no obligation list, so the assertion's fallback applies and the re-coverage is plain from the artefact. This is the integration-table case the clause was written for."
+    },
+    {
+      "eval": 15,
+      "assertion": "no-table-reproves-another",
+      "expected": null,
+      "confidence": "pending-reread",
+      "basis": "PENDING RE-READ after minimal-rows-per-concern was split (2026-07-26). The combined assertion was read as false on this eval, but that verdict conflated within-table duplication with cross-table re-proving and cannot be assigned to one half. Original basis: Added 2026-07-25 after the batch-3 judge-every-table clause surfaced it; verified against the artefact before the grader's evidence was read, and the two agree. calculatesDiscountEndToEnd spends six rows re-proving rules the earlier tables already established: 'Child ignores history entirely' re-covers table 3's CHILD flat rule, 'New adult rider has not reached the first tier' and 'Adult reaches the fifth trip' re-cover table 1's ladder, 'Senior with the same trip pattern gets the same tier' re-covers table 3's ADULT==SENIOR. eval-15's expected_output states no obligation list, so the assertion's fallback applies and the re-coverage is plain from the artefact. This is the integration-table case the clause was written for."
     },
     {
       "eval": 15,
@@ -177,10 +192,17 @@
     },
     {
       "eval": 18,
-      "assertion": "minimal-rows-per-concern",
-      "expected": false,
-      "confidence": "firm",
-      "basis": "CORRECTED 2026-07-25 after the tranche-2 regrade: first read as PASS from the assertion text, the same error the method note above warns about. The reference decision table in expected_output.md has no 'well above threshold' row — the rejection obligation is discharged at 5 claims ('the rejection cliff sits cleanly between 4 claims (approved) and 5 claims (rejected)'). Iteration-40's 'Well above threshold | NEW | 50 | 10 | REJECTED' re-covers it, and the table spends that row while omitting the 4-claim row entirely (which is also why depth-decision-boundaries fails). The grader cited exactly this."
+      "assertion": "no-duplicate-rows-within-a-table",
+      "expected": null,
+      "confidence": "pending-reread",
+      "basis": "PENDING RE-READ after minimal-rows-per-concern was split (2026-07-26). The combined assertion was read as false on this eval, but that verdict conflated within-table duplication with cross-table re-proving and cannot be assigned to one half. Original basis: CORRECTED 2026-07-25 after the tranche-2 regrade: first read as PASS from the assertion text, the same error the method note above warns about. The reference decision table in expected_output.md has no 'well above threshold' row — the rejection obligation is discharged at 5 claims ('the rejection cliff sits cleanly between 4 claims (approved) and 5 claims (rejected)'). Iteration-40's 'Well above threshold | NEW | 50 | 10 | REJECTED' re-covers it, and the table spends that row while omitting the 4-claim row entirely (which is also why depth-decision-boundaries fails). The grader cited exactly this."
+    },
+    {
+      "eval": 18,
+      "assertion": "no-table-reproves-another",
+      "expected": null,
+      "confidence": "pending-reread",
+      "basis": "PENDING RE-READ after minimal-rows-per-concern was split (2026-07-26). The combined assertion was read as false on this eval, but that verdict conflated within-table duplication with cross-table re-proving and cannot be assigned to one half. Original basis: CORRECTED 2026-07-25 after the tranche-2 regrade: first read as PASS from the assertion text, the same error the method note above warns about. The reference decision table in expected_output.md has no 'well above threshold' row — the rejection obligation is discharged at 5 claims ('the rejection cliff sits cleanly between 4 claims (approved) and 5 claims (rejected)'). Iteration-40's 'Well above threshold | NEW | 50 | 10 | REJECTED' re-covers it, and the table spends that row while omitting the 4-claim row entirely (which is also why depth-decision-boundaries fails). The grader cited exactly this."
     },
     {
       "eval": 18,
@@ -212,10 +234,17 @@
     },
     {
       "eval": 22,
-      "assertion": "minimal-rows-per-concern",
-      "expected": false,
-      "confidence": "firm",
-      "basis": "CORRECTED 2026-07-25 after the tranche-2 regrade: first read as PASS, with the contrary reading recorded as merely 'arguable'. expected_output.md settles it explicitly — 'two representative invalids (no @, no domain) are enough. Enumerating an RFC is neither expected nor rewarded.' The validation table carries four malformed-email rows (no @, no local part, no domain, no TLD) plus three missing-name rows. That is the enumeration the ground truth declines to reward. The grader quoted the two-invalids bar directly."
+      "assertion": "no-duplicate-rows-within-a-table",
+      "expected": null,
+      "confidence": "pending-reread",
+      "basis": "PENDING RE-READ after minimal-rows-per-concern was split (2026-07-26). The combined assertion was read as false on this eval, but that verdict conflated within-table duplication with cross-table re-proving and cannot be assigned to one half. Original basis: CORRECTED 2026-07-25 after the tranche-2 regrade: first read as PASS, with the contrary reading recorded as merely 'arguable'. expected_output.md settles it explicitly — 'two representative invalids (no @, no domain) are enough. Enumerating an RFC is neither expected nor rewarded.' The validation table carries four malformed-email rows (no @, no local part, no domain, no TLD) plus three missing-name rows. That is the enumeration the ground truth declines to reward. The grader quoted the two-invalids bar directly."
+    },
+    {
+      "eval": 22,
+      "assertion": "no-table-reproves-another",
+      "expected": null,
+      "confidence": "pending-reread",
+      "basis": "PENDING RE-READ after minimal-rows-per-concern was split (2026-07-26). The combined assertion was read as false on this eval, but that verdict conflated within-table duplication with cross-table re-proving and cannot be assigned to one half. Original basis: CORRECTED 2026-07-25 after the tranche-2 regrade: first read as PASS, with the contrary reading recorded as merely 'arguable'. expected_output.md settles it explicitly — 'two representative invalids (no @, no domain) are enough. Enumerating an RFC is neither expected nor rewarded.' The validation table carries four malformed-email rows (no @, no local part, no domain, no TLD) plus three missing-name rows. That is the enumeration the ground truth declines to reward. The grader quoted the two-invalids bar directly."
     },
     {
       "eval": 22,
@@ -247,10 +276,17 @@
     },
     {
       "eval": 23,
-      "assertion": "minimal-rows-per-concern",
-      "expected": false,
-      "confidence": "firm",
-      "basis": "Two of the eleven rows are cross-concern permutations that add no obligation: 'Senior qualifying score with missing income information' (70/610/null) re-covers senior-threshold and missing-income, both already discharged separately; 'Below threshold rejects even with missing income info' re-covers the below-threshold rule the preceding row already discharges with a {true, false} value set. Compatible with concerns-decomposed passing: the decomposition is right, the row set is not minimal."
+      "assertion": "no-duplicate-rows-within-a-table",
+      "expected": null,
+      "confidence": "pending-reread",
+      "basis": "PENDING RE-READ after minimal-rows-per-concern was split (2026-07-26). The combined assertion was read as false on this eval, but that verdict conflated within-table duplication with cross-table re-proving and cannot be assigned to one half. Original basis: Two of the eleven rows are cross-concern permutations that add no obligation: 'Senior qualifying score with missing income information' (70/610/null) re-covers senior-threshold and missing-income, both already discharged separately; 'Below threshold rejects even with missing income info' re-covers the below-threshold rule the preceding row already discharges with a {true, false} value set. Compatible with concerns-decomposed passing: the decomposition is right, the row set is not minimal."
+    },
+    {
+      "eval": 23,
+      "assertion": "no-table-reproves-another",
+      "expected": null,
+      "confidence": "pending-reread",
+      "basis": "PENDING RE-READ after minimal-rows-per-concern was split (2026-07-26). The combined assertion was read as false on this eval, but that verdict conflated within-table duplication with cross-table re-proving and cannot be assigned to one half. Original basis: Two of the eleven rows are cross-concern permutations that add no obligation: 'Senior qualifying score with missing income information' (70/610/null) re-covers senior-threshold and missing-income, both already discharged separately; 'Below threshold rejects even with missing income info' re-covers the below-threshold rule the preceding row already discharges with a {true, false} value set. Compatible with concerns-decomposed passing: the decomposition is right, the row set is not minimal."
     },
     {
       "eval": 23,
@@ -394,10 +430,17 @@
     },
     {
       "eval": 28,
-      "assertion": "minimal-rows-per-concern",
-      "expected": true,
-      "confidence": "firm",
-      "basis": "Added 2026-07-25 to resolve a medium/high grading-effort divergence. expected_output.md states the base-rate obligations and blesses this exact shape: \"a full 16-cell matrix or a boundary-anchored sample (~10) both cover this\" (line 113) and \"Enumerating the full 16-cell matrix instead is equally acceptable... The boundary rows (1 / 5 / 15) are the falsifiability-strong part\" (lines 71-73). The output is an 11-row boundary-anchored sample with the 1/5/15 boundaries present. t4 failed it for the \"EU express, light\" row re-covering discharged obligations, which invents the stricter obligation list the assertion explicitly forbids (\"judge against that list and do not invent a stricter one\"). The four separate surcharge tables are a real defect - repeating one control row per table - but that is concern-not-over-split, which eval-28 correctly fails."
+      "assertion": "no-duplicate-rows-within-a-table",
+      "expected": null,
+      "confidence": "pending-reread",
+      "basis": "PENDING RE-READ after minimal-rows-per-concern was split (2026-07-26). The combined assertion was read as true on this eval, but that verdict conflated within-table duplication with cross-table re-proving and cannot be assigned to one half. Original basis: Added 2026-07-25 to resolve a medium/high grading-effort divergence. expected_output.md states the base-rate obligations and blesses this exact shape: \"a full 16-cell matrix or a boundary-anchored sample (~10) both cover this\" (line 113) and \"Enumerating the full 16-cell matrix instead is equally acceptable... The boundary rows (1 / 5 / 15) are the falsifiability-strong part\" (lines 71-73). The output is an 11-row boundary-anchored sample with the 1/5/15 boundaries present. t4 failed it for the \"EU express, light\" row re-covering discharged obligations, which invents the stricter obligation list the assertion explicitly forbids (\"judge against that list and do not invent a stricter one\"). The four separate surcharge tables are a real defect - repeating one control row per table - but that is concern-not-over-split, which eval-28 correctly fails."
+    },
+    {
+      "eval": 28,
+      "assertion": "no-table-reproves-another",
+      "expected": null,
+      "confidence": "pending-reread",
+      "basis": "PENDING RE-READ after minimal-rows-per-concern was split (2026-07-26). The combined assertion was read as true on this eval, but that verdict conflated within-table duplication with cross-table re-proving and cannot be assigned to one half. Original basis: Added 2026-07-25 to resolve a medium/high grading-effort divergence. expected_output.md states the base-rate obligations and blesses this exact shape: \"a full 16-cell matrix or a boundary-anchored sample (~10) both cover this\" (line 113) and \"Enumerating the full 16-cell matrix instead is equally acceptable... The boundary rows (1 / 5 / 15) are the falsifiability-strong part\" (lines 71-73). The output is an 11-row boundary-anchored sample with the 1/5/15 boundaries present. t4 failed it for the \"EU express, light\" row re-covering discharged obligations, which invents the stricter obligation list the assertion explicitly forbids (\"judge against that list and do not invent a stricter one\"). The four separate surcharge tables are a real defect - repeating one control row per table - but that is concern-not-over-split, which eval-28 correctly fails."
     },
     {
       "eval": 28,
@@ -492,17 +535,24 @@
     },
     {
       "eval": 30,
-      "assertion": "minimal-rows-per-concern",
-      "expected": false,
-      "confidence": "firm",
-      "basis": "CORRECTED 2026-07-25: first read as PASS from the assertion text alone, which was the wrong method — this assertion is only judgeable against the concern's coverage obligations, and expected_output.md states them. Fulfillment concern: four obligations (a)-(d), with 'one interaction case … is valuable but optional; it composes (a)+(b), it does not add a rule' — the table spends six rows, using two interaction rows where one is allowed. Availability concern: 'Iteration-40 spends 6 rows here where 4 obligations exist … it is what the obligation lens flags.' The grader reached the same verdict by citing the obligation list directly."
-    },
-    {
-      "eval": 30,
       "assertion": "native-collection-output",
       "expected": false,
       "confidence": "firm",
       "basis": "Expectation cells are hand-rolled strings ('W1:[camera,lens,mic]', 'IMMEDIATE:[camera,lens]') assembled by stringifying helpers, which is the exact form the assertion fails."
+    },
+    {
+      "eval": 30,
+      "assertion": "no-duplicate-rows-within-a-table",
+      "expected": null,
+      "confidence": "pending-reread",
+      "basis": "PENDING RE-READ after minimal-rows-per-concern was split (2026-07-26). The combined assertion was read as false on this eval, but that verdict conflated within-table duplication with cross-table re-proving and cannot be assigned to one half. Original basis: CORRECTED 2026-07-25: first read as PASS from the assertion text alone, which was the wrong method — this assertion is only judgeable against the concern's coverage obligations, and expected_output.md states them. Fulfillment concern: four obligations (a)-(d), with 'one interaction case … is valuable but optional; it composes (a)+(b), it does not add a rule' — the table spends six rows, using two interaction rows where one is allowed. Availability concern: 'Iteration-40 spends 6 rows here where 4 obligations exist … it is what the obligation lens flags.' The grader reached the same verdict by citing the obligation list directly."
+    },
+    {
+      "eval": 30,
+      "assertion": "no-table-reproves-another",
+      "expected": null,
+      "confidence": "pending-reread",
+      "basis": "PENDING RE-READ after minimal-rows-per-concern was split (2026-07-26). The combined assertion was read as false on this eval, but that verdict conflated within-table duplication with cross-table re-proving and cannot be assigned to one half. Original basis: CORRECTED 2026-07-25: first read as PASS from the assertion text alone, which was the wrong method — this assertion is only judgeable against the concern's coverage obligations, and expected_output.md states them. Fulfillment concern: four obligations (a)-(d), with 'one interaction case … is valuable but optional; it composes (a)+(b), it does not add a rule' — the table spends six rows, using two interaction rows where one is allowed. Availability concern: 'Iteration-40 spends 6 rows here where 4 obligations exist … it is what the obligation lens flags.' The grader reached the same verdict by citing the obligation list directly."
     }
   ]
 }
