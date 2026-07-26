@@ -13,7 +13,7 @@
 
 const fs = require("fs");
 const path = require("path");
-const { computeEvalFingerprint } = require("./run-evals.js");
+const { computeEvalFingerprint, loadOfficialBenchmark } = require("./run-evals.js");
 
 /**
  * The evals whose stored fingerprint no longer matches their definition on disk — the ones a
@@ -35,21 +35,6 @@ function parseArgs(argv) {
   return args;
 }
 
-/** The newest official iteration's plain-named benchmark — what `--compare-official` would reach for. */
-function latestOfficialBenchmark(skill) {
-  const officialDir = path.join("iterations", skill);
-  if (!fs.existsSync(officialDir)) return null;
-  const iterations = fs
-    .readdirSync(officialDir)
-    .filter((entry) => entry.startsWith("iteration-"))
-    .sort((a, b) => parseInt(b.split("-")[1], 10) - parseInt(a.split("-")[1], 10));
-  for (const iteration of iterations) {
-    const candidate = path.join(officialDir, iteration, "benchmark.json");
-    if (fs.existsSync(candidate)) return candidate;
-  }
-  return null;
-}
-
 function main() {
   const args = parseArgs(process.argv.slice(2));
   if (!args.skill) {
@@ -57,19 +42,44 @@ function main() {
     process.exit(1);
   }
 
-  const benchmarkPath = args.benchmark || latestOfficialBenchmark(args.skill);
-  if (!benchmarkPath || !fs.existsSync(benchmarkPath)) {
-    console.error(`No benchmark found for skill "${args.skill}".`);
-    process.exit(1);
+  // Resolve exactly as the runner does. `--compare-official` merges the newest result per eval
+  // across official iterations, so checking only the newest directory would pass a suite whose
+  // older thirteen evals are stale — the very partial-coverage blindness this script exists to
+  // catch. A `--benchmark PATH` overrides, for vetting one candidate before promoting it.
+  let benchmark;
+  let source;
+  if (args.benchmark) {
+    if (!fs.existsSync(args.benchmark)) {
+      console.error(`No benchmark at ${args.benchmark}.`);
+      process.exit(1);
+    }
+    benchmark = JSON.parse(fs.readFileSync(args.benchmark, "utf-8"));
+    source = args.benchmark;
+  } else {
+    benchmark = loadOfficialBenchmark(process.cwd(), args.skill);
+    if (!benchmark) {
+      console.error(`No official benchmark found for skill "${args.skill}".`);
+      process.exit(1);
+    }
+    source = benchmark._iterationName || "official";
   }
 
-  const benchmark = JSON.parse(fs.readFileSync(benchmarkPath, "utf-8"));
   const stale = staleEvals(benchmark.evals, (id) =>
     computeEvalFingerprint(path.join("evals", args.skill, id))
   );
 
   const regime = `${benchmark.grading_model || "unknown"}/${benchmark.grading_effort || "default"}`;
-  console.log(`${benchmarkPath} — graded ${regime}, ${benchmark.evals.length} evals`);
+  console.log(`${source} — graded ${regime}, ${benchmark.evals.length} evals`);
+  const byIteration = {};
+  for (const entry of benchmark.evals) {
+    const from = entry._fromIteration || "this benchmark";
+    byIteration[from] = (byIteration[from] || 0) + 1;
+  }
+  if (Object.keys(byIteration).length > 1) {
+    console.log(
+      `   merged from: ${Object.entries(byIteration).map(([k, n]) => `${k} (${n})`).join(", ")}`
+    );
+  }
 
   if (stale.length === 0) {
     console.log(`✅ Every eval matches the current definitions; this baseline is live.`);
@@ -85,4 +95,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { staleEvals, latestOfficialBenchmark };
+module.exports = { staleEvals };

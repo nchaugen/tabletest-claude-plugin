@@ -2781,6 +2781,7 @@ module.exports = {
   ledgerRunLabel,
   ledgerRow,
   appendToLedger,
+  loadOfficialBenchmark,
   analysisTodoMarkdown,
   narrationMarkdown,
   // grading pipeline
