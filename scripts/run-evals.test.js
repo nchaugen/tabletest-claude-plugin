@@ -1018,6 +1018,24 @@ describe("analysisBaselineOf", () => {
     assert.equal(chosen.benchmark, null);
     assert.equal(chosen.label, "no baseline");
   });
+
+  test("names the merge when the official baseline is one", () => {
+    const merged = { iteration: 40, evals: [], _iterationName: "iterations 40, 39 merged" };
+    const chosen = analysisBaselineOf({ compareOfficial: true, iteration: 6 }, previous, merged);
+    assert.equal(chosen.label, "official (iterations 40, 39 merged)");
+  });
+
+  test("says so when --compare-official could not be honoured, instead of quietly substituting", () => {
+    const chosen = analysisBaselineOf({ compareOfficial: true, iteration: 6 }, previous, null);
+    assert.equal(chosen.benchmark, previous);
+    assert.match(chosen.warning, /`--compare-official` was requested but no official benchmark was found/);
+    assert.match(chosen.warning, /Compared against iteration 5 instead/);
+  });
+
+  test("carries no warning when the requested baseline is the one used", () => {
+    assert.equal(analysisBaselineOf({ compareOfficial: true, iteration: 6 }, previous, official).warning, null);
+    assert.equal(analysisBaselineOf({ iteration: 6 }, previous, official).warning, null);
+  });
 });
 
 describe("movedAssertions", () => {
@@ -1108,10 +1126,16 @@ describe("comparisonAgainst", () => {
 
 describe("analysisTodoMarkdown", () => {
   const context = { iteration: 6, label: "tabletest variant=next", baselineLabel: "official iteration 40" };
+  const over = (evals, moved, notComparable = []) => ({
+    moved,
+    notComparable,
+    comparableEvals: evals - notComparable.length,
+    totalEvals: evals,
+  });
 
   test("gives every moved verdict an artefact list and an unfilled cause", () => {
     const md = analysisTodoMarkdown(
-      [{ eval: "eval-18-y", assertion: "rule-falsifiable-by-a-row", direction: "lost" }],
+      over(1, [{ eval: "eval-18-y", assertion: "rule-falsifiable-by-a-row", direction: "lost" }]),
       context
     );
     assert.match(md, /LOST `rule-falsifiable-by-a-row` — eval-18-y/);
@@ -1122,7 +1146,7 @@ describe("analysisTodoMarkdown", () => {
 
   test("quotes the grader's own words when they are available, as a claim to check", () => {
     const md = analysisTodoMarkdown(
-      [{ eval: "eval-18-y", assertion: "a", direction: "lost" }],
+      over(1, [{ eval: "eval-18-y", assertion: "a", direction: "lost" }]),
       context,
       () => "both rows have identical inputs"
     );
@@ -1131,7 +1155,7 @@ describe("analysisTodoMarkdown", () => {
 
   test("survives a grading file it cannot read", () => {
     const md = analysisTodoMarkdown(
-      [{ eval: "eval-18-y", assertion: "a", direction: "lost" }],
+      over(1, [{ eval: "eval-18-y", assertion: "a", direction: "lost" }]),
       context,
       () => null
     );
@@ -1139,9 +1163,62 @@ describe("analysisTodoMarkdown", () => {
   });
 
   test("says there is nothing to attribute when no verdict moved", () => {
-    const md = analysisTodoMarkdown([], context);
+    const md = analysisTodoMarkdown(over(1, []), context);
     assert.match(md, /No assertion verdicts moved/);
     assert.doesNotMatch(md, /Cause \(from artefact\)/);
+  });
+
+  test("states how much of the run the comparison covered, even when it covered all of it", () => {
+    assert.match(analysisTodoMarkdown(over(4, []), context), /\*\*4 of 4 evals comparable\.\*\*/);
+  });
+
+  // The failure this whole file exists to prevent: iteration-40's stale benchmark excluded all
+  // four evals of the cluster-1 loop, and the to-do reported it as "nothing to attribute".
+  test("refuses to read a comparison that covered no evals as a clean run", () => {
+    const md = analysisTodoMarkdown(
+      over(4, [], [
+        { eval: "eval-20-a", reason: "definition-changed" },
+        { eval: "eval-26-b", reason: "definition-changed" },
+        { eval: "eval-29-c", reason: "definition-changed" },
+        { eval: "eval-30-d", reason: "definition-changed" },
+      ]),
+      context
+    );
+    assert.match(md, /Nothing was compared/);
+    assert.match(md, /\*\*0 of 4 evals comparable\.\*\*/);
+    assert.match(md, /Nothing below is evidence/);
+    assert.doesNotMatch(md, /nothing to attribute/);
+  });
+
+  test("names every excluded eval and why, so silence is never read as agreement", () => {
+    const md = analysisTodoMarkdown(
+      over(2, [{ eval: "eval-20-a", assertion: "x", direction: "won" }], [
+        { eval: "eval-31-new", reason: "absent-from-baseline" },
+      ]),
+      context
+    );
+    assert.match(md, /Partial comparison/);
+    assert.match(md, /\*\*1 of 2 evals comparable\.\*\*/);
+    assert.match(md, /`eval-31-new` — the baseline never ran this eval/);
+    assert.match(md, /WON `x` — eval-20-a/);
+  });
+
+  test("warns when the baseline was graded under a different regime", () => {
+    const md = analysisTodoMarkdown(over(1, []), {
+      ...context,
+      regime: "claude-sonnet-5/medium",
+      baselineRegime: "claude-haiku-4-5/default",
+    });
+    assert.match(md, /graded under a different regime/);
+    assert.match(md, /claude-haiku-4-5\/default vs claude-sonnet-5\/medium/);
+  });
+
+  test("surfaces a --compare-official request that could not be honoured", () => {
+    const md = analysisTodoMarkdown(over(1, []), {
+      ...context,
+      warning: "`--compare-official` was requested but no official benchmark was found. Compared against iteration 5 instead.",
+    });
+    assert.match(md, /`--compare-official` was requested but no official benchmark was found/);
   });
 });
 

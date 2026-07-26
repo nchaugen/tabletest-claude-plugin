@@ -739,6 +739,9 @@ function parseArgs(argv) {
     console.error("  --grade-runs N      Grade each assertion N times and take the majority verdict (default 1)");
     console.error("  --grade-only        Re-grade existing outputs");
     console.error("  --report-only       Regenerate report from existing benchmark.json");
+    console.error("");
+    console.error("Exit codes: 0 ok · 1 the run failed · 2 the run succeeded but its comparison was");
+    console.error("void (no eval comparable against the baseline) — results are saved, do not re-run");
     process.exit(1);
   }
 
@@ -794,9 +797,11 @@ async function main() {
     const officialBenchmark = args.compareOfficial ? loadOfficialBenchmark(repoRoot, args.skill) : null;
     generateReport(benchmark, previousBenchmark, officialBenchmark, iterationDir, args);
     const regeneratedBaseline = analysisBaselineOf(args, previousBenchmark, officialBenchmark);
-    writeAnalysisTodo(benchmark, regeneratedBaseline.benchmark, regeneratedBaseline.label, iterationDir, args);
+    const regeneratedComparison = writeAnalysisTodo(benchmark, regeneratedBaseline, iterationDir, args);
     log("\nReport regenerated. Results in:", iterationDir);
+    const regeneratedVoid = reportVoidComparison(regeneratedComparison, regeneratedBaseline, iterationDir);
     logFile = null;
+    if (regeneratedVoid) process.exit(2);
     return;
   }
 
@@ -829,6 +834,7 @@ async function main() {
 
   const worktreeMode = args.variant || "skill";
   const worktreePath = args.gradeOnly ? null : setupWorktree(repoRoot, worktreeMode, args);
+  let comparisonWasVoid = false;
 
   try {
     if (!args.gradeOnly) {
@@ -852,14 +858,18 @@ async function main() {
     const officialBenchmark = args.compareOfficial ? loadOfficialBenchmark(repoRoot, args.skill) : null;
     generateReport(benchmark, previousBenchmark, officialBenchmark, iterationDir, args);
     const analysisBaseline = analysisBaselineOf(args, previousBenchmark, officialBenchmark);
-    writeAnalysisTodo(benchmark, analysisBaseline.benchmark, analysisBaseline.label, iterationDir, args);
+    const comparison = writeAnalysisTodo(benchmark, analysisBaseline, iterationDir, args);
     log("\nDone. Results in:", iterationDir);
+    // Reported after the results are saved and before the worktree is torn down, so the last
+    // thing on screen is the reason the comparison says nothing rather than the success line.
+    comparisonWasVoid = reportVoidComparison(comparison, analysisBaseline, iterationDir);
   } finally {
     if (worktreePath) {
       cleanupWorktree(worktreePath);
     }
     logFile = null;
   }
+  if (comparisonWasVoid) process.exit(2);
 }
 
 function setupWorktree(repoRoot, mode = "skill", args = {}) {
@@ -2017,9 +2027,8 @@ function detectRegressions(benchmark, previousBenchmark) {
   const notComparable = [];
 
   for (const pair of pairedWithBaseline(benchmark, previousBenchmark)) {
-    if (pair.reason === "absent-from-baseline") continue;
     if (!pair.comparable) {
-      notComparable.push({ eval: pair.evalEntry.id });
+      notComparable.push({ eval: pair.evalEntry.id, reason: pair.reason });
       continue;
     }
 
@@ -2062,15 +2071,45 @@ function detectRegressions(benchmark, previousBenchmark) {
  * run asked to be compared with it, otherwise the previous iteration. Named so the report
  * and the analysis to-do cannot silently disagree about what "moved" means.
  */
+/**
+ * What to call the official baseline. `loadOfficialBenchmark` merges the newest result per eval
+ * across every official iteration, so "iteration 40" can silently mean "40 for most evals and 39
+ * — a different grading regime — for the rest". Name the merge when there is one.
+ */
+function officialBaselineLabel(officialBenchmark) {
+  return officialBenchmark._iterationName
+    ? `official (${officialBenchmark._iterationName})`
+    : `official iteration ${officialBenchmark.iteration}`;
+}
+
+/** The grading regime a benchmark was produced under, as one readable token. */
+function regimeOf(benchmark) {
+  if (!benchmark) return "unknown";
+  return `${benchmark.grading_model || "unknown"}/${benchmark.grading_effort || "default"}`;
+}
+
 function analysisBaselineOf(args, previousBenchmark, officialBenchmark) {
   if (args.compareOfficial && officialBenchmark) {
-    return { benchmark: officialBenchmark, label: `official iteration ${officialBenchmark.iteration}` };
+    return { benchmark: officialBenchmark, label: officialBaselineLabel(officialBenchmark), warning: null };
   }
+  // Asking for the official baseline and silently getting a different one is the same class of
+  // failure as an unreported exclusion: the run answers a question nobody asked.
+  const unhonoured = args.compareOfficial
+    ? "`--compare-official` was requested but no official benchmark was found. "
+    : "";
   if (previousBenchmark) {
     const compareIter = args.compareIteration != null ? args.compareIteration : args.iteration - 1;
-    return { benchmark: previousBenchmark, label: `iteration ${compareIter}` };
+    return {
+      benchmark: previousBenchmark,
+      label: `iteration ${compareIter}`,
+      warning: unhonoured ? `${unhonoured}Compared against iteration ${compareIter} instead.` : null,
+    };
   }
-  return { benchmark: null, label: "no baseline" };
+  return {
+    benchmark: null,
+    label: "no baseline",
+    warning: unhonoured ? `${unhonoured}Nothing was compared.` : null,
+  };
 }
 
 /**
@@ -2088,7 +2127,7 @@ function comparisonAgainst(benchmark, baselineBenchmark) {
   }
 
   const pairs = pairedWithBaseline(benchmark, baselineBenchmark);
-  const { regressions, improvements } = detectRegressions(benchmark, baselineBenchmark);
+  const { regressions, improvements, notComparable } = detectRegressions(benchmark, baselineBenchmark);
   const moved = [
     ...regressions.map((r) => ({ ...r, direction: "lost" })),
     ...improvements.map((i) => ({ ...i, direction: "won" })),
@@ -2096,9 +2135,7 @@ function comparisonAgainst(benchmark, baselineBenchmark) {
 
   return {
     moved,
-    notComparable: pairs
-      .filter((pair) => !pair.comparable)
-      .map((pair) => ({ eval: pair.evalEntry.id, reason: pair.reason })),
+    notComparable,
     comparableEvals: pairs.filter((pair) => pair.comparable).length,
     totalEvals: pairs.length,
   };
@@ -2108,21 +2145,71 @@ function movedAssertions(benchmark, baselineBenchmark) {
   return comparisonAgainst(benchmark, baselineBenchmark).moved;
 }
 
+const EXCLUSION_REASONS = {
+  "definition-changed": "definition changed since the baseline; the two verdicts are not commensurable",
+  "absent-from-baseline": "the baseline never ran this eval; there is nothing to compare against",
+};
+
+/**
+ * How much of the run the comparison actually covered, stated before any delta is shown. An
+ * excluded eval contributes no moved verdicts, so silence about exclusions is read as agreement —
+ * which is exactly how a comparison covering none of the run once passed for a clean one.
+ */
+function exclusionsMarkdown(notComparable, comparableEvals, totalEvals) {
+  if (notComparable.length === 0) {
+    return `**${comparableEvals} of ${totalEvals} evals comparable.**\n\n`;
+  }
+  const nothingCompared = comparableEvals === 0;
+  let md = nothingCompared ? `## ⛔ Nothing was compared\n\n` : `## ⚠️ Partial comparison\n\n`;
+  md += `**${comparableEvals} of ${totalEvals} evals comparable.** `;
+  md += nothingCompared
+    ? `Every eval was excluded from the deltas in this file:\n\n`
+    : `The rest were excluded from them:\n\n`;
+  for (const excluded of notComparable) {
+    md += `- \`${excluded.eval}\` — ${EXCLUSION_REASONS[excluded.reason] || excluded.reason}\n`;
+  }
+  md += `\n`;
+  return md;
+}
+
 /**
  * The artefact-review form for a run: one entry per moved assertion, naming the files that
  * can explain it and leaving the cause blank. A score delta is not an attribution — the
  * grader's justification names the assertion, not reliably the cause — so this exists to
  * make the reading step visible work rather than remembered advice.
  *
+ * It takes the whole comparison rather than the moved list because the gate has to be able to
+ * say "nothing was compared", which no count of moved verdicts can express.
+ *
  * `evidenceFor` looks up the grader's own words for an assertion; it is injected so this
  * stays a pure function of the two benchmarks.
  */
-function analysisTodoMarkdown(moved, context, evidenceFor = () => null) {
-  const { iteration, label, baselineLabel } = context;
+function analysisTodoMarkdown(comparison, context, evidenceFor = () => null) {
+  const { moved, notComparable, comparableEvals, totalEvals } = comparison;
+  const { iteration, label, baselineLabel, regime, baselineRegime, warning } = context;
+
   let md = `# Analysis to-do — ${label}, iteration ${iteration}\n\n`;
-  md += `Compared against **${baselineLabel}**. `;
+  md += `Compared against **${baselineLabel}**`;
+  if (regime) md += `, grading ${regime}`;
+  md += `.\n\n`;
+  if (warning) md += `> ⚠️ ${warning}\n\n`;
+  if (regime && baselineRegime && regime !== baselineRegime) {
+    md += `> ⚠️ **The baseline was graded under a different regime** (${baselineRegime} vs ${regime}).\n`;
+    md += `> A comparison is void across a change of grading regime — re-baseline rather than interpret this.\n\n`;
+  }
+
+  md += exclusionsMarkdown(notComparable, comparableEvals, totalEvals);
+
+  if (comparableEvals === 0 && totalEvals > 0) {
+    md += `**Nothing below is evidence.** This run measured nothing against this baseline; an empty\n`;
+    md += `moved list here is the shape of a void comparison, not of a clean one. Re-baseline, or\n`;
+    md += `compare against a benchmark whose definitions match, before reading this run at all.\n`;
+    return md;
+  }
+
   if (moved.length === 0) {
-    md += `No assertion verdicts moved, so there is nothing to attribute.\n`;
+    md += `No assertion verdicts moved among the evals that could be compared, so there is nothing\n`;
+    md += `to attribute.\n`;
     return md;
   }
   md += `**${moved.length} assertion verdict${moved.length === 1 ? "" : "s"} moved.**\n\n`;
@@ -2208,19 +2295,50 @@ function graderEvidenceLookup(iterationDir, gradingSuffix) {
   };
 }
 
-function writeAnalysisTodo(benchmark, baselineBenchmark, baselineLabel, iterationDir, args) {
-  const moved = movedAssertions(benchmark, baselineBenchmark);
+function writeAnalysisTodo(benchmark, analysisBaseline, iterationDir, args) {
+  const comparison = comparisonAgainst(benchmark, analysisBaseline.benchmark);
   const label = args.variant ? `${args.skill} variant=${args.variant}` : args.skill;
   const md = analysisTodoMarkdown(
-    moved,
-    { iteration: args.iteration, label, baselineLabel },
+    comparison,
+    {
+      iteration: args.iteration,
+      label,
+      baselineLabel: analysisBaseline.label,
+      regime: regimeOf(benchmark),
+      baselineRegime: analysisBaseline.benchmark ? regimeOf(analysisBaseline.benchmark) : null,
+      warning: analysisBaseline.warning,
+    },
     graderEvidenceLookup(iterationDir, args.gradingSuffix)
   );
   const suffix = args.gradingSuffix ? `-${args.gradingSuffix}` : "";
   const todoPath = path.join(iterationDir, `analysis-todo${suffix}.md`);
   fs.writeFileSync(todoPath, md, "utf-8");
-  log(`Analysis to-do saved: ${todoPath} (${moved.length} moved)`);
-  return moved.length;
+  log(
+    `Analysis to-do saved: ${todoPath} ` +
+      `(${comparison.comparableEvals}/${comparison.totalEvals} evals comparable, ${comparison.moved.length} moved)`
+  );
+  return comparison;
+}
+
+/**
+ * A comparison that covered none of the run is not a result — it is a measurement that did not
+ * happen, and its empty delta list reads as reassurance. Say so where it cannot be skimmed past,
+ * and exit non-zero. The run's own artefacts are already written and are perfectly good; the thing
+ * that failed is the comparison, so this must never read as a reason to re-run and pay again.
+ */
+function reportVoidComparison(comparison, analysisBaseline, iterationDir) {
+  if (comparison.totalEvals === 0 || comparison.comparableEvals > 0) return false;
+  if (!analysisBaseline.benchmark) return false;
+
+  log(`\n⛔ VOID COMPARISON — none of the ${comparison.totalEvals} evals could be compared against ` +
+      `${analysisBaseline.label}.`);
+  for (const excluded of comparison.notComparable) {
+    log(`   ${excluded.eval}: ${EXCLUSION_REASONS[excluded.reason] || excluded.reason}`);
+  }
+  log(`   Nothing was measured against this baseline. The empty delta is not evidence of no change.`);
+  log(`   Generation and grading SUCCEEDED and are saved in ${iterationDir} — do not re-run.`);
+  log(`   Re-baseline, or re-report against a matching benchmark (--report-only --compare-iteration M).`);
+  return true;
 }
 
 function generateReport(benchmark, previousBenchmark, officialBenchmark, iterationDir, args) {
@@ -2251,10 +2369,20 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
 
   // Attribution warning — the numbers below are deltas, not causes
   const analysisBaseline = analysisBaselineOf(args, previousBenchmark, officialBenchmark);
+  if (analysisBaseline.warning) {
+    md += `> ⚠️ ${analysisBaseline.warning}\n\n`;
+  }
   if (analysisBaseline.benchmark) {
-    const movedCount = movedAssertions(benchmark, analysisBaseline.benchmark).length;
-    if (movedCount > 0) {
-      md += `> ⚠️ **${movedCount} assertion verdict${movedCount === 1 ? "" : "s"} moved** vs ${analysisBaseline.label}. `;
+    const comparison = comparisonAgainst(benchmark, analysisBaseline.benchmark);
+    if (comparison.comparableEvals === 0 && comparison.totalEvals > 0) {
+      md += `> ⛔ **Void comparison — none of the ${comparison.totalEvals} evals could be compared** vs `;
+      md += `${analysisBaseline.label}. Every delta below is computed over nothing; an absence of `;
+      md += `movement here is not evidence that nothing moved. See \`analysis-todo.md\`.\n\n`;
+    } else if (comparison.moved.length > 0) {
+      md += `> ⚠️ **${comparison.moved.length} assertion verdict${comparison.moved.length === 1 ? "" : "s"} moved** vs ${analysisBaseline.label}`;
+      md += comparison.comparableEvals < comparison.totalEvals
+        ? ` (over ${comparison.comparableEvals} of ${comparison.totalEvals} evals — the rest were not comparable). `
+        : `. `;
       md += `These are deltas, not attributions: read each eval's \`outputs/\` and \`narration.md\` `;
       md += `before explaining any of them, and do not start the next iteration until every entry in `;
       md += `\`analysis-todo.md\` has a cause.\n\n`;
@@ -2287,9 +2415,11 @@ function generateReport(benchmark, previousBenchmark, officialBenchmark, iterati
         md += `\n`;
       }
       if (notComparable.length > 0) {
-        md += `**Eval definition changed — not comparable (${notComparable.length}):**\n`;
+        md += `**Not comparable (${notComparable.length}) — excluded from the deltas above:**\n`;
         for (const nc of notComparable) {
-          md += `- ⚠️ ${nc.eval}: fingerprint differs from iteration ${compareIter}; re-baseline to compare\n`;
+          md += nc.reason === "absent-from-baseline"
+            ? `- ⚠️ ${nc.eval}: iteration ${compareIter} did not run this eval; nothing to compare against\n`
+            : `- ⚠️ ${nc.eval}: fingerprint differs from iteration ${compareIter}; re-baseline to compare\n`;
         }
         md += `\n`;
       }
