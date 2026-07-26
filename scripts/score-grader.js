@@ -18,20 +18,21 @@ const REPO_ROOT = path.resolve(__dirname, "..");
 const KEY_PATH = path.join(REPO_ROOT, "docs", "grader-answer-key.json");
 
 function parseArgs(argv) {
-  const args = { iteration: null, skill: "tabletest", gradingSuffix: null, json: false };
+  const args = { iteration: null, skill: "tabletest", gradingSuffix: null, json: false, force: false };
   for (let i = 2; i < argv.length; i++) {
     switch (argv[i]) {
       case "--iteration": args.iteration = argv[++i]; break;
       case "--skill": args.skill = argv[++i]; break;
       case "--grading-suffix": args.gradingSuffix = argv[++i]; break;
       case "--json": args.json = true; break;
+      case "--force": args.force = true; break;
       default:
         console.error(`Unknown argument: ${argv[i]}`);
         process.exit(2);
     }
   }
   if (!args.iteration) {
-    console.error("Usage: node scripts/score-grader.js --iteration N [--skill S] [--grading-suffix X] [--json]");
+    console.error("Usage: node scripts/score-grader.js --iteration N [--skill S] [--grading-suffix X] [--json] [--force]");
     process.exit(2);
   }
   return args;
@@ -56,8 +57,34 @@ function loadGrading(iterationDir, evalDir, gradingSuffix) {
   return JSON.parse(fs.readFileSync(full, "utf-8"));
 }
 
+/**
+ * The key's verdicts were read off one specific set of stored outputs, so they say nothing about a
+ * different iteration's. Scoring the wrong iteration does not fail — it returns a confident
+ * percentage assembled from verdicts about outputs nobody graded, which is the worst shape an error
+ * can take in this repo. The key states the binding in `scored_against`; this enforces it.
+ */
+function keyAppliesTo(key, skill, iteration) {
+  const boundTo = key.scored_against && key.scored_against.iteration;
+  if (!boundTo) return { ok: true };
+  const expected = `iterations/${skill}/iteration-${iteration}`;
+  return boundTo === expected ? { ok: true } : { ok: false, boundTo, requested: expected };
+}
+
 function score(args) {
   const key = JSON.parse(fs.readFileSync(KEY_PATH, "utf-8"));
+
+  const applies = keyAppliesTo(key, args.skill, args.iteration);
+  if (!applies.ok && !args.force) {
+    console.error(`The answer key was read against ${applies.boundTo}, not ${applies.requested}.`);
+    console.error(`Its verdicts describe those stored outputs; a different iteration's outputs are`);
+    console.error(`different solutions, so scoring them against this key is meaningless.`);
+    console.error(`Re-read the key against the outputs you mean, or pass --force if you know why.`);
+    process.exit(2);
+  }
+  if (!applies.ok && args.force) {
+    console.error(`WARNING: --force — key is bound to ${applies.boundTo}; this score is not evidence.\n`);
+  }
+
   const iterationDir = path.join(REPO_ROOT, "iterations", args.skill, `iteration-${args.iteration}`);
   if (!fs.existsSync(iterationDir)) {
     console.error(`No such iteration directory: ${iterationDir}`);
@@ -97,43 +124,49 @@ function score(args) {
   return rows;
 }
 
-const args = parseArgs(process.argv);
-const rows = score(args);
-
-const scored = rows.filter((r) => r.outcome === "correct" || r.outcome === "wrong");
-const correct = scored.filter((r) => r.outcome === "correct");
-const wrong = scored.filter((r) => r.outcome === "wrong");
-const skipped = rows.filter((r) => !["correct", "wrong"].includes(r.outcome));
-
-if (args.json) {
-  console.log(JSON.stringify({ rows, correct: correct.length, scored: scored.length }, null, 2));
-  process.exit(0);
-}
-
-const label = args.gradingSuffix ? `grading-${args.gradingSuffix}.json` : "grading.json";
-console.log(`\nGrader accuracy — iteration ${args.iteration}, ${label}`);
-console.log(`Answer key: docs/grader-answer-key.json (${key_count(rows)} entries)\n`);
-
-for (const r of rows) {
-  const mark = { correct: "  ok  ", wrong: " WRONG", unscored: "  --  " }[r.outcome] || "  ??  ";
-  const want = r.expected === null ? "n/a" : r.expected ? "PASS" : "FAIL";
-  const got = r.actual === null ? r.outcome : r.actual ? "PASS" : "FAIL";
-  console.log(`${mark}  eval-${String(r.eval).padEnd(2)}  ${r.assertion.padEnd(38)} want ${want.padEnd(4)} got ${got}`);
-  if (r.outcome === "wrong") {
-    console.log(`        why the key says ${want}: ${r.basis}`);
-    if (r.evidence) console.log(`        grader said: ${r.evidence}`);
+function main() {
+  const args = parseArgs(process.argv);
+  const rows = score(args);
+  
+  const scored = rows.filter((r) => r.outcome === "correct" || r.outcome === "wrong");
+  const correct = scored.filter((r) => r.outcome === "correct");
+  const wrong = scored.filter((r) => r.outcome === "wrong");
+  const skipped = rows.filter((r) => !["correct", "wrong"].includes(r.outcome));
+  
+  if (args.json) {
+    console.log(JSON.stringify({ rows, correct: correct.length, scored: scored.length }, null, 2));
+    process.exit(0);
   }
+  
+  const label = args.gradingSuffix ? `grading-${args.gradingSuffix}.json` : "grading.json";
+  console.log(`\nGrader accuracy — iteration ${args.iteration}, ${label}`);
+  console.log(`Answer key: docs/grader-answer-key.json (${key_count(rows)} entries)\n`);
+  
+  for (const r of rows) {
+    const mark = { correct: "  ok  ", wrong: " WRONG", unscored: "  --  " }[r.outcome] || "  ??  ";
+    const want = r.expected === null ? "n/a" : r.expected ? "PASS" : "FAIL";
+    const got = r.actual === null ? r.outcome : r.actual ? "PASS" : "FAIL";
+    console.log(`${mark}  eval-${String(r.eval).padEnd(2)}  ${r.assertion.padEnd(38)} want ${want.padEnd(4)} got ${got}`);
+    if (r.outcome === "wrong") {
+      console.log(`        why the key says ${want}: ${r.basis}`);
+      if (r.evidence) console.log(`        grader said: ${r.evidence}`);
+    }
+  }
+  
+  const rate = scored.length ? ((correct.length / scored.length) * 100).toFixed(0) : "0";
+  console.log(`\n${correct.length}/${scored.length} correct (${rate}%)`);
+  if (wrong.length) console.log(`wrong: ${wrong.map((r) => `${r.assertion}/${r.eval}`).join(", ")}`);
+  if (skipped.length) {
+    const byOutcome = {};
+    for (const r of skipped) (byOutcome[r.outcome] = byOutcome[r.outcome] || []).push(`${r.assertion}/${r.eval}`);
+    for (const [outcome, list] of Object.entries(byOutcome)) console.log(`${outcome}: ${list.join(", ")}`);
+  }
+  console.log("\nA disagreement is not automatically the grader's fault — re-read the artefact before");
+  console.log("changing anything. The key is a reading, not an oracle.\n");
+  
+  function key_count(rows) { return rows.length; }
 }
 
-const rate = scored.length ? ((correct.length / scored.length) * 100).toFixed(0) : "0";
-console.log(`\n${correct.length}/${scored.length} correct (${rate}%)`);
-if (wrong.length) console.log(`wrong: ${wrong.map((r) => `${r.assertion}/${r.eval}`).join(", ")}`);
-if (skipped.length) {
-  const byOutcome = {};
-  for (const r of skipped) (byOutcome[r.outcome] = byOutcome[r.outcome] || []).push(`${r.assertion}/${r.eval}`);
-  for (const [outcome, list] of Object.entries(byOutcome)) console.log(`${outcome}: ${list.join(", ")}`);
-}
-console.log("\nA disagreement is not automatically the grader's fault — re-read the artefact before");
-console.log("changing anything. The key is a reading, not an oracle.\n");
+if (require.main === module) main();
 
-function key_count(rows) { return rows.length; }
+module.exports = { keyAppliesTo };
