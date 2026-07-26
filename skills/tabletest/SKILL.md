@@ -419,6 +419,36 @@ No deduction   | 50000  | 0.22 |           | 11000.00
 With deduction | 50000  | 0.22 | 5000      | 9900.00
 ```
 
+**The symptom is an expectation cell you cannot predict in one step.** If reading a row means
+classifying first and then computing, the table has fused two rules and states neither. Give the
+classification its own table, whose expectation columns *are* the classification:
+
+Table 1 — the classification (how do these duty hours divide?):
+```
+Scenario           | Duty Hours | Normal Hours? | Extended Hours?
+Below the limit    | 8          | 8             | 0
+At the limit       | 13         | 13            | 0
+Past the limit     | 14         | 13            | 1
+```
+
+Table 2 — the arithmetic (extended hours earn rest credit at double rate):
+```
+Scenario            | Normal Hours | Extended Hours | Rest Credit?
+Ordinary duty       | 13           | 0              | 13.0
+Duty ran long       | 13           | 1              | 15.0
+```
+
+Each table now states one rule, and every cell is predictable from its row. This usually needs a
+narrower function to call — see **Let tables drive the API decomposition**; a table that can only
+reach the fused result means the seam is missing, not that the table must fuse.
+
+**When a second expectation column is a different rule's output, move it out.** *Include All Outputs
+of a Concern* asks for every output of the *same* rule; it does not license a second rule's output.
+A table deciding whether a crew member is fit to fly that also asserts their required rest hours is
+asserting two rules — the fitness decision does not compute the rest requirement. The second rule
+gets its own table, and the decision table drops the column rather than keeping it "for
+completeness".
+
 ### Frame Stateful Features as Rules
 
 When a feature involves state (queues, workflows, inventories), frame each row as a state transition rule:
@@ -442,6 +472,74 @@ Other signs that concerns are mixed:
 - The table has two groups of output columns that never both apply in the same row
 
 **Missing concern:** An input to one rule is itself derived from raw data. The derivation has its own edge cases and needs boundary testing in a separate table. The rule table then takes the derived value as a direct input column, not the raw data. Two tables, not one.
+
+**Do not over-split either.** Several tables that fix the same setup and each vary one sub-rule, all
+reporting the same output column, are one concern scattered across methods — one table per adjustment,
+per option, per flag. Collapse them into one table with a column for the varying input.
+The test is the fixture: if two tables hold the same values constant and answer the same question,
+they are one table. Collapse only while the combined table stays a handful of rows and each row still
+shows which sub-rule it demonstrates; where collapsing would cross-multiply, the tables are
+genuinely distinct and belong apart.
+
+### Give Each Obligation Exactly One Row
+
+The right number of rows is a covering problem. List the concern's **obligations** — the distinct
+behaviours the rule must demonstrate — then write the smallest set of rows that covers all of them.
+Both errors are real, and they are not symmetrical in how they read: a missing obligation lets a
+wrong implementation pass, while a repeated one costs the reader time and suggests a distinction
+that is not there.
+
+**The test for a redundant row: if two rows share an expectation, the difference between them must
+be the thing the rule is about.** If it is not, they are one row — and a value set is how you say so.
+
+Three shapes account for nearly every redundant row:
+
+- **Further past the same boundary.** A pair that *straddles* a boundary earns both its rows: the
+  outcomes differ, and that is the rule. A second row on the same side does not.
+
+  ```
+  Scenario                  | Duty Hours | Extra Rest Required?
+  At the duty limit         | 13         | false
+  Just past the duty limit  | 13.5       | true
+  Well past the duty limit  | 20         | true      ← redundant: 13.5 already proved it
+  ```
+
+  Keep the straddling pair; drop the row further out. This holds for rejections too — one row just
+  past a limit rejects, and a row further past it rejects for no new reason.
+- **A larger n in the same direction.** If two incompatible items in a batch force it into separate
+  collection streams, three incompatible items force it for the same reason. One obligation, one row.
+- **A value the rule is indifferent to.** Two rows differing only in an input the rule ignores are
+  one row with a value set: `{whole blood, plasma}` where the deferral interval is the same either
+  way, or `{manual, scheduled}` where what triggered a climate adjustment does not change it.
+
+A second row on the same side of a boundary earns its place in one case: when the point *is* that two
+inputs collapse to one behaviour. Then say so — a value set says it in one row, and if you keep two
+rows the scenario names have to carry why.
+
+This is the same rule that makes a tier ladder one row per tier (see Value Sets for Tier Grouping):
+a value set spanning the tier's range carries its own boundaries, so a separate "tier begins" row
+discharges nothing the "tier holds" row has not.
+
+### A Combining Table Needs Its Own Rule
+
+Once every rule has a table, the pull is to add one more that runs the whole feature end to end. It
+re-proves what the single-rule tables already established, and it reads as redundant however clean
+those tables are.
+
+**A table that combines concerns earns its place only where the combination behaves in a way neither
+concern shows alone** — a precedence, an ordering, an interaction whose result neither parent table
+produces — and then it carries only the rows that show it. A table proving that a weight-based dose
+is computed *before* the daily maximum caps it is a real table: the question is which rule applies
+first, and its expected values appear in no other table. A table whose rows re-run each dose band
+through the public entry point is not.
+
+Two symptoms:
+
+- **The description gives it away.** If the `@Description` you would write is "end-to-end scenarios
+  combining the rules from the tables above", the table has no rule of its own. Delete it.
+- **Wiring is not a rule.** Reaching a rule through the public API rather than the unit under test
+  does not make it a new rule. If the wiring genuinely needs showing, that is one row, not a second
+  pass over the ladder.
 
 ### Match Table Structure to the Logic Being Tested
 
@@ -583,6 +681,14 @@ public static RequestConfig parseRequestConfig(Map<String, String> config) {
 **The converter returns the domain object, not the map.** Declaring the parameter `Map<String,
 String>` and building the object with a private helper in the test class leaves construction in the
 test and defeats the point — the converter *is* the construction.
+
+**A map column is a column decision, not a table decision.** Choosing a map for one parameter says
+nothing about where the concern boundary lies, and it must not become the boundary. If another input
+drives the same rule to the same output column, it is another column in the same table — not a table
+of its own. A vent position driven by the measured humidity and a vent position driven by the
+configured climate overrides are one concern with one output: one table, a humidity column beside the
+overrides map column. Splitting them because one input arrives as a map and the other does not is the
+over-split described under Decompose When You See These Signs.
 
 The map keeps the table compact, each row states only what differs from the defaults, and all construction and defaulting logic lives in the converter — never in the test method body. This applies however the object is normally built (constructor, setters, or builder), and even when a table exercises only one or two of the optional fields: if a method body news up a parameter object and mutates it, that construction belongs in a `@TypeConverter` behind a map column.
 
@@ -737,6 +843,8 @@ Row 2: Fallback flag is critical for error handling, so specify exact value.
 
 **Don't use value sets when scenario descriptions add context.** Email validation patterns like "missing local part", "no TLD", "missing @" each test a different structural rule — grouping them as `{@missing.com, user@.com}` loses the *why*.
 
+**A separate row is for a structurally different reason, never for a further example of one reason.** Two rows earn their place when each fails for its own reason; a third that fails for a reason already shown is redundant however differently it is spelled. Working down a format specification produces many rows and one obligation (see Give Each Obligation Exactly One Row), so pick the representative cases and name the reason in each scenario.
+
 #### Value Sets for Tier Grouping
 
 When multiple input values produce the same output (a tier), group them into a value set:
@@ -749,7 +857,25 @@ Junior     | {60, 75, 89}        | Junior
 Senior     | {90, 100, 120}      | Senior
 ```
 
-This makes the tier structure a first-class concept — each row IS a tier. Cover every tier as one row (value set holding at least both boundary counts), not a sample of tiers or separate "tier begins"/"tier holds" rows.
+This makes the tier structure a first-class concept — each row IS a tier.
+
+**Every tier gets a row, and every tier gets only one.** Two failures follow from breaking this, and
+a ladder usually shows both at once:
+
+- **Do not sample the ladder.** However many tiers the rule defines, that many rows. Showing the
+  first tiers, the last, and trusting the reader to interpolate leaves the middle ones unproven — an
+  implementation that mis-maps them passes. "The pattern is obvious" is not coverage.
+- **Do not split a tier in two.** A "tier begins" row beside a "tier holds" row is one tier over two
+  rows:
+
+  ```
+  Sophomore tier begins | 30       | Sophomore
+  Sophomore tier holds  | {45, 59} | Sophomore    ← same tier, second row
+  ```
+
+  The value set already spans the tier, so it already carries the boundary. Write
+  `{30, 45, 59} | Sophomore` and the first row has nothing left to prove. Put both of the tier's
+  boundary values *inside* the set.
 
 **Value sets work on two axes — check both.** Within a row, group input values that produce the same outcome (`{30, 45, 59}` → one tier). Across rows, collapse duplicates: when two input kinds follow identical rules everywhere (two categories treated alike by every rule), one row with `{A, B}` replaces two identical rows. It is easy to apply one axis and miss the other.
 
@@ -774,7 +900,7 @@ void resolves_values(String input, String resolved) {
 
 **Blank vs value set**: Blank cells mean the input is genuinely absent (null). When the input exists but is irrelevant to the outcome, use a value set instead: `{UK, Ireland, Other}` for destination means "destination exists but doesn't affect this result". Don't use blanks for "doesn't matter" — blanks mean null.
 
-**Note**: These are syntax examples, not test design patterns. Null/empty/blank variants of an input should typically be additional rows in the test that covers the feature, not in a separate test method.
+**Note**: These are syntax examples, not test design patterns. Null/empty/blank variants of an input belong as rows in the table that covers the feature, not in a separate test method — but **one row per distinct outcome, not one per representation.** Where null, `''` and `'   '` all produce the same rejection, that is one obligation: a single row, or `{'', '   '}` as a value set with a blank-cell row only where the null case must be visible on its own. Three rows are right only when the three actually behave differently.
 
 ---
 
@@ -835,6 +961,10 @@ After writing, verify:
 - [ ] **Correct expected values**: arithmetic in expected columns verified independently; every row's output matches the stated rules
 - [ ] **Value set semantics**: value sets only used where every value produces the same result; not used as shorthand for "test multiple values"
 - [ ] **Irrelevance and tiers use value sets**: inputs that don't affect a row's outcome appear as value sets (not a fixed placeholder value mentioned in `@Description`); when a range of input values maps to one tier, the row groups representative values (including both boundaries) into a value set
+- [ ] **One row per obligation**: every row discharges a behaviour no other row in that table reaches; where two rows share an expectation, what differs between them is what the rule is about — not a value further past the same boundary, a larger n in the same direction, or an input the rule ignores
+- [ ] **Every tier once**: a tier ladder has one row per tier — all of them, none twice, no "tier begins" row beside a "tier holds" row
+- [ ] **Combining tables prove an interaction**: any table exercising several rules together shows behaviour the single-rule tables cannot (a precedence, an ordering), not the earlier rules re-run end to end
+- [ ] **One rule per table**: expectation columns are all outputs of the same rule; a column another table's rule produces (a required-rest figure beside a fit-to-fly decision) belongs in that other table
 - [ ] **Optional inputs blank**: columns not relevant to a scenario use blank cells (not 0 or defaults); parameter types support null
 - [ ] **Traceability columns**: intermediate expected values included only when the value is observable from the public API — never reimplemented from internal logic; if you need to reimplement a formula to populate the column, decompose into separate tables instead
 - [ ] **@Description adds information**: if present, `@Description` provides context beyond what the table shows (fixed values, domain context, open questions) — not a restatement of columns or rows. Omit `@Description` if there is nothing to add.

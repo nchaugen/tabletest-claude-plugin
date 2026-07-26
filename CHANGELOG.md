@@ -10,10 +10,19 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - **tabletest**: Collapsing an optional-field parameter object into a map column is now decided from the method signature rather than from how blank the drafted columns look, and the converter returns the domain object — a `Map<String, String>` parameter plus a private construction helper leaves construction in the test, which the map column exists to remove
 - **tabletest**: Compound expectations stay native collections — a result that is several items, or items grouped under a key, is a list, set, or map column (`[W1: [camera, lens]]`), not a quoted string assembled by a stringifying helper; use a set where order is not part of the rule
+- **tabletest**: A map column is a column decision, not a table decision. Choosing a map for one parameter does not make that parameter's fields the concern boundary — another input that drives the same rule to the same output column is another column in the same table, not a table of its own
+- **tabletest**: Separating rules from arithmetic now names the symptom: if reading a row means classifying first and then computing, the table has fused two rules and states neither. The classification gets its own table whose expectation columns *are* the classification, and the calculation table takes those as input columns
+- **tabletest**: Decomposition guidance now states the opposite failure as well — several tables that fix the same setup, each varying one sub-rule and reporting the same output column, are one concern scattered across methods, and belong in one table with a column for the varying input
+- **tabletest**: Tier ladders get one row per tier — all of them, none twice. Do not sample the ladder and trust the reader to interpolate, and do not split a tier into a "tier begins" row beside a "tier holds" row: a value set spanning the tier already carries its boundaries
+- **tabletest**: Null, empty and blank variants of an input are one row per distinct *outcome*, not one per representation. Where all three produce the same rejection that is a single row, or `{'', '   '}` as a value set with a blank-cell row only where the null case must be visible on its own
+- **tabletest**: A separate row is for a structurally different reason, never a further example of one reason — working down a format specification produces many rows and a single obligation
 
 ### Added
 - **tabletest**: Custom converters claim expectation columns too — conversion is by parameter type, not by column role, so `true` arrives as `false` in a class registering a `Yes/No` boolean converter
 - **tabletest**: A collection value cannot hold a null element — `[a, , c]` is a parse error, not a list containing null
+- **tabletest**: Guidance on how many rows a table needs. List the concern's obligations — the distinct behaviours the rule must demonstrate — then write the smallest set of rows covering all of them. Where two rows share an expectation, the difference between them must be the thing the rule is about; three shapes of redundant row are named: a value further past a boundary an earlier row already crossed, a larger n in the same direction, and an input the rule is indifferent to (one row with a value set)
+- **tabletest**: Guidance on combining tables. A table exercising several rules together earns its place only where the combination behaves in a way neither rule shows alone — a precedence, an ordering, an interaction whose result neither single-rule table produces. A final table that runs the whole feature end to end re-proves what those tables established; if the description you would write for it is "end-to-end scenarios combining the rules above", it has no rule of its own
+- **tabletest**: Four Quality Checks — one row per obligation, every tier exactly once, combining tables prove an interaction, and expectation columns are all outputs of the same rule
 
 ## [1.6.0] - 2026-07-07
 
