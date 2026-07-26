@@ -463,6 +463,136 @@ worse trade for a plan trying to establish that a skill edit helped. Estimated p
 applied after the wording fixes, not instead of them, and every fix must be re-scored for accuracy — an
 edit that raises stability while lowering accuracy has made the instrument worse.
 
+## The noise floor on the CURRENT instrument — measured 2026-07-26 (`p1`/`p2`)
+
+Three gradings of the same stored outputs under the live regime: `benchmark.json` (318),
+`benchmark-p1` (323), `benchmark-p2` (322), instrument `8425750f`. Reproduce with
+`node scripts/flip-report.js --skill tabletest --iteration 40 --suffixes ,p1,p2`.
+
+**17 of 365 slots flip; 37 fail in all three.** Against the old instrument's 18 of 365,
+**tranche 2 did not reduce instability** — pairwise it is 15 flips against the old series' mean of
+12. Tranche 2 bought *accuracy* (its stated aim) and never bought stability, which is the documented
+lesson restated as a measurement: sharper wording does not fix a sampling problem.
+
+| Eval | Assertion | plain p1 p2 |
+|---|---|---|
+| 8 | `minimal-rows-per-concern` | p F F |
+| 15 | `2.16-no-duplicate-tier-mapping` | F p p |
+| 18 | `concerns-decomposed` | p F p |
+| 18 | `depth-premium-boundaries` | F p p |
+| 18 | `minimal-rows-per-concern` | p p F |
+| 18 | `rule-statable-from-table` | F p p |
+| 22 | `description-no-irrelevant-information` | F p p |
+| 25 | `consistent-quantity-naming` | p p F |
+| 25 | `minimal-rows-per-concern` | F p p |
+| 25 | `options-as-map` | F p p |
+| 27 | `minimal-rows-per-concern` | F p p |
+| 27 | `rule-statable-from-table` | p F p |
+| 28 | `rule-statable-from-table` | F p p |
+| 29 | `quantifier-covered-by-rows` | p F p |
+| 29 | `scenario-names-describe-conditions` | F p F |
+| 29 | `type-converters-for-complex-objects` | F p F |
+| 30 | `held-constants-declared` | p F F |
+
+`minimal-rows-per-concern` ×4 and `rule-statable-from-table` ×3 are **7 of the 17** — the same two
+assertions that topped the old instrument's list. Everything else appears once.
+
+**The baseline is the low draw.** 318 against a three-sample mean of 321. Every cluster measured
+against `iteration-40/benchmark.json` is anchored to a favourable sample, so measured wins are
+flattered by roughly 3 slots. Prefer per-slot evidence to net score.
+
+### Voting does not help — measured, not assumed
+
+Scoring all three passes against the answer key:
+
+| | accuracy |
+|---|---|
+| plain | 62/68 = 91.2% |
+| p1 | 61/68 = 89.7% |
+| p2 | 62/68 = 91.2% |
+| **majority-of-3** | **61/68 = 89.7%** |
+
+Zero slots are wrong in all three; twelve are split. But majority-of-3 leaves **seven** wrong —
+no better than a single pass at 3× the cost. The split slots are not wobbling symmetrically around
+the right answer: the grader is uncertain *and* leans wrong on most of them, so voting converts
+"wrong two times in three" into "wrong three times in three". This is the entrenchment warning in a
+subtler form than the original measurement found — not *reproducibly* wrong, but *predominantly*
+wrong. **`--grade-runs 3` stays reserved.**
+
+At 68 keyed slots a one-slot difference is inside noise, so the claim is "no measurable gain", not
+"voting is worse". Note also that single-sample accuracy carries roughly ±2 slots here, so the
+recorded progression 89% → 94% → 95% is partly inside its own noise.
+
+### The current outputs — iteration-41, evals 20/26/29/30
+
+Same three-pass treatment on the post-promotion outputs (88 / 90 / 89, instrument `9eb3645a`):
+**6 of 96 flip; 4 fail in all three.** Flips: `minimal-rows-per-concern`/26,
+`consistent-quantity-naming`/29, `scenario-names-describe-conditions`/29 and /30,
+`type-converters-for-complex-objects`/29, `held-constants-declared`/30. Stable failures:
+`concern-not-over-split`/26, `minimal-rows-per-concern`/29 and /30, `quantifier-covered-by-rows`/29.
+
+**The answer key cannot score iteration-41.** Its `scored_against.iteration` is iteration-40 and its
+first caveat is that entries hold only while the assertion text *and the stored output* are
+unchanged. `score-grader.js --iteration 41` would run anyway and return a confident, meaningless
+number.
+
+### Why these two assertions flip — read from the grader's own words
+
+Not vagueness. Two different structural faults, diagnosed from the three passes' evidence strings.
+
+**`rule-statable-from-table`: the enumeration is unbounded.** The text fails "if any of these hold
+for any `@TableTest`", but nothing makes the grader visit them all, so each pass judges whichever
+method it happened to read. On eval-27: `plain` PASSED citing `premium`'s description, `p1` FAILED
+citing `appliesFragileSurcharge` and `appliesDimensionalWeight`, `p2` PASSED citing `premium` again.
+On eval-28, three passes cited three different methods. The verdict tracks *which method was
+sampled*, not the output.
+
+*Proposed fix — force the enumeration into the evidence, not just the criterion:*
+
+> Judge **every** `@TableTest` method in the class. Your evidence must list each method name with
+> PASS or FAIL beside it; a verdict reported from a subset of the methods is not a verdict. The
+> assertion FAILS if any single method fails. A value counts as published if it appears in that
+> method's own `@DisplayName` or `@Description`, in a column of its table, or in the class-level
+> `@Description`.
+
+The last sentence closes a second gap: eval-18's `plain` FAIL complained a value was missing from
+"this table's own description" while `p1`/`p2` found it in the `@Description` — the two passes
+disagreed about which surface counts.
+
+**`minimal-rows-per-concern`: two licensed readings, and it is already the longest assertion in the
+suite.** Every past fix added a clause; it is now ~1,400 characters and the noisiest slot we have.
+
+- *Direction.* eval-8: `plain` PASSED; `p1`/`p2` FAILED for "no scale/zero/format boundary rows" —
+  a complaint about **missing** coverage under an assertion that polices **excess** rows. Nothing in
+  the text forbids that reading.
+- *Scope.* eval-25: `plain` FAILED because four sibling surcharge tables each repeat the 7.50
+  baseline; `p1`/`p2` PASSED because each table is minimal within its own scope. The text asserts
+  per-table minimality and then adds a class-level clause, licensing both.
+
+*Proposed fix — split it, do not lengthen it.* This section's own heading is "split on decidability
+boundaries", and the two readings above are exactly such a boundary:
+
+> **`no-duplicate-rows-within-a-table`** — Judge each `@TableTest` in isolation. It FAILS if a row
+> re-covers an obligation an earlier row in the *same* table already discharged. A row discharging an
+> obligation no other row reaches earns its place however simple it looks; a value set covering
+> several values in one row is the preferred discharge, never a failure. **Rows you think are missing
+> are never a failure here** — coverage is judged by `2.19-covers-every-tier` and
+> `quantifier-covered-by-rows`.
+>
+> **`no-table-reproves-another`** — Judge the class as a whole. It FAILS if a whole `@TableTest`
+> re-proves rules earlier tables already established (the integration or end-to-end table is the
+> common case). Sibling tables that each isolate one rule are **not** duplication merely because they
+> share a baseline row.
+
+Splitting also unblocks measurement: cluster 2 targets `minimal-rows-per-concern` on five evals, and
+today none of those five can be read at n = 1.
+
+**Cost and sequencing.** This is a suite change, so per `AGENTS.md` it lands as its own commit and is
+re-baselined before skill iteration resumes — a `--grade-only` regrade, ~13 min / ~$1.83, no
+generation. Two costs to plan for: splitting one assertion into two changes every host `eval.json`
+and re-fingerprints those evals, and the answer-key rows for both assertions must be **re-read from
+the artefacts**, since changing assertion text invalidates them.
+
 ## The noise floor, per slot — v1/v2/v3, distilled 2026-07-26
 
 `benchmark-v1/v2/v3.json` are one generation graded three times under one regime (322 / 320 / 327),

@@ -118,15 +118,22 @@ stated apart: a void comparison gets a `⛔ Nothing was compared` section and th
 again). A partial comparison names each excluded eval and why. Silence about exclusions used to read
 as agreement; it no longer is silent, but the number is still yours to read.
 
-**One run does not settle a flip-prone slot.** Roughly 5% of slots flip between identical re-grades,
-concentrated on `rule-statable-from-table`, `minimal-rows-per-concern`,
-`scenario-names-describe-conditions` and `quantifier-covered-by-rows` (see `docs/assertion-triage.md`
-for the current list). When a cluster's moved verdicts land on any of those, confirm with a
-**re-grade of the same stored outputs** (`--grade-only --grading-suffix`) before attributing —
-generation is the expensive half and you already have it. Do not reach for `--grade-runs 3`: voting
-averages away the very flip you are trying to see, and it can entrench a reproducibly wrong verdict.
-**Judge a cluster by whether its targeted slots moved, never by the net** — a whole-suite score has a
-±3–4 slot run-to-run spread, which is the size of a typical cluster's entire effect.
+**One run does not settle a flip-prone slot.** Measured on the current instrument 2026-07-26:
+**17 of 365 slots flip** across three identical re-grades, and `minimal-rows-per-concern` (×4) plus
+`rule-statable-from-table` (×3) are seven of them. `docs/assertion-triage.md` holds the per-slot list
+and the diagnosis — read it rather than guessing which of your moved verdicts are real.
+
+When a cluster's moved verdicts land on any of those slots, confirm with a **re-grade of the same
+stored outputs** (`--grade-only --grading-suffix`) before attributing — generation is the expensive
+half and you already have it. **Do not reach for `--grade-runs 3`:** majority-of-3 was measured
+against the answer key and scored 61/68, exactly matching a single pass, because the split slots lean
+wrong rather than wobbling symmetrically. Voting costs 3× and buys nothing here.
+
+**Judge a cluster by whether its targeted slots moved, never by the net.** The whole-suite score
+spread is 318/323/322 across identical re-grades — the size of a typical cluster's entire effect. Two
+consequences: a net figure is not evidence, and **the stored baseline is the low draw of its own
+distribution** (318 against a mean of 321), so every comparison against it flatters the variant by
+roughly 3 slots.
 
 **The report tells you which assertions moved. It does not tell you why, and its grader
 justifications are not evidence of cause.** Before attributing a delta to a specific edit, read

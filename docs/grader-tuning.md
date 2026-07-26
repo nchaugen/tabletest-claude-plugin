@@ -54,11 +54,21 @@ commands in the right order.
 **Measure accuracy, not agreement.** Every grader measurement taken before the answer key existed
 measured *precision* — whether the grader agrees with itself. Majority-voting a reproducibly wrong
 verdict only makes it stable, so **voting fixes variance and can entrench bias**. Check accuracy
-before reaching for `--grade-runs 3`.
+before reaching for `--grade-runs 3`. Measured on the current instrument, voting scored 61/68 —
+identical to a single pass — so it is reserved, not merely discouraged.
 
 `docs/grader-answer-key.json` holds verdicts established by reading stored artefacts.
 `node scripts/score-grader.js --iteration N [--grading-suffix S]` scores a run against it. Re-score
 after any assertion-wording change: **a wording fix that does not move the score did not work.**
+
+**The key is bound to one set of outputs.** Its `scored_against.iteration` names them, and entries
+hold only while the assertion text *and* that stored output are unchanged. `score-grader.js` does not
+check this: pointed at a different iteration it returns a confident, meaningless percentage. Check
+`scored_against` before scoring anything but the iteration the key was read from.
+
+**A single accuracy figure carries about ±2 slots** at the current 68-entry key, so a wording change
+that moves accuracy by one or two slots has not been shown to do anything. Take three passes before
+believing a small gain.
 
 **A disagreement is not automatically the grader's fault.** Key entries have been wrong and the
 grader has disproved them. Re-read the artefact before changing an assertion.
