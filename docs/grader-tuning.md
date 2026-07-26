@@ -123,6 +123,16 @@ and point at the triage section; when the probe is later swept, those rows are w
 
 ## Declaring a winner
 
+**When a probe produced several passes, promote the one whose total is the median.** Not the first,
+not the best. A baseline is a single draw from a distribution several slots wide, and whichever draw
+takes the plain name anchors every future comparison: `iteration-40`'s 318 sat at the bottom of its
+own 318/323/322 spread, quietly flattering every variant measured against it by about three slots.
+The median is the least-wrong single draw available, and choosing it is free.
+
+Promote a whole pass, never a slot-by-slot majority. Voting was measured and does not improve
+accuracy (61/68, identical to one pass), and a stitched-together benchmark corresponds to no run that
+ever happened.
+
 When a regrade becomes the reference, promote it to the plain name **in one commit**. Half a rename
 is worse than none.
 
