@@ -326,9 +326,9 @@
     {
       "eval": 25,
       "assertion": "rule-statable-from-table",
-      "expected": true,
+      "expected": false,
       "confidence": "firm",
-      "basis": "Every predictive value is published in a @Description: the 1.15x fragile multiplier ('so Fee? shows only the 1.15x fragile-handling multiplier'), the 10.00 oversize surcharge, the 8.00 hazmat surcharge, the 0.6%-with-3.00-minimum insurance rule, and the 7.50 base fee each table holds fixed. Contrast evals 27 and 28, where the same fragile multiplier appears nowhere — the three together discriminate this assertion cleanly on one task from three sources."
+      "basis": "CORRECTED 2026-07-26 from expected: true. The grader disproved the earlier reading. dimensionalWeightOverride's table holds 'Dimensional weight wins (bulky, light package) | 1.0 | [70, 50, 10] | 12.50'. Predicting 12.50 needs the volumetric rule (L*W*H/5000, giving 7 kg) and the fee for 7 kg; the @Description supplies only 'base fee 7.50 for up to 5 kg'. The string 5000 appears nowhere in the test class, and no rate band above 5 kg is published, so clause (1) is met on two counts. The earlier reading checked the 1.15 fragile multiplier and the surcharge tables and never examined this table. Note the consequence: 25, 27 and 28 now all fail, so the three no longer discriminate this assertion against each other — evals 15 and 18 remain the passing hosts."
     },
     {
       "eval": 25,
