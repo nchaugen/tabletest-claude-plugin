@@ -148,6 +148,12 @@ outputs?"* If the fingerprints still match, the answer is yes and it stays. Dele
 `conversation.jsonl` permanently — it is gitignored, so it is not in history. The committed
 `narration.md` distillate is what survives, which is why it exists.
 
+**`git rm -r` does not empty an iteration directory.** `conversation.jsonl` and `run.log` are
+gitignored, so they survive on disk along with the directory tree holding them — leaving what looks
+like a live iteration (3.9 MB of it, in the 2026-07-26 sweep) that every directory listing still
+shows. It has no `benchmark.json`, so baseline resolution skips it and nothing breaks quietly, but
+finish the job with `rm -rf` and confirm with `ls iterations/<skill>/`.
+
 ## Hazards
 
 - **`loadOfficialBenchmark` merges across iterations.** It takes the newest result *per eval* across
