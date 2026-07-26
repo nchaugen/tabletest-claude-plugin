@@ -95,6 +95,12 @@ common workstream depends on:
 **Distil the per-slot flip list, never just the summary number.** "18/365 flip" is useless later; the
 list of *which* slots is what makes a future delta readable. It goes in `docs/assertion-triage.md`.
 
+**Every regrade appends its own row to `docs/measurement-ledger.md`**, labelled `iteration-N [suffix]`
+and marked `regrade` — generation cost and duration read `—` because it spent neither. A probe is
+therefore visible in the ledger as *two or more rows sharing an `Instrument` and a `Regime`*, which is
+precisely the condition for their scores being comparable. Annotate one of them with the flip finding
+and point at the triage section; when the probe is later swept, those rows are what remains of it.
+
 ## Declaring a winner
 
 When a regrade becomes the reference, promote it to the plain name **in one commit**. Half a rename

@@ -265,6 +265,11 @@ exactly one of them changed between the compared iterations.
   `node scripts/check-baseline.js --skill tabletest` names every eval whose definition has moved since
   the benchmark `--compare-official` would pick. It is a second, and the failure it catches otherwise
   surfaces only after the run is paid for.
+- **Every run appends a row to `docs/measurement-ledger.md`.** You do not append; you **annotate** the
+  `Note` column when the analysis gate closes, and you **never delete a row**. The ledger outlives the
+  iteration directories, so once results are trimmed it is the only record that a measurement
+  happened — and the only durable source for what a run costs and takes. Read its header before
+  comparing two rows: a score column is not a trend line, because the instrument moves under it.
 - **Fingerprint guard (automatic).** Each `benchmark.json` result is stamped with a content
   fingerprint of its definition (`prompt.md`, `eval.json`, `expected_output.md`, `project/`);
   reports compare only matching evals and exclude changed ones as "not comparable". Pre-guard
