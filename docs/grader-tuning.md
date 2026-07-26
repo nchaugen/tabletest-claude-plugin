@@ -43,6 +43,11 @@ Re-grading costs no generation. A full 17-eval regrade is roughly **13 minutes a
 `summary.total_duration_ms` and `summary.grading` on a recent benchmark rather than trusting that
 figure. Always background it, and price a three-pass variance probe in hours, not minutes.
 
+**Chain re-baseline commands with `;`, not `&&`.** A re-baseline compares against a baseline that is
+stale by definition, so the void-comparison guard fires and the run exits **2**. That is correct, but
+with `&&` the first command stops the rest. `--rebuild` also needs `--evals` when the iteration
+directory holds fewer evals than the suite, because it loads every eval definition by default.
+
 **When a grading run dies part-way, grade the failures then `--rebuild`.** A fatal grading failure
 writes no benchmark, stranding the gradings that succeeded. `--rebuild` assembles the benchmark from
 the `grading{suffix}.json` files already on disk — no API calls. Do not re-run the full command to

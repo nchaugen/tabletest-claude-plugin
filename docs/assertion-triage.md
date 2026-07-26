@@ -506,11 +506,42 @@ from `[70,50,10]` and appears nowhere, then by the assertion's own words eval-25
 key is incomplete. **Settle this by reading eval-25's artefact before touching either again** — a
 disagreement is not automatically the grader's fault.
 
-**Next step, cheapest first.** Correct the surface clause to "any `@DisplayName` or `@Description` on
-the same test class, or a column of the table" and re-grade one pass: `rule-statable` is only 5 keyed
-slots, so a single pass separates 0/5 from 3/5 decisively. Only buy a three-pass probe if that reads
-well. Do not add further clauses on top — two rounds of rewording failed before this one, and this
-round is the third.
+### The corrected clause — measured 2026-07-26 (`c1`, now the plain baseline)
+
+The surface clause was rewritten to name the whole class, and the answer key's eval-25 entry was
+corrected to `false` after reading the artefact. One regrade of the 11 changed evals, then a rebuild.
+
+| | before any change | broken clause | corrected clause (`c1`) |
+|---|---|---|---|
+| `rule-statable-from-table` | 3/5, 4/5, 3/5 | 1/5, 1/5, 2/5 | **4/5** |
+| all 61 comparable slots | 56, 55, 55 | 54, 53, 58 | **58 (95%)** |
+
+Evals 15 and 18 are correct again. They were wrong in all three passes under the broken clause, which
+was the specific prediction, so the diagnosis was right and the first wording was wrong.
+
+Three limits on this result:
+
+- **One pass.** `rule-statable` flipped three times in the earlier probe, so 4/5 may be a good draw.
+  Consistent with improvement, not proof.
+- **58/61 is not a new high overall.** Pass `s3` also reached 58/61 with the broken clause. The clear
+  gain is on the targeted assertion, not the total.
+- **Eval 25 is unresolved.** The grader now says PASS while the corrected key says FAIL — the
+  reverse of before. The artefact shows no `/5000` and no fee band above 5 kg, so FAIL still looks
+  right, but this is one observation on a slot that has flipped. Do not change the key or the
+  assertion again without a second pass.
+
+Level held: 333/378, inside the earlier 331/334/328.
+
+**Do not add further clauses.** Two rounds of rewording failed before this, and the third round made
+its target worse before the correction. If `rule-statable` is still unstable at the next probe, the
+answer is to revert the enumeration clause, not to extend it.
+
+### Note for the next re-baseline
+
+Every run during a deliberate re-baseline exits **2**, because the old baseline is stale by
+definition and the void-comparison guard is doing its job. Chain re-baseline commands with `;`, not
+`&&`, or the first one will stop the rest. `--rebuild` also needs `--evals` when the iteration
+directory holds fewer evals than the suite.
 
 ## The noise floor on the CURRENT instrument — measured 2026-07-26 (`p1`/`p2`)
 
