@@ -41,13 +41,13 @@ history for comparison, audit, and re-grading. Conversation and run logs are nev
 node scripts/run-evals.js --skill tabletest --iteration N [--evals 1,2] [--compare-iteration M]
 ```
 
-**Testing the runner:** `node --test scripts/run-evals.test.js` (~1s, no network, no
+**Testing the runner:** `node --test 'scripts/*.test.js'` (~1s, no network, no
 dependencies — `node:test` is built in). Covers the machinery a score depends on: grader
 response parsing, majority voting, retry/backoff, the abort-on-grading-failure path, the
-fingerprint guard. Run it after touching `run-evals.js` — a silent bug there corrupts every
-measurement downstream, and the failure mode is a plausible-looking number rather than a
-crash. The eval definitions in the suite are fabricated, never real ones, so the file carries
-no answer keys.
+fingerprint guard, and what a comparison could not cover. Run it after touching `run-evals.js` — a
+silent bug there corrupts every measurement downstream, and the failure mode is a plausible-looking
+number rather than a crash. The eval definitions in the suite are fabricated, never real ones, so the
+file carries no answer keys.
 
 Regression detection compares against the previous iteration's `benchmark.json` (same
 variant); `--compare-official` also compares a variant against the latest official baseline.
@@ -111,6 +111,23 @@ compact and causal-sounding — so opening the artefacts feels like confirming w
 know. That is the trap, and skipping the step has produced a confident wrong fix list and a wasted
 iteration.
 
+**Read the coverage line before the deltas.** The to-do opens with `N of M evals comparable`. An
+empty moved list satisfies the gate vacuously if nothing was comparable, so the two cases are now
+stated apart: a void comparison gets a `⛔ Nothing was compared` section and the run exits **2**
+(the run itself succeeded and its results are saved — exit 2 is never a reason to re-run and pay
+again). A partial comparison names each excluded eval and why. Silence about exclusions used to read
+as agreement; it no longer is silent, but the number is still yours to read.
+
+**One run does not settle a flip-prone slot.** Roughly 5% of slots flip between identical re-grades,
+concentrated on `rule-statable-from-table`, `minimal-rows-per-concern`,
+`scenario-names-describe-conditions` and `quantifier-covered-by-rows` (see `docs/assertion-triage.md`
+for the current list). When a cluster's moved verdicts land on any of those, confirm with a
+**re-grade of the same stored outputs** (`--grade-only --grading-suffix`) before attributing —
+generation is the expensive half and you already have it. Do not reach for `--grade-runs 3`: voting
+averages away the very flip you are trying to see, and it can entrench a reproducibly wrong verdict.
+**Judge a cluster by whether its targeted slots moved, never by the net** — a whole-suite score has a
+±3–4 slot run-to-run spread, which is the size of a typical cluster's entire effect.
+
 **The report tells you which assertions moved. It does not tell you why, and its grader
 justifications are not evidence of cause.** Before attributing a delta to a specific edit, read
 the artefacts under `iterations/<skill>/<variant>/iteration-N/<eval>/`:
@@ -140,10 +157,12 @@ scenario name, say. Graders also misfire outright, failing an assertion whose ow
 output satisfies. An analysis built on justifications alone will produce a confident, wrong fix
 list.
 
-**Compare against the right baseline.** `--compare-official` uses the latest *official* benchmark,
-which is stale for any eval a mid-batch promotion has already improved — its wins reappear as if
-the current variant had earned them. For those evals the previous variant iteration is the true
-comparison; reserve the official one for evals no promotion in the open batch has touched.
+**Compare against the right baseline.** `--compare-official` merges the newest official result per
+eval, so it is correct **provided each mid-batch promotion wrote its loop result into the official
+tree** (step 4 of Promoting a variant). Skip that step and the official benchmark is stale for every
+eval an earlier promotion already improved, and those wins reappear as if the current variant had
+earned them. `node scripts/check-baseline.js --skill <skill>` tells you which benchmark will be used
+and whether its definitions are current.
 
 ### Promoting a variant
 
@@ -158,13 +177,24 @@ the second is expensive, and it does not have to be asked once per promotion.
    terminology). **Do not bump `.claude-plugin/plugin.json`** — see below.
 3. Commit (`feat:`). The variant's own loop result — graded in the standard regime, against the
    same loop run on the previous skill version — is the promotion evidence. **No full run yet.**
-4. Repeat 1–3 for further variants, accumulating entries under `## [Unreleased]`. Nothing is
+4. **Copy the promoted loop result into the official tree as a partial iteration** —
+   `iterations/<skill>/next/iteration-N/` becomes `iterations/<skill>/iteration-M/`, next number up.
+   `loadOfficialBenchmark` merges the newest result *per eval* across official iterations, so
+   `--compare-official` then returns the promoted numbers for the evals in the loop and the old
+   baseline for everything else. Without this step the baseline is a per-eval fact recorded only in a
+   plan's prose, and the next cluster compares against results the promotion already superseded.
+   The copy is honest: the variant's `skill_digest` is the digest of the skill you just promoted —
+   check it matches if you want to be sure. Note `skill_commit` names the commit HEAD was at during
+   generation, which is the commit *before* the promotion.
+5. Repeat 1–4 for further variants, accumulating entries under `## [Unreleased]`. Nothing is
    released mid-batch.
-5. **Close the batch with one official full iteration.** Its regression report is the evidence
-   for every promotion in the batch, and its `benchmark.json` becomes the new baseline.
-6. Trim results: keep only the latest official baseline's iteration dir (commit its
-   `benchmark.json`, `eval-review.md`, `outputs/`, `grading.json`, `timing.json`); delete the
-   rest, which git history retains. The next run reads the baseline from disk.
+6. **Close the batch with one official full iteration.** Its regression report is the evidence
+   for every promotion in the batch, and its `benchmark.json` becomes the new baseline. Then trim:
+   keep only that iteration dir (commit its `benchmark.json`, `eval-review.md`, `outputs/`,
+   `grading.json`, `timing.json`) and the partial iterations it supersedes go; git history retains
+   them. The next run reads the baseline from disk. **Before deleting anything, check
+   `docs/grader-tuning.md` § The sweep** — outputs whose fingerprints still match are re-gradable and
+   must survive, and a variance probe must be distilled before it is swept.
 7. Tag and release (see Release) — that is where the single version bump for the whole batch
    happens, and where `## [Unreleased]` becomes `## [X.Y.Z] - <date>`.
 
@@ -226,30 +256,15 @@ exactly one of them changed between the compared iterations.
   `LLM_GRADING_BATCH_SIZE`, or the grader's response schema.** Re-baseline instead. Current
   measurements — instability, accuracy, level, what each batch of assertion edits moved — live in
   `docs/assertion-triage.md`; read that rather than trusting a figure remembered from a past session.
-- **Two API facts about the current model family**, both structural rather than tunable: there is
-  **no `temperature`** (a non-default value is a 400, so `acceptsTemperature()` omits it and grading
-  runs at model-default sampling), and **thinking is on by default and billed against
-  `max_tokens`** — so the verdict JSON is not `content[0]` (`extractGradingText` finds the text
-  block) and the budget must cover thinking *and* the JSON.
-- **A full regrade takes tens of minutes, not a few.** Always background it, and price a
-  three-pass variance probe in hours. Check `summary.total_duration_ms` on recent benchmarks for
-  the current figure before planning a session around one.
-- **Two things that do not fix grader disagreement**, both tried more than once: sharper assertion
-  *wording* (the disagreement is response-level, so it is a sampling problem, not a prompt problem —
-  **check call parameters before rewriting prompts**), and grading assertions one at a time, which is
-  systematically *stricter* rather than less cross-contaminated and drops every eval's score
-  uniformly. Validate any regime change against *level* — does a known-good eval hold its score —
-  and not only against variance. What *does* work is naming the surface an assertion judges
-  ("judge only the column headers", "judge every `@TableTest` in the class").
-- **Grader accuracy — measure it, don't infer it from agreement.** Every grader measurement before
-  the answer key measured *precision*: whether the grader agrees with itself. Majority-voting a
-  reproducibly wrong verdict only makes it stable, so **voting fixes variance and can entrench
-  bias** — check accuracy before reaching for `--grade-runs 3`. `docs/grader-answer-key.json` holds
-  verdicts established by reading stored artefacts; `node scripts/score-grader.js --iteration N
-  [--grading-suffix S]` scores a run against it. Re-score after any assertion-wording change: a
-  wording fix that does not move the score did not work. **A disagreement is not automatically the
-  grader's fault** — key entries have been wrong and the grader has disproved them. Re-read the
-  artefact before changing an assertion.
+- **Changing the grader itself is a separate workstream with its own procedure:
+  `docs/grader-tuning.md`.** Read it before any `--grading-suffix` work. It covers what a suffix
+  names, measuring accuracy against the answer key rather than agreement, variance probes, promoting
+  a regrade to the plain name, and the sweep that hands a single unambiguous baseline back. Skipping
+  it is what left nineteen benchmarks in iteration-40 and voided a skill-iteration run.
+- **Check the baseline is live before spending a loop against it.**
+  `node scripts/check-baseline.js --skill tabletest` names every eval whose definition has moved since
+  the benchmark `--compare-official` would pick. It is a second, and the failure it catches otherwise
+  surfaces only after the run is paid for.
 - **Fingerprint guard (automatic).** Each `benchmark.json` result is stamped with a content
   fingerprint of its definition (`prompt.md`, `eval.json`, `expected_output.md`, `project/`);
   reports compare only matching evals and exclude changed ones as "not comparable". Pre-guard
