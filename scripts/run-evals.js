@@ -859,6 +859,18 @@ async function main() {
     generateReport(benchmark, previousBenchmark, officialBenchmark, iterationDir, args);
     const analysisBaseline = analysisBaselineOf(args, previousBenchmark, officialBenchmark);
     const comparison = writeAnalysisTodo(benchmark, analysisBaseline, iterationDir, args);
+    // Only a run that measured something gets a row. --report-only re-reads a benchmark already
+    // recorded, and appending again would double-count a measurement that happened once.
+    appendToLedger(
+      benchmark,
+      comparison,
+      {
+        runLabel: ledgerRunLabel(args),
+        baselineLabel: analysisBaseline.benchmark ? analysisBaseline.label : null,
+        isRegrade: Boolean(args.gradeOnly || args.rebuild),
+      },
+      repoRoot
+    );
     log("\nDone. Results in:", iterationDir);
     // Reported after the results are saved and before the worktree is torn down, so the last
     // thing on screen is the reason the comparison says nothing rather than the success line.
@@ -2231,6 +2243,79 @@ function analysisTodoMarkdown(comparison, context, evidenceFor = () => null) {
 }
 
 /**
+ * A hash over which evals ran and what their definitions were. Two measurements sharing one ran
+ * against the same instrument; comparing across a change of it is comparing two different questions.
+ * A partial run hashes only its own evals, so a loop never shares an id with the full suite — the
+ * per-eval fingerprint remains the authority, and this is the convenience that makes a table of
+ * measurements readable at a glance.
+ */
+function instrumentId(benchmark) {
+  const definition = (benchmark.evals || [])
+    .map((entry) => `${entry.id}:${entry.fingerprint || "none"}`)
+    .sort()
+    .join("|");
+  return crypto.createHash("sha256").update(definition).digest("hex").slice(0, 8);
+}
+
+/**
+ * One measurement as a ledger row. Everything here is already known at the end of a run; the only
+ * column left blank is the one only a reader can fill in.
+ *
+ * A regrade's `cost_usd` and `duration_ms` are inherited from the generation that produced the
+ * outputs, not spent again — reporting them as this run's would imply a tuning effort cost twenty
+ * times what it did, so they are omitted rather than repeated.
+ */
+/**
+ * How a run names itself in the ledger — the same path a reader would type to find its artefacts,
+ * with the grading suffix in brackets so a regrade is distinguishable from the run it re-grades.
+ */
+function ledgerRunLabel(args) {
+  const base = args.variant
+    ? `${args.variant}/iteration-${args.iteration}`
+    : `iteration-${args.iteration}`;
+  return args.gradingSuffix ? `${base} [${args.gradingSuffix}]` : base;
+}
+
+function ledgerRow(benchmark, comparison, context) {
+  const { runLabel, baselineLabel, isRegrade } = context;
+  const summary = benchmark.summary || {};
+  const money = (amount) => (amount == null ? "—" : `$${amount.toFixed(2)}`);
+  const grading = summary.grading;
+  const cells = [
+    (benchmark.timestamp || "").slice(0, 10) || "—",
+    `\`${runLabel}\``,
+    isRegrade ? "regrade" : "run",
+    String((benchmark.evals || []).length),
+    benchmark.skill_digest && benchmark.skill_digest !== "unknown"
+      ? `\`${benchmark.skill_digest.slice(0, 10)}\``
+      : "—",
+    `${benchmark.grading_model || "?"}/${benchmark.grading_effort || "default"}`,
+    `\`${instrumentId(benchmark)}\``,
+    `${summary.assertions_passed}/${summary.assertions_total}`,
+    isRegrade ? "—" : money(summary.total_cost_usd),
+    grading && grading.priced ? money(grading.cost_usd) : "—",
+    isRegrade || !summary.total_duration_ms ? "—" : `${Math.round(summary.total_duration_ms / 60000)}m`,
+    baselineLabel
+      ? `vs ${baselineLabel}: ${comparison.comparableEvals}/${comparison.totalEvals} comparable, ${comparison.moved.length} moved. `
+      : "",
+  ];
+  return `| ${cells.join(" | ")}|`;
+}
+
+/**
+ * Appends the row for this run. The ledger outlives every iteration directory, so it is the durable
+ * answer to "what did this cost, against what, and was it comparable" once the artefacts are trimmed
+ * — which is exactly why appending cannot be a step someone has to remember.
+ */
+function appendToLedger(benchmark, comparison, context, repoRoot) {
+  const ledgerPath = path.join(repoRoot, "docs", "measurement-ledger.md");
+  if (!fs.existsSync(ledgerPath)) return;
+  const existing = fs.readFileSync(ledgerPath, "utf-8").replace(/\n+$/, "");
+  fs.writeFileSync(ledgerPath, `${existing}\n${ledgerRow(benchmark, comparison, context)}\n`, "utf-8");
+  log(`Ledger row appended: ${ledgerPath}`);
+}
+
+/**
  * The agent's own account of a run — its visible narration and the order in which it wrote
  * files — distilled from the raw transcript. Worth keeping because the transcript is
  * gitignored and trimmed each cycle, while this is small, and because the write order shows
@@ -2692,6 +2777,10 @@ module.exports = {
   pairedWithBaseline,
   comparisonAgainst,
   movedAssertions,
+  instrumentId,
+  ledgerRunLabel,
+  ledgerRow,
+  appendToLedger,
   analysisTodoMarkdown,
   narrationMarkdown,
   // grading pipeline

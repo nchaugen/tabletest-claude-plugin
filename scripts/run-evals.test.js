@@ -51,6 +51,10 @@ const {
   movedAssertions,
   analysisTodoMarkdown,
   narrationMarkdown,
+  instrumentId,
+  ledgerRunLabel,
+  ledgerRow,
+  appendToLedger,
 } = require("./run-evals.js");
 
 // --- helpers ---------------------------------------------------------------
@@ -1219,6 +1223,153 @@ describe("analysisTodoMarkdown", () => {
       warning: "`--compare-official` was requested but no official benchmark was found. Compared against iteration 5 instead.",
     });
     assert.match(md, /`--compare-official` was requested but no official benchmark was found/);
+  });
+});
+
+describe("instrumentId", () => {
+  const suite = benchmarkWith([evalResult("eval-20-a", [], "fpA"), evalResult("eval-26-b", [], "fpB")]);
+
+  test("is stable across the order evals happen to appear in", () => {
+    const reordered = benchmarkWith([...suite.evals].reverse());
+    assert.equal(instrumentId(suite), instrumentId(reordered));
+  });
+
+  test("changes when any eval's definition changes", () => {
+    const edited = benchmarkWith([evalResult("eval-20-a", [], "fpA"), evalResult("eval-26-b", [], "fpB2")]);
+    assert.notEqual(instrumentId(suite), instrumentId(edited));
+  });
+
+  test("does not match a subset of itself, since a loop measures a different question", () => {
+    const loop = benchmarkWith([evalResult("eval-20-a", [], "fpA")]);
+    assert.notEqual(instrumentId(suite), instrumentId(loop));
+  });
+
+  test("is independent of the verdicts — it identifies the instrument, not the result", () => {
+    const sameSuiteWorseRun = benchmarkWith([
+      evalResult("eval-20-a", ["now-failing"], "fpA"),
+      evalResult("eval-26-b", ["also-failing"], "fpB"),
+    ]);
+    assert.equal(instrumentId(suite), instrumentId(sameSuiteWorseRun));
+  });
+});
+
+describe("ledgerRunLabel", () => {
+  test("names an official run by its iteration", () => {
+    assert.equal(ledgerRunLabel({ iteration: 41 }), "iteration-41");
+  });
+
+  test("names a variant run by its variant directory", () => {
+    assert.equal(ledgerRunLabel({ iteration: 8, variant: "next" }), "next/iteration-8");
+  });
+
+  test("distinguishes a regrade from the run it re-grades", () => {
+    assert.equal(ledgerRunLabel({ iteration: 40, gradingSuffix: "t5" }), "iteration-40 [t5]");
+  });
+});
+
+describe("ledgerRow", () => {
+  const benchmark = {
+    timestamp: "2026-07-26T10:00:00.000Z",
+    skill_digest: "85686277bf31ae4a",
+    grading_model: "claude-sonnet-5",
+    evals: [evalResult("eval-20-a", [], "fpA")],
+    summary: {
+      assertions_passed: 88,
+      assertions_total: 96,
+      total_cost_usd: 4.91,
+      total_duration_ms: 26 * 60 * 1000,
+      grading: { cost_usd: 0.57, priced: true },
+    },
+  };
+  const comparison = { moved: [{}, {}], notComparable: [], comparableEvals: 4, totalEvals: 4 };
+
+  test("records what was spent, against what, and whether it was comparable", () => {
+    const row = ledgerRow(benchmark, comparison, {
+      runLabel: "next/iteration-7",
+      baselineLabel: "official iteration 40",
+      isRegrade: false,
+    });
+    assert.match(row, /\| 2026-07-26 \|/);
+    assert.match(row, /`next\/iteration-7`/);
+    assert.match(row, /\| run \|/);
+    assert.match(row, /88\/96/);
+    assert.match(row, /\$4\.91/);
+    assert.match(row, /\$0\.57/);
+    assert.match(row, /26m/);
+    assert.match(row, /vs official iteration 40: 4\/4 comparable, 2 moved/);
+  });
+
+  // A regrade re-uses stored outputs; repeating their generation cost would imply a tuning effort
+  // spent twenty times what it did.
+  test("omits generation cost and duration on a regrade, which spent neither", () => {
+    const row = ledgerRow(benchmark, comparison, {
+      runLabel: "iteration-40 [t5]",
+      baselineLabel: null,
+      isRegrade: true,
+    });
+    assert.doesNotMatch(row, /\$4\.91/);
+    assert.doesNotMatch(row, /26m/);
+    assert.match(row, /\$0\.57/);
+    assert.match(row, /\| regrade \|/);
+  });
+
+  test("reports an unpriced grading cost as unknown rather than as free", () => {
+    const unpriced = { ...benchmark, summary: { ...benchmark.summary, grading: { cost_usd: 0, priced: false } } };
+    const row = ledgerRow(unpriced, comparison, { runLabel: "x", baselineLabel: null, isRegrade: true });
+    assert.doesNotMatch(row, /\$0\.00/);
+  });
+
+  test("keeps the note column empty when there was no baseline to compare against", () => {
+    const row = ledgerRow(benchmark, comparison, { runLabel: "x", baselineLabel: null, isRegrade: false });
+    assert.match(row, /\| \|$/);
+  });
+});
+
+describe("appendToLedger", () => {
+  const benchmark = {
+    timestamp: "2026-07-26T10:00:00.000Z",
+    grading_model: "claude-sonnet-5",
+    evals: [evalResult("eval-20-a", [], "fpA")],
+    summary: { assertions_passed: 1, assertions_total: 1 },
+  };
+  const comparison = { moved: [], notComparable: [], comparableEvals: 1, totalEvals: 1 };
+  const context = { runLabel: "iteration-41", baselineLabel: null, isRegrade: false };
+
+  let repoRoot;
+  beforeEach(() => {
+    repoRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ledger-"));
+    fs.mkdirSync(path.join(repoRoot, "docs"));
+  });
+  afterEach(() => fs.rmSync(repoRoot, { recursive: true, force: true }));
+
+  const ledger = () => fs.readFileSync(path.join(repoRoot, "docs", "measurement-ledger.md"), "utf-8");
+  const writeLedger = (body) => fs.writeFileSync(path.join(repoRoot, "docs", "measurement-ledger.md"), body);
+
+  test("adds exactly one row and leaves everything above it untouched", () => {
+    const before = "# Measurement ledger\n\nprose\n\n| Date |\n|---|\n| old row |\n";
+    writeLedger(before);
+
+    appendToLedger(benchmark, comparison, context, repoRoot);
+
+    const lines = ledger().trimEnd().split("\n");
+    assert.equal(lines.length, before.trimEnd().split("\n").length + 1);
+    assert.equal(lines.slice(0, -1).join("\n"), before.trimEnd());
+    assert.match(lines[lines.length - 1], /`iteration-41`/);
+  });
+
+  test("appends one row per run, never rewriting an earlier one", () => {
+    writeLedger("| Date |\n|---|\n");
+
+    appendToLedger(benchmark, comparison, context, repoRoot);
+    appendToLedger(benchmark, comparison, { ...context, runLabel: "iteration-42" }, repoRoot);
+
+    assert.match(ledger(), /`iteration-41`/);
+    assert.match(ledger(), /`iteration-42`/);
+  });
+
+  test("does not create a ledger that is not there — an absent one is a deliberate absence", () => {
+    appendToLedger(benchmark, comparison, context, repoRoot);
+    assert.equal(fs.existsSync(path.join(repoRoot, "docs", "measurement-ledger.md")), false);
   });
 });
 
