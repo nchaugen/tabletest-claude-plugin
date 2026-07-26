@@ -1,0 +1,6 @@
+{
+  "compiles": false,
+  "tests_pass": null,
+  "compile_output": "Picked up JAVA_TOOL_OPTIONS: -Djava.net.preferIPv4Stack=true\n\nFAILURE: Build failed with an exception.\n\n* What went wrong:\nGradle could not start your build.\n> Could not initialize native services.\n   > Failed to load native library 'libnative-platform.dylib' for Mac OS X aarch64.\n\n* Try:\n> Run with --stacktrace option to get the stack trace.\n> Run with --info or --debug option to get more log output.\n> Run with --scan to get full insights from a Build Scan (powered by Develocity).\n> Get more help at https://help.gradle.org.\n",
+  "test_output": ""
+}

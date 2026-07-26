@@ -1,0 +1,226 @@
+{
+  "skill_name": "tabletest (next)",
+  "iteration": 8,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "unknown",
+  "skill_digest": "unknown",
+  "timestamp": "2026-07-26T19:59:45.177Z",
+  "evals": [
+    {
+      "id": "eval-14-weekly-pay",
+      "name": "weekly pay",
+      "skill": "tabletest",
+      "fingerprint": "af17cfe3a33f",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 18,
+        "assertions_total": 22,
+        "pass_rate": 0.8181818181818182,
+        "failed_assertions": [
+          "1.6-readability-empty-cells",
+          "1.11-format-description",
+          "1.14-depth-zero-rate",
+          "compiles"
+        ],
+        "total_tokens": 1313536,
+        "duration_ms": 206812,
+        "cost_usd": 0.9188146500000001,
+        "grading_usage": {
+          "input_tokens": 12411,
+          "output_tokens": 4901,
+          "total_tokens": 17312,
+          "calls": 2,
+          "cost_usd": 0.110748,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-15-reis-discount",
+      "name": "reis discount",
+      "skill": "tabletest",
+      "fingerprint": "7bd22c5e83c7",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 21,
+        "assertions_total": 28,
+        "pass_rate": 0.75,
+        "failed_assertions": [
+          "2.1-decomposition-concern-separation",
+          "window-boundary-uses-purchase-time",
+          "2.17-zone-irrelevance-visible",
+          "zone-independent-counting",
+          "title-states-system-behaviour",
+          "compiles",
+          "quantifier-covered-by-rows"
+        ],
+        "total_tokens": 2041450,
+        "duration_ms": 684497,
+        "cost_usd": 2.8567087499999997,
+        "grading_usage": {
+          "input_tokens": 22352,
+          "output_tokens": 7564,
+          "total_tokens": 29916,
+          "calls": 3,
+          "cost_usd": 0.180516,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-18-convert-from-code",
+      "name": "convert from code",
+      "skill": "tabletest",
+      "fingerprint": "38e5599a7052",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 21,
+        "assertions_total": 27,
+        "pass_rate": 0.7777777777777778,
+        "failed_assertions": [
+          "scenario-names-describe-conditions",
+          "no-table-reproves-another",
+          "description-no-internals",
+          "depth-decision-boundaries",
+          "depth-premium-boundaries",
+          "compiles"
+        ],
+        "total_tokens": 2058497,
+        "duration_ms": 394397,
+        "cost_usd": 1.54820935,
+        "grading_usage": {
+          "input_tokens": 15628,
+          "output_tokens": 11181,
+          "total_tokens": 26809,
+          "calls": 2,
+          "cost_usd": 0.214599,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-22-event-registration-tt",
+      "name": "event registration tt",
+      "skill": "tabletest",
+      "fingerprint": "57db0ea31d4d",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 27,
+        "assertions_total": 29,
+        "pass_rate": 0.9310344827586207,
+        "failed_assertions": [
+          "scenario-names-describe-conditions",
+          "compiles"
+        ],
+        "total_tokens": 162520,
+        "duration_ms": 13726,
+        "cost_usd": 1.4117945,
+        "grading_usage": {
+          "input_tokens": 14668,
+          "output_tokens": 4881,
+          "total_tokens": 19549,
+          "calls": 2,
+          "cost_usd": 0.117219,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-23-loan-approval-tt",
+      "name": "loan approval tt",
+      "skill": "tabletest",
+      "fingerprint": "2a58f07f03e0",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 22,
+        "assertions_total": 23,
+        "pass_rate": 0.9565217391304348,
+        "failed_assertions": [
+          "compiles"
+        ],
+        "total_tokens": 576397,
+        "duration_ms": 198506,
+        "cost_usd": 1.1257212000000003,
+        "grading_usage": {
+          "input_tokens": 13006,
+          "output_tokens": 6949,
+          "total_tokens": 19955,
+          "calls": 2,
+          "cost_usd": 0.143253,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-26-convert-from-kotest",
+      "name": "convert from kotest",
+      "skill": "tabletest",
+      "fingerprint": "293d24fec93a",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 25,
+        "assertions_total": 27,
+        "pass_rate": 0.9259259259259259,
+        "failed_assertions": [
+          "rule-statable-from-table",
+          "compiles"
+        ],
+        "total_tokens": 430682,
+        "duration_ms": 82090,
+        "cost_usd": 1.32397295,
+        "grading_usage": {
+          "input_tokens": 18526,
+          "output_tokens": 6123,
+          "total_tokens": 24649,
+          "calls": 2,
+          "cost_usd": 0.147423,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 134,
+    "assertions_total": 156,
+    "pass_rate": 0.8589743589743589,
+    "total_tokens": 6583082,
+    "total_duration_ms": 1580028,
+    "total_cost_usd": 9.1852214,
+    "grading": {
+      "input_tokens": 96591,
+      "output_tokens": 41599,
+      "total_tokens": 138190,
+      "calls": 13,
+      "cost_usd": 0.913758,
+      "evals_measured": 6,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}
