@@ -4,7 +4,7 @@
 
 ## Summary
 
-324/365 (88.8%) · 20956288 tokens · 4379.3s · $14.8965
+318/365 (87.1%) · 20956288 tokens · 4379.3s · $14.8965
 
 _Cost figures are Claude Code list-price estimates; actual billing may differ (e.g. promotional pricing). Timed-out evals score 0 with unrecorded token usage._
 
@@ -38,18 +38,18 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 | eval-7-permission-check | 11/13 | 13/13 | 585941 | 585941 | 59.9 | 59.9 |
 | eval-8-money-parse | 15/15 | 15/15 | 606672 | 606672 | 87.6 | 87.6 |
 | eval-9-bonus-contractor-structure | 12/13 | 13/13 | 553264 | 553264 | 82.4 | 82.4 |
-| eval-14-weekly-pay | 18/21 | 19/20 | 1307679 | 1307679 | 264.9 | 264.9 |
-| eval-15-reis-discount | 22/27 | 16/20 | 2287509 | 2287509 | 411.3 | 411.3 |
-| eval-18-convert-from-code | 22/26 | 19/21 | 826034 | 826034 | 148.2 | 148.2 |
+| eval-14-weekly-pay | 17/21 | 19/20 | 1307679 | 1307679 | 264.9 | 264.9 |
+| eval-15-reis-discount | 21/27 | 16/20 | 2287509 | 2287509 | 411.3 | 411.3 |
+| eval-18-convert-from-code | 21/26 | 19/21 | 826034 | 826034 | 148.2 | 148.2 |
 | eval-20-collections-and-quoting | 17/17 | 15/15 | 1242601 | 1811829 | 325.6 | 301.8 |
-| eval-22-event-registration-tt | 27/28 | 21/25 | 573142 | 573142 | 154.0 | 154.0 |
-| eval-23-loan-approval-tt | 19/22 | 12/18 | 540843 | 540843 | 149.9 | 149.9 |
-| eval-25-convert-from-spock | 23/26 | 19/20 | 3006845 | 3006845 | 514.5 | 514.5 |
-| eval-26-convert-from-kotest | 23/26 | 17/20 | 1443172 | 1443172 | 362.4 | 362.4 |
-| eval-27-convert-from-testng | 21/25 | 17/19 | 1445041 | 1445041 | 337.7 | 337.7 |
-| eval-28-convert-from-methodsource | 20/25 | 16/18 | 986014 | 986014 | 330.2 | 330.2 |
-| eval-29-shopping-cart-tt | 26/29 | 20/23 | 968444 | 968444 | 322.4 | 322.4 |
-| eval-30-order-splitting-tt | 20/24 | 19/20 | 3329150 | 3329150 | 664.9 | 664.9 |
+| eval-22-event-registration-tt | 25/28 | 21/25 | 573142 | 573142 | 154.0 | 154.0 |
+| eval-23-loan-approval-tt | 20/22 | 12/18 | 540843 | 540843 | 149.9 | 149.9 |
+| eval-25-convert-from-spock | 22/26 | 19/20 | 3006845 | 3006845 | 514.5 | 514.5 |
+| eval-26-convert-from-kotest | 24/26 | 17/20 | 1443172 | 1443172 | 362.4 | 362.4 |
+| eval-27-convert-from-testng | 20/25 | 17/19 | 1445041 | 1445041 | 337.7 | 337.7 |
+| eval-28-convert-from-methodsource | 19/25 | 16/18 | 986014 | 986014 | 330.2 | 330.2 |
+| eval-29-shopping-cart-tt | 25/29 | 20/23 | 968444 | 968444 | 322.4 | 322.4 |
+| eval-30-order-splitting-tt | 21/24 | 19/20 | 3329150 | 3329150 | 664.9 | 664.9 |
 
 ## Per-Eval Results
 
@@ -152,7 +152,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-14-weekly-pay
 
-**18/21** · 1307679 tokens · 264939ms
+**17/21** · 1307679 tokens · 264939ms
 
 - ✅ **1.2-error-has-expected-column**: The error/rejection table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row
 - ✅ **1.3-depth-overtime-boundary**: Overtime threshold boundary is covered: at least a value at the threshold (40) and just above (41 or similar).
@@ -181,7 +181,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-15-reis-discount
 
-**22/27** · 2287509 tokens · 411343ms
+**21/27** · 2287509 tokens · 411343ms
 
 - ✅ **2.1-decomposition-concern-separation**: Discount ladder, and traveller eligibility are in separate tables. Rolling window counting as a third table is desirable.
 - ✅ **2.2-children-flat-discount**: Children's flat 20% discount is represented.
@@ -218,7 +218,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-18-convert-from-code
 
-**22/26** · 826034 tokens · 148196ms
+**21/26** · 826034 tokens · 148196ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ✅ **black-box-columns**: Table columns represent the method's public inputs and observable outputs, not internal state
@@ -275,7 +275,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-22-event-registration-tt
 
-**27/28** · 573142 tokens · 153979ms
+**25/28** · 573142 tokens · 153979ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ✅ **validation-rules-covered**: Email validation and name-required error scenarios are present — at least one row for invalid email and one for missing name.
@@ -309,7 +309,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-23-loan-approval-tt
 
-**19/22** · 540843 tokens · 149866ms
+**20/22** · 540843 tokens · 149866ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ✅ **threshold-verifiable-from-table**: Each policy threshold (650 for non-seniors, 600 for seniors) is verifiable from the table...
@@ -339,7 +339,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-25-convert-from-spock
 
-**23/26** · 3006845 tokens · 514486ms
+**22/26** · 3006845 tokens · 514486ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ✅ **options-as-map**: Package options collapsed into a single map column
@@ -373,7 +373,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-26-convert-from-kotest
 
-**23/26** · 1443172 tokens · 362383ms
+**24/26** · 1443172 tokens · 362383ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ❌ **options-as-map**: Package options collapsed into a single map column
@@ -407,7 +407,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-27-convert-from-testng
 
-**21/25** · 1445041 tokens · 337704ms
+**20/25** · 1445041 tokens · 337704ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ❌ **options-as-map**: Package options collapsed into a single map column
@@ -441,7 +441,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-28-convert-from-methodsource
 
-**20/25** · 986014 tokens · 330205ms
+**19/25** · 986014 tokens · 330205ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ❌ **options-as-map**: Package options collapsed into a single map column
@@ -476,7 +476,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-29-shopping-cart-tt
 
-**26/29** · 968444 tokens · 322446ms
+**25/29** · 968444 tokens · 322446ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ✅ **concerns-decomposed**: Multiple @TableTest methods are used, each addressing a distinct concern
@@ -513,7 +513,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-30-order-splitting-tt
 
-**20/24** · 3329150 tokens · 664880ms
+**21/24** · 3329150 tokens · 664880ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ✅ **concerns-decomposed**: Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing all splitting rules. Closely-related concerns may share one method... four methods covering five concerns is fine.

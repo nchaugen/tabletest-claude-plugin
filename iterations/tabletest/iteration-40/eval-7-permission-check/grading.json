@@ -34,7 +34,7 @@
       "id": "no-duplicate-role-output",
       "text": "No two rows share both the same Role value and the same boolean output — forces value set consolidation (e.g. USER can READ and USER can WRITE, both true, should be one row with {READ, WRITE}).",
       "passed": false,
-      "evidence": "User can read | USER | READ | true' and 'User can write | USER | WRITE | true' are separate rows with same role/output; also 'Guest cannot write | GUEST | WRITE | false' and 'Guest cannot delete | GUEST | DELETE | false' duplicate role+output."
+      "evidence": "USER can read (true) and User can write (true) are separate rows; GUEST cannot write (false) and Guest cannot delete (false) are separate rows — duplicate role+output pairs not consolidated."
     },
     {
       "id": "has-descriptive-title",
@@ -44,9 +44,9 @@
     },
     {
       "id": "description-if-present-adds-information",
-      "text": "If @Description is present, it provides context beyond what the table rows already express... Does NOT merely restate the column names... Acceptable to omit.",
+      "text": "If @Description is present, it provides context beyond what the table rows already express — such as where permissions are checked in the request lifecycle, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context.",
       "passed": true,
-      "evidence": "No @Description annotation appears anywhere in the generated test file, so the rule is vacuously satisfied per the omission allowance."
+      "evidence": "No @Description annotation is used in the test method, so the assertion is vacuously satisfied (omission is acceptable)."
     },
     {
       "id": "annotation-order",
@@ -62,9 +62,9 @@
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario names describe conditions ('Admin performs any action', 'Guest reads') — not outcomes ('Allowed', 'Denied').",
+      "text": "Scenario names name the variation the row exercises, not the result it produces. The decidable test: FAILS when a scenario name states or paraphrases a value that appears in an expectation column of that same row — 'User cannot delete' beside an Allowed? cell of false, 'No discount applies' beside a Discount? cell of 0.00, 'Contractor gets no bonus' beside a Bonus? cell of 0. Also FAILS on generic labels ('Test 1', 'Test case 2'), which name no variation at all. PASSES otherwise. Naming the rule or the situation is correct even when it makes the outcome inferable — 'Delivery and pickup items always split', 'At the standard threshold, not above it', 'EU express, light package', 'Renewal with no claims', 'Missing name' all PASS. The failure this catches is a name echoing its own expectation cell, not a name that describes what the row is about, and not a name from which a reader who knows the rule could predict the outcome. A single offending name fails the assertion. Judge every @TableTest method in the class.",
       "passed": false,
-      "evidence": "Scenario names like 'User cannot delete' and 'Guest cannot write' encode the allowed/denied outcome directly in the name rather than describing the condition."
+      "evidence": "\"User cannot delete\" | ... | false — the scenario name directly echoes the Allowed? outcome, matching the explicit failure example given."
     },
     {
       "id": "has-tabletest-dependency",
@@ -81,5 +81,16 @@
   ],
   "assertions_passed": 11,
   "assertions_total": 13,
-  "pass_rate": 0.8461538461538461
+  "pass_rate": 0.8461538461538461,
+  "grading_usage": {
+    "input_tokens": 3176,
+    "output_tokens": 753,
+    "total_tokens": 3929,
+    "calls": 1,
+    "cost_usd": 0.020823,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
 }
