@@ -7,6 +7,21 @@ Claude Code plugin with two Java/Kotlin skills:
 
 Canonical skill files: `skills/<skill>/SKILL.md`.
 
+## Writing
+
+Write in plain language. This applies to everything here: chat replies, commit messages, docs,
+plan files, and assertion text.
+
+- Short sentences. One idea per sentence.
+- Say the finding first, then the evidence for it.
+- No metaphors, no rhetorical flourishes, no dramatic contrasts.
+- Prefer the ordinary word. "Wrong" not "backfired". "Missing" not "silently absent".
+- Numbers and file paths beat adjectives. "3/5 correct" tells the reader more than "poor accuracy".
+- Do not pad a result to make it sound more interesting than it is.
+
+Dense, ornate prose is harder to check, and this repo's whole method depends on results being easy
+to check.
+
 ## Commits
 
 One-line conventional commits (`feat:`/`fix:`/`docs:`/`chore:`), no body, no attribution footer.
