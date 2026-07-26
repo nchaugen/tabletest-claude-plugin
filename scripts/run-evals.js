@@ -868,6 +868,7 @@ async function main() {
         runLabel: ledgerRunLabel(args),
         baselineLabel: analysisBaseline.benchmark ? analysisBaseline.label : null,
         isRegrade: Boolean(args.gradeOnly || args.rebuild),
+        isRebuild: Boolean(args.rebuild),
       },
       repoRoot
     );
@@ -2287,14 +2288,14 @@ function ledgerRunLabel(args) {
 }
 
 function ledgerRow(benchmark, comparison, context) {
-  const { runLabel, baselineLabel, isRegrade } = context;
+  const { runLabel, baselineLabel, isRegrade, isRebuild } = context;
   const summary = benchmark.summary || {};
   const money = (amount) => (amount == null ? "—" : `$${amount.toFixed(2)}`);
   const grading = summary.grading;
   const cells = [
     (benchmark.timestamp || "").slice(0, 10) || "—",
     `\`${runLabel}\``,
-    isRegrade ? "regrade" : "run",
+    isRebuild ? "rebuild" : isRegrade ? "regrade" : "run",
     String((benchmark.evals || []).length),
     benchmark.skill_digest && benchmark.skill_digest !== "unknown"
       ? `\`${benchmark.skill_digest.slice(0, 10)}\``
@@ -2303,7 +2304,7 @@ function ledgerRow(benchmark, comparison, context) {
     `\`${instrumentId(benchmark)}\``,
     `${summary.assertions_passed}/${summary.assertions_total}`,
     isRegrade ? "—" : money(summary.total_cost_usd),
-    grading && grading.priced ? money(grading.cost_usd) : "—",
+    isRebuild || !(grading && grading.priced) ? "—" : money(grading.cost_usd),
     isRegrade || !summary.total_duration_ms ? "—" : `${Math.round(summary.total_duration_ms / 60000)}m`,
     baselineLabel
       ? `vs ${baselineLabel}: ${comparison.comparableEvals}/${comparison.totalEvals} comparable, ${comparison.moved.length} moved. `

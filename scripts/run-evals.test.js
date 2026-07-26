@@ -1331,6 +1331,20 @@ describe("ledgerRow", () => {
     assert.match(row, /\| regrade \|/);
   });
 
+  // A rebuild makes no API calls. Repeating the grading cost of the files it reads would add
+  // spend to the ledger that was already recorded by the run that produced them.
+  test("marks a rebuild as such and claims no spend for it", () => {
+    const row = ledgerRow(benchmark, comparison, {
+      runLabel: "iteration-41",
+      baselineLabel: null,
+      isRegrade: true,
+      isRebuild: true,
+    });
+    assert.match(row, /\| rebuild \|/);
+    assert.doesNotMatch(row, /\$0\.57/);
+    assert.doesNotMatch(row, /\$4\.91/);
+  });
+
   test("reports an unpriced grading cost as unknown rather than as free", () => {
     const unpriced = { ...benchmark, summary: { ...benchmark.summary, grading: { cost_usd: 0, priced: false } } };
     const row = ledgerRow(unpriced, comparison, { runLabel: "x", baselineLabel: null, isRegrade: true });
