@@ -16,7 +16,7 @@
       "id": "exception-handled-cleanly",
       "text": "The empty string / exception case is handled — either via a Throws? column, assertThrows inside the method, or a separate @TableTest — rather than being silently omitted",
       "passed": true,
-      "evidence": "rejectsEmptyInput ... Throws? ... assertThrows(throws_, () -> parser.parseDate(input));"
+      "evidence": "rejectsEmptyInput uses assertThrows with Throws? column, separate @TableTest"
     },
     {
       "id": "localdate-result-column",
@@ -28,7 +28,7 @@
       "id": "type-conversion-addressed",
       "text": "The response addresses type conversion for non-trivial column types — either by providing a @TypeConverter/converter method, or by using a cell representation that TableTest's built-in conversion handles (e.g. ISO-8601 date strings for LocalDate — relying on built-in conversion counts as addressed).",
       "passed": true,
-      "evidence": "Parsed? column values like '2024-01-15' map to LocalDate via built-in ISO conversion"
+      "evidence": "ISO date strings like 2024-01-15 map to LocalDate via built-in conversion"
     },
     {
       "id": "has-descriptive-title",
@@ -64,13 +64,19 @@
       "id": "concerns-decomposed",
       "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
       "passed": true,
-      "evidence": "parsesRecognizedFormats ... rejectsEmptyInput ... two @TableTest methods"
+      "evidence": "parsesRecognizedFormats and rejectsEmptyInput are two distinct @TableTest methods"
     },
     {
-      "id": "minimal-rows-per-concern",
-      "text": "Each @TableTest has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns, and no rows re-covering a rule an earlier row in the same table already covers (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that re-covers an obligation an earlier row already discharged is a duplicate, not extra coverage. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Collapsing several same-fixture tables into one, as concern-not-over-split requires, is not a row-count failure: the collapsed table legitimately holds one row per sub-rule. Judge every @TableTest method in the class, not only the first. A class can hold four tight tables and one that re-covers them — an integration or end-to-end table whose rows re-prove rules the earlier tables already established is the common case, and it fails this assertion however clean the other tables are.",
+      "id": "no-duplicate-rows-within-a-table",
+      "text": "Judge each @TableTest in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by 2.19-covers-every-tier and quantifier-covered-by-rows. Judge every @TableTest method in the class; your evidence must name each method with PASS or FAIL.",
       "passed": true,
-      "evidence": "ISO format | ... Slash format | ... Short year | ... Null input | (no redundant rows)"
+      "evidence": "parsesRecognizedFormats: 4 distinct rows (ISO, Slash, Short year, Null) - PASS; rejectsEmptyInput: 1 row (Empty string) - PASS"
+    },
+    {
+      "id": "no-table-reproves-another",
+      "text": "Judge the class as a whole. The assertion FAILS if a whole @TableTest re-proves rules that earlier tables already established — an integration or end-to-end table whose rows re-prove established rules is the common case, and it fails however clean the other tables are. Sibling tables that each isolate one rule are NOT duplication merely because they share a baseline row: four surcharge tables that each show 'no surcharge' then 'surcharge applied' are four legitimate tables, not one duplicated four times. Collapsing several same-fixture tables into one, as concern-not-over-split requires, is likewise not a failure here. Rows you think are missing are never a failure here. Your evidence must name the re-proving table and the table it duplicates.",
+      "passed": true,
+      "evidence": "No integration table exists; the two tables cover distinct, non-overlapping concerns"
     },
     {
       "id": "separates-valid-and-invalid",
@@ -91,15 +97,15 @@
       "evidence": "Compilation succeeded"
     }
   ],
-  "assertions_passed": 15,
-  "assertions_total": 15,
+  "assertions_passed": 16,
+  "assertions_total": 16,
   "pass_rate": 1,
   "grading_usage": {
-    "input_tokens": 4069,
-    "output_tokens": 1024,
-    "total_tokens": 5093,
+    "input_tokens": 4238,
+    "output_tokens": 959,
+    "total_tokens": 5197,
     "calls": 1,
-    "cost_usd": 0.027567,
+    "cost_usd": 0.027099,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

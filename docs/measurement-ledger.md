@@ -83,3 +83,7 @@ here on do carry them.
 | 2026-07-26 | `iteration-40 [s2]` | regrade | 17 | — | claude-sonnet-5/default | `bab90af8` | 334/378 | — | $1.91 | — | |
 | 2026-07-26 | `iteration-40 [s3]` | regrade | 17 | — | claude-sonnet-5/default | `bab90af8` | 328/378 | — | $2.15 | — | |
 | 2026-07-26 | `iteration-41 [s1]` | regrade | 4 | `85686277bf` | claude-sonnet-5/default | `f096477b` | 90/99 | — | $0.67 | — | vs iteration 40: 1/4 comparable, 0 moved. |
+| 2026-07-26 | `iteration-40 [c1]` | regrade | 11 | — | claude-sonnet-5/default | `18b57bb6` | 248/290 | — | $1.83 | — | |
+| 2026-07-26 | `iteration-40 [c1]` | regrade | 17 | — | claude-sonnet-5/default | `b6b46cc0` | 333/378 | — | $1.98 | — | |
+| 2026-07-26 | `iteration-41 [c1]` | regrade | 3 | `85686277bf` | claude-sonnet-5/default | `0c92a172` | 71/82 | — | $0.75 | — | vs iteration 40: 0/3 comparable, 0 moved. |
+| 2026-07-26 | `iteration-41 [c1]` | regrade | 4 | `85686277bf` | claude-sonnet-5/default | `0b0dff73` | 88/99 | — | $0.79 | — | vs iteration 40: 1/4 comparable, 0 moved. |

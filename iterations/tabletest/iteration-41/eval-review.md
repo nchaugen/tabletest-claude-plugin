@@ -4,61 +4,31 @@
 
 ## Summary
 
-88/96 (91.7%) · 5339697 tokens · 1543.5s · $4.9112
+88/99 (88.9%) · 5339697 tokens · 1543.5s · $4.9112
 
 _Cost figures are Claude Code list-price estimates; actual billing may differ (e.g. promotional pricing). Timed-out evals score 0 with unrecorded token usage._
 
-> ⚠️ **7 assertion verdicts moved** vs iteration 40. These are deltas, not attributions: read each eval's `outputs/` and `narration.md` before explaining any of them, and do not start the next iteration until every entry in `analysis-todo.md` has a cause.
-
 ## Delta vs Iteration 40
 
-**Regressions (3):**
-- ❌ eval-26-convert-from-kotest: `concern-not-over-split`
-- ❌ eval-29-shopping-cart-tt: `quantifier-covered-by-rows`
-- ❌ eval-30-order-splitting-tt: `held-constants-declared`
-
-**Improvements (4):**
-- ✅ eval-26-convert-from-kotest: `options-as-map`
-- ✅ eval-26-convert-from-kotest: `options-type-converter`
-- ✅ eval-30-order-splitting-tt: `native-collection-output`
-- ✅ eval-30-order-splitting-tt: `assertion-criteria-declared`
+**Not comparable (3) — excluded from the deltas above:**
+- ⚠️ eval-26-convert-from-kotest: fingerprint differs from iteration 40; re-baseline to compare
+- ⚠️ eval-29-shopping-cart-tt: fingerprint differs from iteration 40; re-baseline to compare
+- ⚠️ eval-30-order-splitting-tt: fingerprint differs from iteration 40; re-baseline to compare
 
 ## Resource Comparison vs Iteration 40
 
 | Eval | Pass Rate | Prev | Tokens | Prev | Time(s) | Prev |
 |------|-----------|------|--------|------|---------|------|
+| eval-26-convert-from-kotest | 24/27 | 24/26 | 1088657 | 1443172 | 310.0 | 362.4 |
+| eval-29-shopping-cart-tt | 24/30 | 25/29 | 1342532 | 968444 | 477.5 | 322.4 |
+| eval-30-order-splitting-tt | 23/25 | 21/24 | 2239323 | 3329150 | 597.9 | 664.9 |
 | eval-20-collections-and-quoting | 17/17 | 17/17 | 669185 | 1242601 | 158.0 | 325.6 |
-| eval-26-convert-from-kotest | 25/26 | 24/26 | 1088657 | 1443172 | 310.0 | 362.4 |
-| eval-29-shopping-cart-tt | 24/29 | 25/29 | 1342532 | 968444 | 477.5 | 322.4 |
-| eval-30-order-splitting-tt | 22/24 | 21/24 | 2239323 | 3329150 | 597.9 | 664.9 |
 
 ## Per-Eval Results
 
-### ✅ Eval eval-20-collections-and-quoting
-
-**17/17** · 669185 tokens · 158013ms
-
-- ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
-- ✅ **list-syntax-correct**: List values in the table use bracket syntax like [tech:java, biz:sales, dev:ci] — not comma-separated strings without brackets.
-- ✅ **empty-list-explicit**: Empty list input uses [] (not a blank cell, which represents null). The distinction between empty list and null is preserved.
-- ✅ **special-chars-quoted**: Values containing pipes (|), brackets, or colons (:) are properly quoted (e.g. "tech:java") so they don't conflict with table syntax. Colons without quoting would be mis-interpreted as map key:value entries.
-- ✅ **set-syntax-correct**: Set<String> values in the table use curly brace syntax like {tech, dev} — not bracket syntax [tech, dev] which is for lists. The distinction between Set and List types is preserved in the table notation.
-- ✅ **newline-in-cell**: A cell value containing a newline does not break the table row structure: the newline is either escaped as \n inside the cell, or the value is expressed as a list of lines joined in the test body. A literal line break inside a table row fails. Both representations are acceptable — escaping suits a newline inside a single value, a list of lines suits input that is inherently multi-line.
-- ✅ **pipe-quoted**: Values containing pipe characters (|) are quoted so they don't conflict with the markdown table column separator. For example, a tag like 'biz:hr|recruiting' must be quoted.
-- ✅ **scenario-column-present**: Table has a scenario/description column as the leftmost column
-- ✅ **has-question-mark-column**: At least one output column name ends with '?' (e.g. 'Filtered tags?' or 'Result?')
-- ✅ **no-if-switch-in-method**: Test method body contains no if or switch statements
-- ✅ **annotation-order**: Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.
-- ✅ **has-descriptive-title**: Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.
-- ✅ **description-uses-textblock**: If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string """), not string concatenation with +. Passes if @Description is absent.
-- ✅ **has-tabletest-dependency**: The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency
-- ✅ **no-blank-collection-elements**: No collection value in any table contains a blank element. `[a, , c]`, `[a, b, ]` and `[, a, b]` are parse errors, not collections holding a null element — a collection value cannot express a null element at all.
-- ✅ **empty-string-element-quoted**: An empty tag inside a tag list is written as a quoted empty string ("" or ''), not as a blank element. Passes if the tables express the empty tag some other legitimate way (e.g. a dedicated String column); fails if a blank element inside a collection is used to mean an empty or absent tag.
-- ✅ **compiles**: The generated test code compiles successfully against the project scaffolding
-
 ### ⚠️ Eval eval-26-convert-from-kotest
 
-**25/26** · 1088657 tokens · 310035ms
+**24/27** · 1088657 tokens · 310035ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ✅ **options-as-map**: Package options (fragile, insuredValue, handling) are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns with mostly-blank cells. Rows with no options use a blank cell or [:].
@@ -90,7 +60,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-29-shopping-cart-tt
 
-**24/29** · 1342532 tokens · 477478ms
+**24/30** · 1342532 tokens · 477478ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ✅ **concerns-decomposed**: Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing item operations, coupon logic, total calculation, and checkout.
@@ -129,7 +99,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-30-order-splitting-tt
 
-**22/24** · 2239323 tokens · 597932ms
+**23/25** · 2239323 tokens · 597932ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ✅ **concerns-decomposed**: Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing all splitting rules. Closely-related concerns may share one method (e.g. fulfillment type and delivery address, which follow the same 'same shipment iff same type and address' rule), so four methods covering five concerns is fine. FAILS only when a single method carries all the rules; PASSES with two or more concern-focused methods. Judge the test code only. Any claim the response's prose makes about how many concerns or methods it produced is irrelevant — an inaccurate summary alongside a correctly decomposed test file PASSES.
@@ -157,4 +127,26 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 - ❌ **held-constants-declared**: A value the rule's outcome depends on, and which the table holds constant for every row, must be visible as a column or named in the @DisplayName/@Description as deliberately held fixed. It must not sit silently in the test method body or a field. Readers generalise from what varies, so an unstated constant is read as part of the rule: a table whose every row happens to use one traveller category states, to its reader, a rule about that category. FAILS when the method body, a field, or a @TypeConverter fixes a value that (1) the outcome depends on, and (2) appears in no column and is not named in the title or description as held fixed. A value declared only in a source-code comment (// or /* */) FAILS: the published surface is the title, the description and the table, and a comment reaches none of them. PASSES when every such constant is either a column or declared. Values that cannot affect the outcome are not failures — a fixed clock used only to construct inputs, object identity, or fixture values the rule is indifferent to. Declaring a held constant in @Description is NOT redundancy and does not conflict with the description-* assertions: those forbid restating what the rows already show, whereas a held constant is precisely what the rows cannot show.
   > splitsByFulfillmentType and splitsByDeliveryAddress have no @Description declaring that all items are IN_STOCK, single warehouse, and no companions, yet all rows silently hold these constant
 - ✅ **assertion-criteria-declared**: A comparison criterion applied by the assertion must be stated on the published surface — the table, the @DisplayName, or the @Description. FAILS when a helper or the assertion body applies ordering (sorting either side before comparing), a numeric tolerance, subset or 'contains' matching, or normalisation of the actual or expected value, and no column, title or description says so. Such a criterion is a rule the test enforces and no table claims: a reader cannot tell whether order is part of the behaviour or an artefact of the comparison. PASSES when each such criterion is named — a description sentence ('the expected column lists substrings the message must contain', 'shipments are compared without regard to order') or a column that makes it evident — and passes when the assertion is a plain equality on the values the columns name. Constructing the objects the columns name is not a criterion. A conventional floating-point epsilon (an assertEquals delta of the order of 0.001 on a decimal column, or BigDecimal.compareTo) is numeric hygiene, not a rule, and is exempt. What this assertion is for is a criterion that changes which behaviours the test would accept — ordering, subset matching, normalisation — since those are rules the test enforces while no table claims them.
+
+### ✅ Eval eval-20-collections-and-quoting
+
+**17/17** · 669185 tokens · 158013ms
+
+- ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
+- ✅ **list-syntax-correct**: List values in the table use bracket syntax like [tech:java, biz:sales, dev:ci] — not comma-separated strings without brackets.
+- ✅ **empty-list-explicit**: Empty list input uses [] (not a blank cell, which represents null). The distinction between empty list and null is preserved.
+- ✅ **special-chars-quoted**: Values containing pipes (|), brackets, or colons (:) are properly quoted (e.g. "tech:java") so they don't conflict with table syntax. Colons without quoting would be mis-interpreted as map key:value entries.
+- ✅ **set-syntax-correct**: Set<String> values in the table use curly brace syntax like {tech, dev} — not bracket syntax [tech, dev] which is for lists. The distinction between Set and List types is preserved in the table notation.
+- ✅ **newline-in-cell**: A cell value containing a newline does not break the table row structure: the newline is either escaped as \n inside the cell, or the value is expressed as a list of lines joined in the test body. A literal line break inside a table row fails. Both representations are acceptable — escaping suits a newline inside a single value, a list of lines suits input that is inherently multi-line.
+- ✅ **pipe-quoted**: Values containing pipe characters (|) are quoted so they don't conflict with the markdown table column separator. For example, a tag like 'biz:hr|recruiting' must be quoted.
+- ✅ **scenario-column-present**: Table has a scenario/description column as the leftmost column
+- ✅ **has-question-mark-column**: At least one output column name ends with '?' (e.g. 'Filtered tags?' or 'Result?')
+- ✅ **no-if-switch-in-method**: Test method body contains no if or switch statements
+- ✅ **annotation-order**: Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.
+- ✅ **has-descriptive-title**: Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.
+- ✅ **description-uses-textblock**: If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string """), not string concatenation with +. Passes if @Description is absent.
+- ✅ **has-tabletest-dependency**: The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency
+- ✅ **no-blank-collection-elements**: No collection value in any table contains a blank element. `[a, , c]`, `[a, b, ]` and `[, a, b]` are parse errors, not collections holding a null element — a collection value cannot express a null element at all.
+- ✅ **empty-string-element-quoted**: An empty tag inside a tag list is written as a quoted empty string ("" or ''), not as a blank element. Passes if the tables express the empty tag some other legitimate way (e.g. a dedicated String column); fails if a blank element inside a collection is used to mean an empty or absent tag.
+- ✅ **compiles**: The generated test code compiles successfully against the project scaffolding
 

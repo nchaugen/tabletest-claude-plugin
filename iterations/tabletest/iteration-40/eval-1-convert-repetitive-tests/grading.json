@@ -46,7 +46,7 @@
       "id": "description-if-present-adds-information",
       "text": "If @Description is present, it provides context beyond what the table rows already express — such as fixed values shared by all rows, where/when the rule applies, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context (e.g. fixed values are included as a column rather than hardcoded in the method body).",
       "passed": true,
-      "evidence": "No @Description present in method; omission is acceptable per rules."
+      "evidence": "No @Description present in the @TableTest method"
     },
     {
       "id": "annotation-order",
@@ -84,10 +84,10 @@
   "pass_rate": 1,
   "grading_usage": {
     "input_tokens": 2576,
-    "output_tokens": 58,
-    "total_tokens": 2634,
+    "output_tokens": 53,
+    "total_tokens": 2629,
     "calls": 1,
-    "cost_usd": 0.008598,
+    "cost_usd": 0.008523,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

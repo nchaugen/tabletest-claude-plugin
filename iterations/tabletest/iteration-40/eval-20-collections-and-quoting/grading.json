@@ -22,7 +22,7 @@
       "id": "special-chars-quoted",
       "text": "Values containing pipes (|), brackets, or colons (:) are properly quoted (e.g. \"tech:java\") so they don't conflict with table syntax. Colons without quoting would be mis-interpreted as map key:value entries.",
       "passed": true,
-      "evidence": "[\"tech:java\", \"biz:sales\", \"random\"]"
+      "evidence": "[\"tech:java\", \"dev:python\", \"biz:sales\", \"ops:deploy\"]"
     },
     {
       "id": "set-syntax-correct",
@@ -34,7 +34,7 @@
       "id": "newline-in-cell",
       "text": "A cell value containing a newline does not break the table row structure: the newline is either escaped as \\n inside the cell, or the value is expressed as a list of lines joined in the test body. A literal line break inside a table row fails. Both representations are acceptable — escaping suits a newline inside a single value, a list of lines suits input that is inherently multi-line.",
       "passed": true,
-      "evidence": "\"tech:java\\\\nEnterprise Edition\" | tech | [\"tech:java\\\\nEnterprise Edition\"]"
+      "evidence": "\"tech:java\\\\nEnterprise Edition\" ... resolvedTag = tag.replace(\"\\\\n\", \"\\n\")"
     },
     {
       "id": "pipe-quoted",
@@ -88,13 +88,13 @@
       "id": "no-blank-collection-elements",
       "text": "No collection value in any table contains a blank element. `[a, , c]`, `[a, b, ]` and `[, a, b]` are parse errors, not collections holding a null element — a collection value cannot express a null element at all.",
       "passed": true,
-      "evidence": "No list cell in the tables contains a blank element like [a, , c]"
+      "evidence": "All list cells like [\"tech:java\", \"dev:python\"] contain no blank elements"
     },
     {
       "id": "empty-string-element-quoted",
       "text": "An empty tag inside a tag list is written as a quoted empty string (\"\" or ''), not as a blank element. Passes if the tables express the empty tag some other legitimate way (e.g. a dedicated String column); fails if a blank element inside a collection is used to mean an empty or absent tag.",
       "passed": true,
-      "evidence": "Empty tag string is never kept | '' | tech | [] (dedicated String column, not a blank list element)"
+      "evidence": "Empty tag string is never kept | '' | tech | [] (dedicated Tag column, not blank list element)"
     },
     {
       "id": "compiles",
@@ -108,10 +108,10 @@
   "pass_rate": 1,
   "grading_usage": {
     "input_tokens": 6476,
-    "output_tokens": 1166,
-    "total_tokens": 7642,
+    "output_tokens": 1427,
+    "total_tokens": 7903,
     "calls": 1,
-    "cost_usd": 0.036918,
+    "cost_usd": 0.040833,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15
