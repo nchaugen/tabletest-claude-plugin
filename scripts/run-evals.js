@@ -2198,13 +2198,23 @@ function exclusionsMarkdown(notComparable, comparableEvals, totalEvals) {
  */
 function analysisTodoMarkdown(comparison, context, evidenceFor = () => null) {
   const { moved, notComparable, comparableEvals, totalEvals } = comparison;
-  const { iteration, label, baselineLabel, regime, baselineRegime, warning } = context;
+  const { iteration, label, baselineLabel, regime, baselineRegime, warning, hasBaseline } = context;
 
   let md = `# Analysis to-do — ${label}, iteration ${iteration}\n\n`;
   md += `Compared against **${baselineLabel}**`;
   if (regime) md += `, grading ${regime}`;
   md += `.\n\n`;
   if (warning) md += `> ⚠️ ${warning}\n\n`;
+
+  // Having no baseline is not the same failure as having one that matched nothing. The first is
+  // ordinary — a first iteration, or a re-grade with no predecessor on disk — and must not be
+  // dressed in the warning the second one earns, or the warning stops meaning anything.
+  if (!hasBaseline) {
+    md += `There was no baseline to compare against, so this run records a measurement rather than\n`;
+    md += `evaluating a change. Nothing here is a delta.\n`;
+    return md;
+  }
+
   if (regime && baselineRegime && regime !== baselineRegime) {
     md += `> ⚠️ **The baseline was graded under a different regime** (${baselineRegime} vs ${regime}).\n`;
     md += `> A comparison is void across a change of grading regime — re-baseline rather than interpret this.\n\n`;
@@ -2389,6 +2399,7 @@ function writeAnalysisTodo(benchmark, analysisBaseline, iterationDir, args) {
       iteration: args.iteration,
       label,
       baselineLabel: analysisBaseline.label,
+      hasBaseline: Boolean(analysisBaseline.benchmark),
       regime: regimeOf(benchmark),
       baselineRegime: analysisBaseline.benchmark ? regimeOf(analysisBaseline.benchmark) : null,
       warning: analysisBaseline.warning,

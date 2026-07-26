@@ -1129,7 +1129,12 @@ describe("comparisonAgainst", () => {
 });
 
 describe("analysisTodoMarkdown", () => {
-  const context = { iteration: 6, label: "tabletest variant=next", baselineLabel: "official iteration 40" };
+  const context = {
+    iteration: 6,
+    label: "tabletest variant=next",
+    baselineLabel: "official iteration 40",
+    hasBaseline: true,
+  };
   const over = (evals, moved, notComparable = []) => ({
     moved,
     notComparable,
@@ -1215,6 +1220,19 @@ describe("analysisTodoMarkdown", () => {
     });
     assert.match(md, /graded under a different regime/);
     assert.match(md, /claude-haiku-4-5\/default vs claude-sonnet-5\/medium/);
+  });
+
+  // A first iteration, or a re-grade with nothing on disk before it, is ordinary. Dressing it in
+  // the void-comparison warning would train the reader to skip that warning.
+  test("does not cry void when there was simply no baseline to compare against", () => {
+    const md = analysisTodoMarkdown(over(17, []), {
+      ...context,
+      baselineLabel: "no baseline",
+      hasBaseline: false,
+    });
+    assert.match(md, /no baseline to compare against/);
+    assert.doesNotMatch(md, /Nothing below is evidence/);
+    assert.doesNotMatch(md, /0 of 17 evals comparable/);
   });
 
   test("surfaces a --compare-official request that could not be honoured", () => {
