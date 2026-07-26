@@ -41,6 +41,16 @@ history for comparison, audit, and re-grading. Conversation and run logs are nev
 node scripts/run-evals.js --skill tabletest --iteration N [--evals 1,2] [--compare-iteration M]
 ```
 
+**Run it outside any command sandbox** (in Claude Code, with the sandbox override) — every
+invocation, including `--grade-only`. Sandboxed, grading fails with a wall of `fetch failed` that
+reads like an API outage, Gradle cannot start so every eval fails `compiles`, and — the damaging
+part — the eval agents lose their own Bash tool. Without `ls` they cannot find a provided
+`src/main`, so on any eval whose prompt does not name the exact path they conclude the project is
+empty and write tests against an invented API. That produces a plausible report in which those
+evals answer a different task than the baseline did, and nothing in the output says so. Verify with
+`grep -l "Bash is down" iterations/**/narration.md` and by checking each output's package and API
+against the eval's `project/src/main`.
+
 **Testing the runner:** `node --test 'scripts/*.test.js'` (~1s, no network, no
 dependencies — `node:test` is built in). Covers the machinery a score depends on: grader
 response parsing, majority voting, retry/backoff, the abort-on-grading-failure path, the
