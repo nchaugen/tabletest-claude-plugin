@@ -89,3 +89,37 @@ here on do carry them.
 | 2026-07-26 | `iteration-41 [c1]` | rebuild | 4 | `85686277bf` | claude-sonnet-5/default | `0b0dff73` | 88/99 | — | — | — | vs iteration 40: 1/4 comparable, 0 moved. Rebuild of the row above plus eval-20 (carried from s1). No API calls; the $0.75 above is the whole spend. |
 | 2026-07-26 | `next/iteration-8` | regrade | 6 | `faea8d4a26` (by hand) | claude-sonnet-5/default | `62765833` | 134/156 | ~$5 (see note) | $0.91 | 26m gen | Cluster 2 loop. **Read the note before using this row.** Generation ran with the Bash sandbox on and was degraded twice over: Gradle could not start (`libnative-platform.dylib`), so all 6 lost `compiles` against a baseline where all 6 passed — discard those 6 of the 28 moved verdicts, they are instrument. Worse, no Bash meant no directory listing, so on evals **15 and 18** the agent could not discover the provided `src/main` and invented parallel APIs (eval-15 narration: "Read/Write/Edit work fine even though Bash is down"; eval-18: "no `InsuranceEvaluator` existed yet"). Those two evals answer a different task than the baseline did — **their 6 wins and 5 losses are all unusable.** Sound evals are 14, 22, 23, 26: **6 of 6 targeted slots won**, plus `consistent-quantity-naming`/26 and `scenario-names`/23 unplanned, against 1 real regression (`1.14-depth-zero-rate`/14) and 1 unsettled flip-prone slot (`rule-statable-from-table`/26). Corrected net excluding `compiles` is +6. `skill_digest` stamped `unknown` by `--grade-only` because the failed first grading wrote no benchmark; the real variant digest is `faea8d4a26353180` at repo commit `eebbe81`. Gen cost not recorded for the same reason (first run wrote no benchmark); ~$5 from the per-eval baseline figures. Causes for all 28 filled in `analysis-todo.md`. |
 | 2026-07-26 | `next/iteration-9` | run | 2 | `faea8d4a26` | claude-sonnet-5/default | `10159e60` | 46/55 | $2.03 | $0.39 | 10m | vs official (iterations 41, 40 merged): 2/2 comparable, 8 moved. **Sound re-run of the two evals `next/iteration-8` lost to the sandbox** — run unsandboxed, `compiles: true` on both, and both outputs use the real provided APIs (`evaluateApplication(applicantType, age, claimCount)`; `PastPurchase`/`TravelerCategory`/`PurchaseHistoryRepository`). Supersedes iteration-8's eval-15 and eval-18 rows entirely. WON `2.16`/`2.19`/`2.20`/`no-table-reproves` (15) and `no-duplicate-rows` (18); LOST `zone-independent-counting`, `quantifier-covered-by-rows`, `2.21-readability-relative-time` (15). Two things the void run got wrong and this corrects: `2.1-decomposition`/15 and `no-table-reproves`/18 did **not** regress (artefacts of the invented APIs), and `separates-decision-and-premium`/18 did **not** win — it still fails, because all three tables assert `Decision?` and `Premium?` together. Together with iteration-8's sound evals (14, 22, 23, 26): **11 of 12 targeted slots won, +8 slots on the loop.** Causes for all 8 filled in `analysis-todo.md`. |
+| 2026-07-26 | `iteration-42` | rebuild | 6 | `faea8d4a26` (by hand) | claude-sonnet-5/default | `62765833` | 141/156 | — | — | — | **Cluster 2's promotion partial** (`AGENTS.md` § Promoting a variant, step 4) for plugin `e779801`. No new measurement — assembled from the two runs that measured the promoted skill, taking the **sound** eval from each: 14, 22, 23, 26 from `next/iteration-8` and 15, 18 from `next/iteration-9`. Iteration-8's own eval-15 and eval-18 were deliberately **not** copied; they are void (the sandbox left those agents unable to find the provided `src/main`, so they invented APIs). The "1/6 comparable, 4 moved" line is meaningless — it compares against iteration-41, which shares only eval-26. With this in place the merged official baseline is **338/378, 40 failing** (was 331/378, 47 failing), resolving 8 evals from iteration-40, 6 from here, 3 from iteration-41; `check-baseline.js` confirms all 17 current. `skill_commit`/`skill_digest` came out `unknown` from the rebuild and were stamped by hand: the digest `faea8d4a26353180` is the promoted skill's and is identical for both source runs (the variant was not edited between them); the commit is mixed because the two runs generated at different HEADs. **Two `compiles` slots were corrected by hand, and one was not — see the caveat below this table.** |
+
+## Hand-corrected `compiles` slots in `iteration-42` — 2026-07-26
+
+`iteration-42` is the only benchmark in this ledger with assertion verdicts edited by hand. What was
+changed, why, and how to check it:
+
+`next/iteration-8` ran with the Bash sandbox on, so Gradle could not start and all six evals recorded
+`compiles: false` with `tests_pass: null` against a baseline where all six compiled. Left as-is in the
+promotion partial, that would put a false failure into the official baseline and make the *next*
+cluster show a phantom `compiles` win — the artefact `AGENTS.md` § Timeouts warns to suspect.
+
+The verdicts were not re-graded, because `--grade-only` re-rolls every LLM assertion and several of
+this loop's slots are flip-prone; re-rolling them would destroy the promotion evidence to fix a
+deterministic slot. Instead each build was **reproduced directly**: the eval's `project/` scaffolding
+overlaid with the stored `outputs/`, then `gradle compileTestJava` (or `compileTestKotlin`) and
+`gradle test`, run unsandboxed. Only `compiles`/`tests-pass` were touched; no LLM verdict was altered.
+
+| Eval | Verified | Corrected in `iteration-42` |
+|---|---|---|
+| 22 | compiles ✅, 21 tests fail (stubs throw — baseline also `tests_pass: false`) | `compiles` → pass |
+| 23 | compiles ✅, 9 tests fail (stubs throw — baseline also `tests_pass: false`) | `compiles` → pass |
+| 26 | compiles ✅, tests pass ✅ (baseline also `tests_pass: true`) | `compiles` → pass; `tests-pass` evidence corrected — it had been scored pass via the `tests_pass: null` "skipped" branch, i.e. right by accident |
+| **14** | **not reproducible** | **nothing — `compiles` stays FAIL** |
+
+**eval-14 is the residual, and it is deliberate.** `collectTestFiles` stores only test files, so the
+`src/main` stubs its agent wrote are not in `outputs/` and its build cannot be reproduced from stored
+artefacts. Writing replacement stubs would measure those stubs, not the agent's output. So one known-
+false `compiles` failure sits in the official baseline: **expect a phantom `compiles` win on eval-14 in
+the next run that includes it, and do not read it as an improvement.** Cluster 3's loop (7, 9, 22, 23,
+29) does not include eval-14; the batch-closing full run does.
+
+`next/iteration-8` itself was left exactly as measured — it records what that run actually produced.
+The correction lives only in the forward-looking baseline copy.
