@@ -93,7 +93,17 @@ common workstream depends on:
 - A moved verdict on a flip-prone assertion needs a confirming re-grade before it is attributed.
 
 **Distil the per-slot flip list, never just the summary number.** "18/365 flip" is useless later; the
-list of *which* slots is what makes a future delta readable. It goes in `docs/assertion-triage.md`.
+list of *which* slots is what makes a future delta readable. It goes in `docs/assertion-triage.md`,
+and this produces it in the right shape:
+
+```bash
+node scripts/flip-report.js --skill tabletest --iteration 40 --suffixes ,p1,p2
+```
+
+An empty entry means the plain-named `benchmark.json` — **a live baseline graded under the current
+regime is already one pass of the probe**, so N passes cost N−1 regrades. The script refuses (exit 2)
+when the runs do not share an instrument and a regime, because a flip between those is a change of
+instrument rather than grader noise.
 
 **Every regrade appends its own row to `docs/measurement-ledger.md`**, labelled `iteration-N [suffix]`
 and marked `regrade` — generation cost and duration read `—` because it spent neither. A probe is
