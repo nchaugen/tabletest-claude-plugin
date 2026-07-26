@@ -1975,6 +1975,40 @@ function loadOfficialBenchmark(repoRoot, skill) {
   return mergedBenchmark;
 }
 
+/**
+ * The eval number an id carries (`eval-26-convert-from-kotest` → `"26"`). Runs are matched to
+ * baselines by number rather than by id because slugs get renamed and numbers do not.
+ */
+function evalNumberOf(id) {
+  return id.match(/eval-(\d+)/)?.[1] ?? null;
+}
+
+/**
+ * Each of a run's evals paired with its counterpart in the baseline, and whether that pair can be
+ * compared at all. Both reasons a pair cannot be are named rather than dropped: a changed
+ * definition makes two verdicts incommensurable, and an eval the baseline never ran has nothing to
+ * be compared against. A caller that sees only the moved verdicts cannot tell either case from
+ * agreement, which is the whole hazard.
+ */
+function pairedWithBaseline(benchmark, baselineBenchmark) {
+  const baselineByNumber = {};
+  for (const baselineEntry of baselineBenchmark.evals) {
+    const number = evalNumberOf(baselineEntry.id);
+    if (number) baselineByNumber[number] = baselineEntry;
+  }
+
+  return benchmark.evals.map((evalEntry) => {
+    const baselineEntry = baselineByNumber[evalNumberOf(evalEntry.id)];
+    if (!baselineEntry) {
+      return { evalEntry, baselineEntry: null, comparable: false, reason: "absent-from-baseline" };
+    }
+    if (fingerprintsDiffer(evalEntry, baselineEntry)) {
+      return { evalEntry, baselineEntry, comparable: false, reason: "definition-changed" };
+    }
+    return { evalEntry, baselineEntry, comparable: true, reason: null };
+  });
+}
+
 function detectRegressions(benchmark, previousBenchmark) {
   if (!previousBenchmark) return { regressions: [], improvements: [], notComparable: [] };
 
@@ -1982,26 +2016,15 @@ function detectRegressions(benchmark, previousBenchmark) {
   const improvements = [];
   const notComparable = [];
 
-  const prevByEvalNum = {};
-  for (const prevEval of previousBenchmark.evals) {
-    const match = prevEval.id.match(/eval-(\d+)/);
-    if (match) prevByEvalNum[match[1]] = prevEval;
-  }
-
-  for (const evalEntry of benchmark.evals) {
-    const evalNum = String(
-      evalEntry.id.match(/eval-(\d+)/)?.[1]
-    );
-    const prevEval = prevByEvalNum[evalNum];
-    if (!prevEval) continue;
-
-    if (fingerprintsDiffer(evalEntry, prevEval)) {
-      notComparable.push({ eval: evalEntry.id });
+  for (const pair of pairedWithBaseline(benchmark, previousBenchmark)) {
+    if (pair.reason === "absent-from-baseline") continue;
+    if (!pair.comparable) {
+      notComparable.push({ eval: pair.evalEntry.id });
       continue;
     }
 
-    const currResult = unwrapResults(evalEntry);
-    const prevResult = unwrapResults(prevEval);
+    const currResult = unwrapResults(pair.evalEntry);
+    const prevResult = unwrapResults(pair.baselineEntry);
     if (!currResult || !prevResult) continue;
 
     const prevFailed = new Set(prevResult.failed_assertions || []);
@@ -2010,7 +2033,7 @@ function detectRegressions(benchmark, previousBenchmark) {
     for (const assertionId of currFailed) {
       if (!prevFailed.has(assertionId)) {
         regressions.push({
-          eval: evalEntry.id,
+          eval: pair.evalEntry.id,
           assertion: assertionId,
         });
       }
@@ -2019,7 +2042,7 @@ function detectRegressions(benchmark, previousBenchmark) {
     for (const assertionId of prevFailed) {
       if (!currFailed.has(assertionId)) {
         improvements.push({
-          eval: evalEntry.id,
+          eval: pair.evalEntry.id,
           assertion: assertionId,
         });
       }
@@ -2050,12 +2073,39 @@ function analysisBaselineOf(args, previousBenchmark, officialBenchmark) {
   return { benchmark: null, label: "no baseline" };
 }
 
-function movedAssertions(benchmark, baselineBenchmark) {
+/**
+ * Everything comparing a run against a baseline yielded: how many of the run's evals could be
+ * compared at all, which could not and why, and which verdicts moved among those that could.
+ *
+ * These belong in one value because the moved list alone is ambiguous in the one direction that
+ * matters. Zero moved verdicts reads as "the run changed nothing"; it is equally the shape of a
+ * comparison where no eval was comparable and nothing was actually measured. Reported as a bare
+ * count, a void comparison is indistinguishable from a clean one, and it reads as reassurance.
+ */
+function comparisonAgainst(benchmark, baselineBenchmark) {
+  if (!baselineBenchmark) {
+    return { moved: [], notComparable: [], comparableEvals: 0, totalEvals: benchmark.evals.length };
+  }
+
+  const pairs = pairedWithBaseline(benchmark, baselineBenchmark);
   const { regressions, improvements } = detectRegressions(benchmark, baselineBenchmark);
-  return [
+  const moved = [
     ...regressions.map((r) => ({ ...r, direction: "lost" })),
     ...improvements.map((i) => ({ ...i, direction: "won" })),
   ].sort((a, b) => a.eval.localeCompare(b.eval) || a.assertion.localeCompare(b.assertion));
+
+  return {
+    moved,
+    notComparable: pairs
+      .filter((pair) => !pair.comparable)
+      .map((pair) => ({ eval: pair.evalEntry.id, reason: pair.reason })),
+    comparableEvals: pairs.filter((pair) => pair.comparable).length,
+    totalEvals: pairs.length,
+  };
+}
+
+function movedAssertions(benchmark, baselineBenchmark) {
+  return comparisonAgainst(benchmark, baselineBenchmark).moved;
 }
 
 /**
@@ -2509,6 +2559,8 @@ module.exports = {
   generateReport,
   // analysis protocol
   analysisBaselineOf,
+  pairedWithBaseline,
+  comparisonAgainst,
   movedAssertions,
   analysisTodoMarkdown,
   narrationMarkdown,

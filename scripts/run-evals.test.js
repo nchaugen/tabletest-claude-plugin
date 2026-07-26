@@ -46,6 +46,8 @@ const {
   skillProvenance,
   inheritedProvenance,
   analysisBaselineOf,
+  pairedWithBaseline,
+  comparisonAgainst,
   movedAssertions,
   analysisTodoMarkdown,
   narrationMarkdown,
@@ -1041,6 +1043,66 @@ describe("movedAssertions", () => {
       benchmarkWith([evalResult("eval-15-x", [], "fp1")])
     );
     assert.deepEqual(moved, []);
+  });
+});
+
+describe("pairedWithBaseline", () => {
+  test("matches a run's evals to the baseline by number, not by slug", () => {
+    const pairs = pairedWithBaseline(
+      benchmarkWith([evalResult("eval-26-renamed-since", [])]),
+      benchmarkWith([evalResult("eval-26-convert-from-kotest", [])])
+    );
+    assert.equal(pairs.length, 1);
+    assert.equal(pairs[0].comparable, true);
+  });
+
+  test("names a changed definition as the reason a pair cannot be compared", () => {
+    const pairs = pairedWithBaseline(
+      benchmarkWith([evalResult("eval-26-x", [], "fp2")]),
+      benchmarkWith([evalResult("eval-26-x", [], "fp1")])
+    );
+    assert.equal(pairs[0].comparable, false);
+    assert.equal(pairs[0].reason, "definition-changed");
+  });
+
+  test("names an eval the baseline never ran, rather than dropping it", () => {
+    const pairs = pairedWithBaseline(benchmarkWith([evalResult("eval-31-new", [])]), benchmarkWith([]));
+    assert.equal(pairs[0].comparable, false);
+    assert.equal(pairs[0].reason, "absent-from-baseline");
+  });
+});
+
+describe("comparisonAgainst", () => {
+  test("counts how many of the run's evals were actually comparable", () => {
+    const comparison = comparisonAgainst(
+      benchmarkWith([evalResult("eval-20-a", [], "fp1"), evalResult("eval-26-b", [], "fp2")]),
+      benchmarkWith([evalResult("eval-20-a", [], "fp1"), evalResult("eval-26-b", [], "fp-old")])
+    );
+    assert.equal(comparison.comparableEvals, 1);
+    assert.equal(comparison.totalEvals, 2);
+    assert.deepEqual(comparison.notComparable, [{ eval: "eval-26-b", reason: "definition-changed" }]);
+  });
+
+  test("distinguishes a void comparison from a clean one — both move zero verdicts", () => {
+    const cleanRun = comparisonAgainst(
+      benchmarkWith([evalResult("eval-20-a", ["still-failing"], "fp1")]),
+      benchmarkWith([evalResult("eval-20-a", ["still-failing"], "fp1")])
+    );
+    const voidRun = comparisonAgainst(
+      benchmarkWith([evalResult("eval-20-a", ["still-failing"], "fp2")]),
+      benchmarkWith([evalResult("eval-20-a", [], "fp1")])
+    );
+    assert.deepEqual(cleanRun.moved, []);
+    assert.deepEqual(voidRun.moved, []);
+    assert.equal(cleanRun.comparableEvals, 1);
+    assert.equal(voidRun.comparableEvals, 0);
+  });
+
+  test("reports no comparable evals rather than failing when there is no baseline at all", () => {
+    const comparison = comparisonAgainst(benchmarkWith([evalResult("eval-20-a", [])]), null);
+    assert.deepEqual(comparison.moved, []);
+    assert.equal(comparison.comparableEvals, 0);
+    assert.equal(comparison.totalEvals, 1);
   });
 });
 
