@@ -750,7 +750,7 @@ When a table covers error/rejection cases, include the exception type as an expe
     Letters only    | abc      | NumberFormatException
     Negative amount | -10.00   | IllegalArgumentException
     """)
-void rejectsInvalidInput(String input, Class<? extends Exception> throws_) {
+void rejectsInvalidInput(String input, Class<? extends Throwable> throws_) {
     assertThrows(throws_, () -> parse(input));
 }
 ```
@@ -782,19 +782,6 @@ private static Class<? extends Throwable> thrownBy(Executable action) {
 
 Branching on the row to pick between `assertThrows` and `assertDoesNotThrow` is what this avoids: it
 puts the rule back in the method body, where the table cannot show it.
-
-Keep null cases as blank-cell rows in the main table rather than extracting them to separate `@Test` methods:
-
-```java
-@TableTest("""
-    Scenario     | Input | Result?
-    Valid number | 42.50 | 42.50
-    Null input   |       |
-    """)
-void parsesAmount(String input, BigDecimal result) {
-    assertEquals(result, parse(input));
-}
-```
 
 ### Collapse Sparse Columns into a Map
 
@@ -1119,21 +1106,20 @@ After writing, verify:
 - [ ] **Thresholds visible**: rules that depend on a threshold or limit show it as a column, with boundary rows at and just past the threshold; for date cutoffs, prefer descriptive relative values (`before cutoff`, `on cutoff`) via a `@TypeConverter` — or include the cutoff date as a column if literal dates are used
 - [ ] **Correct expected values**: arithmetic in expected columns verified independently; every row's output matches the stated rules
 - [ ] **Value set semantics**: value sets only used where every value produces the same result; not used as shorthand for "test multiple values"
-- [ ] **Irrelevance and tiers use value sets**: an input the rule ignores appears as a value set spanning the values it ignores — never a fixed placeholder pinned in a converter, a field or the method body, and never merely asserted in `@Description`; when a range of input values maps to one tier, the row groups representative values (including both boundaries) into a value set
+- [ ] **Irrelevant inputs use value sets**: an input the rule ignores appears as a value set spanning the values it ignores — never a fixed placeholder pinned in a converter, a field or the method body, and never merely asserted in `@Description`
 - [ ] **One row per obligation**: every row discharges a behaviour no other row in that table reaches; where two rows share an expectation, what differs between them is what the rule is about — not a value further past the same boundary, a larger n in the same direction, or an input the rule ignores
-- [ ] **Every tier once**: a tier ladder has one row per tier — all of them, none twice, no "tier begins" row beside a "tier holds" row
+- [ ] **Every tier once**: a tier ladder has one row per tier — all of them, none twice, no "tier begins" row beside a "tier holds" row; each row's value set spans its tier, both boundaries included
 - [ ] **Combining tables prove an interaction**: any table exercising several rules together shows behaviour the single-rule tables cannot (a precedence, an ordering), not the earlier rules re-run end to end
 - [ ] **Blank means absent**: a column whose input is genuinely absent for a row uses a blank cell (not 0 or a default), with a parameter type that accepts null — an input that is present but irrelevant is a value set instead
 - [ ] **Traceability columns**: intermediate expected values included only when the value is observable from the public API — never reimplemented from internal logic; if you need to reimplement a formula to populate the column, decompose into separate tables instead
 - [ ] **Held constants declared**: every value the outcome depends on that the table fixes for all rows is a column, or is named in the `@DisplayName`/`@Description` as held fixed — never left in the method body, a field, a `@TypeConverter`, or a `//` comment
 - [ ] **Titles form an index**: read the class's titles as a sorted list — each states an action the code performs (not a label for a topic), one grammatical shape runs across them, and no three share an uninformative opener (`should…`, `test…`, `verify…`)
 - [ ] **@Description free of internals**: no internal formula or algorithm; a reader must not be able to recompute the expectation cells from the description alone
-- [ ] **One rule per table**: every expectation column is exercised by the rows the table varies — none is constant down all rows or moves only as a side effect of another. Give it rows that vary it, or move it to the table whose axis does
+- [ ] **One rule per table**: all observable outputs of the same rule sit in one table, and every expectation column there is exercised by the rows that table varies — one constant down all rows, or moving only as a side effect of another, belongs to a different rule's table
 - [ ] **@Description adds information**: if present, `@Description` provides context beyond what the table shows (fixed values, domain context, open questions) — not a restatement of columns or rows. Omit `@Description` if there is nothing to add.
 - [ ] **@Description uses text block**: `@Description` uses `"""` text blocks, not string concatenation with `+`
 - [ ] **Annotation order**: `@DisplayName` → `@Description` → `@TableTest` (no other order)
 - [ ] **Exception column**: error/rejection tables have a `Throws?` or `Exception?` column, not hardcoded exception classes in the method body
-- [ ] **Complete outputs**: all observable outputs of the same behavioral concern are in one table, not split across separate tests
 - [ ] **Row coherence**: rows match the type of logic being tested (decision points for priority logic, input variations for parsing logic); out-of-place rows may signal mixed responsibilities in the code under test
 - [ ] **Column consolidation**: if multiple columns are mutually exclusive (both identity and status vary together), consider consolidating into single column with composite values (e.g., `Primary OK`, `Secondary ERROR`)
 - [ ] **Cross-table consistency**: if multiple TableTests exist in the same class, use consistent notation for similar concerns (timing, errors, special values); share parsers and helper methods
