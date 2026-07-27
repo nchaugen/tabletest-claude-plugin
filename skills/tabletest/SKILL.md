@@ -660,6 +660,25 @@ pinned zone for the whole table, and no column says so.
 Declaring a held constant in `@Description` is not redundancy. The other description rules forbid
 restating what the rows already show; a held constant is exactly what the rows cannot show.
 
+**What the assertion tolerates is part of the rule too.** A comparison that sorts either side before
+comparing, accepts a subset, matches "contains" rather than equals, or normalises case or whitespace
+is enforcing a rule: it changes which behaviours the test would accept. None of it reaches the
+reader. Ordering is the usual one, and a helper is where it hides — written once, then invisible at
+every call site, so a reader cannot tell whether order is part of the behaviour or an artefact of the
+comparison.
+
+Two repairs, and the second is better where it fits:
+
+- **Name it** — one sentence in the `@Description` ("bins are compared without regard to order"), or
+  a column that makes it evident.
+- **Remove the need for it** — a `Set` expectation column says order does not matter *in the table
+  itself*, which beats saying so in prose; a list with a canonical sort says it does. See **A
+  compound result stays a collection**.
+
+Numeric hygiene is not a criterion: a conventional epsilon on a decimal column, or
+`BigDecimal.compareTo`, is exempt. Neither is constructing the objects the columns name — that is the
+converter's job.
+
 **An input the rule is indifferent to must still be shown varying.** "Indifferent" is a claim about
 behaviour, and a claim needs rows behind it. Collapse it into a value set — one row, still varying —
 never into a fixed value pinned in a converter or the method body. Pinning it makes the independence
