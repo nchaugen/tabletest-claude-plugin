@@ -53,7 +53,7 @@ Stick with standard `@Test` methods when:
     with zero        | 0  | 5  | 5
     negative number  | -3 | 7  | 4
     """)
-void shouldAddNumbers(int a, int b, int sum) {
+void addsTwoNumbers(int a, int b, int sum) {
     assertEquals(sum, Calculator.add(a, b));
 }
 ```
@@ -99,7 +99,7 @@ Use blank cells for `null` (reference types). Use `''` for empty strings. Use `'
     "[1,2,3]"         | Quote to avoid list syntax
     "{a,b}"           | Quote to avoid set syntax
     """)
-void testValues(String value, String description) { ... }
+void quotesSpecialCharacters(String value, String description) { ... }
 ```
 
 **Strategy**: Apply minimal quoting. Start without quotes; if a test fails with a parsing error, add quotes only around the problematic value. Over-quoting obscures the data.
@@ -120,7 +120,7 @@ Lists use `[]`, sets use `{}`, and maps use `[]` with `key: value` entries.
     [1]       | 1
     [1, 2, 3] | 6
     """)
-void testSum(List<Integer> numbers, int sum) { ... }
+void sumsListElements(List<Integer> numbers, int sum) { ... }
 
 // Set (empty set uses {})
 @TableTest("""
@@ -129,7 +129,7 @@ void testSum(List<Integer> numbers, int sum) { ... }
     {1, 2, 3}    | 3
     {1, 1, 2, 2} | 2
     """)
-void testSetSize(Set<Integer> values, int size) { ... }
+void countsDistinctValues(Set<Integer> values, int size) { ... }
 
 // Map (empty map uses [:])
 @TableTest("""
@@ -138,7 +138,7 @@ void testSetSize(Set<Integer> values, int size) { ... }
     [Alice: 95, Bob: 87] | 95
     [x: 1, y: 2, z: 3]   | 3
     """)
-void testHighestScore(Map<String, Integer> scores, int highest) { ... }
+void findsHighestScore(Map<String, Integer> scores, int highest) { ... }
 ```
 
 **Common mistake**: Using `[]` for a `Set<>` parameter. Lists use `[]`; sets use `{}`. If a parameter is typed `Set<T>` but the table uses `[]`, JUnit will report a conversion failure. Double-check the brackets match the parameter type.
@@ -211,7 +211,7 @@ public class MyTest {  // Must be public, not package-private
     today      | 0
     tomorrow   | 1
     """)
-void testDaysUntil(LocalDate date, int expected) {
+void countsDaysUntil(LocalDate date, int expected) {
     assertEquals(expected, ChronoUnit.DAYS.between(LocalDate.now(), date));
 }
 
@@ -277,7 +277,7 @@ class DateTest {
     @TableTest("""
         ...
         """)
-    void testWithSharedConverters(LocalDate date, Duration duration) { ... }
+    void usesSharedConverters(LocalDate date, Duration duration) { ... }
 }
 ```
 
@@ -340,7 +340,7 @@ Converter methods enable readable domain conventions in tables:
     Acceptable   | <150
     Slow         | <500
     """)
-void testResponseTime(Long maxResponseTimeMs) { ... }
+void allowsUnsetResponseTime(Long maxResponseTimeMs) { ... }
 
 @TypeConverter
 public static Long parseResponseTime(String value) {
@@ -442,12 +442,22 @@ Each table now states one rule, and every cell is predictable from its row. This
 narrower function to call — see **Let tables drive the API decomposition**; a table that can only
 reach the fused result means the seam is missing, not that the table must fuse.
 
-**When a second expectation column is a different rule's output, move it out.** *Include All Outputs
-of a Concern* asks for every output of the *same* rule; it does not license a second rule's output.
-A table deciding whether a crew member is fit to fly that also asserts their required rest hours is
-asserting two rules — the fitness decision does not compute the rest requirement. The second rule
-gets its own table, and the decision table drops the column rather than keeping it "for
-completeness".
+**Every expectation column must be exercised by the rows the table varies.** *Include All Outputs of
+a Concern* asks for every output of the same rule, and a response carrying two fields usually keeps
+both columns. The question is not the shape of the response — it is whether each column moves for its
+own reason along the axis this table varies.
+
+**A column that is constant down every row, or that changes only as a side effect of another column,
+is not being tested.** Two repairs, and which one is right depends on the rule:
+
+- Give it rows that vary it, when the column does belong to this table's axis and the rows were
+  missing.
+- Move it to the table whose axis varies it, and drop the column here rather than keeping it "for
+  completeness".
+
+A fit-to-fly table varying rest hours that also asserts a required-rest figure identical in every row
+is displaying the second rule, not testing it. A table where the decision and the rest requirement
+both change as rest hours change is one rule with two outputs — keep both columns.
 
 ### Frame Stateful Features as Rules
 
@@ -563,6 +573,16 @@ Two symptoms:
   does not make it a new rule. If the wiring genuinely needs showing, that is one row, not a second
   pass over the ladder.
 
+**Salvage its rows before you delete it — and then delete it.** One or two rows of an end-to-end
+table often reach a case no single-rule table does: a zero concentration against a nonzero body
+weight, an empty roster against a fully configured schedule. Deleting the table takes those with it
+and nothing reports the loss, so list the obligations only its rows discharge and move each into the
+table that owns its rule.
+
+**This is a salvage step, not a reprieve — no outcome of it keeps the table.** A row worth keeping is
+worth keeping *somewhere else*. Nor does shrinking the table save it: a single `@Test` that runs the
+whole feature to re-prove one already-proven total is the same combining table with fewer rows.
+
 ### Match Table Structure to the Logic Being Tested
 
 The type of logic under test determines what each row should represent:
@@ -589,6 +609,78 @@ Examples: `Valid?`, `Formatted?`, `Result?`, `Throws?`, `Expected?`
 Source?        ← CORRECT
 ```
 
+### Assume the Table Is Published
+
+Write every table as if a reader will meet it in a published report, never having seen the test body.
+Only three surfaces reach that reader, and they divide the work:
+
+| Element        | Carries                                                                     |
+|----------------|-----------------------------------------------------------------------------|
+| `@DisplayName` | the rule, as an action the code performs                                    |
+| `@Description` | the apparatus that cannot be a column — what is held constant, which fixtures or converters are in play, where the data came from |
+| the table      | the variations the rule ranges over                                         |
+
+**Whatever the table holds constant is silently promoted into the rule.** Readers generalise from what
+varies, so a value that never varies is read as part of the rule: a duty-limit table whose every row
+assumes a two-pilot crew states, to its reader, a rule about two-pilot crews.
+
+So a constant the outcome depends on is either a column or declared in the title or description. It is
+**not** declared when it sits in the test method body, in a field, in a `@TypeConverter`, or in a `//`
+comment — a comment reaches no published surface at all. The converter is the easiest hiding place
+because it looks like plumbing: a converter that builds every history entry with the same zone has
+pinned zone for the whole table, and no column says so.
+
+Declaring a held constant in `@Description` is not redundancy. The other description rules forbid
+restating what the rows already show; a held constant is exactly what the rows cannot show.
+
+**An input the rule is indifferent to must still be shown varying.** "Indifferent" is a claim about
+behaviour, and a claim needs rows behind it. Collapse it into a value set — one row, still varying —
+never into a fixed value pinned in a converter or the method body. Pinning it makes the independence
+unfalsifiable, which is the opposite of what the claim needs:
+
+```
+Scenario                     | Donation Type         | Days Since Last | Deferred?
+Inside the deferral window   | {whole blood, plasma} | 30              | true
+Past the deferral window     | {whole blood, plasma} | 60              | false
+```
+
+### Write Titles That Form an Index
+
+`@DisplayName` — or the method name when there is none — is the line a reader scans in the report
+index. Judge titles as a set, never one at a time: a title that reads well on its own page can still
+be an unscannable entry in the list.
+
+**Open each title with something that distinguishes it, and keep one grammatical shape across the
+family.** When every title starts with the same word, the index becomes a column of `should…` and the
+distinguishing part arrives last, where scanning cannot reach it. Three titles sharing an
+uninformative opener is enough to make the list unscannable.
+
+**Write an action the code performs, not a label for a topic.** This is the half that is easy to
+miss: a noun phrase can front the varying subject and still say nothing about what the code *does*
+with it. `Deferral interval by donation type` names a topic; `Sets the deferral interval from the
+donation type` names behaviour. The label form is the more tempting mistake, because it looks tidy
+in a list.
+
+| Scans as an index                                    | Does not                           |
+|------------------------------------------------------|------------------------------------|
+| `Sets the deferral interval from donation type`      | `shouldApplyDeferralInterval`      |
+| `Rejects a reading below the haemoglobin minimum`    | `Haemoglobin minimum by donor sex`  |
+| `Defers a donor returning from a listed destination` | `shouldDeferForTravelDestination`  |
+
+Three distinct verbs, each carrying information, and the subject arrives immediately after. One
+outlier does not break a family — a negative or invariant claim (`Donation type does not affect the
+haemoglobin minimum`) often reads best subject-first.
+
+**A title states what your system does, not an external fact it depends on.** Strike the system under
+test from the sentence: if it still reads as true, the title is restating a regulation, a format or a
+domain fact instead of naming behaviour. This is why the action form is safer than the topic form —
+`Donation type sets the deferral interval` survives the strike and reads as policy, while `Sets the
+deferral interval from the donation type` does not stand alone without the system that does it.
+
+**This action voice is the title's alone.** Scenario names stay condition phrases naming the row's
+variation — see **Name Scenarios Descriptively**. A title says what the rule does; a scenario name
+says which case this row is. Writing rows as little sentences is how outcome-echoing names get in.
+
 ### Use @Description When It Adds Information
 
 Add `@Description` when there is context the table alone cannot convey. Omit it when the table already says everything — a vacuous description adds noise.
@@ -599,14 +691,22 @@ Good reasons to add `@Description`:
 - **Open questions** — decisions not yet resolved
 - **Relationship between tables** — how this table connects to others in the class
 
-Do not restate what the table already shows. If the description merely summarises the column names or row outcomes, delete it. Don't include irrelevant fixed values — "Fixed for all rows: name = 'Alice Smith'" is noise unless the name affects behaviour. Values hardcoded in the method body that affect outcomes should be columns, not description text.
+Do not restate what the table already shows. If the description merely summarises the column names or row outcomes, delete it. Don't include irrelevant fixed values — "Fixed for all rows: donor name = 'A. Nolan'" is noise unless the name affects behaviour. Values hardcoded in the method body that affect outcomes should be columns.
+
+**A description must not publish the algorithm.** Restating the internal formula — "the dose index is
+body weight divided by ten plus four per severity grade, capped once it passes 75" — turns a
+black-box table into a white-box one and pins the test to an implementation the rows never observe.
+A **threshold the rule is about**
+is different: name it, or better, make it a column (see **Make Thresholds Visible**). The line is
+whether a reader could recompute every expectation cell from the description alone. If they could,
+the description is doing the code's job.
 
 ```java
 // GOOD — adds context not visible in the table
 @Description("""
-    Applies to domestic flights only. Baggage weight is per piece,
-    not cumulative. Open: should frequent flyers in downgraded
-    cabins retain their original baggage allowance?
+    Applies to the paediatric formulary only. Dose is per administration,
+    not per day. Open: should a missed dose be added to the next one once
+    the interval has already elapsed?
     """)
 
 // BAD — restates what the table shows
@@ -624,7 +724,7 @@ Annotations on a `@TableTest` method must appear in this order:
 3. `@TableTest`
 
 ```java
-@DisplayName("Parking fee calculation")
+@DisplayName("Charges parking by duration band")
 @Description("""
     First 2 hours are free. Hours 3-5 are charged at the standard rate.
     Hours beyond 5 are charged at 2× the standard rate.
@@ -636,7 +736,7 @@ Annotations on a `@TableTest` method must appear in this order:
     Standard rate      | Tuesday  | 4     | 3.00  | 2         | 2             |                | 6.00
     With surcharge     | Wednesday| 7     | 3.00  | 2         | 3             | 2              | 21.00
     """)
-void shouldCalculateParkingFee(...) { ... }
+void calculatesParkingFee(...) { ... }
 ```
 
 ### Model Exceptions as Expected Columns
@@ -650,7 +750,7 @@ When a table covers error/rejection cases, include the exception type as an expe
     Letters only    | abc      | NumberFormatException
     Negative amount | -10.00   | IllegalArgumentException
     """)
-void shouldRejectInvalidInput(String input, Class<? extends Exception> throws_) {
+void rejectsInvalidInput(String input, Class<? extends Exception> throws_) {
     assertThrows(throws_, () -> parse(input));
 }
 ```
@@ -663,7 +763,7 @@ Keep null cases as blank-cell rows in the main table rather than extracting them
     Valid number | 42.50 | 42.50
     Null input   |       |
     """)
-void shouldParseAmount(String input, BigDecimal result) {
+void parsesAmount(String input, BigDecimal result) {
     assertEquals(result, parse(input));
 }
 ```
@@ -856,7 +956,7 @@ Multiple sets in the same row create a cartesian product:
     Scenario | a      | b      | Max Sum?
     Combined | {1, 2} | {3, 4} | 6
     """)
-void testCartesianProduct(int a, int b, int maxSum) {
+void combinesTwoValueSets(int a, int b, int maxSum) {
     assertTrue(a + b <= maxSum);
 }
 ```
@@ -873,7 +973,7 @@ Use value sets when a flag is irrelevant for certain scenarios:
     Normal flow | true   | {true, false} | success
     Error path  | true   | true          | fallback
     """)
-void handles_errors(boolean master, boolean fallback, String expected) { ... }
+void resolvesFallbackOnError(boolean master, boolean fallback, String expected) { ... }
 ```
 
 Row 1: Fallback flag doesn't matter when there's no error, so test both values.
@@ -1006,6 +1106,11 @@ After writing, verify:
 - [ ] **One rule per table**: expectation columns are all outputs of the same rule; a column another table's rule produces (a required-rest figure beside a fit-to-fly decision) belongs in that other table
 - [ ] **Optional inputs blank**: columns not relevant to a scenario use blank cells (not 0 or defaults); parameter types support null
 - [ ] **Traceability columns**: intermediate expected values included only when the value is observable from the public API — never reimplemented from internal logic; if you need to reimplement a formula to populate the column, decompose into separate tables instead
+- [ ] **Held constants declared**: every value the outcome depends on that the table fixes for all rows is a column, or is named in the `@DisplayName`/`@Description` as held fixed — never left in the method body, a field, a `@TypeConverter`, or a `//` comment
+- [ ] **Indifference shown by rows**: an input the rule is claimed to ignore appears as a value set spanning the values it ignores, not pinned to one value anywhere
+- [ ] **Titles form an index**: read the class's titles as a sorted list — each states an action the code performs (not a label for a topic), one grammatical shape runs across them, and no three share an uninformative opener (`should…`, `test…`, `verify…`)
+- [ ] **@Description free of internals**: no internal formula or algorithm; a reader must not be able to recompute the expectation cells from the description alone
+- [ ] **Every expectation column varies**: no expectation column is constant down all rows or moves only as a side effect of another — give it varying rows or move it to the table whose axis varies it
 - [ ] **@Description adds information**: if present, `@Description` provides context beyond what the table shows (fixed values, domain context, open questions) — not a restatement of columns or rows. Omit `@Description` if there is nothing to add.
 - [ ] **@Description uses text block**: `@Description` uses `"""` text blocks, not string concatenation with `+`
 - [ ] **Annotation order**: `@DisplayName` → `@Description` → `@TableTest` (no other order)

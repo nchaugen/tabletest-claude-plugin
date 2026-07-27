@@ -613,7 +613,7 @@ When an input column is not relevant to certain scenarios (e.g., a peak surcharg
     Airport pickup        | 12.00     |                | 8.00        | 20.00
     Peak airport pickup   | 12.00     | 5.00           | 8.00        | 25.00
     """)
-void shouldCalculateTotalFare(BigDecimal baseFare, BigDecimal peakSurcharge,
+void calculatesTotalFare(BigDecimal baseFare, BigDecimal peakSurcharge,
         BigDecimal airportFee, BigDecimal totalFare) {
     assertThat(FareCalculator.calculate(baseFare, peakSurcharge, airportFee))
             .isEqualTo(totalFare);
