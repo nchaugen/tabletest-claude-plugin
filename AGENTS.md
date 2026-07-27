@@ -95,6 +95,21 @@ roughly a quarter of a full suite's cost and time, with strictly more signal. Fo
 figures read `summary.total_cost_usd` and `summary.total_duration_ms` off a recent `benchmark.json`
 rather than a number written down here.
 
+**Then weigh the loop by price too — evals are not interchangeable units of spend.**
+`node scripts/eval-costs.js --skill <skill>` prints mean generation cost, grading cost and wall-clock
+per eval across every stored run, cheapest first. **The spread is about sevenfold**, so two loops
+with equal signal can differ several-fold in cost, and "five evals" says almost nothing about what a
+run will cost. Two consequences:
+
+- **A smoke loop is affordable in a way a full loop is not.** The cheapest hosts of an assertion run
+  in about a minute for small change; the dearest take ten minutes and dollars. When a targeted
+  assertion has a cheap host, an early probe on it costs a fraction of the loop and answers "does
+  this fire at all?" before the expensive evals are committed.
+- **Signal still wins.** Price is a tiebreak between evals that carry the target, never a reason to
+  drop the eval that carries it. A cheap loop measuring nothing is the most expensive kind.
+
+Costs drift with the suite and the model, so read the script rather than a figure quoted in a plan.
+
 ### Developing a variant
 
 `skills/` is always the published version — never iterate on it directly.
@@ -102,7 +117,27 @@ rather than a number written down here.
 1. Copy the **full** published skill dir (`SKILL.md` + `references/`) to
    `skill-variants/<skill>/next/`. The runner swaps the whole skill dir for the variant, so a
    partial copy silently drops references.
-2. Benchmark against the baseline:
+2. **Read the draft back before paying for it.** Three checks, all free, all against text you already
+   have. They catch a different class of defect from a run, and the class they catch is common:
+   every cluster so far has turned out to be a *conflict* in the skill rather than a gap.
+
+   - **Run each targeted assertion's own decidable test against your own illustration.** The
+     assertion texts in `evals/<skill>/*/eval.json` are written as mechanical tests, so they work as
+     a linter on the examples you just wrote. A drafted title example once failed
+     `title-states-system-behaviour`'s own strike-out test — the illustration could not have passed
+     the assertion it existed to fix.
+   - **Grep `SKILL.md` for every term the edit introduces, and read what already says something
+     about it.** Guidance that contradicts an adjacent passage loses to the adjacent passage. One
+     draft licensed keeping a combining table three lines below *Wiring is not a rule*, which
+     rejects it.
+   - **Apply the draft rule by hand to the offending values in the stored artefacts.** They are
+     already paid for, and they are the exact inputs the guidance has to catch.
+
+   **What this cannot tell you is whether the guidance fires.** A rule can be correct, unambiguous,
+   consistent with its neighbours, and still be skipped: cluster 3 taught the "force N" naming shape
+   explicitly and two evals wrote it anyway. Reading tests correctness; only generation tests
+   salience. Do both, in this order — the free one first.
+3. Benchmark against the baseline:
    `node scripts/run-evals.js --skill tabletest --variant next --iteration N --compare-official`.
    The `eval-review.md` "Load-Bearing Assertions" and resource-comparison sections show what
    the change wins and loses — but read them alongside the artefacts (see below), never alone.
