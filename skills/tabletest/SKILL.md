@@ -474,12 +474,34 @@ Other signs that concerns are mixed:
 **Missing concern:** An input to one rule is itself derived from raw data. The derivation has its own edge cases and needs boundary testing in a separate table. The rule table then takes the derived value as a direct input column, not the raw data. Two tables, not one.
 
 **Do not over-split either.** Several tables that fix the same setup and each vary one sub-rule, all
-reporting the same output column, are one concern scattered across methods — one table per adjustment,
-per option, per flag. Collapse them into one table with a column for the varying input.
-The test is the fixture: if two tables hold the same values constant and answer the same question,
-they are one table. Collapse only while the combined table stays a handful of rows and each row still
-shows which sub-rule it demonstrates; where collapsing would cross-multiply, the tables are
-genuinely distinct and belong apart.
+reporting the same output column, are one concern scattered across methods — one table per
+adjustment, per option, per flag. That shape is the symptom. The cause is a family you did not name.
+
+**If you can name what several tables have in common in one term, they are one concern — that term is
+the table, and its members are a column.** This is the mirror of the "and" test above. Renal
+impairment, low body weight and an interacting drug all *adjust the standard dose*: three rules, one
+family, one table with an adjustment column. Naming the members instead —
+`reducesForRenalImpairment`, `adjustsForBodyWeight`, `reducesForInteractingDrug` — commits to the
+split before a single row exists, which is why this is decided at the method name.
+
+**Members of a family compute differently, and that is not a reason to split.** One adjustment is a
+flat reduction, another a percentage, another a weight-based recalculation. The differing computation
+is what the rows show; it is not what makes them separate tables.
+
+```
+Scenario                   | Adjustments                        | Daily Dose?
+No adjustment              | [:]                                | 500
+Renal impairment           | [renal: severe]                    | 250
+Low body weight            | [weightKg: 20]                     | 200
+Interacting drug           | [interaction: true]                | 400
+Renal and interacting drug | [renal: severe, interaction: true] | 200
+```
+
+**Collapse on a family, never on a bag.** A family is a domain category, not "everything that affects
+the answer". The check: the family name works as a column header with the members as its values —
+`Adjustment: renal | weight | interaction` does, `Dose factor: …` does not. Where no such name exists
+the tables are genuinely distinct and belong apart, and so they do where collapsing would
+cross-multiply or leave rows whose purpose is no longer legible.
 
 ### Give Each Obligation Exactly One Row
 
@@ -850,11 +872,11 @@ Row 2: Fallback flag is critical for error handling, so specify exact value.
 When multiple input values produce the same output (a tier), group them into a value set:
 
 ```
-Scenario   | Credit Hours         | Standing?
-Freshman   | {0, 10, 20, 29}     | Freshman
-Sophomore  | {30, 45, 59}        | Sophomore
-Junior     | {60, 75, 89}        | Junior
-Senior     | {90, 100, 120}      | Senior
+Scenario         | Credit Hours    | Standing?
+Under 30 hours   | {0, 10, 20, 29} | Freshman
+30 to 59 hours   | {30, 45, 59}    | Sophomore
+60 to 89 hours   | {60, 75, 89}    | Junior
+90 hours and up  | {90, 100, 120}  | Senior
 ```
 
 This makes the tier structure a first-class concept — each row IS a tier.
@@ -869,8 +891,8 @@ a ladder usually shows both at once:
   rows:
 
   ```
-  Sophomore tier begins | 30       | Sophomore
-  Sophomore tier holds  | {45, 59} | Sophomore    ← same tier, second row
+  At the 30-hour boundary | 30       | Sophomore
+  Mid-band hours          | {45, 59} | Sophomore    ← same tier, second row
   ```
 
   The value set already spans the tier, so it already carries the boundary. Write
@@ -896,7 +918,7 @@ void resolves_values(String input, String resolved) {
 }
 ```
 
-**Blank cells for irrelevant inputs**: When an input is not relevant to a scenario, use a blank cell — not `0` or a default value. Use boxed types (`Integer`, `Long`) instead of primitives so blank cells convert to `null`. Then handle null-to-default conversion in a `@TypeConverter` or helper, not in the test method body.
+**Blank cells mean absent, not irrelevant**: when an input is genuinely *absent* for a scenario, use a blank cell — not `0` or a default value — and use boxed types (`Integer`, `Long`) instead of primitives so the cell converts to `null`. **A default for an absent value cannot come from a `@TypeConverter`**: a blank cell never reaches one (see Handling Null Values). Write the empty value instead — `[:]`, `[]`, `{}`, `''` — where you want the converter to supply defaults, and otherwise let the system under test decide what `null` means. Never default in the test method body.
 
 **Blank vs value set**: Blank cells mean the input is genuinely absent (null). When the input exists but is irrelevant to the outcome, use a value set instead: `{UK, Ireland, Other}` for destination means "destination exists but doesn't affect this result". Don't use blanks for "doesn't matter" — blanks mean null.
 
