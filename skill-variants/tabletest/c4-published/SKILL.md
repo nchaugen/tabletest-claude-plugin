@@ -551,11 +551,15 @@ Two symptoms:
   does not make it a new rule. If the wiring genuinely needs showing, that is one row, not a second
   pass over the ladder.
 
-**Before deleting a combining table, check which obligations only its rows discharge.** An end-to-end
-table usually re-proves the ladder, but one or two of its rows often reach a case no single-rule table
-does — a zero concentration against a nonzero body weight, an empty roster against a fully configured
-schedule. Deleting the table takes those with it, and nothing reports the loss. List its rows'
-obligations, move the ones no other table covers into the table that owns their rule, then delete.
+**Salvage its rows before you delete it — and then delete it.** One or two rows of an end-to-end
+table often reach a case no single-rule table does: a zero concentration against a nonzero body
+weight, an empty roster against a fully configured schedule. Deleting the table takes those with it
+and nothing reports the loss, so list the obligations only its rows discharge and move each into the
+table that owns its rule.
+
+**This is a salvage step, not a reprieve — no outcome of it keeps the table.** A row worth keeping is
+worth keeping *somewhere else*. Nor does shrinking the table save it: a single `@Test` that runs the
+whole feature to re-prove one already-proven total is the same combining table with fewer rows.
 
 ### Match Table Structure to the Logic Being Tested
 
@@ -590,7 +594,7 @@ Only three surfaces reach that reader, and they divide the work:
 
 | Element        | Carries                                                                     |
 |----------------|-----------------------------------------------------------------------------|
-| `@DisplayName` | the rule, as a declarative sentence                                         |
+| `@DisplayName` | the rule, as an action the code performs                                    |
 | `@Description` | the apparatus that cannot be a column — what is held constant, which fixtures or converters are in play, where the data came from |
 | the table      | the variations the rule ranges over                                         |
 
@@ -624,23 +628,36 @@ Past the deferral window     | {whole blood, plasma} | 60              | false
 index. Judge titles as a set, never one at a time: a title that reads well on its own page can still
 be an unscannable entry in the list.
 
-**Put the varying subject first, and use one grammatical shape across the family.** When every title
-opens with the same word, the index becomes a column of `should…` and the subject arrives last, where
-scanning cannot reach it.
+**Open each title with something that distinguishes it, and keep one grammatical shape across the
+family.** When every title starts with the same word, the index becomes a column of `should…` and the
+distinguishing part arrives last, where scanning cannot reach it. Three titles sharing an
+uninformative opener is enough to make the list unscannable.
 
-| Scans as an index                    | Does not                          |
-|--------------------------------------|-----------------------------------|
-| `Deferral interval by donation type` | `shouldApplyDeferralInterval`     |
-| `Haemoglobin minimum by donor sex`   | `shouldCheckHaemoglobinMinimum`   |
-| `Travel deferral by destination`     | `shouldDeferForTravelDestination` |
+**Write an action the code performs, not a label for a topic.** This is the half that is easy to
+miss: a noun phrase can front the varying subject and still say nothing about what the code *does*
+with it. `Deferral interval by donation type` names a topic; `Sets the deferral interval from the
+donation type` names behaviour. The label form is the more tempting mistake, because it looks tidy
+in a list.
 
-One outlier does not break a family — a negative or invariant claim ("Donation type does not affect
-the haemoglobin minimum") often reads best subject-first.
+| Scans as an index                                    | Does not                           |
+|------------------------------------------------------|------------------------------------|
+| `Sets the deferral interval from donation type`      | `shouldApplyDeferralInterval`      |
+| `Rejects a reading below the haemoglobin minimum`    | `Haemoglobin minimum by donor sex`  |
+| `Defers a donor returning from a listed destination` | `shouldDeferForTravelDestination`  |
+
+Three distinct verbs, each carrying information, and the subject arrives immediately after. One
+outlier does not break a family — a negative or invariant claim (`Donation type does not affect the
+haemoglobin minimum`) often reads best subject-first.
 
 **A title states what your system does, not an external fact it depends on.** Strike the system under
 test from the sentence: if it still reads as true, the title is restating a regulation, a format or a
-domain fact instead of naming behaviour. "A whole blood unit is 470 ml" is a fact; "Donation volume by
-component type" is what the code decides.
+domain fact instead of naming behaviour. This is why the action form is safer than the topic form —
+`Donation type sets the deferral interval` survives the strike and reads as policy, while `Sets the
+deferral interval from the donation type` does not stand alone without the system that does it.
+
+**This action voice is the title's alone.** Scenario names stay condition phrases naming the row's
+variation — see **Name Scenarios Descriptively**. A title says what the rule does; a scenario name
+says which case this row is. Writing rows as little sentences is how outcome-echoing names get in.
 
 ### Use @Description When It Adds Information
 
@@ -685,7 +702,7 @@ Annotations on a `@TableTest` method must appear in this order:
 3. `@TableTest`
 
 ```java
-@DisplayName("Parking fee calculation")
+@DisplayName("Charges parking by duration band")
 @Description("""
     First 2 hours are free. Hours 3-5 are charged at the standard rate.
     Hours beyond 5 are charged at 2× the standard rate.
