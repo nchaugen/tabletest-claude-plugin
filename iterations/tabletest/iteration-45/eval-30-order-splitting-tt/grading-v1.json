@@ -1,0 +1,168 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing all splitting rules. Closely-related concerns may share one method (e.g. fulfillment type and delivery address, which follow the same 'same shipment iff same type and address' rule), so four methods covering five concerns is fine. FAILS only when a single method carries all the rules; PASSES with two or more concern-focused methods. Judge the test code only. Any claim the response's prose makes about how many concerns or methods it produced is irrelevant — an inaccurate summary alongside a correctly decomposed test file PASSES.",
+      "passed": true,
+      "evidence": "Five separate @TableTest methods: separatesShipmentsByFulfillmentType, separatesShipmentsByDeliveryAddress, shipsInStockItemsWithoutWaitingForDelayedItems, minimisesShipmentCountAcrossWarehouses, keepsCompanionsTogetherWhenPossible"
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES. Do not fail a table merely because its values are simple or round — only these three conditions matter. One exemption applies to conditions (1) and (3): a table whose claim IS an invariance — that some input does not affect the outcome — correctly holds one expectation value across every row, because that constant is the rule's subject rather than evidence of a weak table. A single row varying that input over a value set (e.g. '{DHL, UPS, FEDEX} | 12.00') is the correct compact form and PASSES, provided the title or description states the invariance. Condition (2) is not exempted.",
+      "passed": true,
+      "evidence": "Each table's expectation column varies across rows (e.g. '[DELIVERY: {camera}, PICKUP: {battery}]' vs '[DELIVERY: {camera, lens}]') and is not a fixed value or verbatim copy of input cells"
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone. Otherwise the assertion PASSES. Setup that merely constructs the objects named by the columns is not a failure. Comparison criteria applied by a helper or the assertion body are graded by assertion-criteria-declared, not here. Judge every @TableTest method in the class. Your evidence must list each method name with PASS or FAIL beside it; a verdict reported from a subset of the methods is not a verdict. A value counts as published if it appears ANYWHERE on the test class's published surface: any @DisplayName or @Description on any method, the class-level @Description, or a column of any table. A method with no @DisplayName publishes its own name as its title, with camelCase split into words, so method names count as published text. Clause (1) triggers only when the value appears ONLY in the method body or a field — a value stated in a sibling method's @Description is published, not hidden.",
+      "passed": true,
+      "evidence": "separatesShipmentsByFulfillmentType: PASS; separatesShipmentsByDeliveryAddress: PASS; shipsInStockItemsWithoutWaitingForDelayedItems: PASS; minimisesShipmentCountAcrossWarehouses: PASS; keepsCompanionsTogetherWhenPossible: PASS - all needed context (warehouse fixed, companion group, address fixed) is stated in @Description text"
+    },
+    {
+      "id": "no-duplicate-rows-within-a-table",
+      "text": "Judge each @TableTest in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by 2.19-covers-every-tier and quantifier-covered-by-rows. Judge every @TableTest method in the class; your evidence must name each method with PASS or FAIL.",
+      "passed": true,
+      "evidence": "separatesShipmentsByFulfillmentType: PASS; separatesShipmentsByDeliveryAddress: PASS; shipsInStockItemsWithoutWaitingForDelayedItems: PASS; minimisesShipmentCountAcrossWarehouses: PASS; keepsCompanionsTogetherWhenPossible: PASS - no row re-covers an obligation already discharged by an earlier row in the same table"
+    },
+    {
+      "id": "no-table-reproves-another",
+      "text": "Judge the class as a whole. The assertion FAILS if a whole @TableTest re-proves rules that earlier tables already established — an integration or end-to-end table whose rows re-prove established rules is the common case, and it fails however clean the other tables are. Sibling tables that each isolate one rule are NOT duplication merely because they share a baseline row: four surcharge tables that each show 'no surcharge' then 'surcharge applied' are four legitimate tables, not one duplicated four times. Collapsing several same-fixture tables into one, as concern-not-over-split requires, is likewise not a failure here. Rows you think are missing are never a failure here. Your evidence must name the re-proving table and the table it duplicates.",
+      "passed": true,
+      "evidence": "No integration/end-to-end table exists; only the five concern-isolated tables are present, none re-proving another's rule"
+    },
+    {
+      "id": "concern-fulfillment-method",
+      "text": "Fulfillment method splitting is represented in a @TableTest — its own, or one shared with the delivery-address split (both follow 'same shipment iff same fulfillment type and address') — showing that items with different fulfillment types (store pickup vs home delivery) cannot share a shipment.",
+      "passed": true,
+      "evidence": "'Delivery and pickup mixed | [\"camera:DELIVERY:addr1\", \"battery:PICKUP\"] | [DELIVERY: {camera}, PICKUP: {battery}]'"
+    },
+    {
+      "id": "concern-delivery-address",
+      "text": "Delivery address splitting is represented in a @TableTest — its own, or one shared with the fulfillment-method split — showing that items going to different addresses must be in separate shipments.",
+      "passed": true,
+      "evidence": "'Different addresses | [\"camera:DELIVERY:addr1\", \"lens:DELIVERY:addr2\"] | [addr1: {camera}, addr2: {lens}]'"
+    },
+    {
+      "id": "concern-availability",
+      "text": "Availability splitting is represented as its own @TableTest — in-stock items ship immediately, backordered/pre-ordered items ship when available.",
+      "passed": true,
+      "evidence": "shipsInStockItemsWithoutWaitingForDelayedItems table shows IMMEDIATE vs WHEN_AVAILABLE rows"
+    },
+    {
+      "id": "concern-warehouse-allocation",
+      "text": "Warehouse allocation (minimising shipments) is represented as its own @TableTest — choosing which warehouses to ship from to minimise total shipment count.",
+      "passed": true,
+      "evidence": "minimisesShipmentCountAcrossWarehouses table: 'No single warehouse covers the order | ... | [wh1: {camera, lens}, wh2: {tripod}]'"
+    },
+    {
+      "id": "concern-companion-products",
+      "text": "Companion product grouping is represented as its own @TableTest — paired items (e.g. camera body and lens) should ship together from the same location when possible.",
+      "passed": true,
+      "evidence": "keepsCompanionsTogetherWhenPossible table: 'Two equally minimal warehouse splits are possible | ... | [wh1: {camera, lens}, wh2: {tripod}]'"
+    },
+    {
+      "id": "all-outputs-same-table",
+      "text": "Each @TableTest method includes all output columns for its concern in the same table — e.g. warehouse allocation includes both the assignment and shipment count, not split across methods. All outputs of the same concern belong together.",
+      "passed": true,
+      "evidence": "Each @TableTest method has a single output column (e.g. 'Shipments by Warehouse?') covering both assignment and count in one table."
+    },
+    {
+      "id": "native-collection-output",
+      "text": "A compound output — a collection of items, or items keyed by a tag — is expressed as a native TableTest list, map, or set (possibly nested, e.g. [[a, b], [c]] or [W1: [a, b]]), not as a hand-rolled string that encodes the structure with embedded brackets or colons (e.g. \"W1:[a,b]\") and is assembled or parsed by a helper. FAILS when an expectation cell packs multiple values into one quoted scalar that the test builds via a stringifying helper. PASSES when the output column is a native collection — sets for order-independent semantics, or ordered lists/maps with a canonical sort. Scalar outputs (a number, an enum, or a single message) are exempt.",
+      "passed": true,
+      "evidence": "Expectation cells use native maps/sets, e.g. '[DELIVERY: {camera}, PICKUP: {battery}]' and '[wh1: {camera, lens}, wh2: {tripod}]'."
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Shipments?', 'Groups?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Shipments by Fulfillment?, Shipments by Address?, Shipments by Availability?, Shipments by Warehouse?, Shipments by Warehouse?"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names name the variation the row exercises, not the result it produces. The decidable test: FAILS when a scenario name states or paraphrases a value that appears in an expectation column of that same row — 'User cannot delete' beside an Allowed? cell of false, 'No discount applies' beside a Discount? cell of 0.00, 'Contractor gets no bonus' beside a Bonus? cell of 0. Also FAILS on generic labels ('Test 1', 'Test case 2'), which name no variation at all. PASSES otherwise. Naming the rule or the situation is correct even when it makes the outcome inferable — 'Delivery and pickup items always split', 'At the standard threshold, not above it', 'EU express, light package', 'Renewal with no claims', 'Missing name' all PASS. The failure this catches is a name echoing its own expectation cell, not a name that describes what the row is about, and not a name from which a reader who knows the rule could predict the outcome. A single offending name fails the assertion. Judge every @TableTest method in the class.",
+      "passed": true,
+      "evidence": "Names like 'Two equally minimal warehouse splits are possible' and 'Camera in stock, lens backordered' describe conditions, not paraphrase output values."
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use business/domain language (e.g. 'Shipments?' not 'Result?', 'Warehouse stock' not 'inventory_map'). The tables read as a specification a product person could review.",
+      "passed": true,
+      "evidence": "Columns named 'Scenario', 'Items', 'Stock', 'Shipments by Warehouse?' etc. are domain language."
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "5 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "@DisplayName annotation present"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "held-constants-declared",
+      "text": "A value the rule's outcome depends on, and which the table holds constant for every row, must be visible as a column or named in the @DisplayName/@Description as deliberately held fixed. It must not sit silently in the test method body or a field. Readers generalise from what varies, so an unstated constant is read as part of the rule: a table whose every row happens to use one traveller category states, to its reader, a rule about that category. FAILS when the method body, a field, or a @TypeConverter fixes a value that (1) the outcome depends on, and (2) appears in no column and is not named in the title or description as held fixed. A value declared only in a source-code comment (// or /* */) FAILS: the published surface is the title, the description and the table, and a comment reaches none of them. A method with no @DisplayName publishes its own name as its title, with camelCase split into words, so a constant named in the method name is declared. PASSES when every such constant is either a column or declared. Values that cannot affect the outcome are not failures — a fixed clock used only to construct inputs, object identity, or fixture values the rule is indifferent to. Declaring a held constant in @Description is NOT redundancy and does not conflict with the description-* assertions: those forbid restating what the rows already show, whereas a held constant is precisely what the rows cannot show.",
+      "passed": true,
+      "evidence": "'All items are in stock in a single warehouse (wh1), so only fulfillment type varies...' declares the held-fixed warehouse."
+    },
+    {
+      "id": "assertion-criteria-declared",
+      "text": "A comparison criterion applied by the assertion must be stated on the published surface — the table, the @DisplayName, or the @Description. FAILS when a helper or the assertion body applies ordering (sorting either side before comparing), a numeric tolerance, subset or 'contains' matching, or normalisation of the actual or expected value, and no column, title or description says so. Such a criterion is a rule the test enforces and no table claims: a reader cannot tell whether order is part of the behaviour or an artefact of the comparison. PASSES when each such criterion is named — a description sentence ('the expected column lists substrings the message must contain', 'shipments are compared without regard to order') or a column that makes it evident — and passes when the assertion is a plain equality on the values the columns name. Constructing the objects the columns name is not a criterion. The title is the @DisplayName, or the method name it falls back to, with camelCase split into words. A conventional floating-point epsilon (an assertEquals delta of the order of 0.001 on a decimal column, or BigDecimal.compareTo) is numeric hygiene, not a rule, and is exempt. What this assertion is for is a criterion that changes which behaviours the test would accept — ordering, subset matching, normalisation — since those are rules the test enforces while no table claims them.",
+      "passed": true,
+      "evidence": "assertEquals(expected, groupByFulfillmentType(shipments)) is plain equality on Map<String,Set<String>> with no hidden sorting or tolerance."
+    }
+  ],
+  "assertions_passed": 25,
+  "assertions_total": 25,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 25917,
+    "output_tokens": 6342,
+    "total_tokens": 32259,
+    "calls": 2,
+    "cost_usd": 0.172881,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}

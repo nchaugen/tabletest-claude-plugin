@@ -1,0 +1,1 @@
+All 3 scenarios pass. Converted the three `@Test` methods into one `@TableTest` in `src/test/java/com/example/DiscountServiceTest.java`, and added the `tabletest-junit` dependency to `pom.xml` (it wasn't present). Verified with `mvn test` — 3 tests run, 0 failures.
