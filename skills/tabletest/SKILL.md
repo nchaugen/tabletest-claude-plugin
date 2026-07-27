@@ -214,22 +214,14 @@ JUnit can convert strings to `Class<?>` when the value is a fully-qualified clas
 
 ### Writing Custom Converter Methods
 
-#### Java
-
-Place custom converter methods as `@TypeConverter`-annotated `public static` methods in **a public test class** or a class listed in `@TypeConverterSources`.
-
-**IMPORTANT:** The test class must be declared `public` for TableTest to discover converter methods:
-```java
-public class MyTest {  // Must be public, not package-private
-    // Converter methods here will be found
-}
-```
+A converter turns the cell's text into the domain type, so the table reads in domain terms and the
+method body stays arrange-act-assert.
 
 ```java
 @TableTest("""
-    Date       | Days Until?
-    today      | 0
-    tomorrow   | 1
+    Date     | Days Until?
+    today    | 0
+    tomorrow | 1
     """)
 void countsDaysUntil(LocalDate date, int expected) {
     assertEquals(expected, ChronoUnit.DAYS.between(LocalDate.now(), date));
@@ -245,11 +237,11 @@ public static LocalDate parseLocalDate(String input) {
 }
 ```
 
-#### Kotlin
+**Java**: `public static`, annotated `@TypeConverter`, in a **public** test class or one listed in
+`@TypeConverterSources`. A package-private test class is the usual reason a converter is never found.
 
-Two options for Kotlin:
+**Kotlin**: a package-level function is preferred — same body, declared outside the test class:
 
-**Package-level functions** (preferred):
 ```kotlin
 @TypeConverter
 fun parseLocalDate(input: String): LocalDate = when (input) {
@@ -257,35 +249,21 @@ fun parseLocalDate(input: String): LocalDate = when (input) {
     "tomorrow" -> LocalDate.now().plusDays(1)
     else -> LocalDate.parse(input)
 }
-
-class DateTest {
-    @TableTest("""
-        Date       | Days Until?
-        today      | 0
-        tomorrow   | 1
-        """)
-    fun testDaysUntil(date: LocalDate, expected: Int) {
-        assertEquals(expected, ChronoUnit.DAYS.between(LocalDate.now(), date))
-    }
-}
 ```
 
-**Companion object with @JvmStatic**:
+The alternative is a companion object member marked `@JvmStatic`:
+
 ```kotlin
 class DateTest {
     companion object {
-        @JvmStatic
-        @TypeConverter
-        fun parseLocalDate(input: String): LocalDate = when (input) {
-            "today" -> LocalDate.now()
-            "tomorrow" -> LocalDate.now().plusDays(1)
-            else -> LocalDate.parse(input)
-        }
+        @JvmStatic @TypeConverter
+        fun parseLocalDate(input: String): LocalDate = ...
     }
 }
 ```
 
-**Note**: `@Nested` inner classes in Kotlin cannot have companion objects. Use package-level functions or outer class companion object instead.
+`@Nested` inner classes in Kotlin cannot have companion objects, so package-level is the only option
+there.
 
 ### Sharing Converters with @TypeConverterSources
 
@@ -355,12 +333,11 @@ Converter methods enable readable domain conventions in tables:
 
 ```java
 @TableTest("""
-    Scenario     | Response Time?
-    Fast         | <50
-    Acceptable   | <150
-    Slow         | <500
+    Scenario            | Budget | Recorded | Within Budget?
+    Comfortably inside  | <50    | 20       | true
+    At the cap          | <50    | 50       | false
     """)
-void allowsUnsetResponseTime(Long maxResponseTimeMs) { ... }
+void checksResponseBudget(Long budgetMs, long recordedMs, boolean withinBudget) { ... }
 
 @TypeConverter
 public static Long parseResponseTime(String value) {
@@ -421,23 +398,6 @@ Separate tests are appropriate when testing a **different concern** of the same 
 ### Separate Rules from Arithmetic
 
 Tables should specify the interesting decisions — classifications, eligibility rules, tier lookups, state transitions — not test that multiplication works.
-
-**Good decomposition** — separate the rule from the calculation:
-
-Table 1 — the rule (which bracket?):
-```
-Scenario          | Taxable Income | Filing Status | Bracket?   | Rate?
-Bottom bracket    | 15000          | Single        | 10%        | 0.10
-Middle bracket    | 55000          | Single        | 22%        | 0.22
-Joint middle      | 55000          | Joint         | 12%        | 0.12
-```
-
-Table 2 — the arithmetic (what does the taxpayer owe?):
-```
-Scenario       | Income | Rate | Deduction | Tax Owed?
-No deduction   | 50000  | 0.22 |           | 11000.00
-With deduction | 50000  | 0.22 | 5000      | 9900.00
-```
 
 **The symptom is an expectation cell you cannot predict in one step.** If reading a row means
 classifying first and then computing, the table has fused two rules and states neither. Give the
@@ -1000,22 +960,32 @@ When one input takes precedence regardless of other inputs, use value sets to ex
 
 This single row generates 3 tests, all asserting `main` wins regardless of fallback state.
 
-**Value set semantics: every value must produce the same expected result.** A value set `{A, B, C}` asserts that the result is identical regardless of which value is chosen. Do not use value sets where results differ:
+**A value set asserts that the result is identical for every value in it.** So the question is always
+the rule's own granularity — not how different the inputs look to you.
+
+- **The rule tells them apart: separate rows.** A sorter answering `WRONG_MATERIAL`, `CONTAMINATED`
+  and `OVERSIZE` is making three decisions; a value set would collapse three outcomes into one cell
+  and lose the *why*.
+- **The rule does not: one row.** A sorter answering `REJECTED` however the item fails is making one
+  decision. Pick a representative input or two and let a value set carry the rest.
 
 ```java
 // WRONG — 20 kg at 5 mg/kg is 100, but at 8 mg/kg is 160; results differ
 Standard course   | 20 | {5, 8} | *
 
-// CORRECT — use separate rows when results differ
+// CORRECT — separate rows when results differ
 Standard strength | 20 | 5      | 100
 Double strength   | 20 | 8      | 160
 
-// CORRECT — value set is fine when the result is genuinely identical
+// CORRECT — a value set where the result is genuinely identical
 No doses due      | 0  | {5, 8} | 0
 ```
 
-An input the rule ignores is the same case seen from the other side: two rows differing only in
-that input are one row with a value set over it.
+Two things follow. **An input the rule ignores** is this same case from the other side: two rows
+differing only in that input are one row with a value set over it. And **enumerating every way an
+input can be malformed is coverage of the format, not of the rule** — ten inputs producing one
+undifferentiated rejection are one obligation, however different the ten look on the page (see Give
+Each Obligation Exactly One Row).
 
 #### Cartesian Product
 
@@ -1032,23 +1002,6 @@ void combinesTwoValueSets(int a, int b, int maxSum) {
 ```
 
 This generates 4 test cases: (1,3), (1,4), (2,3), (2,4).
-
-**A value set is wrong where the rule tells the values apart, and right where it does not.** The
-discriminator is the rule's own granularity — not how different the inputs look to you.
-
-- **The rule distinguishes them: separate rows.** A sorter that answers `WRONG_MATERIAL`,
-  `CONTAMINATED` and `OVERSIZE` is making three decisions. Three rows, each named for its reason;
-  a value set here would collapse three outcomes into one cell and lose the *why*.
-- **The rule does not: one row, or a value set.** A sorter that answers `REJECTED` however the item
-  fails is making one decision. Pick one or two representative inputs and let a value set carry the
-  rest.
-
-**Enumerating every way an input can be malformed is coverage of the format, not of the rule.** Ten
-inputs that all produce the same undifferentiated rejection are one obligation, however different the
-ten look on the page. Working down a specification is the usual way this happens (see Give Each
-Obligation Exactly One Row).
-
-**A separate row is for a reason the rule itself distinguishes, never for a further example of one reason.** Two rows earn their place when each produces its own outcome; a third producing an outcome already shown is redundant however differently it is spelled.
 
 #### Value Sets for Tier Grouping
 
