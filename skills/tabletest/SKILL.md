@@ -845,6 +845,30 @@ the description is doing the code's job.
 
 `@DisplayName` serves as a section header in reports. `@Description` provides the explanatory text underneath. Together they make the published test report readable as documentation without the table needing to be self-explanatory on every detail.
 
+### Annotation Order
+
+Annotations on a `@TableTest` method must appear in this order:
+
+1. `@DisplayName` (if present)
+2. `@Description` (if present)
+3. `@TableTest`
+
+```java
+@DisplayName("Charges parking by duration band")
+@Description("""
+    First 2 hours are free. Hours 3-5 are charged at the standard rate.
+    Hours beyond 5 are charged at 2× the standard rate.
+    Weekend parking is always free regardless of duration.
+    """)
+@TableTest("""
+    Scenario           | Day      | Hours | Rate  | Free hrs? | Standard hrs? | Surcharge hrs? | Total fee?
+    Within free window | Monday   | 1     | 3.00  | 1         |               |                | 0.00
+    Standard rate      | Tuesday  | 4     | 3.00  | 2         | 2             |                | 6.00
+    With surcharge     | Wednesday| 7     | 3.00  | 2         | 3             | 2              | 21.00
+    """)
+void calculatesParkingFee(...) { ... }
+```
+
 ### Use Concrete Domain Values
 
 Column values should be concrete, meaningful data — not abstract flags or codes. Expectation column values should be traceable to input column values.
@@ -991,9 +1015,10 @@ void rejectsInvalidInput(String input, Class<? extends Throwable> throws_) {
 }
 ```
 
-**When some rows throw and some do not, keep one assertion.** A boundary straddling a validation
-limit always produces this shape — the accepted value beside the first rejected one. Leave `Throws?`
-blank where nothing is thrown, and compare the thrown type rather than branching:
+**When some rows throw and some do not, keep one assertion.** Use this only where the table's *whole*
+expectation is whether the call is rejected — a boundary straddling a validation limit, the accepted
+value beside the first rejected one. Leave `Throws?` blank where nothing is thrown, and compare the
+thrown type rather than branching:
 
 ```java
 @TableTest("""
@@ -1019,29 +1044,20 @@ private static Class<? extends Throwable> thrownBy(Executable action) {
 Branching on the row to pick between `assertThrows` and `assertDoesNotThrow` is what this avoids: it
 puts the rule back in the method body, where the table cannot show it.
 
-### Annotation Order
-
-Annotations on a `@TableTest` method must appear in this order:
-
-1. `@DisplayName` (if present)
-2. `@Description` (if present)
-3. `@TableTest`
+**Do not reach for this when the table also has a value expectation.** A `Result?` column beside a
+`Throws?` column is two concerns — what the operation returns, and what it rejects — and they belong
+in separate tables. Forcing them together produces the broken shape below, where the value assertion
+is swallowed by the exception helper and a wrong result is reported as a thrown
+`AssertionFailedError` instead of a wrong value:
 
 ```java
-@DisplayName("Charges parking by duration band")
-@Description("""
-    First 2 hours are free. Hours 3-5 are charged at the standard rate.
-    Hours beyond 5 are charged at 2× the standard rate.
-    Weekend parking is always free regardless of duration.
-    """)
-@TableTest("""
-    Scenario           | Day      | Hours | Rate  | Free hrs? | Standard hrs? | Surcharge hrs? | Total fee?
-    Within free window | Monday   | 1     | 3.00  | 1         |               |                | 0.00
-    Standard rate      | Tuesday  | 4     | 3.00  | 2         | 2             |                | 6.00
-    With surcharge     | Wednesday| 7     | 3.00  | 2         | 3             | 2              | 21.00
-    """)
-void calculatesParkingFee(...) { ... }
+// WRONG — the value check now only runs when nothing throws, and its failure is
+// caught and compared against the Throws? column
+assertEquals(throws_, thrownBy(() -> assertEquals(parsed, parser.parseDate(input))));
 ```
+
+A parser's successful formats and its rejections are two tables. A single rule's accept/reject
+boundary is one.
 
 ### Null, Empty, and Blank Values
 
