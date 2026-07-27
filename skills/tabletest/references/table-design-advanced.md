@@ -51,11 +51,11 @@ Names are clear because they're the only failure scenarios.
 **Adding fallback scenarios** (4 scenarios):
 ```java
 @TableTest("""
-    Scenario                       | Primary | Secondary | Fallback? | Response?
-    Secondary fails                | OK      | ERROR     | true      | OK
-    Primary fails                  | ERROR   | OK        | true      | OK
-    Secondary fails, no fallback   | OK      | ERROR     | false     | ERROR
-    Primary fails, no fallback     | ERROR   | OK        | false     | ERROR
+    Scenario                       | Primary | Secondary | Fallback Enabled | Response?
+    Secondary fails                | OK      | ERROR     | true             | OK
+    Primary fails                  | ERROR   | OK        | true             | OK
+    Secondary fails, no fallback   | OK      | ERROR     | false            | ERROR
+    Primary fails, no fallback     | ERROR   | OK        | false            | ERROR
     """)
 ```
 Adding ", no fallback" suffix clarifies the first two have fallback enabled.
@@ -63,20 +63,20 @@ Adding ", no fallback" suffix clarifies the first two have fallback enabled.
 **Adding both-fail scenarios** (6 scenarios):
 ```java
 @TableTest("""
-    Scenario                       | Primary | Secondary | Fallback? | Response?
-    Secondary fails, fallback ok   | OK      | ERROR     | true      | OK
-    Primary fails, fallback ok     | ERROR   | OK        | true      | OK
-    Secondary fails, no fallback   | OK      | ERROR     | false     | ERROR
-    Primary fails, no fallback     | ERROR   | OK        | false     | ERROR
-    Primary and fallback fail      | ERROR   | ERROR     | true      | ERROR
-    Secondary and fallback fail    | ERROR   | ERROR     | true      | ERROR
+    Scenario                       | Primary | Secondary | Fallback Enabled | Response?
+    Secondary fails, fallback ok   | OK      | ERROR     | true             | OK
+    Primary fails, fallback ok     | ERROR   | OK        | true             | OK
+    Secondary fails, no fallback   | OK      | ERROR     | false            | ERROR
+    Primary fails, no fallback     | ERROR   | OK        | false            | ERROR
+    Primary and fallback fail      | ERROR   | ERROR     | true             | ERROR
+    Secondary and fallback fail    | ERROR   | ERROR     | true             | ERROR
     """)
 ```
 Changed "Secondary fails" to "Secondary fails, fallback ok" to distinguish from "Primary and fallback fail".
 
 **Naming patterns that clarify differences:**
 
-1. **Outcome qualifiers**: "fails, fallback ok" vs "and fallback fail"
+1. **Condition qualifiers**: "fails, fallback ok" vs "and fallback fail" — these name which inputs are in which state, never what the table answers
 2. **Explicit absence**: "no fallback" makes contrast clear
 3. **Compound conditions**: "Primary and fallback fail" shows both parts fail
 
