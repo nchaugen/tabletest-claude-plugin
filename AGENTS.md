@@ -243,6 +243,27 @@ the second is expensive, and it does not have to be asked once per promotion.
 
 1. Replace `skills/<skill>/` with the variant; reconcile `references/` (drop any the new
    SKILL.md subsumes); delete `skill-variants/<skill>/next/`.
+
+   **Replacement is only safe for a single variant against an unchanged `skills/`.** It is a
+   wholesale directory copy, so it silently reverts anything `skills/` gained since the variant was
+   branched — a second parallel variant's promotion, or a correction landed mid-batch. Whenever
+   `skills/` has moved, **promote by applying the variant's own diff instead**:
+
+   ```
+   git show <branch-point>:skills/<skill>/SKILL.md > /tmp/anc.md
+   diff -u /tmp/anc.md skill-variants/<skill>/<name>/SKILL.md > /tmp/v.patch
+   patch --dry-run -p0 skills/<skill>/SKILL.md < /tmp/v.patch   # check before applying
+   ```
+
+   Do the same for each `references/` file the variant touched — compare against the ancestor to find
+   them, rather than copying the directory. Then grep the result for a marker from *both* sides: one
+   phrase the variant added and one the correction added. A clean `patch` is not proof the merge is
+   right, only that the hunks fitted.
+
+   **A promotion done this way leaves `skill_digest` mismatched, and that is expected.** The stored
+   partial's digest is the variant's, while the promoted skill is variant + whatever else `skills/`
+   carries. Note the divergence in the ledger row rather than trying to make the numbers agree — the
+   results were genuinely produced by the variant alone.
 2. Add a user-facing `CHANGELOG.md` entry under `## [Unreleased]` (no variant/development
    terminology). **Do not bump `.claude-plugin/plugin.json`** — see below.
 3. Commit (`feat:`). The variant's own loop result — graded in the standard regime, against the
