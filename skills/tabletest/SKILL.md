@@ -359,21 +359,17 @@ Other examples: `5m`/`30s` → milliseconds, `$100` → numeric, `50%` → 0.5, 
 
 ## Table Design
 
-### Design Black-Box Tables
+Three questions decide almost every table, and the sections below are grouped under them: **what is
+this table's axis**, **what does a reader see**, and **what is left in the method body**. When a
+design question feels unfamiliar, it is usually one of these three wearing a different hat.
 
-Model observable inputs and outputs. Avoid internal flags or setup-only columns unless they are part of the public contract.
+### One Rule, One Axis
 
-```java
-@TableTest("""
-    Scenario                    | Build Dir | JUnit Property | Configured Dir | Resolved Dir?
-    All three set               | build     | report/junit   | tabletest      | tabletest
-    Configured dir absent       | target    | report/junit   |                | report/junit
-    Neither property nor config | build     |                |                | build/junit-jupiter
-    """)
-void resolvesInputDirectory(String buildDir, String junitProperty, String configuredDir, String resolvedDir) {
-    // setup derived from inputs, assert resolvedDir
-}
-```
+A table is one rule varying along one axis. The axis is what the rows change; everything else is
+either held constant or collapsed into a value set. Most decomposition questions are that one
+question asked again — *what is this table's axis, and does every column and row serve it?* The
+sections that follow work outward from it: which outputs belong together, when one table is really
+two, and how many rows the axis needs.
 
 ### Include All Outputs of a Concern
 
@@ -439,19 +435,6 @@ A fit-to-fly table varying rest hours that also asserts a required-rest figure i
 is displaying the second rule, not testing it. A table where the decision and the rest requirement
 both change as rest hours change is one rule with two outputs — keep both columns.
 
-### Frame Stateful Features as Rules
-
-When a feature involves state (queues, workflows, inventories), frame each row as a state transition rule:
-
-```
-Scenario              | Board Before             | Action              | Board After?                  | Message?
-Assign first task     | [TODO: Deploy v2]        | assign Deploy v2    | [IN_PROGRESS: Deploy v2]      | Assigned
-Complete task         | [IN_PROGRESS: Deploy v2] | complete Deploy v2  | [DONE: Deploy v2]             | Completed
-Complete unknown task | [TODO: Deploy v2]        | complete Hotfix     | [TODO: Deploy v2]             | Not found
-```
-
-Each row is independent: given this state, when this action happens, expect this result. **Include before and after columns** — even when the prompt describes the operation procedurally.
-
 ### Decompose When You See These Signs
 
 **If you cannot name a behaviour without using "and", it is two concerns** — split them. Each concern becomes its own `@TableTest` method.
@@ -492,6 +475,60 @@ the answer". The check: the family name works as a column header with the member
 `Adjustment: renal | weight | interaction` does, `Dose factor: …` does not. Where no such name exists
 the tables are genuinely distinct and belong apart, and so they do where collapsing would
 cross-multiply or leave rows whose purpose is no longer legible.
+
+### Match Table Structure to the Logic Being Tested
+
+The type of logic under test determines what each row should represent:
+
+- **Decision/priority logic**: Each row is a distinct decision point. Name which inputs are present, not which one won — a priority table almost always publishes the winner as an expectation column, so "Configured wins" beside `Source?` `CONFIGURED` restates its own answer. "Both sources set", "Input dir absent" say which case the row is.
+- **Parsing/validation logic**: Each row is a distinct input variation. Scenario names describe the input condition (e.g., "Empty input", "With special characters").
+- **Transformation logic**: Each row is an input/output pair. Scenario names describe the transformation case.
+
+If rows feel out of place — parsing variations in a decision table, or decision branches in a parsing table — this signals the code under test may be mixing responsibilities. Consider whether the method should be split before adding more test rows.
+
+### A Combining Table Needs Its Own Rule
+
+Once every rule has a table, the pull is to add one more that runs the whole feature end to end. It
+re-proves what the single-rule tables already established, and it reads as redundant however clean
+those tables are.
+
+**A table that combines concerns earns its place only where the combination behaves in a way neither
+concern shows alone** — a precedence, an ordering, an interaction whose result neither parent table
+produces — and then it carries only the rows that show it. A table proving that a weight-based dose
+is computed *before* the daily maximum caps it is a real table: the question is which rule applies
+first, and its expected values appear in no other table. A table whose rows re-run each dose band
+through the public entry point is not.
+
+Two symptoms:
+
+- **The description gives it away.** If the `@Description` you would write is "end-to-end scenarios
+  combining the rules from the tables above", the table has no rule of its own. Delete it.
+- **Wiring is not a rule.** Reaching a rule through the public API rather than the unit under test
+  does not make it a new rule. If the wiring genuinely needs showing, that is one row, not a second
+  pass over the ladder.
+
+**Salvage its rows before you delete it — and then delete it.** One or two rows of an end-to-end
+table often reach a case no single-rule table does: a zero concentration against a nonzero body
+weight, an empty roster against a fully configured schedule. Deleting the table takes those with it
+and nothing reports the loss, so list the obligations only its rows discharge and move each into the
+table that owns its rule.
+
+**This is a salvage step, not a reprieve — no outcome of it keeps the table.** A row worth keeping is
+worth keeping *somewhere else*. Nor does shrinking the table save it: a single `@Test` that runs the
+whole feature to re-prove one already-proven total is the same combining table with fewer rows.
+
+### Frame Stateful Features as Rules
+
+When a feature involves state (queues, workflows, inventories), frame each row as a state transition rule:
+
+```
+Scenario              | Board Before             | Action              | Board After?                  | Message?
+Assign first task     | [TODO: Deploy v2]        | assign Deploy v2    | [IN_PROGRESS: Deploy v2]      | Assigned
+Complete task         | [IN_PROGRESS: Deploy v2] | complete Deploy v2  | [DONE: Deploy v2]             | Completed
+Complete unknown task | [TODO: Deploy v2]        | complete Hotfix     | [TODO: Deploy v2]             | Not found
+```
+
+Each row is independent: given this state, when this action happens, expect this result. **Include before and after columns** — even when the prompt describes the operation procedurally.
 
 ### Give Each Obligation Exactly One Row
 
@@ -538,401 +575,6 @@ cannot be negative" *and* the input that should produce no rest requirement what
 two rules, two questions, two rows in two tables. Showing the value once, in whichever table you
 reached first, feels like coverage and is not: the accepted-boundary row says nothing about what the
 other rule then computes. **Count obligations per rule, never per value.**
-
-### A Combining Table Needs Its Own Rule
-
-Once every rule has a table, the pull is to add one more that runs the whole feature end to end. It
-re-proves what the single-rule tables already established, and it reads as redundant however clean
-those tables are.
-
-**A table that combines concerns earns its place only where the combination behaves in a way neither
-concern shows alone** — a precedence, an ordering, an interaction whose result neither parent table
-produces — and then it carries only the rows that show it. A table proving that a weight-based dose
-is computed *before* the daily maximum caps it is a real table: the question is which rule applies
-first, and its expected values appear in no other table. A table whose rows re-run each dose band
-through the public entry point is not.
-
-Two symptoms:
-
-- **The description gives it away.** If the `@Description` you would write is "end-to-end scenarios
-  combining the rules from the tables above", the table has no rule of its own. Delete it.
-- **Wiring is not a rule.** Reaching a rule through the public API rather than the unit under test
-  does not make it a new rule. If the wiring genuinely needs showing, that is one row, not a second
-  pass over the ladder.
-
-**Salvage its rows before you delete it — and then delete it.** One or two rows of an end-to-end
-table often reach a case no single-rule table does: a zero concentration against a nonzero body
-weight, an empty roster against a fully configured schedule. Deleting the table takes those with it
-and nothing reports the loss, so list the obligations only its rows discharge and move each into the
-table that owns its rule.
-
-**This is a salvage step, not a reprieve — no outcome of it keeps the table.** A row worth keeping is
-worth keeping *somewhere else*. Nor does shrinking the table save it: a single `@Test` that runs the
-whole feature to re-prove one already-proven total is the same combining table with fewer rows.
-
-### Match Table Structure to the Logic Being Tested
-
-The type of logic under test determines what each row should represent:
-
-- **Decision/priority logic**: Each row is a distinct decision point. Name which inputs are present, not which one won — a priority table almost always publishes the winner as an expectation column, so "Configured wins" beside `Source?` `CONFIGURED` restates its own answer. "Both sources set", "Input dir absent" say which case the row is.
-- **Parsing/validation logic**: Each row is a distinct input variation. Scenario names describe the input condition (e.g., "Empty input", "With special characters").
-- **Transformation logic**: Each row is an input/output pair. Scenario names describe the transformation case.
-
-If rows feel out of place — parsing variations in a decision table, or decision branches in a parsing table — this signals the code under test may be mixing responsibilities. Consider whether the method should be split before adding more test rows.
-
-### Name Expectation Columns Clearly
-
-End expectation columns with `?` **suffix** to signal which columns are outputs being verified versus inputs being provided.
-
-Examples: `Valid?`, `Formatted?`, `Result?`, `Throws?`, `Expected?`
-
-**Prefer the rule's direct output.** Use `Fee?` over `Total?` — the fee is what the rule decides; verifying the total requires knowing the base amount. If you use a derived value like total, include the base as a column so readers can trace it. Input columns never have `?` suffixes — including yes/no flag columns that describe scenario state.
-
-**A compound result stays a collection.** When the value under test is several items — or items grouped under a key — the expectation column is a native list, set, or map, nesting where needed: `[paper, card]`, `{glass, metal}`, `[recycling: [paper, card], landfill: [foil]]`. Compare it against the collection the system returns. Do not flatten it into a quoted string like `"recycling:[paper,card]"` assembled by a stringifying helper: that tests your formatter rather than the rule, hides the structure from the reader, and puts formatting code back in the method body. Use a set where order is not part of the rule, and a list with a canonical sort where it is.
-
-**Common mistake** — `?` as prefix instead of suffix:
-```
-?Source        ← WRONG
-Source?        ← CORRECT
-```
-
-### Assume the Table Is Published
-
-Write every table as if a reader will meet it in a published report, never having seen the test body.
-Only three surfaces reach that reader, and they divide the work:
-
-| Element        | Carries                                                                     |
-|----------------|-----------------------------------------------------------------------------|
-| `@DisplayName` | the rule, as an action the code performs                                    |
-| `@Description` | the apparatus that cannot be a column — what is held constant, which fixtures or converters are in play, where the data came from |
-| the table      | the variations the rule ranges over                                         |
-
-**Whatever the table holds constant is silently promoted into the rule.** Readers generalise from what
-varies, so a value that never varies is read as part of the rule: a duty-limit table whose every row
-assumes a two-pilot crew states, to its reader, a rule about two-pilot crews.
-
-So a constant the outcome depends on is either a column or declared in the title or description. It is
-**not** declared when it sits in the test method body, in a field, in a `@TypeConverter`, or in a `//`
-comment — a comment reaches no published surface at all. The converter is the easiest hiding place
-because it looks like plumbing: a converter that builds every history entry with the same zone has
-pinned zone for the whole table, and no column says so.
-
-Declaring a held constant in `@Description` is not redundancy. The other description rules forbid
-restating what the rows already show; a held constant is exactly what the rows cannot show.
-
-**What the assertion tolerates is part of the rule too.** A comparison that sorts either side before
-comparing, accepts a subset, matches "contains" rather than equals, or normalises case or whitespace
-is enforcing a rule: it changes which behaviours the test would accept. None of it reaches the
-reader. Ordering is the usual one, and a helper is where it hides — written once, then invisible at
-every call site, so a reader cannot tell whether order is part of the behaviour or an artefact of the
-comparison.
-
-Two repairs, and the second is better where it fits:
-
-- **Name it** — one sentence in the `@Description` ("bins are compared without regard to order"), or
-  a column that makes it evident.
-- **Remove the need for it** — a `Set` expectation column says order does not matter *in the table
-  itself*, which beats saying so in prose; a list with a canonical sort says it does. See **A
-  compound result stays a collection**.
-
-Numeric hygiene is not a criterion: a conventional epsilon on a decimal column, or
-`BigDecimal.compareTo`, is exempt. Neither is constructing the objects the columns name — that is the
-converter's job.
-
-**An input the rule is indifferent to must still be shown varying** — as a value set, never as a
-fixed value pinned in a converter, a field or the method body. "Indifferent" is a claim about
-behaviour, and pinning the value makes that claim unfalsifiable, which is the opposite of what it
-needs. Mechanics under **Use Value Sets for "Regardless Of" Relationships**.
-
-### Write Titles That Form an Index
-
-`@DisplayName` — or the method name when there is none — is the line a reader scans in the report
-index. Judge titles as a set, never one at a time: a title that reads well on its own page can still
-be an unscannable entry in the list.
-
-**Open each title with something that distinguishes it, and keep one grammatical shape across the
-family.** When every title starts with the same word, the index becomes a column of `should…` and the
-distinguishing part arrives last, where scanning cannot reach it. Three titles sharing an
-uninformative opener is enough to make the list unscannable.
-
-**Write an action the code performs, not a label for a topic.** This is the half that is easy to
-miss: a noun phrase can front the varying subject and still say nothing about what the code *does*
-with it. `Deferral interval by donation type` names a topic; `Sets the deferral interval from the
-donation type` names behaviour. The label form is the more tempting mistake, because it looks tidy
-in a list.
-
-| Scans as an index                                    | Does not                           |
-|------------------------------------------------------|------------------------------------|
-| `Sets the deferral interval from donation type`      | `shouldApplyDeferralInterval`      |
-| `Rejects a reading below the haemoglobin minimum`    | `Haemoglobin minimum by donor sex`  |
-| `Defers a donor returning from a listed destination` | `shouldDeferForTravelDestination`  |
-
-Three distinct verbs, each carrying information, and the subject arrives immediately after. One
-outlier does not break a family — a negative or invariant claim (`Donation type does not affect the
-haemoglobin minimum`) often reads best subject-first.
-
-**A title states what your system does, not an external fact it depends on.** Strike the system under
-test from the sentence: if it still reads as true, the title is restating a regulation, a format or a
-domain fact instead of naming behaviour. This is why the action form is safer than the topic form —
-`Donation type sets the deferral interval` survives the strike and reads as policy, while `Sets the
-deferral interval from the donation type` does not stand alone without the system that does it.
-
-**This action voice is the title's alone.** Scenario names stay condition phrases naming the row's
-variation — see **Name Scenarios Descriptively**. A title says what the rule does; a scenario name
-says which case this row is. Writing rows as little sentences is how outcome-echoing names get in.
-
-### Use @Description When It Adds Information
-
-Add `@Description` when there is context the table alone cannot convey. Omit it when the table already says everything — a vacuous description adds noise.
-
-Good reasons to add `@Description`:
-- **Fixed values** shared by all rows that are not columns (e.g., "order value is always 100")
-- **Domain context** — where/when the rule applies, who is affected, which market
-- **Open questions** — decisions not yet resolved
-- **Relationship between tables** — how this table connects to others in the class
-
-Do not restate what the table already shows. If the description merely summarises the column names or row outcomes, delete it. Don't include irrelevant fixed values — "Fixed for all rows: donor name = 'A. Nolan'" is noise unless the name affects behaviour. Values hardcoded in the method body that affect outcomes should be columns.
-
-**A description must not publish the algorithm.** Restating the internal formula — "the dose index is
-body weight divided by ten plus four per severity grade, capped once it passes 75" — turns a
-black-box table into a white-box one and pins the test to an implementation the rows never observe.
-A **threshold the rule is about**
-is different: name it, or better, make it a column (see **Make Thresholds Visible**). The line is
-whether a reader could recompute every expectation cell from the description alone. If they could,
-the description is doing the code's job.
-
-```java
-// GOOD — adds context not visible in the table
-@Description("""
-    Applies to the paediatric formulary only. Dose is per administration,
-    not per day. Open: should a missed dose be added to the next one once
-    the interval has already elapsed?
-    """)
-
-// BAD — restates what the table shows
-@Description("Tax bracket is determined by income range and filing status")
-```
-
-`@DisplayName` serves as a section header in reports. `@Description` provides the explanatory text underneath. Together they make the published test report readable as documentation without the table needing to be self-explanatory on every detail.
-
-### Annotation Order
-
-Annotations on a `@TableTest` method must appear in this order:
-
-1. `@DisplayName` (if present)
-2. `@Description` (if present)
-3. `@TableTest`
-
-```java
-@DisplayName("Charges parking by duration band")
-@Description("""
-    First 2 hours are free. Hours 3-5 are charged at the standard rate.
-    Hours beyond 5 are charged at 2× the standard rate.
-    Weekend parking is always free regardless of duration.
-    """)
-@TableTest("""
-    Scenario           | Day      | Hours | Rate  | Free hrs? | Standard hrs? | Surcharge hrs? | Total fee?
-    Within free window | Monday   | 1     | 3.00  | 1         |               |                | 0.00
-    Standard rate      | Tuesday  | 4     | 3.00  | 2         | 2             |                | 6.00
-    With surcharge     | Wednesday| 7     | 3.00  | 2         | 3             | 2              | 21.00
-    """)
-void calculatesParkingFee(...) { ... }
-```
-
-### Model Exceptions as Expected Columns
-
-When a table covers error/rejection cases, include the exception type as an expected column (`Throws?` or `Exception?`) — don't hardcode the exception class in the method body. This makes each row's expected outcome visible in the table.
-
-```java
-@TableTest("""
-    Scenario        | Input    | Throws?
-    Empty string    | ''       | IllegalArgumentException
-    Letters only    | abc      | NumberFormatException
-    Negative amount | -10.00   | IllegalArgumentException
-    """)
-void rejectsInvalidInput(String input, Class<? extends Throwable> throws_) {
-    assertThrows(throws_, () -> parse(input));
-}
-```
-
-**When some rows throw and some do not, keep one assertion.** A boundary straddling a validation
-limit always produces this shape — the accepted value beside the first rejected one. Leave `Throws?`
-blank where nothing is thrown, and compare the thrown type rather than branching:
-
-```java
-@TableTest("""
-    Scenario                | Dose (mg) | Throws?
-    At the minimum dose     | 0         |
-    Just below the minimum  | -0.01     | IllegalArgumentException
-    """)
-void rejectsDoseBelowMinimum(BigDecimal dose, Class<? extends Throwable> throws_) {
-    assertEquals(throws_, thrownBy(() -> validateDose(dose)));
-}
-
-// with the other helpers, at the bottom of the class
-private static Class<? extends Throwable> thrownBy(Executable action) {
-    try {
-        action.execute();
-        return null;
-    } catch (Throwable thrown) {
-        return thrown.getClass();
-    }
-}
-```
-
-Branching on the row to pick between `assertThrows` and `assertDoesNotThrow` is what this avoids: it
-puts the rule back in the method body, where the table cannot show it.
-
-### Collapse Sparse Columns into a Map
-
-**Decide this from the signature, before drafting columns.** When one parameter of the method under
-test is an object with several optional fields, it is *one* map column with a `@TypeConverter` that
-constructs it — never one column per field. Deciding after the table is drafted is too late: by
-then every field has a column, most rows carry a blank or a `false` in it, and the sea of near-empty
-cells reads as deliberate.
-
-The "nothing set" row is **`[:]`, not a blank cell.** A blank bypasses the converter and hands the
-method `null` (see Handling Null Values); `[:]` calls the converter with an empty map, which returns
-the defaults.
-
-```java
-@TableTest("""
-    Scenario         | Config                        | Timeout Used?
-    All defaults     | [:]                           | 3000
-    Explicit timeout | [timeout: 5000]               | 5000
-    Several options  | [method: POST, timeout: 1000] | 1000
-    """)
-void appliesConfiguredTimeout(RequestConfig config, int timeoutMs) {
-    assertEquals(timeoutMs, gateway.timeoutFor(config));
-}
-
-@TypeConverter
-public static RequestConfig parseRequestConfig(Map<String, String> config) {
-    return new RequestConfig(
-        config.getOrDefault("method", "GET"),
-        Integer.parseInt(config.getOrDefault("timeout", "3000")),
-        Integer.parseInt(config.getOrDefault("retry", "1")));
-}
-```
-
-**The converter returns the domain object, not the map.** Declaring the parameter `Map<String,
-String>` and building the object with a private helper in the test class leaves construction in the
-test and defeats the point — the converter *is* the construction.
-
-**A map column is a column decision, not a table decision.** Choosing a map for one parameter says
-nothing about where the concern boundary lies, and it must not become the boundary. If another input
-drives the same rule to the same output column, it is another column in the same table — not a table
-of its own. A vent position driven by the measured humidity and a vent position driven by the
-configured climate overrides are one concern with one output: one table, a humidity column beside the
-overrides map column. Splitting them because one input arrives as a map and the other does not is the
-over-split described under Decompose When You See These Signs.
-
-The map keeps the table compact, each row states only what differs from the defaults, and all construction and defaulting logic lives in the converter — never in the test method body. This applies however the object is normally built (constructor, setters, or builder), and even when a table exercises only one or two of the optional fields: if a method body news up a parameter object and mutates it, that construction belongs in a `@TypeConverter` behind a map column.
-
-### Include Traceability Columns
-
-When a table tests a pipeline (input → intermediate result → final result), include the intermediate result as an expectation column. This lets readers trace the logic step by step:
-
-```java
-@TableTest("""
-    Scenario                     | Body Weight (kg) | Renal Function | Dose Band? | Daily Dose (mg)?
-    Adult, normal function       | 70               | Normal         | Standard   | 500
-    Adult, impaired function     | 70               | Impaired       | Reduced    | 250
-    Low weight, normal function  | 40               | Normal         | Low        | 300
-    """)
-```
-
-The `Dose Band?` column is not strictly necessary (the test could verify only `Daily Dose (mg)?`), but it lets the reader trace: weight + renal function → dose band → daily dose. When a row fails, the intermediate column shows where in the pipeline the error occurred.
-
-**Guard:** Only use traceability columns for values the system under test exposes or that represent observable domain concepts. If you would need to reimplement an internal calculation in the test body to populate the column, it doesn't belong — the intermediate likely points to a separate concern that needs its own `@TableTest` method. Decompose into multiple tables instead; the intermediate becomes an output in one table and an input in the next.
-
-### Name Scenarios Descriptively
-
-Describe the condition being tested, not the expected outcome. Good scenario names answer "under what circumstances?" rather than "what happens?".
-
-| Good                         | Bad             |
-|------------------------------|-----------------|
-| `Negative input`             | `Returns error` |
-| `Empty list`                 | `Sum is zero`   |
-| `User without licence`       | `Cannot rent`   |
-| `Divisible by 4 but not 100` | `Is leap year`  |
-
-**The mistake to watch for is not a bare outcome — it is a name that states the condition and then adds the outcome.** Such a name looks right, because a condition really is in there. Point at the expectation cell the name restates: if you can, cut that clause and keep the rest.
-
-| Written                                 | Restates              | Keep                        |
-|-----------------------------------------|-----------------------|-----------------------------|
-| `Low haemoglobin defers the donor`      | `Deferred?` `true`    | `Haemoglobin below minimum` |
-| `Short rest means the pilot cannot fly` | `Fit to Fly?` `false` | `Rest below minimum`        |
-| `Three waste types force three bins`    | the `Bins?` map       | `Three waste types`         |
-
-Two variants of the same mistake are easy to miss. A name saying *nothing changed* still restates the
-answer — `Unlisted destination keeps the donor eligible`, beside an `Eligible After?` equal to
-`Eligible Before?`. And a verdict-led prefix publishes the verdict column outright — `Deferred:
-donation 30 days ago`. Cut the clause in both cases; the names still distinguish the rows.
-
-Naming the rule or the situation stays correct even when it makes the outcome obvious — `At the minimum rest period, not below it`, `Night duty, two-pilot crew`, `Missing haemoglobin reading` are all good names. The check is whether the name repeats a cell in an expectation column of its own row, not whether a reader who knows the rule could predict the answer.
-
-Scenario names appear in test failure messages, so clarity helps diagnose failures quickly.
-
-### Use Concrete Domain Values
-
-Column values should be concrete, meaningful data — not abstract flags or codes. Expectation column values should be traceable to input column values.
-
-**Good** — directory names as inputs, resolved dir traceable to an input column:
-```java
-@TableTest("""
-    Scenario             | Configured Dir | JUnit Dir    | Fallback State | Resolved Dir? | Source?
-    All three set        | my-config      | report/junit | yaml           | my-config     | CONFIGURED
-    Configured dir absent|                | report/junit | yaml           | report/junit  | JUNIT_PROPERTY
-    Only fallback set    |                |              | yaml           | target/junit  | FALLBACK
-    """)
-```
-
-**Bad** — abstract flags, expectation values not traceable to inputs:
-```java
-@TableTest("""
-    Scenario                | Has Config | Override State | Fallback State | Resolved?
-    Config present          | true       | yaml           | yaml           | configured
-    No config, override set | false      | yaml           | yaml           | override
-    No config, no override  | false      |                | yaml           | fallback
-    """)
-```
-In the bad example, `configured`, `override`, and `fallback` in Resolved? are names hardcoded in the test body, not visible in the table. The reader cannot understand the table without reading the test code.
-
-When a value is derived from an input column (e.g., fallback path = Build Dir + "/junit-jupiter"), include the source column so readers can trace the derivation:
-```java
-@TableTest("""
-    Scenario        | Build Dir | Build State | Resolved Dir?
-    Maven fallback  | target    | yaml        | target/junit-jupiter
-    Gradle fallback | build     | yaml        | build/junit-jupiter
-    """)
-```
-Here `target/junit-jupiter` is visibly derived from `Build Dir = target`.
-
-### Make Thresholds Visible
-
-When a rule depends on a threshold or limit, include it as a column — even when the value is constant across every row:
-
-```
-Scenario            | Customer Age | Max Age (Policy) | Eligible?
-Standard customer   | 30           | 75               | yes
-At the limit        | 75           | 75               | yes
-Just over the limit | 76           | 75               | no
-```
-
-Without the threshold column, the number 75 is buried in the code — the reader cannot tell from the table where the boundary is, or whether the rule is strictly greater than. Boundary rows (at the limit, just over) also become natural to add once the threshold is visible.
-
-A constant column often signals configuration. Ask: "Under what circumstances would this value differ?" The answer may reveal a second axis (e.g., the limit varies by category) that belongs as new rows or a separate table.
-
-### Use Domain Terminology
-
-Column names should use domain or feature terminology that readers understand without knowing the implementation. Avoid parameter names, variable names, or internal API terms.
-
-| Good (Domain)          | Bad (Implementation)      |
-|------------------------|---------------------------|
-| `JUnit Dir`            | `Override`                |
-| `Build Output`         | `junitOutputDirOverride`  |
-| `Search Locations?`    | `Candidates?`             |
 
 ### Use Value Sets for "Regardless Of" Relationships
 
@@ -1023,6 +665,383 @@ a ladder usually shows both at once:
   boundary values *inside* the set.
 
 **Value sets work on two axes — check both.** Within a row, group input values that produce the same outcome (`{30, 45, 59}` → one tier). Across rows, collapse duplicates: when two input kinds follow identical rules everywhere (two categories treated alike by every rule), one row with `{A, B}` replaces two identical rows. It is easy to apply one axis and miss the other.
+
+### Assume the Table Is Published
+
+Write every table as if a reader will meet it in a published report, never having seen the test body.
+Only three surfaces reach that reader, and they divide the work:
+
+| Element        | Carries                                                                     |
+|----------------|-----------------------------------------------------------------------------|
+| `@DisplayName` | the rule, as an action the code performs                                    |
+| `@Description` | the apparatus that cannot be a column — what is held constant, which fixtures or converters are in play, where the data came from |
+| the table      | the variations the rule ranges over                                         |
+
+**Whatever the table holds constant is silently promoted into the rule.** Readers generalise from what
+varies, so a value that never varies is read as part of the rule: a duty-limit table whose every row
+assumes a two-pilot crew states, to its reader, a rule about two-pilot crews.
+
+So a constant the outcome depends on is either a column or declared in the title or description. It is
+**not** declared when it sits in the test method body, in a field, in a `@TypeConverter`, or in a `//`
+comment — a comment reaches no published surface at all. The converter is the easiest hiding place
+because it looks like plumbing: a converter that builds every history entry with the same zone has
+pinned zone for the whole table, and no column says so.
+
+Declaring a held constant in `@Description` is not redundancy. The other description rules forbid
+restating what the rows already show; a held constant is exactly what the rows cannot show.
+
+**What the assertion tolerates is part of the rule too.** A comparison that sorts either side before
+comparing, accepts a subset, matches "contains" rather than equals, or normalises case or whitespace
+is enforcing a rule: it changes which behaviours the test would accept. None of it reaches the
+reader. Ordering is the usual one, and a helper is where it hides — written once, then invisible at
+every call site, so a reader cannot tell whether order is part of the behaviour or an artefact of the
+comparison.
+
+Two repairs, and the second is better where it fits:
+
+- **Name it** — one sentence in the `@Description` ("bins are compared without regard to order"), or
+  a column that makes it evident.
+- **Remove the need for it** — a `Set` expectation column says order does not matter *in the table
+  itself*, which beats saying so in prose; a list with a canonical sort says it does. See **A
+  compound result stays a collection**.
+
+Numeric hygiene is not a criterion: a conventional epsilon on a decimal column, or
+`BigDecimal.compareTo`, is exempt. Neither is constructing the objects the columns name — that is the
+converter's job.
+
+**An input the rule is indifferent to must still be shown varying** — as a value set, never as a
+fixed value pinned in a converter, a field or the method body. "Indifferent" is a claim about
+behaviour, and pinning the value makes that claim unfalsifiable, which is the opposite of what it
+needs. Mechanics under **Use Value Sets for "Regardless Of" Relationships**.
+
+### Design Black-Box Tables
+
+Model observable inputs and outputs. Avoid internal flags or setup-only columns unless they are part of the public contract.
+
+```java
+@TableTest("""
+    Scenario                    | Build Dir | JUnit Property | Configured Dir | Resolved Dir?
+    All three set               | build     | report/junit   | tabletest      | tabletest
+    Configured dir absent       | target    | report/junit   |                | report/junit
+    Neither property nor config | build     |                |                | build/junit-jupiter
+    """)
+void resolvesInputDirectory(String buildDir, String junitProperty, String configuredDir, String resolvedDir) {
+    // setup derived from inputs, assert resolvedDir
+}
+```
+
+### Name Expectation Columns Clearly
+
+End expectation columns with `?` **suffix** to signal which columns are outputs being verified versus inputs being provided.
+
+Examples: `Valid?`, `Formatted?`, `Result?`, `Throws?`, `Expected?`
+
+**Prefer the rule's direct output.** Use `Fee?` over `Total?` — the fee is what the rule decides; verifying the total requires knowing the base amount. If you use a derived value like total, include the base as a column so readers can trace it. Input columns never have `?` suffixes — including yes/no flag columns that describe scenario state.
+
+**A compound result stays a collection.** When the value under test is several items — or items grouped under a key — the expectation column is a native list, set, or map, nesting where needed: `[paper, card]`, `{glass, metal}`, `[recycling: [paper, card], landfill: [foil]]`. Compare it against the collection the system returns. Do not flatten it into a quoted string like `"recycling:[paper,card]"` assembled by a stringifying helper: that tests your formatter rather than the rule, hides the structure from the reader, and puts formatting code back in the method body. Use a set where order is not part of the rule, and a list with a canonical sort where it is.
+
+**Common mistake** — `?` as prefix instead of suffix:
+```
+?Source        ← WRONG
+Source?        ← CORRECT
+```
+
+### Name Scenarios Descriptively
+
+Describe the condition being tested, not the expected outcome. Good scenario names answer "under what circumstances?" rather than "what happens?".
+
+| Good                         | Bad             |
+|------------------------------|-----------------|
+| `Negative input`             | `Returns error` |
+| `Empty list`                 | `Sum is zero`   |
+| `User without licence`       | `Cannot rent`   |
+| `Divisible by 4 but not 100` | `Is leap year`  |
+
+**The mistake to watch for is not a bare outcome — it is a name that states the condition and then adds the outcome.** Such a name looks right, because a condition really is in there. Point at the expectation cell the name restates: if you can, cut that clause and keep the rest.
+
+| Written                                 | Restates              | Keep                        |
+|-----------------------------------------|-----------------------|-----------------------------|
+| `Low haemoglobin defers the donor`      | `Deferred?` `true`    | `Haemoglobin below minimum` |
+| `Short rest means the pilot cannot fly` | `Fit to Fly?` `false` | `Rest below minimum`        |
+| `Three waste types force three bins`    | the `Bins?` map       | `Three waste types`         |
+
+Two variants of the same mistake are easy to miss. A name saying *nothing changed* still restates the
+answer — `Unlisted destination keeps the donor eligible`, beside an `Eligible After?` equal to
+`Eligible Before?`. And a verdict-led prefix publishes the verdict column outright — `Deferred:
+donation 30 days ago`. Cut the clause in both cases; the names still distinguish the rows.
+
+Naming the rule or the situation stays correct even when it makes the outcome obvious — `At the minimum rest period, not below it`, `Night duty, two-pilot crew`, `Missing haemoglobin reading` are all good names. The check is whether the name repeats a cell in an expectation column of its own row, not whether a reader who knows the rule could predict the answer.
+
+Scenario names appear in test failure messages, so clarity helps diagnose failures quickly.
+
+### Write Titles That Form an Index
+
+`@DisplayName` — or the method name when there is none — is the line a reader scans in the report
+index. Judge titles as a set, never one at a time: a title that reads well on its own page can still
+be an unscannable entry in the list.
+
+**Open each title with something that distinguishes it, and keep one grammatical shape across the
+family.** When every title starts with the same word, the index becomes a column of `should…` and the
+distinguishing part arrives last, where scanning cannot reach it. Three titles sharing an
+uninformative opener is enough to make the list unscannable.
+
+**Write an action the code performs, not a label for a topic.** This is the half that is easy to
+miss: a noun phrase can front the varying subject and still say nothing about what the code *does*
+with it. `Deferral interval by donation type` names a topic; `Sets the deferral interval from the
+donation type` names behaviour. The label form is the more tempting mistake, because it looks tidy
+in a list.
+
+| Scans as an index                                    | Does not                           |
+|------------------------------------------------------|------------------------------------|
+| `Sets the deferral interval from donation type`      | `shouldApplyDeferralInterval`      |
+| `Rejects a reading below the haemoglobin minimum`    | `Haemoglobin minimum by donor sex`  |
+| `Defers a donor returning from a listed destination` | `shouldDeferForTravelDestination`  |
+
+Three distinct verbs, each carrying information, and the subject arrives immediately after. One
+outlier does not break a family — a negative or invariant claim (`Donation type does not affect the
+haemoglobin minimum`) often reads best subject-first.
+
+**A title states what your system does, not an external fact it depends on.** Strike the system under
+test from the sentence: if it still reads as true, the title is restating a regulation, a format or a
+domain fact instead of naming behaviour. This is why the action form is safer than the topic form —
+`Donation type sets the deferral interval` survives the strike and reads as policy, while `Sets the
+deferral interval from the donation type` does not stand alone without the system that does it.
+
+**This action voice is the title's alone.** Scenario names stay condition phrases naming the row's
+variation — see **Name Scenarios Descriptively**. A title says what the rule does; a scenario name
+says which case this row is. Writing rows as little sentences is how outcome-echoing names get in.
+
+### Use @Description When It Adds Information
+
+Add `@Description` when there is context the table alone cannot convey. Omit it when the table already says everything — a vacuous description adds noise.
+
+Good reasons to add `@Description`:
+- **Fixed values** shared by all rows that are not columns (e.g., "order value is always 100")
+- **Domain context** — where/when the rule applies, who is affected, which market
+- **Open questions** — decisions not yet resolved
+- **Relationship between tables** — how this table connects to others in the class
+
+Do not restate what the table already shows. If the description merely summarises the column names or row outcomes, delete it. Don't include irrelevant fixed values — "Fixed for all rows: donor name = 'A. Nolan'" is noise unless the name affects behaviour. Values hardcoded in the method body that affect outcomes should be columns.
+
+**A description must not publish the algorithm.** Restating the internal formula — "the dose index is
+body weight divided by ten plus four per severity grade, capped once it passes 75" — turns a
+black-box table into a white-box one and pins the test to an implementation the rows never observe.
+A **threshold the rule is about**
+is different: name it, or better, make it a column (see **Make Thresholds Visible**). The line is
+whether a reader could recompute every expectation cell from the description alone. If they could,
+the description is doing the code's job.
+
+```java
+// GOOD — adds context not visible in the table
+@Description("""
+    Applies to the paediatric formulary only. Dose is per administration,
+    not per day. Open: should a missed dose be added to the next one once
+    the interval has already elapsed?
+    """)
+
+// BAD — restates what the table shows
+@Description("Tax bracket is determined by income range and filing status")
+```
+
+`@DisplayName` serves as a section header in reports. `@Description` provides the explanatory text underneath. Together they make the published test report readable as documentation without the table needing to be self-explanatory on every detail.
+
+### Use Concrete Domain Values
+
+Column values should be concrete, meaningful data — not abstract flags or codes. Expectation column values should be traceable to input column values.
+
+**Good** — directory names as inputs, resolved dir traceable to an input column:
+```java
+@TableTest("""
+    Scenario             | Configured Dir | JUnit Dir    | Fallback State | Resolved Dir? | Source?
+    All three set        | my-config      | report/junit | yaml           | my-config     | CONFIGURED
+    Configured dir absent|                | report/junit | yaml           | report/junit  | JUNIT_PROPERTY
+    Only fallback set    |                |              | yaml           | target/junit  | FALLBACK
+    """)
+```
+
+**Bad** — abstract flags, expectation values not traceable to inputs:
+```java
+@TableTest("""
+    Scenario                | Has Config | Override State | Fallback State | Resolved?
+    Config present          | true       | yaml           | yaml           | configured
+    No config, override set | false      | yaml           | yaml           | override
+    No config, no override  | false      |                | yaml           | fallback
+    """)
+```
+In the bad example, `configured`, `override`, and `fallback` in Resolved? are names hardcoded in the test body, not visible in the table. The reader cannot understand the table without reading the test code.
+
+When a value is derived from an input column (e.g., fallback path = Build Dir + "/junit-jupiter"), include the source column so readers can trace the derivation:
+```java
+@TableTest("""
+    Scenario        | Build Dir | Build State | Resolved Dir?
+    Maven fallback  | target    | yaml        | target/junit-jupiter
+    Gradle fallback | build     | yaml        | build/junit-jupiter
+    """)
+```
+Here `target/junit-jupiter` is visibly derived from `Build Dir = target`.
+
+### Use Domain Terminology
+
+Column names should use domain or feature terminology that readers understand without knowing the implementation. Avoid parameter names, variable names, or internal API terms.
+
+| Good (Domain)          | Bad (Implementation)      |
+|------------------------|---------------------------|
+| `JUnit Dir`            | `Override`                |
+| `Build Output`         | `junitOutputDirOverride`  |
+| `Search Locations?`    | `Candidates?`             |
+
+### Make Thresholds Visible
+
+When a rule depends on a threshold or limit, include it as a column — even when the value is constant across every row:
+
+```
+Scenario            | Customer Age | Max Age (Policy) | Eligible?
+Standard customer   | 30           | 75               | yes
+At the limit        | 75           | 75               | yes
+Just over the limit | 76           | 75               | no
+```
+
+Without the threshold column, the number 75 is buried in the code — the reader cannot tell from the table where the boundary is, or whether the rule is strictly greater than. Boundary rows (at the limit, just over) also become natural to add once the threshold is visible.
+
+A constant column often signals configuration. Ask: "Under what circumstances would this value differ?" The answer may reveal a second axis (e.g., the limit varies by category) that belongs as new rows or a separate table.
+
+### Include Traceability Columns
+
+When a table tests a pipeline (input → intermediate result → final result), include the intermediate result as an expectation column. This lets readers trace the logic step by step:
+
+```java
+@TableTest("""
+    Scenario                     | Body Weight (kg) | Renal Function | Dose Band? | Daily Dose (mg)?
+    Adult, normal function       | 70               | Normal         | Standard   | 500
+    Adult, impaired function     | 70               | Impaired       | Reduced    | 250
+    Low weight, normal function  | 40               | Normal         | Low        | 300
+    """)
+```
+
+The `Dose Band?` column is not strictly necessary (the test could verify only `Daily Dose (mg)?`), but it lets the reader trace: weight + renal function → dose band → daily dose. When a row fails, the intermediate column shows where in the pipeline the error occurred.
+
+**Guard:** Only use traceability columns for values the system under test exposes or that represent observable domain concepts. If you would need to reimplement an internal calculation in the test body to populate the column, it doesn't belong — the intermediate likely points to a separate concern that needs its own `@TableTest` method. Decompose into multiple tables instead; the intermediate becomes an output in one table and an input in the next.
+
+### Keep the Method Body Arrange–Act–Assert
+
+Whatever the method body does beyond arranging, acting and asserting is a rule the table cannot show.
+Construction belongs in a `@TypeConverter`, the expected exception in a column, defaulting and
+normalisation outside the body entirely. When you find yourself writing logic in the method, ask
+which column or converter it should have been.
+
+### Collapse Sparse Columns into a Map
+
+**Decide this from the signature, before drafting columns.** When one parameter of the method under
+test is an object with several optional fields, it is *one* map column with a `@TypeConverter` that
+constructs it — never one column per field. Deciding after the table is drafted is too late: by
+then every field has a column, most rows carry a blank or a `false` in it, and the sea of near-empty
+cells reads as deliberate.
+
+The "nothing set" row is **`[:]`, not a blank cell.** A blank bypasses the converter and hands the
+method `null` (see Handling Null Values); `[:]` calls the converter with an empty map, which returns
+the defaults.
+
+```java
+@TableTest("""
+    Scenario         | Config                        | Timeout Used?
+    All defaults     | [:]                           | 3000
+    Explicit timeout | [timeout: 5000]               | 5000
+    Several options  | [method: POST, timeout: 1000] | 1000
+    """)
+void appliesConfiguredTimeout(RequestConfig config, int timeoutMs) {
+    assertEquals(timeoutMs, gateway.timeoutFor(config));
+}
+
+@TypeConverter
+public static RequestConfig parseRequestConfig(Map<String, String> config) {
+    return new RequestConfig(
+        config.getOrDefault("method", "GET"),
+        Integer.parseInt(config.getOrDefault("timeout", "3000")),
+        Integer.parseInt(config.getOrDefault("retry", "1")));
+}
+```
+
+**The converter returns the domain object, not the map.** Declaring the parameter `Map<String,
+String>` and building the object with a private helper in the test class leaves construction in the
+test and defeats the point — the converter *is* the construction.
+
+**A map column is a column decision, not a table decision.** Choosing a map for one parameter says
+nothing about where the concern boundary lies, and it must not become the boundary. If another input
+drives the same rule to the same output column, it is another column in the same table — not a table
+of its own. A vent position driven by the measured humidity and a vent position driven by the
+configured climate overrides are one concern with one output: one table, a humidity column beside the
+overrides map column. Splitting them because one input arrives as a map and the other does not is the
+over-split described under Decompose When You See These Signs.
+
+The map keeps the table compact, each row states only what differs from the defaults, and all construction and defaulting logic lives in the converter — never in the test method body. This applies however the object is normally built (constructor, setters, or builder), and even when a table exercises only one or two of the optional fields: if a method body news up a parameter object and mutates it, that construction belongs in a `@TypeConverter` behind a map column.
+
+### Model Exceptions as Expected Columns
+
+When a table covers error/rejection cases, include the exception type as an expected column (`Throws?` or `Exception?`) — don't hardcode the exception class in the method body. This makes each row's expected outcome visible in the table.
+
+```java
+@TableTest("""
+    Scenario        | Input    | Throws?
+    Empty string    | ''       | IllegalArgumentException
+    Letters only    | abc      | NumberFormatException
+    Negative amount | -10.00   | IllegalArgumentException
+    """)
+void rejectsInvalidInput(String input, Class<? extends Throwable> throws_) {
+    assertThrows(throws_, () -> parse(input));
+}
+```
+
+**When some rows throw and some do not, keep one assertion.** A boundary straddling a validation
+limit always produces this shape — the accepted value beside the first rejected one. Leave `Throws?`
+blank where nothing is thrown, and compare the thrown type rather than branching:
+
+```java
+@TableTest("""
+    Scenario                | Dose (mg) | Throws?
+    At the minimum dose     | 0         |
+    Just below the minimum  | -0.01     | IllegalArgumentException
+    """)
+void rejectsDoseBelowMinimum(BigDecimal dose, Class<? extends Throwable> throws_) {
+    assertEquals(throws_, thrownBy(() -> validateDose(dose)));
+}
+
+// with the other helpers, at the bottom of the class
+private static Class<? extends Throwable> thrownBy(Executable action) {
+    try {
+        action.execute();
+        return null;
+    } catch (Throwable thrown) {
+        return thrown.getClass();
+    }
+}
+```
+
+Branching on the row to pick between `assertThrows` and `assertDoesNotThrow` is what this avoids: it
+puts the rule back in the method body, where the table cannot show it.
+
+### Annotation Order
+
+Annotations on a `@TableTest` method must appear in this order:
+
+1. `@DisplayName` (if present)
+2. `@Description` (if present)
+3. `@TableTest`
+
+```java
+@DisplayName("Charges parking by duration band")
+@Description("""
+    First 2 hours are free. Hours 3-5 are charged at the standard rate.
+    Hours beyond 5 are charged at 2× the standard rate.
+    Weekend parking is always free regardless of duration.
+    """)
+@TableTest("""
+    Scenario           | Day      | Hours | Rate  | Free hrs? | Standard hrs? | Surcharge hrs? | Total fee?
+    Within free window | Monday   | 1     | 3.00  | 1         |               |                | 0.00
+    Standard rate      | Tuesday  | 4     | 3.00  | 2         | 2             |                | 6.00
+    With surcharge     | Wednesday| 7     | 3.00  | 2         | 3             | 2              | 21.00
+    """)
+void calculatesParkingFee(...) { ... }
+```
 
 ### Null, Empty, and Blank Values
 
