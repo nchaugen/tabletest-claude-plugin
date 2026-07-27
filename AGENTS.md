@@ -155,6 +155,27 @@ Costs drift with the suite and the model, so read the script rather than a figur
    consistent with its neighbours, and still be skipped: cluster 3 taught the "force N" naming shape
    explicitly and two evals wrote it anyway. Reading tests correctness; only generation tests
    salience. Do both, in this order — the free one first.
+
+   **Generality gate — apply before writing, not after.** The loop rewards additions and never
+   subtractions: every edit is justified by a slot an assertion can see, and nothing in the process
+   ever proposes a deletion. Left alone that produces a skill shaped like a list of past failures.
+   Three questions, from
+   [skill-examples-avoid-eval-domains](../../products/claude-plugin/decisions/skill-examples-avoid-eval-domains.md):
+
+   - **Can you state the principle with no domain nouns at all?** If not, it is not a principle yet —
+     it is a patch for the artefact you just read. Write the general statement first, then illustrate
+     once.
+   - **Where does the skill already say this?** Search before adding. Every cluster so far has found
+     the rule already present, or its opposite present — a conflict to resolve, not a gap to fill.
+     Adding beside a contradiction leaves the contradiction winning.
+   - **Is this a rule or a mechanic?** "How do I express X in TableTest" is legitimately specific and
+     belongs. "Here is the fix for the failure eval N showed" does not; find what it is an instance
+     of.
+
+   Two facts worth having in view while deciding. A rule stated in two places is a rule that will
+   drift — the same fact updated in one spot and stale in the other has caused four defects here,
+   including one that a whole cluster existed to fix. And measure the trade: **skill lines added per
+   measured slot won**. Across the 2026-07-27 batch it was ~29 before compression, which is too high.
 3. Benchmark against the baseline:
    `node scripts/run-evals.js --skill tabletest --variant next --iteration N --compare-official`.
    The `eval-review.md` "Load-Bearing Assertions" and resource-comparison sections show what
@@ -279,14 +300,23 @@ the second is expensive, and it does not have to be asked once per promotion.
    generation, which is the commit *before* the promotion.
 5. Repeat 1–4 for further variants, accumulating entries under `## [Unreleased]`. Nothing is
    released mid-batch.
-6. **Close the batch with one official full iteration.** Its regression report is the evidence
+6. **Compress before the closing run, not after.** A batch's promotions accrete: each was written
+   against one artefact, and several will turn out to restate a rule already in the file or to
+   duplicate its illustration. Re-read everything the batch added and merge, demote or delete —
+   then let the closing run measure the version you actually intend to ship. Doing it afterwards
+   means the run measured something else. Expect to find, as the 2026-07-27 batch did: the same rule
+   stated in four prose passages and two Quality Checks; a design rule stated twice because a syntax
+   subsection sat between the halves; one illustration repeated three times for four facts; and a
+   checklist line still carrying wording the prose had already replaced. Verify by grepping for a
+   distinctive phrase from every claim the batch measured, before and after.
+7. **Close the batch with one official full iteration.** Its regression report is the evidence
    for every promotion in the batch, and its `benchmark.json` becomes the new baseline. Then trim:
    keep only that iteration dir (commit its `benchmark.json`, `eval-review.md`, `outputs/`,
    `grading.json`, `timing.json`) and the partial iterations it supersedes go; git history retains
    them. The next run reads the baseline from disk. **Before deleting anything, check
    `docs/grader-tuning.md` § The sweep** — outputs whose fingerprints still match are re-gradable and
    must survive, and a variance probe must be distilled before it is swept.
-7. Tag and release (see Release) — that is where the single version bump for the whole batch
+8. Tag and release (see Release) — that is where the single version bump for the whole batch
    happens, and where `## [Unreleased]` becomes `## [X.Y.Z] - <date>`.
 
 **One version bump per release, not per promotion.** A version is a publication fact: it names
