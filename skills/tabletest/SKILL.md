@@ -628,7 +628,7 @@ Examples: `Valid?`, `Formatted?`, `Result?`, `Throws?`, `Expected?`
 
 **Prefer the rule's direct output.** Use `Fee?` over `Total?` — the fee is what the rule decides; verifying the total requires knowing the base amount. If you use a derived value like total, include the base as a column so readers can trace it. Input columns never have `?` suffixes — including yes/no flag columns that describe scenario state.
 
-**A compound result stays a collection.** When the value under test is several items — or items grouped under a key — the expectation column is a native list, set, or map, nesting where needed: `[camera, lens]`, `{DHL, UPS}`, `[W1: [camera, lens], W2: [tripod]]`. Compare it against the collection the system returns. Do not flatten it into a quoted string like `"W1:[camera,lens]"` assembled by a stringifying helper: that tests your formatter rather than the rule, hides the structure from the reader, and puts formatting code back in the method body. Use a set where order is not part of the rule, and a list with a canonical sort where it is.
+**A compound result stays a collection.** When the value under test is several items — or items grouped under a key — the expectation column is a native list, set, or map, nesting where needed: `[paper, card]`, `{glass, metal}`, `[recycling: [paper, card], landfill: [foil]]`. Compare it against the collection the system returns. Do not flatten it into a quoted string like `"recycling:[paper,card]"` assembled by a stringifying helper: that tests your formatter rather than the rule, hides the structure from the reader, and puts formatting code back in the method body. Use a set where order is not part of the rule, and a list with a canonical sort where it is.
 
 **Common mistake** — `?` as prefix instead of suffix:
 ```
@@ -894,14 +894,14 @@ When a table tests a pipeline (input → intermediate result → final result), 
 
 ```java
 @TableTest("""
-    Scenario                      | Property type | Square metres | Flood zone | Risk rating? | Annual premium?
-    Small residential, safe area  | Residential   | 80            | None       | Low          | 400.00
-    Large residential, flood risk | Residential   | 200           | Zone A     | High         | 1200.00
-    Commercial, moderate risk     | Commercial    | 500           | Zone B     | Medium       | 2500.00
+    Scenario                     | Body Weight (kg) | Renal Function | Dose Band? | Daily Dose (mg)?
+    Adult, normal function       | 70               | Normal         | Standard   | 500
+    Adult, impaired function     | 70               | Impaired       | Reduced    | 250
+    Low weight, normal function  | 40               | Normal         | Low        | 300
     """)
 ```
 
-The `Risk rating?` column is not strictly necessary (the test could verify only `Annual premium?`), but it lets the reader trace: property + area + flood zone → risk rating → premium. When a row fails, the intermediate column shows where in the pipeline the error occurred.
+The `Dose Band?` column is not strictly necessary (the test could verify only `Daily Dose (mg)?`), but it lets the reader trace: weight + renal function → dose band → daily dose. When a row fails, the intermediate column shows where in the pipeline the error occurred.
 
 **Guard:** Only use traceability columns for values the system under test exposes or that represent observable domain concepts. If you would need to reimplement an internal calculation in the test body to populate the column, it doesn't belong — the intermediate likely points to a separate concern that needs its own `@TableTest` method. Decompose into multiple tables instead; the intermediate becomes an output in one table and an input in the next.
 

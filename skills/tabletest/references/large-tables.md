@@ -25,18 +25,18 @@ void testSquares(int input, int output) {
 Load large tables from resource files to keep test classes readable:
 
 ```java
-@TableTest(resource = "/test-data/user-permissions.table")
-void testUserPermissions(String role, String action, boolean allowed) {
-    assertEquals(allowed, hasPermission(role, action));
+@TableTest(resource = "/test-data/donor-deferral.table")
+void defersDonorByComponentAndInterval(String component, int daysSinceLast, boolean deferred) {
+    assertEquals(deferred, deferralPolicy.isDeferred(component, daysSinceLast));
 }
 ```
 
 The table file uses the same syntax as inline tables:
 
 ```
-Scenario          | Role  | Action | Allowed?
-Admin can edit    | admin | edit   | true
-Guest cannot edit | guest | edit   | false
+Scenario                  | Component   | Days Since Last | Deferred?
+Inside whole-blood window | whole blood | 30              | true
+Past whole-blood window   | whole blood | 60              | false
 ...
 ```
 
