@@ -557,9 +557,9 @@ Three shapes account for nearly every redundant row:
   past a limit rejects, and a row further past it rejects for no new reason.
 - **A larger n in the same direction.** If two incompatible items in a batch force it into separate
   collection streams, three incompatible items force it for the same reason. One obligation, one row.
-- **A value the rule is indifferent to.** Two rows differing only in an input the rule ignores are
-  one row with a value set: `{whole blood, plasma}` where the deferral interval is the same either
-  way, or `{manual, scheduled}` where what triggered a climate adjustment does not change it.
+- **A value the rule ignores.** Two rows that differ only in it are one row. Merge them:
+  `{whole blood, plasma}` in a single cell. Same outcome either way means the difference between the
+  rows isn't the rule.
 
 A second row on the same side of a boundary earns its place in one case: when the point *is* that two
 inputs collapse to one behaviour. Then say so — a value set says it in one row, and if you keep two
@@ -709,10 +709,12 @@ Numeric hygiene is not a criterion: a conventional epsilon on a decimal column, 
 `BigDecimal.compareTo`, is exempt. Neither is constructing the objects the columns name — that is the
 converter's job.
 
-**An input the rule is indifferent to must still be shown varying** — as a value set, never as a
-fixed value pinned in a converter, a field or the method body. "Indifferent" is a claim about
-behaviour, and pinning the value makes that claim unfalsifiable, which is the opposite of what it
-needs. Mechanics under **Use Value Sets for "Regardless Of" Relationships**.
+**If a title or description says an input doesn't affect the result, vary that input in the rows.**
+Write a value set in the cell: `{whole blood, plasma}`.
+
+Do not fix the value instead — not in a `@TypeConverter`, not in a field, not in the test body. A
+claim no row can contradict is not tested. Mechanics under **Use Value Sets for "Regardless Of"
+Relationships**.
 
 ### Design Black-Box Tables
 
@@ -748,29 +750,23 @@ Source?        ← CORRECT
 
 ### Name Scenarios Descriptively
 
-Describe the condition being tested, not the expected outcome. Good scenario names answer "under what circumstances?" rather than "what happens?".
+**Read each scenario name beside its own expectation cells. If the name says what any of them say,
+cut that part.**
 
-| Good                         | Bad             |
-|------------------------------|-----------------|
-| `Negative input`             | `Returns error` |
-| `Empty list`                 | `Sum is zero`   |
-| `User without licence`       | `Cannot rent`   |
-| `Divisible by 4 but not 100` | `Is leap year`  |
+| Written                                        | Says the same as                    | Write instead               |
+|------------------------------------------------|-------------------------------------|-----------------------------|
+| `Low haemoglobin defers the donor`             | `Deferred?` `true`                  | `Haemoglobin below minimum` |
+| `Short rest means the pilot cannot fly`        | `Fit to Fly?` `false`               | `Rest below minimum`        |
+| `Three waste types force three bins`           | the `Bins?` map                     | `Three waste types`         |
+| `No deferral applies`                          | `Deferred?` `false`                 | `Donation 90 days ago`      |
+| `Deferred: donation 30 days ago`               | `Deferred?` `true`                  | `Donation 30 days ago`      |
+| `Unlisted destination keeps the donor eligible`| `Eligible After?` = `Eligible Before?` | `Unlisted destination`   |
 
-**The mistake to watch for is not a bare outcome — it is a name that states the condition and then adds the outcome.** Such a name looks right, because a condition really is in there. Point at the expectation cell the name restates: if you can, cut that clause and keep the rest.
+Name the condition the row varies — "under what circumstances?", never "what happens?".
 
-| Written                                 | Restates              | Keep                        |
-|-----------------------------------------|-----------------------|-----------------------------|
-| `Low haemoglobin defers the donor`      | `Deferred?` `true`    | `Haemoglobin below minimum` |
-| `Short rest means the pilot cannot fly` | `Fit to Fly?` `false` | `Rest below minimum`        |
-| `Three waste types force three bins`    | the `Bins?` map       | `Three waste types`         |
-
-Two variants of the same mistake are easy to miss. A name saying *nothing changed* still restates the
-answer — `Unlisted destination keeps the donor eligible`, beside an `Eligible After?` equal to
-`Eligible Before?`. And a verdict-led prefix publishes the verdict column outright — `Deferred:
-donation 30 days ago`. Cut the clause in both cases; the names still distinguish the rows.
-
-Naming the rule or the situation stays correct even when it makes the outcome obvious — `At the minimum rest period, not below it`, `Night duty, two-pilot crew`, `Missing haemoglobin reading` are all good names. The check is whether the name repeats a cell in an expectation column of its own row, not whether a reader who knows the rule could predict the answer.
+Naming the rule is still fine when it makes the outcome guessable: `At the minimum rest period, not
+below it`, `Night duty, two-pilot crew`, `Missing haemoglobin reading` are all good names. The test is
+whether the name repeats a cell, not whether a reader who knows the rule could predict the answer.
 
 Scenario names appear in test failure messages, so clarity helps diagnose failures quickly.
 

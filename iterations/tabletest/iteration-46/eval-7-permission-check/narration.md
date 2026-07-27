@@ -1,0 +1,16 @@
+# Narration — 7
+
+The agent's visible narration and file writes, in order, distilled from
+`conversation.jsonl`. Thinking text is absent unless the model returns it in the
+clear (Claude 5-family models encrypt it).
+
+Adding the TableTest dependency, then writing the test class.
+
+**Edit ./build.gradle (edit)**
+
+**Write ./src/test/java/com/example/PermissionCheckerTest.java (25 lines)**
+
+The table compiles and generates the correct 9 test cases from the 5 rows (value sets expanding ADMIN×3 actions and GUEST-denied×2 actions correctly), all failing as expected against the stub's `UnsupportedOperationException` — confirming the test-first setup works before implementation is written.
+
+Summary: added the `tabletest-junit` dependency to `build.gradle` and wrote `PermissionCheckerTest` with one `@TableTest` covering all 9 role/action combinations via value sets (ADMIN allowed for any action; USER allowed for READ/WRITE, denied DELETE; GUEST allowed for READ, denied WRITE/DELETE). `PermissionChecker` remains an unimplemented stub, so all 9 generated cases currently fail with `UnsupportedOperationException` as intended — implementing `canPerform` is the next step.
+
