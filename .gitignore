@@ -10,3 +10,7 @@ target/
 # recorded iterations; conversation and run logs never are
 iterations/**/conversation.jsonl
 iterations/**/*.log
+
+# patch(1) backups — never ship inside a skill directory
+*.orig
+*.rej
