@@ -679,16 +679,10 @@ Numeric hygiene is not a criterion: a conventional epsilon on a decimal column, 
 `BigDecimal.compareTo`, is exempt. Neither is constructing the objects the columns name — that is the
 converter's job.
 
-**An input the rule is indifferent to must still be shown varying.** "Indifferent" is a claim about
-behaviour, and a claim needs rows behind it. Collapse it into a value set — one row, still varying —
-never into a fixed value pinned in a converter or the method body. Pinning it makes the independence
-unfalsifiable, which is the opposite of what the claim needs:
-
-```
-Scenario                     | Donation Type         | Days Since Last | Deferred?
-Inside the deferral window   | {whole blood, plasma} | 30              | true
-Past the deferral window     | {whole blood, plasma} | 60              | false
-```
+**An input the rule is indifferent to must still be shown varying** — as a value set, never as a
+fixed value pinned in a converter, a field or the method body. "Indifferent" is a claim about
+behaviour, and pinning the value makes that claim unfalsifiable, which is the opposite of what it
+needs. Mechanics under **Use Value Sets for "Regardless Of" Relationships**.
 
 ### Write Titles That Form an Index
 
@@ -924,11 +918,10 @@ Describe the condition being tested, not the expected outcome. Good scenario nam
 | `Short rest means the pilot cannot fly` | `Fit to Fly?` `false` | `Rest below minimum`        |
 | `Three waste types force three bins`    | the `Bins?` map       | `Three waste types`         |
 
-**A name saying nothing changed is restating an outcome too.** `Unlisted destination keeps the donor
-eligible` beside an `Eligible After?` cell equal to `Eligible Before?` publishes the answer as surely
-as a name announcing a change. The row's variation is the unlisted destination; that is the name.
-
-Verdict-led prefixes are the same mistake: `Deferred: donation 30 days ago` and `Accepted: donation 90 days ago` publish the verdict column in the name. Drop the prefix and the names still distinguish the rows.
+Two variants of the same mistake are easy to miss. A name saying *nothing changed* still restates the
+answer — `Unlisted destination keeps the donor eligible`, beside an `Eligible After?` equal to
+`Eligible Before?`. And a verdict-led prefix publishes the verdict column outright — `Deferred:
+donation 30 days ago`. Cut the clause in both cases; the names still distinguish the rows.
 
 Naming the rule or the situation stays correct even when it makes the outcome obvious — `At the minimum rest period, not below it`, `Night duty, two-pilot crew`, `Missing haemoglobin reading` are all good names. The check is whether the name repeats a cell in an expectation column of its own row, not whether a reader who knows the rule could predict the answer.
 
@@ -1010,16 +1003,19 @@ This single row generates 3 tests, all asserting `main` wins regardless of fallb
 **Value set semantics: every value must produce the same expected result.** A value set `{A, B, C}` asserts that the result is identical regardless of which value is chosen. Do not use value sets where results differ:
 
 ```java
-// WRONG — 40 × 15.00 = 600, but 40 × 20.00 = 800; results differ
-Standard week | 40 | {15.00, 20.00} | *
+// WRONG — 20 kg at 5 mg/kg is 100, but at 8 mg/kg is 160; results differ
+Standard course   | 20 | {5, 8} | *
 
 // CORRECT — use separate rows when results differ
-Standard week               | 40 | 15.00 | 600.00
-Standard week, higher rate  | 40 | 20.00 | 800.00
+Standard strength | 20 | 5      | 100
+Double strength   | 20 | 8      | 160
 
-// CORRECT — value set is fine when result is genuinely identical
-Zero hours | 0 | {15.00, 20.00} | 0.00
+// CORRECT — value set is fine when the result is genuinely identical
+No doses due      | 0  | {5, 8} | 0
 ```
+
+An input the rule ignores is the same case seen from the other side: two rows differing only in
+that input are one row with a value set over it.
 
 #### Cartesian Product
 
@@ -1036,22 +1032,6 @@ void combinesTwoValueSets(int a, int b, int maxSum) {
 ```
 
 This generates 4 test cases: (1,3), (1,4), (2,3), (2,4).
-
-#### "Doesn't Matter" Pattern
-
-Use value sets when a flag is irrelevant for certain scenarios:
-
-```java
-@TableTest("""
-    Scenario    | Master | Fallback      | Expected?
-    Normal flow | true   | {true, false} | success
-    Error path  | true   | true          | fallback
-    """)
-void resolvesFallbackOnError(boolean master, boolean fallback, String expected) { ... }
-```
-
-Row 1: Fallback flag doesn't matter when there's no error, so test both values.
-Row 2: Fallback flag is critical for error handling, so specify exact value.
 
 **A value set is wrong where the rule tells the values apart, and right where it does not.** The
 discriminator is the rule's own granularity — not how different the inputs look to you.
@@ -1174,7 +1154,7 @@ When there is no existing code (empty `src/main/java`), write the tests first �
 After writing, verify:
 - [ ] **Multiple rows**: table has 2+ rows; use `@Test` only for a genuinely standalone single case — a lone error, null, or empty-input case related to an existing table belongs in that table as a row (with a `Throws?` column if it throws), not in a separate `@Test`
 - [ ] **Black-box design**: columns represent observable inputs and outputs, not internal flags or implementation details
-- [ ] **Clear communication**: scenario names describe conditions (not outcomes), column names use domain language (not parameter names)
+- [ ] **Domain language**: column names use the business vocabulary, not parameter or field names
 - [ ] **No name restates its own row's answer**: read each scenario name beside the expectation cells of that row — no name states or paraphrases one of them, and none carries a verdict-led prefix
 - [ ] **Uniform assertions**: all rows use the same assertion logic; split into separate TableTests if logic differs per row
 - [ ] **Straightforward method**: no `if`/`switch`/ternary — not even null-guards or defaulting, which belong in a `@TypeConverter` or helper; the method only arranges, acts, and asserts
@@ -1186,18 +1166,16 @@ After writing, verify:
 - [ ] **Thresholds visible**: rules that depend on a threshold or limit show it as a column, with boundary rows at and just past the threshold; for date cutoffs, prefer descriptive relative values (`before cutoff`, `on cutoff`) via a `@TypeConverter` — or include the cutoff date as a column if literal dates are used
 - [ ] **Correct expected values**: arithmetic in expected columns verified independently; every row's output matches the stated rules
 - [ ] **Value set semantics**: value sets only used where every value produces the same result; not used as shorthand for "test multiple values"
-- [ ] **Irrelevance and tiers use value sets**: inputs that don't affect a row's outcome appear as value sets (not a fixed placeholder value mentioned in `@Description`); when a range of input values maps to one tier, the row groups representative values (including both boundaries) into a value set
+- [ ] **Irrelevance and tiers use value sets**: an input the rule ignores appears as a value set spanning the values it ignores — never a fixed placeholder pinned in a converter, a field or the method body, and never merely asserted in `@Description`; when a range of input values maps to one tier, the row groups representative values (including both boundaries) into a value set
 - [ ] **One row per obligation**: every row discharges a behaviour no other row in that table reaches; where two rows share an expectation, what differs between them is what the rule is about — not a value further past the same boundary, a larger n in the same direction, or an input the rule ignores
 - [ ] **Every tier once**: a tier ladder has one row per tier — all of them, none twice, no "tier begins" row beside a "tier holds" row
 - [ ] **Combining tables prove an interaction**: any table exercising several rules together shows behaviour the single-rule tables cannot (a precedence, an ordering), not the earlier rules re-run end to end
-- [ ] **One rule per table**: expectation columns are all outputs of the same rule; a column another table's rule produces (a required-rest figure beside a fit-to-fly decision) belongs in that other table
-- [ ] **Optional inputs blank**: columns not relevant to a scenario use blank cells (not 0 or defaults); parameter types support null
+- [ ] **Blank means absent**: a column whose input is genuinely absent for a row uses a blank cell (not 0 or a default), with a parameter type that accepts null — an input that is present but irrelevant is a value set instead
 - [ ] **Traceability columns**: intermediate expected values included only when the value is observable from the public API — never reimplemented from internal logic; if you need to reimplement a formula to populate the column, decompose into separate tables instead
 - [ ] **Held constants declared**: every value the outcome depends on that the table fixes for all rows is a column, or is named in the `@DisplayName`/`@Description` as held fixed — never left in the method body, a field, a `@TypeConverter`, or a `//` comment
-- [ ] **Indifference shown by rows**: an input the rule is claimed to ignore appears as a value set spanning the values it ignores, not pinned to one value anywhere
 - [ ] **Titles form an index**: read the class's titles as a sorted list — each states an action the code performs (not a label for a topic), one grammatical shape runs across them, and no three share an uninformative opener (`should…`, `test…`, `verify…`)
 - [ ] **@Description free of internals**: no internal formula or algorithm; a reader must not be able to recompute the expectation cells from the description alone
-- [ ] **Every expectation column varies**: no expectation column is constant down all rows or moves only as a side effect of another — give it varying rows or move it to the table whose axis varies it
+- [ ] **One rule per table**: every expectation column is exercised by the rows the table varies — none is constant down all rows or moves only as a side effect of another. Give it rows that vary it, or move it to the table whose axis does
 - [ ] **@Description adds information**: if present, `@Description` provides context beyond what the table shows (fixed values, domain context, open questions) — not a restatement of columns or rows. Omit `@Description` if there is nothing to add.
 - [ ] **@Description uses text block**: `@Description` uses `"""` text blocks, not string concatenation with `+`
 - [ ] **Annotation order**: `@DisplayName` → `@Description` → `@TableTest` (no other order)
