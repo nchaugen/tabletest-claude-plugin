@@ -552,6 +552,13 @@ This is the same rule that makes a tier ladder one row per tier (see Value Sets 
 a value set spanning the tier's range carries its own boundaries, so a separate "tier begins" row
 discharges nothing the "tier holds" row has not.
 
+**One value can carry two obligations, in two different tables.** A value that is a boundary for one
+rule is often the subject of another. A zero duty period is both the accepted end of "duty hours
+cannot be negative" *and* the input that should produce no rest requirement whatever the crew size —
+two rules, two questions, two rows in two tables. Showing the value once, in whichever table you
+reached first, feels like coverage and is not: the accepted-boundary row says nothing about what the
+other rule then computes. **Count obligations per rule, never per value.**
+
 ### A Combining Table Needs Its Own Rule
 
 Once every rule has a table, the pull is to add one more that runs the whole feature end to end. It
@@ -754,6 +761,34 @@ void rejectsInvalidInput(String input, Class<? extends Exception> throws_) {
     assertThrows(throws_, () -> parse(input));
 }
 ```
+
+**When some rows throw and some do not, keep one assertion.** A boundary straddling a validation
+limit always produces this shape — the accepted value beside the first rejected one. Leave `Throws?`
+blank where nothing is thrown, and compare the thrown type rather than branching:
+
+```java
+@TableTest("""
+    Scenario                | Dose (mg) | Throws?
+    At the minimum dose     | 0         |
+    Just below the minimum  | -0.01     | IllegalArgumentException
+    """)
+void rejectsDoseBelowMinimum(BigDecimal dose, Class<? extends Throwable> throws_) {
+    assertEquals(throws_, thrownBy(() -> validateDose(dose)));
+}
+
+// with the other helpers, at the bottom of the class
+private static Class<? extends Throwable> thrownBy(Executable action) {
+    try {
+        action.execute();
+        return null;
+    } catch (Throwable thrown) {
+        return thrown.getClass();
+    }
+}
+```
+
+Branching on the row to pick between `assertThrows` and `assertDoesNotThrow` is what this avoids: it
+puts the rule back in the method body, where the table cannot show it.
 
 Keep null cases as blank-cell rows in the main table rather than extracting them to separate `@Test` methods:
 
