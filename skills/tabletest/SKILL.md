@@ -188,6 +188,26 @@ void converts_class_names(String className, Path expectedPath) {
 
 When JUnit's built-in converters don't support your parameter type, add custom type converter methods annotated with `@TypeConverter`.
 
+**Any domain object built from a table value belongs in a converter — whatever the construction
+idiom.** A constructor, a builder, a static factory, a chain of `with…` calls: they are all
+construction, and construction in the test body puts the arrangement between the reader and the rule.
+The parameter is the **domain type**, and getting from cell to object is the converter's job.
+
+```java
+// WRONG — the body assembles the object the row is about
+void appliesRestCredit(String rosterSpec, int restHours) {
+    Roster roster = Roster.forCrew(2).withDutyPeriods(rosterSpec).withBase("LHR");
+    ...
+}
+
+// RIGHT — the parameter is the domain type; assembly is behind @TypeConverter
+void appliesRestCredit(Roster roster, int restHours) { ... }
+```
+
+This is not only about objects with several optional fields — that case gets its own column shape
+under **Collapse Sparse Columns into a Map**. It applies equally to a composed object whose parts
+come from one cell, and to one assembled from a fixture plus a single varying value.
+
 ### Prefer Built-in Conversion First
 
 JUnit can convert strings to `Class<?>` when the value is a fully-qualified class name. Write `java.lang.RuntimeException` in the table instead of `RuntimeException` plus a custom `@TypeConverter`. Only write a converter method when built-in conversion does not cover the type.
@@ -1014,9 +1034,22 @@ void resolvesFallbackOnError(boolean master, boolean fallback, String expected) 
 Row 1: Fallback flag doesn't matter when there's no error, so test both values.
 Row 2: Fallback flag is critical for error handling, so specify exact value.
 
-**Don't use value sets when scenario descriptions add context.** Email validation patterns like "missing local part", "no TLD", "missing @" each test a different structural rule — grouping them as `{@missing.com, user@.com}` loses the *why*.
+**A value set is wrong where the rule tells the values apart, and right where it does not.** The
+discriminator is the rule's own granularity — not how different the inputs look to you.
 
-**A separate row is for a structurally different reason, never for a further example of one reason.** Two rows earn their place when each fails for its own reason; a third that fails for a reason already shown is redundant however differently it is spelled. Working down a format specification produces many rows and one obligation (see Give Each Obligation Exactly One Row), so pick the representative cases and name the reason in each scenario.
+- **The rule distinguishes them: separate rows.** A sorter that answers `WRONG_MATERIAL`,
+  `CONTAMINATED` and `OVERSIZE` is making three decisions. Three rows, each named for its reason;
+  a value set here would collapse three outcomes into one cell and lose the *why*.
+- **The rule does not: one row, or a value set.** A sorter that answers `REJECTED` however the item
+  fails is making one decision. Pick one or two representative inputs and let a value set carry the
+  rest.
+
+**Enumerating every way an input can be malformed is coverage of the format, not of the rule.** Ten
+inputs that all produce the same undifferentiated rejection are one obligation, however different the
+ten look on the page. Working down a specification is the usual way this happens (see Give Each
+Obligation Exactly One Row).
+
+**A separate row is for a reason the rule itself distinguishes, never for a further example of one reason.** Two rows earn their place when each produces its own outcome; a third producing an outcome already shown is redundant however differently it is spelled.
 
 #### Value Sets for Tier Grouping
 
@@ -1086,7 +1119,7 @@ void resolves_values(String input, String resolved) {
 ### Converting Existing Tests
 
 1. Identify tests with identical structure but different data.
-2. Extract the varying parts as columns (inputs and expected values). If the originals build an object with several optional fields — via constructor arguments, setters, or a builder — collapse those into one map column with a `@TypeConverter` (see Collapse Sparse Columns into a Map) instead of constructing the object in the method body.
+2. Extract the varying parts as columns (inputs and expected values). Wherever the originals build a domain object — constructor, setters, builder, static factory, `with…` chain — that construction moves into a `@TypeConverter` and the parameter becomes the domain type; it never stays in the method body. Where the object has several optional fields, the column that feeds the converter is a map (see Collapse Sparse Columns into a Map).
 3. Create table with scenario column first, inputs next, expectations last (suffix with `?`).
 4. Align method parameters to column order; do not bind the scenario column unless annotated with `@Scenario`.
 5. Verify all rows use the same assertion logic.
