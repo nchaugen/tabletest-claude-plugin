@@ -369,9 +369,9 @@ Model observable inputs and outputs. Avoid internal flags or setup-only columns 
 ```java
 @TableTest("""
     Scenario                    | Build Dir | JUnit Property | Configured Dir | Resolved Dir?
-    Configured input wins       | build     | report/junit   | tabletest      | tabletest
-    JUnit property takes effect | target    | report/junit   |                | report/junit
-    Fallback when none set      | build     |                |                | build/junit-jupiter
+    All three set               | build     | report/junit   | tabletest      | tabletest
+    Configured dir absent       | target    | report/junit   |                | report/junit
+    Neither property nor config | build     |                |                | build/junit-jupiter
     """)
 void resolvesInputDirectory(String buildDir, String junitProperty, String configuredDir, String resolvedDir) {
     // setup derived from inputs, assert resolvedDir
@@ -386,9 +386,9 @@ When an operation produces multiple observable outputs, include them all as expe
 // Good — all outputs of priority resolution in one table
 @TableTest("""
     Scenario                  | Input Dir | JUnit Dir    | Resolved Path?       | Source?        | Searched Locations?
-    Configured input wins     | my-config | report/junit | my-config            | CONFIGURED     | [my-config]
-    JUnit property wins       |           | report/junit | report/junit         | JUNIT_PROPERTY | [report/junit, build/junit-jupiter]
-    Fallback wins             |           |              | build/junit-jupiter  | FALLBACK       | [build/junit-jupiter]
+    Both sources set          | my-config | report/junit | my-config            | CONFIGURED     | [my-config]
+    Input dir absent          |           | report/junit | report/junit         | JUNIT_PROPERTY | [report/junit, build/junit-jupiter]
+    Neither source set        |           |              | build/junit-jupiter  | FALLBACK       | [build/junit-jupiter]
     """)
 void resolvesWithPriority(String inputDir, String junitDir,
                           String resolvedPath, ResolutionSource source, List<String> searchLocations) { ... }
@@ -545,7 +545,7 @@ Two symptoms:
 
 The type of logic under test determines what each row should represent:
 
-- **Decision/priority logic**: Each row is a distinct decision point. Scenario names describe which rule takes precedence (e.g., "X wins over Y").
+- **Decision/priority logic**: Each row is a distinct decision point. Name which inputs are present, not which one won — a priority table almost always publishes the winner as an expectation column, so "Configured wins" beside `Source?` `CONFIGURED` restates its own answer. "Both sources set", "Input dir absent" say which case the row is.
 - **Parsing/validation logic**: Each row is a distinct input variation. Scenario names describe the input condition (e.g., "Empty input", "With special characters").
 - **Transformation logic**: Each row is an input/output pair. Scenario names describe the transformation case.
 
@@ -728,6 +728,10 @@ Describe the condition being tested, not the expected outcome. Good scenario nam
 | `Short rest means the pilot cannot fly` | `Fit to Fly?` `false` | `Rest below minimum`        |
 | `Three waste types force three bins`    | the `Bins?` map       | `Three waste types`         |
 
+**A name saying nothing changed is restating an outcome too.** `Unlisted destination keeps the donor
+eligible` beside an `Eligible After?` cell equal to `Eligible Before?` publishes the answer as surely
+as a name announcing a change. The row's variation is the unlisted destination; that is the name.
+
 Verdict-led prefixes are the same mistake: `Deferred: donation 30 days ago` and `Accepted: donation 90 days ago` publish the verdict column in the name. Drop the prefix and the names still distinguish the rows.
 
 Naming the rule or the situation stays correct even when it makes the outcome obvious — `At the minimum rest period, not below it`, `Night duty, two-pilot crew`, `Missing haemoglobin reading` are all good names. The check is whether the name repeats a cell in an expectation column of its own row, not whether a reader who knows the rule could predict the answer.
@@ -742,19 +746,19 @@ Column values should be concrete, meaningful data — not abstract flags or code
 ```java
 @TableTest("""
     Scenario             | Configured Dir | JUnit Dir    | Fallback State | Resolved Dir? | Source?
-    Configured wins      | my-config      | report/junit | yaml           | my-config     | CONFIGURED
-    JUnit property wins  |                | report/junit | yaml           | report/junit  | JUNIT_PROPERTY
-    Fallback wins        |                |              | yaml           | target/junit  | FALLBACK
+    All three set        | my-config      | report/junit | yaml           | my-config     | CONFIGURED
+    Configured dir absent|                | report/junit | yaml           | report/junit  | JUNIT_PROPERTY
+    Only fallback set    |                |              | yaml           | target/junit  | FALLBACK
     """)
 ```
 
 **Bad** — abstract flags, expectation values not traceable to inputs:
 ```java
 @TableTest("""
-    Scenario             | Has Config | Override State | Fallback State | Resolved?
-    Configured wins      | true       | yaml           | yaml           | configured
-    Override wins        | false      | yaml           | yaml           | override
-    Fallback wins        | false      |                | yaml           | fallback
+    Scenario                | Has Config | Override State | Fallback State | Resolved?
+    Config present          | true       | yaml           | yaml           | configured
+    No config, override set | false      | yaml           | yaml           | override
+    No config, no override  | false      |                | yaml           | fallback
     """)
 ```
 In the bad example, `configured`, `override`, and `fallback` in Resolved? are names hardcoded in the test body, not visible in the table. The reader cannot understand the table without reading the test code.

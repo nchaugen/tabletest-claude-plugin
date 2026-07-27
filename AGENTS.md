@@ -68,6 +68,24 @@ next two reports — once down, once back up as phantom "improvements" across ev
 it owns. Suspect this whenever a delta shows `compiles`, `has-tabletest-dependency` or a
 format assertion "improving"; those do not improve on their own.
 
+**Spend runs only on questions reading cannot answer.** A run buys exactly one thing: evidence about
+what the guidance *causes an agent to do*. Everything else about a change is free to check — whether
+it is self-consistent, whether it contradicts a neighbouring passage, whether its illustrations would
+pass the assertion they target, whether it covers the artefacts it was drawn from. **Buying a run to
+answer a question a read would have answered is the most common way to overspend here**, and it costs
+twice: the money, and an iteration spent attributing a result to guidance that was wrong on its face.
+Two questions before every run:
+
+- **Has the read-back pass been done?** (§ Developing a variant, step 2.) Minutes against dollars.
+  Correctness defects never need a run — a loop cannot tell you a rule contradicts itself, and will
+  happily return a plausible number while it does.
+- **Does the loop host the target assertion?** If no eval in it carries the assertion the change
+  aims at, the run measures nothing about the change, however good its total looks.
+
+The corollary is not "run less" — it is **run for firing evidence and nothing else**. Salience is
+real, it is invisible to reading, and it is worth paying for: guidance can be correct, unambiguous,
+consistent with its neighbours, and still be skipped by the agent.
+
 **Cost control (tabletest):** almost all run cost is *generation* — solving the eval, not
 grading it. Assertion count is close to free (deterministic assertions are code checkers, LLM
 assertions share one batched call per eval), so cost is controlled by choosing which evals to
