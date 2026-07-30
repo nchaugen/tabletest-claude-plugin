@@ -274,33 +274,43 @@ void recordsResponseTimes(String mdcStatus, Long mdcMs, String legacyStatus, Lon
 }
 ```
 
-### Converter Methods for Formatting Only
-Use `@TypeConverter` methods to handle domain-specific formatting conventions (like `<50` for thresholds), not to parse complex combined strings:
+### A Regex in a Converter Means the Cell Holds Two Values
+
+Converters own construction: any domain object built from a table value belongs in one, whatever the
+construction idiom (main skill file, *Custom Type Converters*). What a converter should not be doing
+is **unpicking a cell that carries more than one value**:
 
 ```java
-// ✅ Good - handles formatting convention
+// ✅ One value in a domain convention
 @TypeConverter
 public static Long parseResponseTime(String value) {
     if (value.startsWith("<")) return Long.valueOf(value.substring(1));
     return Long.parseLong(value);
 }
 
-// ❌ Bad - parsing complex format suggests wrong column design
+// ✅ One value with several fields, from a map column
+@TypeConverter
+public static RequestConfig parseRequestConfig(Map<String, String> config) { ... }
+
+// ❌ The regex is the tell — "OK in 10ms" is a status and a duration in one cell
 @TypeConverter
 public static Map<String, String> parseRequest(String value) {
     Pattern pattern = Pattern.compile("(OK|ERROR) in (\\d+)ms");
     Matcher matcher = pattern.matcher(value);
     // ... complex parsing logic ...
-    // This complexity suggests you should split into separate columns instead
 }
 ```
+
+The repair is a column, not a simpler converter: `Status | ms`. **Converter complexity is a signal
+about the cell — never a reason to move construction back into the test body**, which is where it
+costs the reader most.
 
 ## Red Flags
 
 These indicate you should split into separate columns:
 
 1. **Regex parsing in converter methods** - If you're using regex to extract multiple values, split them into columns
-2. **Multiple converter methods with same target type** - Can't have two `@TypeConverter` methods returning the same type; split the columns instead
+2. **Multiple converter methods with same target type** - Two `@TypeConverter` methods returning the same *erased* type throw at runtime (every `Optional<T>` is `java.util.Optional`); give the class one converter per type, or split the columns
 3. **Values don't align vertically** - Hard to scan means hard to read
 4. **Different rows have different structures** - Leads to jagged tables and empty map keys
 

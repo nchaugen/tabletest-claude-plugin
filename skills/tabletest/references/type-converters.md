@@ -161,9 +161,13 @@ void validatesNumericInput(String input, Integer success, String error) {
 }
 ```
 
-This avoids the converter method entirely and makes the table clearer. **Assert the parts, do not
-rebuild the whole** — reconstructing a `Result` from the two columns needs a branch in the body, and
-the blank cell already says which half applies.
+**Assert the parts, do not rebuild the whole** — reconstructing a `Result` from the two columns needs
+a branch in the body, and the blank cell already says which half applies.
+
+There is nothing to convert here because the columns *are* the result's parts, compared against the
+parts the system returns. That is a different case from an **input** built out of a cell, which
+always belongs in a converter — see *A Regex in a Converter Means the Cell Holds Two Values* in
+`column-design.md`.
 
 ### Multiple Optional Parameters
 
