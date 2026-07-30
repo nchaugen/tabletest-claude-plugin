@@ -30,6 +30,7 @@
     "skills/tabletest/references/type-converters.md :: uninformative-method-name :: testFeatureToggle() opens with an opener that carries no information": 1,
     "skills/tabletest/references/type-converters.md :: uninformative-method-name :: testLookup() opens with an opener that carries no information": 1,
     "skills/tabletest/references/type-converters.md :: uninformative-method-name :: testValidation() opens with an opener that carries no information": 2,
+    "skills/tabletest/references/type-converters.md :: no-if-switch-in-method :: ternary operator found in method body": 1,
     "skills/tabletest/references/type-converters.md :: uninformative-method-name :: testOptionals() opens with an opener that carries no information": 1
   }
 }

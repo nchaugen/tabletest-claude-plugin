@@ -136,3 +136,49 @@ ${prose}
     assert.equal(result.passed, true, result.evidence);
   });
 });
+
+describe("no-if-switch-in-method", () => {
+  const check = (body) => checkers["no-if-switch-in-method"]({
+    fileContent: `@TableTest("""
+    Input | Ok?
+    a     | true
+    b     | false
+    """)
+void validatesInput(String input, boolean ok) {
+${body}
+}`,
+    allFiles: [],
+  });
+
+  test("catches a ternary written across several lines", () => {
+    const result = check(`    Result expected = ok
+        ? Result.ok(input)
+        : Result.error(input);
+    assertEquals(expected, validate(input));`);
+
+    assert.equal(result.passed, false, result.evidence);
+    assert.match(result.evidence, /ternary/);
+  });
+
+  test("catches a ternary written on one line", () => {
+    const result = check(`    Result expected = ok ? Result.ok(input) : Result.error(input);
+    assertEquals(expected, validate(input));`);
+
+    assert.equal(result.passed, false, result.evidence);
+  });
+
+  test("does not read a generic wildcard as a ternary", () => {
+    const result = check(`    Class<? extends Throwable> expected = IllegalArgumentException.class;
+    assertEquals(expected, thrownBy(() -> validate(input)));`);
+
+    assert.equal(result.passed, true, result.evidence);
+  });
+
+  test("does not join a question mark and a colon from separate statements", () => {
+    const result = check(`    String prompt = "ready?";
+    Map<String, String> labels = Map.of("k", "v");
+    assertEquals(ok, validate(input, prompt, labels));`);
+
+    assert.equal(result.passed, true, result.evidence);
+  });
+});

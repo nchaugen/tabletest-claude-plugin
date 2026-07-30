@@ -335,7 +335,11 @@ const checkers = {
     for (const m of methods) {
       if (/\bif\s*\(/.test(m.body)) violations.push("if statement found in method body");
       if (/\bswitch\s*\(/.test(m.body)) violations.push("switch statement found in method body");
-      if (/\?.*:/.test(m.body)) violations.push("ternary operator found in method body");
+      // A ternary's `?` and `:` always sit in one statement, so `[^;]` bounds the search
+      // without anchoring it to a single line — a ternary broken across lines to fit a
+      // margin is the same rule in the body. `(?<!<)` keeps `Class<? extends Throwable>`
+      // from reading as one.
+      if (/(?<!<)\?[^;]*:/.test(m.body)) violations.push("ternary operator found in method body");
     }
 
     return {
