@@ -6,17 +6,18 @@ Use comment lines starting with `//` to document sections. Use blank lines to gr
 
 ```java
 @TableTest("""
-    Scenario        | Input | Output?
+    Scenario                   | Weight (kg) | Dose (mg)?
 
-    // Basic cases
-    Zero            | 0     | 0
-    Positive        | 5     | 25
+    // Middle band boundary
+    Just below the middle band | 39          | 100
+    At the middle band         | 40          | 250
 
-    // Edge cases
-    Negative        | -3    | 9
+    // High band boundary
+    Just below the high band   | 69          | 250
+    At the high band           | 70          | 500
     """)
-void squaresItsInput(int input, int output) {
-    assertEquals(output, input * input);
+void setsDoseFromWeight(int weightKg, int doseMg) {
+    assertEquals(doseMg, dosePolicy.doseFor(weightKg));
 }
 ```
 
