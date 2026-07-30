@@ -1928,25 +1928,7 @@ function aggregateResults(evals, iterationDir, args, worktreePath, repoRoot) {
   // billing may differ (e.g. promotional pricing).
   benchmark.cost_basis = "cli-list-price-estimate";
 
-  benchmark.summary = {
-    assertions_passed: results.reduce(
-      (sum, r) => sum + r.assertions_passed,
-      0
-    ),
-    assertions_total: results.reduce(
-      (sum, r) => sum + r.assertions_total,
-      0
-    ),
-    pass_rate:
-      results.reduce((sum, r) => sum + r.assertions_total, 0) > 0
-        ? results.reduce((sum, r) => sum + r.assertions_passed, 0) /
-          results.reduce((sum, r) => sum + r.assertions_total, 0)
-        : 0,
-    total_tokens: results.reduce((sum, r) => sum + r.total_tokens, 0),
-    total_duration_ms: results.reduce((sum, r) => sum + r.duration_ms, 0),
-    total_cost_usd: results.reduce((sum, r) => sum + r.cost_usd, 0),
-    grading: summariseGradingUsage(results),
-  };
+  benchmark.summary = summariseEvals(benchmark.evals);
 
   fs.writeFileSync(benchPath, JSON.stringify(benchmark, null, 2), "utf-8");
 
@@ -2044,6 +2026,41 @@ function evalNumberOf(id) {
  * be compared against. A caller that sees only the moved verdicts cannot tell either case from
  * agreement, which is the whole hazard.
  */
+/**
+ * True when this eval produced no answer at all — a generation timeout or crash.
+ */
+function generationFailed(evalEntry) {
+  const results = evalEntry && unwrapResults(evalEntry);
+  return Boolean(results && results.error);
+}
+
+/**
+ * Summary over the evals that produced an answer.
+ *
+ * A failed generation is **unknown, not zero**. Averaging it in as 0/N once took a five-eval
+ * run from 71/72 to 54/72 and turned all 17 assertions it owns into phantom moved verdicts
+ * (`iteration-49`). Cost and duration still count every eval — the failed attempt was paid
+ * for — but the score counts only what was actually answered, and the gap is named in
+ * `errored_evals` rather than buried in the denominator.
+ */
+function summariseEvals(evalEntries) {
+  const all = evalEntries.map(unwrapResults).filter(Boolean);
+  const scored = all.filter((r) => !r.error);
+  const passed = scored.reduce((sum, r) => sum + r.assertions_passed, 0);
+  const total = scored.reduce((sum, r) => sum + r.assertions_total, 0);
+
+  return {
+    assertions_passed: passed,
+    assertions_total: total,
+    pass_rate: total > 0 ? passed / total : 0,
+    errored_evals: evalEntries.filter(generationFailed).map((e) => e.id),
+    total_tokens: all.reduce((sum, r) => sum + (r.total_tokens || 0), 0),
+    total_duration_ms: all.reduce((sum, r) => sum + (r.duration_ms || 0), 0),
+    total_cost_usd: all.reduce((sum, r) => sum + (r.cost_usd || 0), 0),
+    grading: summariseGradingUsage(all),
+  };
+}
+
 function pairedWithBaseline(benchmark, baselineBenchmark) {
   const baselineByNumber = {};
   for (const baselineEntry of baselineBenchmark.evals) {
@@ -2055,6 +2072,9 @@ function pairedWithBaseline(benchmark, baselineBenchmark) {
     const baselineEntry = baselineByNumber[evalNumberOf(evalEntry.id)];
     if (!baselineEntry) {
       return { evalEntry, baselineEntry: null, comparable: false, reason: "absent-from-baseline" };
+    }
+    if (generationFailed(evalEntry) || generationFailed(baselineEntry)) {
+      return { evalEntry, baselineEntry, comparable: false, reason: "generation-failed" };
     }
     if (fingerprintsDiffer(evalEntry, baselineEntry)) {
       return { evalEntry, baselineEntry, comparable: false, reason: "definition-changed" };
@@ -2192,6 +2212,7 @@ function movedAssertions(benchmark, baselineBenchmark) {
 const EXCLUSION_REASONS = {
   "definition-changed": "definition changed since the baseline; the two verdicts are not commensurable",
   "absent-from-baseline": "the baseline never ran this eval; there is nothing to compare against",
+  "generation-failed": "generation failed (timeout or crash), so this eval produced no answer to compare — re-run it before reading anything into the gap",
 };
 
 /**
@@ -2818,6 +2839,8 @@ module.exports = {
   // analysis protocol
   analysisBaselineOf,
   pairedWithBaseline,
+  summariseEvals,
+  generationFailed,
   comparisonAgainst,
   movedAssertions,
   instrumentId,

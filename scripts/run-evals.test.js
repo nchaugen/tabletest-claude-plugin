@@ -48,6 +48,8 @@ const {
   generationEnv,
   analysisBaselineOf,
   pairedWithBaseline,
+  summariseEvals,
+  detectRegressions,
   comparisonAgainst,
   movedAssertions,
   analysisTodoMarkdown,
@@ -1575,5 +1577,71 @@ describe("generationEnv", () => {
     generationEnv(base);
 
     assert.equal(base.ANTHROPIC_API_KEY, "sk-test");
+  });
+});
+
+// --- a generation failure is unknown, not zero ------------------------------
+//
+// iteration-49's eval-20 timed out, was scored 0/17, dropped the total from 71 to 54 and
+// produced 17 phantom moved verdicts — one per assertion it owns. A failed generation
+// produced no answer, so there is nothing to compare and nothing to average. It is excluded
+// the way a changed definition is, and named in the report so the gap is visible.
+
+describe("evals whose generation failed", () => {
+  const evalEntry = (id, results) => ({ id, fingerprint: "abc", results });
+  const scored = (passed, total, failed = []) => ({
+    assertions_passed: passed, assertions_total: total, failed_assertions: failed,
+    total_tokens: 0, duration_ms: 0, cost_usd: 0,
+  });
+  const errored = (total, failed) => ({ ...scored(0, total, failed), error: "Timed out after 900000ms" });
+
+  test("are not comparable, so their assertions raise no regressions", () => {
+    const benchmark = { evals: [evalEntry("eval-20-tags", errored(17, ["a", "b"]))] };
+    const baseline = { evals: [evalEntry("eval-20-tags", scored(17, 17))] };
+
+    const [pair] = pairedWithBaseline(benchmark, baseline);
+
+    assert.equal(pair.comparable, false);
+    assert.equal(pair.reason, "generation-failed");
+    assert.deepEqual(detectRegressions(benchmark, baseline).regressions, []);
+  });
+
+  test("are not comparable when the failure is on the baseline side either", () => {
+    const benchmark = { evals: [evalEntry("eval-20-tags", scored(17, 17))] };
+    const baseline = { evals: [evalEntry("eval-20-tags", errored(17, ["a"]))] };
+
+    const [pair] = pairedWithBaseline(benchmark, baseline);
+
+    assert.equal(pair.comparable, false);
+    assert.equal(pair.reason, "generation-failed");
+    assert.deepEqual(detectRegressions(benchmark, baseline).improvements, []);
+  });
+
+  test("still compare normally when neither side errored", () => {
+    const benchmark = { evals: [evalEntry("eval-20-tags", scored(16, 17, ["a"]))] };
+    const baseline = { evals: [evalEntry("eval-20-tags", scored(17, 17))] };
+
+    const [pair] = pairedWithBaseline(benchmark, baseline);
+
+    assert.equal(pair.comparable, true);
+    assert.equal(detectRegressions(benchmark, baseline).regressions.length, 1);
+  });
+
+  test("are left out of the summary totals rather than counted as zero", () => {
+    const summary = summariseEvals([
+      evalEntry("eval-7-permission", scored(12, 13)),
+      evalEntry("eval-20-tags", errored(17, ["a"])),
+    ]);
+
+    assert.equal(summary.assertions_passed, 12);
+    assert.equal(summary.assertions_total, 13);
+    assert.deepEqual(summary.errored_evals, ["eval-20-tags"]);
+  });
+
+  test("report no errored evals when every generation succeeded", () => {
+    const summary = summariseEvals([evalEntry("eval-7-permission", scored(13, 13))]);
+
+    assert.deepEqual(summary.errored_evals, []);
+    assert.equal(summary.assertions_total, 13);
   });
 });
