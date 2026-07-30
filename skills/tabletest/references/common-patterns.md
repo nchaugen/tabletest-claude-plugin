@@ -320,7 +320,9 @@ assertTrue(actualMs < expectedMs);
 // Simple logic, tests "within X ms"
 ```
 
-**See also:** `references/async-and-performance.md` for detailed timing assertion guidance.
+**A range still has one use**: checking a system's *own recorded* duration against the real one —
+"the log says 10ms, verify it actually took 10ms give or take". That is a different rule from
+"completes within X", and it is the only one a range states better.
 
 ---
 
@@ -379,8 +381,6 @@ Use this pattern when:
 **One concern still means one table.** This is a technique for waiting, not a licence to test routing
 and reporting together — if you cannot name the behaviour without "and", it is two tables (SKILL.md
 § Decompose When You See These Signs).
-
-**See also:** `references/async-and-performance.md` for more async testing patterns.
 
 ---
 

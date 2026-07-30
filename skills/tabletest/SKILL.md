@@ -1178,7 +1178,6 @@ This skill file is complete for standard tables — do not read references specu
 | `references/common-patterns.md`          | Consolidating identity+status, relative positions, timing thresholds, test helpers, sequence recording |
 | `references/table-design-advanced.md`    | Suspected orthogonal concerns (a column that could be `{true, false}` in every row); scenario names unclear; column sets diverging |
 | `references/large-tables.md`             | Table needs comments, grouping, or external table files                     |
-| `references/async-and-performance.md`    | Testing async/non-blocking behavior or tracking execution order             |
 | `references/provided-parameters.md`      | Using `@TempDir` or other JUnit-injected parameters                         |
 | `references/testing-reveals-bugs.md`     | Test design feels wrong; suspecting implementation bug                      |
 | `references/pair-programming.md`         | Pairing with a colleague; need structured collaborative cadence             |
