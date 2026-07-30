@@ -193,9 +193,9 @@ function main() {
 
   if (process.argv.includes("--write-baseline")) {
     const body = {
-      note: "Known violations in the skill's own examples, recorded by the 2026-07-30 sweep. "
-        + "Entries come off as the examples are fixed; the test fails if one is fixed without "
-        + "being removed here, so the count can only fall deliberately.",
+      note: "Violations the skill's own examples are still allowed to have. Emptied 2026-07-30 "
+        + "when the sweep's 41 were fixed, and it should stay empty: an entry here is a defect "
+        + "the skill is publishing, not a rule being waived.",
       violations: summarise(violations),
     };
     fs.writeFileSync(BASELINE_FILE, JSON.stringify(body, null, 2) + "\n");

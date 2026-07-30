@@ -1,11 +1,4 @@
 {
-  "note": "Known violations in the skill's own examples, recorded by the 2026-07-30 sweep. Entries come off as the examples are fixed; the test fails if one is fixed without being removed here, so the count can only fall deliberately.",
-  "violations": {
-    "skills/tabletest/references/async-and-performance.md :: no-if-switch-in-method :: ternary operator found in method body": 2,
-    "skills/tabletest/references/async-and-performance.md :: no-if-switch-in-method :: if statement found in method body": 1,
-    "skills/tabletest/references/column-design.md :: no-if-switch-in-method :: if statement found in method body": 1,
-    "skills/tabletest/references/common-patterns.md :: no-if-switch-in-method :: if statement found in method body": 1,
-    "skills/tabletest/references/common-patterns.md :: no-if-switch-in-method :: if statement found in method body; ternary operator found in method body": 1,
-    "skills/tabletest/references/type-converters.md :: no-if-switch-in-method :: ternary operator found in method body": 1
-  }
+  "note": "Violations the skill's own examples are still allowed to have. Emptied 2026-07-30 when the sweep's 41 were fixed, and it should stay empty: an entry here is a defect the skill is publishing, not a rule being waived.",
+  "violations": {}
 }

@@ -252,16 +252,20 @@ void records_response_times(
 ) {
     // ... execute with timing
 
-    if (expectedMasterMs != null) {
-        long actualMs = report.masterResponseTime().toMillis();
-        assertTrue(actualMs < expectedMasterMs,
-            String.format("Expected within %dms but was %dms", expectedMasterMs, actualMs));
-    } else {
-        assertNull(report.masterResponseTime());
-    }
+    assertRespondedWithin(expectedMasterMs, report.masterResponseTime());
+    assertRespondedWithin(expectedOtherMs, report.otherResponseTime());
 }
 
-// See references/type-converters.md for parseResponseTime implementation (handles <50 format)
+// with the other helpers, at the bottom of the class — a blank budget means the route
+// was never called, so there is no duration to bound
+private static void assertRespondedWithin(Long budgetMs, Duration actual) {
+    assertEquals(budgetMs == null, actual == null, "tracked-ness does not match the budget cell");
+    if (budgetMs == null) return;
+    assertTrue(actual.toMillis() < budgetMs,
+        String.format("Expected within %dms but was %dms", budgetMs, actual.toMillis()));
+}
+
+// parseResponseTime (handles the <50 format) is in SKILL.md § Domain-Specific Formatting
 ```
 
 ### Operation Times vs Assertion Thresholds
@@ -320,30 +324,30 @@ assertTrue(actualMs < expectedMs);
 
 ---
 
-## Pattern: Async Execution in Multi-Concern Tables
+## Pattern: Waiting for Async Work Before Asserting
 
 ### Problem
-Table tests both sync behavior (routing) and async behavior (reporting).
+The system finishes its async work after the assertions have already run, so the table fails
+intermittently or passes for the wrong reason.
 
 ### Solution
-Calculate async execution dynamically and use CountDownLatch.
+Gate the assertions on a `CountDownLatch` sized for the row. **Sizing it is arrangement, so it
+belongs in a helper** — a `?:` in the method body is a rule the table cannot show, and this one is
+not even about the behaviour under test.
 
 ```java
 @TableTest("""
-    Scenario         | Dual Dispatch | Master | Report Events | Report Sent? |
-    Sync, no report  | false         | OK     | false         | false        |
-    Async, report    | true          | OK     | true          | true         |
+    Scenario           | Dual Dispatch | Master | Reports Sent?
+    Single dispatch    | false         | OK     | 0
+    Dual dispatch      | true          | OK     | 1
+    Master failed      | true          | ERROR  | 0
     """)
-void combines_sync_and_async_concerns(
+void reportsEventsWhenDispatchedToBoth(
     boolean dualDispatch,
     String masterStatus,
-    boolean reportEvents,
-    boolean reportSent
+    int reportsSent
 ) {
-    // Calculate if async will execute
-    boolean asyncWillExecute = dualDispatch && !"ERROR".equals(masterStatus);
-    CountDownLatch asyncLatch = new CountDownLatch(asyncWillExecute ? 1 : 0);
-
+    CountDownLatch asyncLatch = latchFor(dualDispatch, masterStatus);
     Executor asyncExecutor = task -> new Thread(() -> {
         task.run();
         asyncLatch.countDown();
@@ -351,30 +355,30 @@ void combines_sync_and_async_concerns(
 
     // ... execute system
 
-    // Wait for async completion
     assertTrue(asyncLatch.await(5, TimeUnit.SECONDS));
+    verify(reporter, times(reportsSent)).report(any());
+}
 
-    // Verify both sync and async outcomes
-    if (!reportSent) {
-        verifyNoInteractions(reporter);
-    } else {
-        verify(reporter, times(1)).report(any());
-    }
+// with the other helpers, at the bottom of the class — the secondary is skipped when the
+// master fails without fallback, so waiting on a latch it will never count down times out
+private static CountDownLatch latchFor(boolean dualDispatch, String masterStatus) {
+    boolean asyncWillExecute = dualDispatch && !"ERROR".equals(masterStatus);
+    return new CountDownLatch(asyncWillExecute ? 1 : 0);
 }
 ```
+
+**A count, not a flag.** `verify(reporter, times(reportsSent))` asserts every row with one call;
+branching between `verifyNoInteractions` and `verify(times(1))` puts the rule back in the body.
 
 ### When to Use
 
 Use this pattern when:
-- Testing system with both sync and async behavior
-- Single table covers multiple concerns (e.g., routing + reporting)
-- Async execution depends on sync outcome
+- The system does work on another thread that the assertions depend on
+- Whether that work happens at all varies by row
 
-### Benefits
-- **Single table**: Don't need separate sync/async tables
-- **Reliable**: CountDownLatch ensures completion before assertions
-- **Dynamic**: Async behavior adapts to scenario
-- **Clear**: Each row specifies if async happens
+**One concern still means one table.** This is a technique for waiting, not a licence to test routing
+and reporting together — if you cannot name the behaviour without "and", it is two tables (SKILL.md
+§ Decompose When You See These Signs).
 
 **See also:** `references/async-and-performance.md` for more async testing patterns.
 
@@ -685,7 +689,7 @@ These patterns emerged from real-world TableTest usage. They solve common challe
 2. **Relative Positions**: Handle positional APIs with fixed + relative columns
 3. **Production Constants**: Show actual system values in tables
 4. **Timing with Concrete Milliseconds**: Verifiable, traceable timing
-5. **Async Execution**: Combine sync/async concerns reliably
+5. **Async Execution**: Wait for off-thread work before asserting
 6. **Test Helpers**: Observe behavior beyond return values (counts, sequences, side effects)
 7. **Recording Sequences**: Control stopping with expected sequences
 8. **One-Letter Values**: Improve readability for composite key testing

@@ -8,8 +8,7 @@ How you structure columns significantly impacts table readability. This guide co
 - [Iterative Column Evolution](#iterative-column-evolution)
 - [Guidelines for Column Design](#guidelines-for-column-design)
 - [Red Flags](#red-flags)
-- [Encoding Related Values in Single Column](#encoding-related-values-in-single-column)
-- [Removing Redundant Columns](#removing-redundant-columns)
+- [Do Not Encode Two Values into One Cell](#do-not-encode-two-values-into-one-cell)
 - [Column Naming Evolution](#column-naming-evolution)
 - [Empty Cells for Optional Inputs](#empty-cells-for-optional-inputs)
 - [When Reviewing Multiple Tables](#when-reviewing-multiple-tables)
@@ -305,185 +304,22 @@ These indicate you should split into separate columns:
 3. **Values don't align vertically** - Hard to scan means hard to read
 4. **Different rows have different structures** - Leads to jagged tables and empty map keys
 
-## Encoding Related Values in Single Column
+## Do Not Encode Two Values into One Cell
 
-When multiple values have a cause-effect relationship, consider encoding them together rather than using separate columns.
+Encoding a pair into one cell — `ERROR+1`, `TIMEOUT+3`, `OK in 10ms` — reads as a way to cut
+columns. It is not, and SKILL.md's *A compound result stays a collection* rules it out: a flattened
+cell has to be parsed back in the method body, which tests your formatter rather than the rule and
+puts the branching the table exists to remove back into the test.
 
-### Example: Error Status with Suppressed Exception Count
+Two cases and their repairs:
 
-```java
-// ❌ Separate columns - but they're coupled
-@TableTest("""
-    Scenario              | Response? | Suppressed?
-    Success               | OK        | 0
-    Single failure        | ERROR     | 0
-    Both fail (fallback)  | ERROR     | 1
-    """)
-void reportsSuppressedFailures(String response, int suppressedCount) {
-    // suppressedCount only matters when response is ERROR
-}
-
-// ✅ Encoded - shows relationship
-@TableTest("""
-    Scenario              | Response?
-    Success               | OK
-    Single failure        | ERROR
-    Both fail (fallback)  | ERROR+1
-    """)
-void reportsSuppressedFailures(String response) {
-    if ("OK".equals(response)) {
-        assertEquals(expectedResponder, router.invoke());
-    } else {
-        RuntimeException thrown = assertThrows(RuntimeException.class, router::invoke);
-        assertEquals(getExpectedSuppressedCount(response), thrown.getSuppressed().length);
-    }
-}
-
-private static int getExpectedSuppressedCount(String response) {
-    return response != null && response.startsWith("ERROR+")
-        ? Integer.parseInt(response.substring(6))
-        : 0;
-}
-```
-
-### When to Encode Together
-
-Encode values in one column when:
-
-1. **Cause-effect relationship** - One value causes the other (errors cause suppressed exceptions)
-2. **Conditional relevance** - Second value only matters when first value has specific state
-3. **Never independent** - They always appear together in specific combinations
-4. **Reduces column count** - Fewer columns make table easier to scan
-
-### When to Keep Separate
-
-Keep separate columns when:
-
-1. **Independent variation** - Values can vary independently across scenarios
-2. **Need vertical scanning** - Comparing values vertically is important
-3. **Different types** - Different data types that don't naturally combine
-4. **Both always present** - No conditional relationship
-
-### Pattern: Optional Qualifiers
-
-Use `+` suffix for optional qualifiers that only apply in certain cases:
-
-```java
-| Response? |
-| OK        |      // Success, no qualifier needed
-| ERROR     |      // Error without qualifier
-| ERROR+1   |      // Error with qualifier (1 suppressed exception)
-| TIMEOUT+5 |      // Timeout after 5 retries
-```
-
-The base value (`ERROR`, `TIMEOUT`) works standalone, qualifier is optional context.
-
-### Benefits of Encoding
-
-1. **Fewer columns** - Table is narrower and easier to scan
-2. **Shows relationship** - Reader immediately sees values are coupled
-3. **Natural parsing** - Parse only when needed (in error branch)
-4. **Documents constraints** - `ERROR+1` documents "suppressed only happens with errors"
-
-## Removing Redundant Columns
-
-After adding a column, ask: "Can this be encoded in an existing column?"
-
-### Evolution Example: From Separate to Encoded
-
-**Phase 1: Add new column**
-```java
-@TableTest("""
-    Scenario          | Response? | Suppressed?
-    Both routes ok    | OK        | 0
-    Primary fails     | ERROR     | 0
-    Both fail         | ERROR     | 1
-    """)
-```
-
-**Phase 2: Notice correlation**
-- Suppressed is always `0` for OK responses
-- Suppressed can be `0` or `1` for ERROR responses
-- The column only adds information for ERROR cases
-
-**Phase 3: Encode together**
-```java
-@TableTest("""
-    Scenario          | Response?
-    Both routes ok    | OK
-    Primary fails     | ERROR
-    Both fail         | ERROR+1
-    """)
-```
-
-### Red Flags for Redundant Columns
-
-Watch for these patterns that suggest encoding opportunity:
-
-1. **Perfect correlation** - Column B is always same value when Column A has specific value
-   ```java
-   // Suppressed is ALWAYS 0 when Response is OK
-   | Response? | Suppressed? |
-   | OK        | 0           |
-   | OK        | 0           |
-   | OK        | 0           |
-   ```
-
-2. **Conditional zero** - Column is always `0`/`null`/empty for certain scenarios
-   ```java
-   // Retry count only matters for timeout scenarios
-   | Result?  | Retries? |
-   | SUCCESS  | 0        |
-   | SUCCESS  | 0        |
-   | TIMEOUT  | 3        |
-   ```
-
-   Better: `TIMEOUT+3`
-
-3. **Single-value columns** - Column has same value in every row except a few
-   ```java
-   // Cache hit only true in 2 of 10 rows
-   | Scenario           | Cache Hit? |
-   | Query user         | false      |
-   | Query product      | false      |
-   | Query user again   | true       |  <- Only 2 rows differ
-   | Query product again| true       |
-   | ...                | false      |
-   ```
-
-### Refactoring Process
-
-1. **Identify correlation** - Find columns where one column's value depends on another
-2. **Check for cause-effect** - Is there a cause-effect relationship?
-3. **Try encoding** - Combine using `+`, `-`, or other natural delimiter
-4. **Move parsing to branch** - Parse only where the qualifier matters
-5. **Verify readability** - Is encoded version clearer? If not, keep separate
-
-### Counter-Example: When NOT to Encode
-
-Don't encode when values vary independently:
-
-```java
-// ❌ Bad - values vary independently
-@TableTest("""
-    Scenario         | Request?
-    Fast success     | OK/10
-    Slow success     | OK/100
-    Fast error       | ERROR/10
-    Slow error       | ERROR/100
-    """)
-
-// ✅ Good - separate columns for independent concerns
-@TableTest("""
-    Scenario         | Status? | Duration?
-    Fast success     | OK      | 10
-    Slow success     | OK      | 100
-    Fast error       | ERROR   | 10
-    Slow error       | ERROR   | 100
-    """)
-```
-
-Status and duration can vary independently - no cause-effect relationship.
+- **The pair is one value.** A responder plus its outcome is one enum — `Primary OK` in the cell, a
+  `@TypeConverter` to `ServiceResponse`, one column. That is a domain type, not an encoding. See
+  *Pattern: Consolidating Identity + Status* in `common-patterns.md`.
+- **The pair is two values.** Two columns. Where one is blank for most rows, the answer is the map
+  column (above), not a suffix — and where one column is constant down every row or moves only as a
+  side effect of another, SKILL.md's *One rule per table* applies: give it rows that vary it, or move
+  it to the table whose axis does.
 
 ## Column Naming Evolution
 
@@ -659,13 +495,6 @@ Choose based on your scenario:
 - Need to pass combined value directly to system
 - Benefits: Avoid blank cells, converter provides defaults, table focuses on variations
 
-### Use Encoded Values When:
-- Cause-effect relationship between values
-- One value only relevant in specific cases of another
-- Reduces redundant columns
-- Benefits: Fewer columns, shows relationship, documents constraints
-
 ### Refactor Signals:
 - **Combined → Separate**: Writing regex parsers, hard to scan, need multiple converter methods with same target type
 - **Separate → Map**: Sea of blank cells, many optional columns, defaults scattered in test logic
-- **Separate → Encoded**: Perfect correlation, one column only adds info for specific values in another column

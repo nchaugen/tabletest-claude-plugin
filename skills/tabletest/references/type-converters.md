@@ -154,14 +154,16 @@ public static Result<Integer, String> result(String value) {
     Out of range   | -1    |          | Must be positive
     """)
 void validatesNumericInput(String input, Integer success, String error) {
-    Result<Integer, String> expected = success != null
-        ? Result.ok(success)
-        : Result.error(error);
-    assertEquals(expected, validator.validate(input));
+    Result<Integer, String> actual = validator.validate(input);
+
+    assertEquals(success, actual.valueOrNull());
+    assertEquals(error, actual.errorOrNull());
 }
 ```
 
-This avoids the converter method entirely and makes the table clearer.
+This avoids the converter method entirely and makes the table clearer. **Assert the parts, do not
+rebuild the whole** — reconstructing a `Result` from the two columns needs a branch in the body, and
+the blank cell already says which half applies.
 
 ### Multiple Optional Parameters
 

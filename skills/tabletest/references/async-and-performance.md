@@ -22,7 +22,7 @@ When testing that operations don't block, use response time thresholds as observ
     Slow primary      | 200           | 10          | 300
     """)
 void async_operations_do_not_block(long primaryMs, long asyncMs, long maxResponseMs) {
-    CountDownLatch asyncLatch = new CountDownLatch(asyncMs > 0 ? 1 : 0);
+    CountDownLatch asyncLatch = latchFor(asyncMs);
     Executor asyncExecutor = task -> new Thread(() -> {
         task.run();
         asyncLatch.countDown();
@@ -38,7 +38,15 @@ void async_operations_do_not_block(long primaryMs, long asyncMs, long maxRespons
     assertTrue(asyncLatch.await(5, TimeUnit.SECONDS));
     assertTrue(actualMs < maxResponseMs);
 }
+
+// with the other helpers, at the bottom of the class
+private static CountDownLatch latchFor(long asyncMs) {
+    return new CountDownLatch(asyncMs > 0 ? 1 : 0);
+}
 ```
+
+**Sizing the latch is arrangement, not a rule** — a `?:` in the method body is logic the table
+cannot show, so it goes in a named helper (SKILL.md § Keep the Method Body Arrange–Act–Assert).
 
 **Row 2 proves async**: Async task takes 2000ms, but response returns in <100ms.
 
@@ -99,8 +107,7 @@ When requests have multiple properties (status, timing, data), use maps to avoid
 @TableTest("""
     Scenario               | Primary Request         | Secondary Request       | Response?                     | Responder? | Execution Order?
     Primary ok in prod     | [status: OK, ms: 10]    | [:]                     | [status: OK, withinMs: 50]    | Primary    | [Primary]
-    Primary fail in prod   | [status: ERROR, ms: 10] | [:]                     | [status: ERROR, withinMs: 50] | Primary    | [Primary]
-    Shadow, Primary fails  | [status: ERROR, ms: 100]| [status: OK, ms: 10]    | [status: OK, withinMs: 50]    | Secondary  | [Secondary, Primary]
+    Shadow, Primary fails  | [status: ERROR, ms: 100]| [status: OK, ms: 10]    | [status: OK, withinMs: 150]   | Secondary  | [Secondary, Primary]
     """)
 void routes_with_error_handling(
         Map<String, String> primaryRequest,
@@ -119,12 +126,7 @@ void routes_with_error_handling(
         createResponder("Secondary", secondaryRequest, actualExecutionOrder)
     );
 
-    String expectedStatus = expectedResponse.get("status");
-    if ("OK".equals(expectedStatus)) {
-        assertEquals(expectedResponder, routerInvocation.get());
-    } else {
-        assertThrows(RuntimeException.class, routerInvocation::get);
-    }
+    assertEquals(expectedResponder, routerInvocation.get());
 
     // ... timing and order assertions ...
 }
@@ -149,6 +151,11 @@ private static Supplier<String> createResponder(String responder, Map<String, St
     };
 }
 ```
+
+**The rejection rows belong in their own table.** A `Response?` column beside a case that throws is
+two concerns — what the router returns and what it rejects — and holding both forces a branch in the
+body (SKILL.md § Model Exceptions as Expected Columns). Give the failures a table with a `Throws?`
+column.
 
 **Benefits:**
 - Empty map `[:]` naturally represents "route not implemented"
@@ -200,9 +207,7 @@ void routes_requests_based_on_context_flags(
         String expectedResponder,
         List<String> executionOrder
 ) throws InterruptedException {
-    boolean asyncWillExecute = dualDispatch;
-
-    CountDownLatch asyncLatch = new CountDownLatch(asyncWillExecute ? 1 : 0);
+    CountDownLatch asyncLatch = latchFor(dualDispatch);
     Executor asyncExecutor = task -> new Thread(() -> {
         task.run();
         asyncLatch.countDown();
@@ -225,6 +230,10 @@ void routes_requests_based_on_context_flags(
     assertEquals(executionOrder, actualExecutionOrder);
     assertTrue(actualDurationMs < responseWithinMs,
         String.format("Expected response within %dms but took %dms", responseWithinMs, actualDurationMs));
+}
+
+private static CountDownLatch latchFor(boolean dualDispatch) {
+    return new CountDownLatch(dualDispatch ? 1 : 0);
 }
 
 private static Supplier<String> createResponder(String response, long responseTime, List<String> actualExecutionOrder) {
@@ -272,7 +281,7 @@ void completes_within_threshold(String operation, Long maxMs) {
 }
 ```
 
-**Parser for `<` notation:** Use `parseResponseTime` from `references/type-converters.md` (handles `<50` format and null input).
+**Parser for `<` notation:** `parseResponseTime` is in SKILL.md § Domain-Specific Formatting (handles the `<50` format and a null input).
 
 ### Choosing Operation Times vs Assertion Thresholds
 
