@@ -1,0 +1,64 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 48,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "a4b743aa7699e7a28bb776da43d8c11fdbe5a54f",
+  "skill_digest": "027ac8e66a0bfa3f",
+  "generation_auth": "subscription",
+  "timestamp": "2026-07-30T13:37:35.532Z",
+  "evals": [
+    {
+      "id": "eval-1-convert-repetitive-tests",
+      "name": "convert repetitive tests",
+      "skill": "tabletest",
+      "fingerprint": "65a3f44e52f9",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 406908,
+        "duration_ms": 39774,
+        "cost_usd": 0.39380360000000003,
+        "grading_usage": {
+          "input_tokens": 2589,
+          "output_tokens": 60,
+          "total_tokens": 2649,
+          "calls": 1,
+          "cost_usd": 0.008667,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 13,
+    "assertions_total": 13,
+    "pass_rate": 1,
+    "total_tokens": 406908,
+    "total_duration_ms": 39774,
+    "total_cost_usd": 0.39380360000000003,
+    "grading": {
+      "input_tokens": 2589,
+      "output_tokens": 60,
+      "total_tokens": 2649,
+      "calls": 1,
+      "cost_usd": 0.008667,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}
