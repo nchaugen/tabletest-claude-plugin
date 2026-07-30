@@ -87,6 +87,14 @@ formats one). Point a checker at prose you control and it audits itself.
 Regression detection compares against the previous iteration's `benchmark.json` (same
 variant); `--compare-official` also compares a variant against the latest official baseline.
 
+**A failed generation is excluded, not scored zero.** When an eval times out or crashes it produced
+no answer, so it is left out of the summary totals, named in `summary.errored_evals`, and excluded
+from the comparison the way a changed definition is (`generation-failed`). Its tokens and cost still
+count — the attempt was paid for. **Re-run it before reading anything into the gap**; a partial
+comparison is honest but it is still partial. Before this, a single transient timeout took a
+five-eval run from 71/72 to 54/72 and produced 17 phantom moved verdicts, one per assertion the eval
+owns.
+
 **Timeouts:** the runner's default is 600s. An eval whose recent runs exceed ~60% of its
 budget needs an explicit `timeout_ms`, or it will eventually time out, score 0, and swing the
 next two reports — once down, once back up as phantom "improvements" across every assertion
