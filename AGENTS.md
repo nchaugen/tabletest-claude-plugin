@@ -266,9 +266,13 @@ the artefacts under `iterations/<skill>/<variant>/iteration-N/<eval>/`:
   and in what words ("a combining table for the one genuine precedence question"), and the write
   order shows drafts the final output no longer contains.
 - `conversation.jsonl` — the raw transcript `narration.md` is distilled from. Gitignored and
-  trimmed each cycle. **Thinking text is unavailable for Claude 5-family models** — they return it
-  encrypted (empty `thinking`, signature only), which no runner flag changes. Narration and tool
-  calls are all you get, and they are usually enough.
+  trimmed each cycle. **Thinking text is unavailable for Claude 5-family models** — the blocks arrive
+  with a signature and an empty `thinking` field, because `thinking.display` defaults to `"omitted"`
+  on that family. A **summary** is available in principle (`display: "summarized"`), but it is a
+  request parameter and the eval agent is a headless `claude` CLI process, so Claude Code builds the
+  request — no runner flag, CLI flag, settings key, or env var reaches it, and the runner passes
+  `--setting-sources ""` regardless. The raw chain of thought is never returned under any setting.
+  Narration and tool calls are all you get, and they are usually enough.
 
 **Two verdicts that look like findings and are not.** A grader can fail an assertion whose own
 wording the output satisfies — check the assertion text against the artefact before believing a
