@@ -24,14 +24,16 @@ If identity is fixed per row and only status varies, that's normal column design
 
 ```java
 @TableTest("""
-    Scenario          | Responder | Result?  |
-    Alice succeeds    | Alice     | SUCCESS  |
-    Bob fails         | Bob       | FAILURE  |
-    Service error     | Service   | ERROR    |
+    Scenario             | Item        | Condition | Bin?     |
+    Paper, dry           | newspaper   | dry       | PAPER    |
+    Paper, food-soiled   | pizza box   | soiled    | RESIDUAL |
+    Plastic, rinsed      | yoghurt pot | rinsed    | PLASTIC  |
+    Plastic, food-soiled | yoghurt pot | soiled    | RESIDUAL |
     """)
 ```
 
-This is fine! `Responder` is stable in each row; only `Result?` varies. No consolidation needed.
+This is fine! `Item` names the subject as an input, so `Bin?` carries only the classification and
+always refers to this row's item. No consolidation needed.
 
 ### When to Consolidate
 Consolidate when **both identity AND status vary in the same column**.
@@ -39,11 +41,11 @@ Consolidate when **both identity AND status vary in the same column**.
 **Example: Positional outputs**
 ```java
 @TableTest("""
-    Scenario                         | Primary Is Master | Master Response?   | Other Response?     |
-    Primary master, both ok          | true              | Primary OK         | Secondary OK        |
-    Primary master, secondary fails  | true              | Primary OK         | Secondary ERROR     |
-    Secondary master, both ok        | false             | Secondary OK       | Primary OK          |
-    Secondary master, primary fails  | false             | Secondary OK       | Primary ERROR       |
+    Scenario                        | Primary Is Master | Service Down | Master Response? | Other Response? |
+    Primary master, none down       | true              |              | Primary OK       | Secondary OK    |
+    Primary master, secondary down  | true              | secondary    | Primary OK       | Secondary ERROR |
+    Secondary master, none down     | false             |              | Secondary OK     | Primary OK      |
+    Secondary master, primary down  | false             | primary      | Secondary OK     | Primary ERROR   |
     """)
 ```
 
@@ -403,10 +405,10 @@ Create focused test helper classes that spy on or record behavior during test ex
 
 ```java
 @TableTest("""
-    Scenario        | Feature Toggles                | Query Count? | Result?
-    Specific match  | [org-search-v2-cust1: true]    | 1            | true
-    Wild customer   | [org-search-v2-*: true]        | 2            | true
-    Not found       | [:]                            | 12           | empty
+    Scenario              | Feature Toggles                | Query Count? | Result?
+    Exact key registered  | [org-search-v2-cust1: true]    | 1            | true
+    Wildcard registered   | [org-search-v2-*: true]        | 2            | true
+    Nothing registered    | [:]                            | 12           | empty
     """)
 void finds_feature_toggles(
     Map<String, Boolean> toggles,
