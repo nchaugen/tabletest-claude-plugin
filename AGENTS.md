@@ -96,10 +96,10 @@ five-eval run from 71/72 to 54/72 and produced 17 phantom moved verdicts, one pe
 owns.
 
 **Timeouts:** the runner's default is 600s. An eval whose recent runs exceed ~60% of its
-budget needs an explicit `timeout_ms`, or it will eventually time out, score 0, and swing the
-next two reports — once down, once back up as phantom "improvements" across every assertion
-it owns. Suspect this whenever a delta shows `compiles`, `has-tabletest-dependency` or a
-format assertion "improving"; those do not improve on their own.
+budget needs an explicit `timeout_ms`, or it will eventually time out — which now costs a re-run and
+the wall-clock rather than a corrupted comparison, per the rule above. What it still costs is the
+answer: the eval is excluded, so whatever question you were asking of it goes unanswered until you
+re-run.
 
 **Spend runs only on questions reading cannot answer.** A run buys exactly one thing: evidence about
 what the guidance *causes an agent to do*. Everything else about a change is free to check — whether

@@ -1979,6 +1979,9 @@ function loadOfficialBenchmark(repoRoot, skill) {
     }
 
     for (const evalEntry of benchmark.evals) {
+      // A failed generation is not a result. Taking it as the newest one would drop the eval
+      // out of every comparison against this baseline until it happened to be re-run.
+      if (generationFailed(evalEntry)) continue;
       const match = evalEntry.id.match(/eval-(\d+)/);
       if (match && !mergedEvals[match[1]]) {
         mergedEvals[match[1]] = { ...evalEntry, _fromIteration: iter };

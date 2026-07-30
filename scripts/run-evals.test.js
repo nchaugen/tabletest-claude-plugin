@@ -49,6 +49,7 @@ const {
   analysisBaselineOf,
   pairedWithBaseline,
   summariseEvals,
+  loadOfficialBenchmark,
   detectRegressions,
   comparisonAgainst,
   movedAssertions,
@@ -1643,5 +1644,28 @@ describe("evals whose generation failed", () => {
 
     assert.deepEqual(summary.errored_evals, []);
     assert.equal(summary.assertions_total, 13);
+  });
+});
+
+describe("loadOfficialBenchmark with a failed generation in the newest iteration", () => {
+  let root;
+  beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), "official-test-")); });
+  afterEach(() => { fs.rmSync(root, { recursive: true, force: true }); });
+
+  function writeIteration(n, evals) {
+    const dir = path.join(root, "iterations", "tabletest", `iteration-${n}`);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, "benchmark.json"), JSON.stringify({ evals }));
+  }
+
+  test("keeps the older real result rather than inheriting the error", () => {
+    writeIteration(47, [{ id: "eval-20-tags", results: { assertions_passed: 17, assertions_total: 17 } }]);
+    writeIteration(49, [{ id: "eval-20-tags", results: { assertions_passed: 0, assertions_total: 17, error: "Timed out" } }]);
+
+    const merged = loadOfficialBenchmark(root, "tabletest");
+    const entry = merged.evals.find((e) => e.id === "eval-20-tags");
+
+    assert.equal(entry.results.assertions_passed, 17);
+    assert.equal(entry.results.error, undefined);
   });
 });
