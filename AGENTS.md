@@ -72,6 +72,18 @@ silent bug there corrupts every measurement downstream, and the failure mode is 
 number rather than a crash. The eval definitions in the suite are fabricated, never real ones, so the
 file carries no answer keys.
 
+**Linting the skill's own examples:** `node scripts/lint-skill-examples.js` runs the deterministic
+eval checkers over every `@TableTest` in `skills/tabletest/`, so an illustration is judged by the
+same code that grades an agent's output. It runs inside `node --test` against
+`scripts/skill-example-baseline.json`, which holds the violations the 2026-07-30 sweep found. **Fix
+an example and remove its baseline entry in the same commit** — the test fails either way round, so
+the count can only fall on purpose.
+
+This is the mechanical half of the read-back pass below, and it earns its place twice over: on the
+sweep it found seven examples the hand read had missed, and it exposed a defect in the *checker*
+(`no-if-switch-in-method` could not see a ternary split across lines, which is how the reference
+formats one). Point a checker at prose you control and it audits itself.
+
 Regression detection compares against the previous iteration's `benchmark.json` (same
 variant); `--compare-official` also compares a variant against the latest official baseline.
 
@@ -152,7 +164,9 @@ Costs drift with the suite and the model, so read the script rather than a figur
    have. They catch a different class of defect from a run, and the class they catch is common:
    every cluster so far has turned out to be a *conflict* in the skill rather than a gap.
 
-   - **Run each targeted assertion's own decidable test against your own illustration.** The
+   - **Run each targeted assertion's own decidable test against your own illustration.** Start with
+     `node scripts/lint-skill-examples.js`, which does this mechanically for branching, annotation
+     order, method names and constant expectation columns. Then do by hand only what it cannot: the
      assertion texts in `evals/<skill>/*/eval.json` are written as mechanical tests, so they work as
      a linter on the examples you just wrote. A drafted title example once failed
      `title-states-system-behaviour`'s own strike-out test — the illustration could not have passed
