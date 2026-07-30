@@ -30,7 +30,7 @@ When every scenario uses the same set of properties, separate columns are cleare
     Both ok           | OK in 100ms      | OK in 10ms        | OK in <50ms
     Primary fails     | ERROR in 100ms   | OK in 10ms        | OK in <50ms
     """)
-void test(String primaryRequest, String secondaryRequest, String response) {
+void respondsWithTheFirstSuccess(String primaryRequest, String secondaryRequest, String response) {
     // Need converter methods to parse each combined string
 }
 
@@ -40,7 +40,7 @@ void test(String primaryRequest, String secondaryRequest, String response) {
     Both ok           | OK      | 100        | OK        | 10           | OK        | <50
     Primary fails     | ERROR   | 100        | OK        | 10           | OK        | <50
     """)
-void test(String primaryStatus, Long primaryMs, String secondaryStatus, Long secondaryMs,
+void respondsWithTheFirstSuccess(String primaryStatus, Long primaryMs, String secondaryStatus, Long secondaryMs,
           String responseStatus, Long responseMs) {
     // Values directly usable, only need parseResponseTime converter for <50 format
 }
@@ -65,7 +65,7 @@ When different scenarios need different properties, maps with defaults are clear
     With auth         | GET    |         | Bearer xyz  |       |       | OK
     Full config       | POST   | 5000    | Bearer xyz  | 3     | true  | OK
     """)
-void test(String method, Integer timeout, String auth, Integer retry, Boolean cache, String expected) {
+void appliesRequestConfiguration(String method, Integer timeout, String auth, Integer retry, Boolean cache, String expected) {
     // Need to handle nulls and provide defaults in test method
 }
 
@@ -78,7 +78,7 @@ void test(String method, Integer timeout, String auth, Integer retry, Boolean ca
     With auth         | [method: GET, auth: Bearer xyz]                 | OK
     Full config       | [method: POST, timeout: 5000, auth: Bearer xyz, retry: 3, cache: true] | OK
     """)
-void test(RequestConfig config, String expected) {
+void appliesRequestConfiguration(RequestConfig config, String expected) {
     assertEquals(expected, process(config));
 }
 
@@ -117,7 +117,7 @@ meant to remove. The "all defaults" row is `[:]`; a blank cell would skip the co
        With timeout  | [method: POST, timeout: 5000]         | OK
        Full options  | [method: POST, timeout: 5000, retry: 3, auth: Bearer xyz] | OK
        """)
-   void test(RequestConfig config, String expected) {   // @TypeConverter applies defaults
+   void appliesRequestConfiguration(RequestConfig config, String expected) {   // @TypeConverter applies defaults
        assertEquals(expected, process(config));
    }
    ```
@@ -131,7 +131,7 @@ meant to remove. The "all defaults" row is `[:]`; a blank cell would skip the co
        (0,0)       | 0
        (3,4)       | 5
        """)
-   void testDistance(Point coords, int distance) { ... }
+   void measuresDistanceFromOrigin(Point coords, int distance) { ... }
    ```
 
 3. **The combined format is a domain standard**
@@ -141,7 +141,7 @@ meant to remove. The "all defaults" row is `[:]`; a blank cell would skip the co
        2025-01-29 | 0
        2025-01-28 | 1
        """)
-   void testDaysAgo(LocalDate date, int daysAgo) { ... }
+   void countsDaysSince(LocalDate date, int daysAgo) { ... }
    ```
 
 4. **Need to pass the combined value directly to the system**
@@ -151,7 +151,7 @@ meant to remove. The "all defaults" row is `[:]`; a blank cell would skip the co
        [user: alice, age: 30] | 200
        [user: bob]            | 400
        """)
-   void testValidation(Map<String, String> body, int status) {
+   void validatesRequestBody(Map<String, String> body, int status) {
        assertEquals(status, api.validate(body));  // API accepts Map
    }
    ```
@@ -267,7 +267,7 @@ Clearer than combined format with special notation:
 ### Use Boxed Types for Nullable Values
 When blank cells should be null, use boxed types:
 ```java
-void test(String mdcStatus, Long mdcMs, String legacyStatus, Long legacyMs) {
+void recordsResponseTimes(String mdcStatus, Long mdcMs, String legacyStatus, Long legacyMs) {
     // Long allows null, primitive long does not
 }
 ```
@@ -316,7 +316,7 @@ When multiple values have a cause-effect relationship, consider encoding them to
     Single failure        | ERROR     | 0
     Both fail (fallback)  | ERROR     | 1
     """)
-void test(String response, int suppressedCount) {
+void reportsSuppressedFailures(String response, int suppressedCount) {
     // suppressedCount only matters when response is ERROR
 }
 
@@ -327,7 +327,7 @@ void test(String response, int suppressedCount) {
     Single failure        | ERROR
     Both fail (fallback)  | ERROR+1
     """)
-void test(String response) {
+void reportsSuppressedFailures(String response) {
     if ("OK".equals(response)) {
         assertEquals(expectedResponder, router.invoke());
     } else {
@@ -496,14 +496,14 @@ Column names should evolve as understanding grows. Don't expect perfect names on
     Scenario        | registered                  | expectedQueryCount | expected?
     Feature enabled | [feature-search-v2: true]   | 1                  | true
     """)
-void test(Map<String, Boolean> registered, int expectedQueryCount, Optional<Boolean> expected)
+void findsFeatureToggle(Map<String, Boolean> registered, int expectedQueryCount, Optional<Boolean> expected)
 
 // ✓ Refined - domain-focused names
 @TableTest("""
     Scenario        | Feature Toggles             | Query Count?       | Result?
     Feature enabled | [feature-search-v2: true]   | 1                  | true
     """)
-void test(Map<String, Boolean> toggles, int queryCount, Optional<Boolean> result)
+void findsFeatureToggle(Map<String, Boolean> toggles, int queryCount, Optional<Boolean> result)
 ```
 
 ### From Implementation to Domain
@@ -539,14 +539,14 @@ Replace technical/parameter names with domain terminology:
     Scenario | input | maxMs  | result?
     Fast     | req1  | 50     | ok
     """)
-void test(String input, Long maxMs, String result) { ... }
+void respondsWithinBudget(String input, Long maxMs, String result) { ... }
 
 // Phase 2: Domain-refined names
 @TableTest("""
     Scenario | Request | Response Time? | Status?
     Fast     | req1    | <50            | OK
     """)
-void test(String input, Long maxMs, String result) { ... }  // Parameters unchanged
+void respondsWithinBudget(String input, Long maxMs, String result) { ... }  // Parameters unchanged
 ```
 
 **Key insight**: Column headers are documentation. Parameters are just bindings. Improve the documentation after understanding emerges.

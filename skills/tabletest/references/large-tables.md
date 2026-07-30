@@ -15,7 +15,7 @@ Use comment lines starting with `//` to document sections. Use blank lines to gr
     // Edge cases
     Negative        | -3    | 9
     """)
-void testSquares(int input, int output) {
+void squaresItsInput(int input, int output) {
     assertEquals(output, input * input);
 }
 ```

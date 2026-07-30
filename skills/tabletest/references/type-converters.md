@@ -31,7 +31,7 @@ Converter methods can provide sensible defaults for missing map entries, making 
     With timeout      | [method: POST, timeout: 5000]           | OK
     Full config       | [method: POST, timeout: 5000, retry: 3] | OK
     """)
-void testRequest(RequestConfig config, String expected) {
+void appliesConfiguredDefaults(RequestConfig config, String expected) {
     assertEquals(expected, process(config));
 }
 
@@ -79,7 +79,7 @@ JUnit's built-in converters don't handle wrapper types like `Optional`, `Result`
     Not registered  | [:]                  | empty
     Feature disabled| [feature-x: false]   | false
     """)
-void testFeatureToggle(Map<String, Boolean> toggles, Optional<Boolean> result) {
+void findsRegisteredToggle(Map<String, Boolean> toggles, Optional<Boolean> result) {
     assertEquals(result, featureResolver.find("feature-x", toggles));
 }
 
@@ -104,7 +104,7 @@ public static Optional<Boolean> result(String value) {
     Found        | active | active
     Not found    | unused | empty
     """)
-void testLookup(String input, Optional<String> result) {
+void looksUpEntryByName(String input, Optional<String> result) {
     assertEquals(result, lookup(input));
 }
 
@@ -125,7 +125,7 @@ For Result/Either types, use string notation to indicate success vs failure:
     Invalid input  | abc   | ERROR: Not a number
     Out of range   | -1    | ERROR: Must be positive
     """)
-void testValidation(String input, Result<Integer, String> result) {
+void validatesNumericInput(String input, Result<Integer, String> result) {
     assertEquals(result, validator.validate(input));
 }
 
@@ -152,7 +152,7 @@ public static Result<Integer, String> result(String value) {
     Invalid input  | abc   |          | Not a number
     Out of range   | -1    |          | Must be positive
     """)
-void testValidation(String input, Integer success, String error) {
+void validatesNumericInput(String input, Integer success, String error) {
     Result<Integer, String> expected = success != null
         ? Result.ok(success)
         : Result.error(error);
@@ -174,7 +174,7 @@ When you have multiple `Optional` parameters in the same test, use different col
     Fallback only     | empty     | fallback
     Neither present   | empty     | empty
     """)
-void testOptionals(Optional<String> primary, Optional<String> fallback) {
+void resolvesPrimaryBeforeFallback(Optional<String> primary, Optional<String> fallback) {
     // Test with both optionals
 }
 
