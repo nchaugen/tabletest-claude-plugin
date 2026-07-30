@@ -628,6 +628,8 @@ function parseArgs(argv) {
     nudgeSkill: false,
     parallel: 4,
     gradeOnly: false,
+    // Generation authenticates with the subscription unless asked otherwise; see generationEnv.
+    apiGeneration: false,
     rebuild: false,
     reportOnly: false,
     timeoutMs: null,   // null = use each eval's timeout_ms (or runClaude default)
@@ -701,6 +703,9 @@ function parseArgs(argv) {
       case "--grade-only":
         args.gradeOnly = true;
         break;
+      case "--api-generation":
+        args.apiGeneration = true;
+        break;
       // Rebuild the benchmark from gradings already on disk, calling no API at all.
       // A fatal grading failure deliberately writes no benchmark, so the gradings that DID
       // succeed are stranded: the only way to get a whole-suite benchmark was to re-grade
@@ -738,6 +743,7 @@ function parseArgs(argv) {
     console.error("  --timeout SECONDS   Override each eval's generation timeout (useful for slow local LLMs)");
     console.error("  --grade-runs N      Grade each assertion N times and take the majority verdict (default 1)");
     console.error("  --grade-only        Re-grade existing outputs");
+    console.error("  --api-generation    Bill generation to ANTHROPIC_API_KEY instead of the subscription");
     console.error("  --report-only       Regenerate report from existing benchmark.json");
     console.error("");
     console.error("Exit codes: 0 ok · 1 the run failed · 2 the run succeeded but its comparison was");
@@ -806,8 +812,9 @@ async function main() {
   }
 
   // --rebuild reads gradings off disk and calls nothing, so it must not require a key.
+  // Grading posts to the API directly, so it needs the key even though generation no longer does.
   if (args.provider === "anthropic" && !args.rebuild && !process.env.ANTHROPIC_API_KEY) {
-    console.error("Error: ANTHROPIC_API_KEY environment variable is not set.");
+    console.error("Error: ANTHROPIC_API_KEY environment variable is not set (grading needs it).");
     console.error("The eval script requires an API key to avoid consuming interactive plan usage.");
     console.error("Set it with: ANTHROPIC_API_KEY=sk-... node scripts/run-evals.js ...");
     process.exit(1);
@@ -1008,7 +1015,28 @@ function cleanupWorktree(worktreePath) {
   }
 }
 
-function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, timeoutMs = 600000 }) {
+/**
+ * Environment for the eval agent.
+ *
+ * Generation runs on the Claude subscription by default: the CLI authenticates with
+ * the logged-in account when no API key is in the environment, and generation is ~90%
+ * of a run's cost. Nothing else about the run changes — same CLI, same model id, same
+ * prompts — so a comparison across this switch stays valid. `--api-generation` keeps
+ * the key, for a machine with no subscription login.
+ *
+ * Grading is unaffected: it posts to the API directly and still needs the key.
+ */
+function generationEnv(baseEnv, { apiGeneration = false, provider = "anthropic" } = {}) {
+  const env = { ...baseEnv };
+  if (!apiGeneration) delete env.ANTHROPIC_API_KEY;
+  if (provider === "ollama") {
+    env.ANTHROPIC_BASE_URL = "http://localhost:11434";
+    env.ANTHROPIC_AUTH_TOKEN = "ollama";
+  }
+  return env;
+}
+
+function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, apiGeneration = false, timeoutMs = 600000 }) {
   return new Promise((resolve, reject) => {
     let settled = false;
     const settle = (fn, value) => {
@@ -1034,11 +1062,7 @@ function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, time
     let stdout = "";
     let stderr = "";
 
-    const env = { ...process.env };
-    if (provider === "ollama") {
-      env.ANTHROPIC_BASE_URL = "http://localhost:11434";
-      env.ANTHROPIC_AUTH_TOKEN = "ollama";
-    }
+    const env = generationEnv(process.env, { apiGeneration, provider });
 
     const proc = spawn("claude", args, {
       cwd,
@@ -1188,6 +1212,7 @@ async function generateOne(evalDef, worktreePath, iterationDir, args) {
       provider,
       cwd: agentCwd,
       pluginDir: agentCwd,
+      apiGeneration: args.apiGeneration,
       timeoutMs: args.timeoutMs || evalDef.timeout_ms,
     });
 
@@ -1700,7 +1725,7 @@ function digestDirectory(dir) {
  * any variant has been applied — so official and variant runs are described the same
  * way, and the HEAD-versus-working-tree difference is captured rather than assumed.
  */
-function skillProvenance(worktreePath, skillName, repoRoot) {
+function skillProvenance(worktreePath, skillName, repoRoot, generationAuth) {
   const skillDir = path.join(worktreePath, "skills", skillName);
   let commit = "unknown";
   try {
@@ -1712,6 +1737,8 @@ function skillProvenance(worktreePath, skillName, repoRoot) {
   return {
     skill_commit: commit,
     skill_digest: fs.existsSync(skillDir) ? digestDirectory(skillDir) : "absent",
+    // Whether the cost figures below were billed or are equivalent list price.
+    generation_auth: generationAuth,
   };
 }
 
@@ -1729,13 +1756,17 @@ function inheritedProvenance(iterationDir, suffix) {
     try {
       const prior = JSON.parse(fs.readFileSync(file, "utf-8"));
       if (prior.skill_commit || prior.skill_digest) {
-        return { skill_commit: prior.skill_commit, skill_digest: prior.skill_digest };
+        return {
+          skill_commit: prior.skill_commit,
+          skill_digest: prior.skill_digest,
+          generation_auth: prior.generation_auth || "unknown",
+        };
       }
     } catch {
       // Unreadable benchmark: fall through to the next candidate.
     }
   }
-  return { skill_commit: "unknown", skill_digest: "unknown" };
+  return { skill_commit: "unknown", skill_digest: "unknown", generation_auth: "unknown" };
 }
 
 function unwrapSummary(benchmark) {
@@ -1800,7 +1831,7 @@ function aggregateResults(evals, iterationDir, args, worktreePath, repoRoot) {
     grading_effort: args.gradingEffort || null,
     ...(args.gradeOnly
       ? inheritedProvenance(iterationDir, suffix)
-      : skillProvenance(worktreePath, args.skill, repoRoot)),
+      : skillProvenance(worktreePath, args.skill, repoRoot, args.apiGeneration ? "api" : "subscription")),
     timestamp: new Date().toISOString(),
     evals: [],
     summary: {},
@@ -2823,6 +2854,7 @@ module.exports = {
   digestDirectory,
   skillProvenance,
   inheritedProvenance,
+  generationEnv,
   // cli
   parseEvalIds,
   resolveModel,

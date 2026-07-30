@@ -45,6 +45,7 @@ const {
   digestDirectory,
   skillProvenance,
   inheritedProvenance,
+  generationEnv,
   analysisBaselineOf,
   pairedWithBaseline,
   comparisonAgainst,
@@ -929,6 +930,14 @@ describe("skillProvenance", () => {
     fs.mkdirSync(path.join(worktree, "skills", "tabletest"), { recursive: true });
     assert.equal(skillProvenance(worktree, "tabletest", worktree).skill_commit, "unknown");
   });
+
+  test("records which account paid for the generation", () => {
+    fs.mkdirSync(path.join(worktree, "skills", "tabletest"), { recursive: true });
+    assert.equal(
+      skillProvenance(worktree, "tabletest", worktree, "subscription").generation_auth,
+      "subscription",
+    );
+  });
 });
 
 describe("inheritedProvenance", () => {
@@ -940,12 +949,19 @@ describe("inheritedProvenance", () => {
     fs.writeFileSync(path.join(iterationDir, name), JSON.stringify(body));
   }
 
+  test("carries the auth mode forward, since a regrade pays for no generation", () => {
+    writeBenchmark("benchmark.json", { skill_commit: "abc", skill_digest: "d", generation_auth: "api" });
+
+    assert.equal(inheritedProvenance(iterationDir, "").generation_auth, "api");
+  });
+
   test("carries the generating run's provenance forward", () => {
     writeBenchmark("benchmark.json", { skill_commit: "abc123", skill_digest: "deadbeef" });
 
     assert.deepEqual(inheritedProvenance(iterationDir, ""), {
       skill_commit: "abc123",
       skill_digest: "deadbeef",
+      generation_auth: "unknown",
     });
   });
 
@@ -968,6 +984,7 @@ describe("inheritedProvenance", () => {
     assert.deepEqual(inheritedProvenance(iterationDir, ""), {
       skill_commit: "unknown",
       skill_digest: "unknown",
+      generation_auth: "unknown",
     });
   });
 
@@ -1521,5 +1538,42 @@ describe("extractGradingText — budget exhaustion", () => {
     };
     assert.throws(() => extractGradingText(data), /stop_reason=max_tokens/);
     assert.throws(() => extractGradingText(data), /budget was exhausted/);
+  });
+});
+
+// --- who pays for generation ----------------------------------------------
+//
+// Generation is ~90% of a run's cost and already goes through the `claude` CLI, so the
+// only thing deciding whether it bills the API is whether the child process can see an
+// API key. That makes this a one-line switch with a silent failure mode: pass the key by
+// accident and the run is billed without saying so.
+
+describe("generationEnv", () => {
+  test("withholds the API key so the agent authenticates with the subscription", () => {
+    const env = generationEnv({ ANTHROPIC_API_KEY: "sk-test", PATH: "/usr/bin" });
+
+    assert.equal("ANTHROPIC_API_KEY" in env, false);
+    assert.equal(env.PATH, "/usr/bin");
+  });
+
+  test("passes the key through with --api-generation, for a machine with no subscription", () => {
+    const env = generationEnv({ ANTHROPIC_API_KEY: "sk-test" }, { apiGeneration: true });
+
+    assert.equal(env.ANTHROPIC_API_KEY, "sk-test");
+  });
+
+  test("points at the local server for ollama and still withholds the key", () => {
+    const env = generationEnv({ ANTHROPIC_API_KEY: "sk-test" }, { provider: "ollama" });
+
+    assert.equal(env.ANTHROPIC_BASE_URL, "http://localhost:11434");
+    assert.equal(env.ANTHROPIC_AUTH_TOKEN, "ollama");
+    assert.equal("ANTHROPIC_API_KEY" in env, false);
+  });
+
+  test("does not mutate the environment it was given", () => {
+    const base = { ANTHROPIC_API_KEY: "sk-test" };
+    generationEnv(base);
+
+    assert.equal(base.ANTHROPIC_API_KEY, "sk-test");
   });
 });
