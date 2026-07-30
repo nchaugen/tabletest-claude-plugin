@@ -389,7 +389,7 @@ void resolvesWithPriority(String inputDir, String junitDir,
 
 Splitting forces the reader to cross-reference multiple tables to understand one behavior. If the outputs all come from the same operation and concern, they belong together.
 
-Separate tests are appropriate when testing a **different concern** of the same operation (e.g., path normalization vs. priority resolution) or a different method entirely. Even when testing a single API method, decompose concerns into separate `@TableTest` methods using default values for irrelevant inputs. Separate tables reduce rows by avoiding unnecessary permutations — and the table count guides implementation: five concern tables suggest five functions.
+Separate tests are appropriate when testing a **different concern** of the same operation (e.g., path normalization vs. priority resolution) or a different method entirely. Even when testing a single API method, decompose concerns into separate `@TableTest` methods, holding the inputs that belong to the *other* concerns at one obviously-valid value. An input **this** rule claims not to depend on is the opposite case and has to vary — see *Use Value Sets for "Regardless Of" Relationships*. Separate tables reduce rows by avoiding unnecessary permutations — and the table count guides implementation: five concern tables suggest five functions.
 
 ### Separate Rules from Arithmetic
 
@@ -578,12 +578,22 @@ other rule then computes. **Count obligations per rule, never per value.**
 
 ### Use Value Sets for "Regardless Of" Relationships
 
+**First decide which kind of "irrelevant" you have — the two take opposite treatments.** Ask what
+this table's rule says about the input:
+
+- **Never mentions it.** Another table owns it. Hold it at one obviously-valid value here; repeating
+  its variations only cross-multiplies rows.
+- **Says it does not matter.** That claim is part of the rule, so a row has to be able to contradict
+  it. Vary it, as under **Assume the Table Is Published**.
+
+"Irrelevant to this table" and "irrelevant to the outcome" read alike and mean opposites.
+
 When one input takes precedence regardless of other inputs, use value sets to express this declaratively instead of listing every combination. Each `{...}` column generates a test per value.
 
 ```java
 @TableTest("""
-    Scenario                   | Priority | Fallback State         | Resolved?
-    Priority wins regardless   | main     | {yaml, empty, missing} | main
+    Scenario                    | Priority | Fallback State         | Resolved?
+    Priority set, any fallback  | main     | {yaml, empty, missing} | main
     """)
 ```
 
@@ -1136,7 +1146,7 @@ After writing, verify:
 - [ ] **Thresholds visible**: rules that depend on a threshold or limit show it as a column, with boundary rows at and just past the threshold; for date cutoffs, prefer descriptive relative values (`before cutoff`, `on cutoff`) via a `@TypeConverter` — or include the cutoff date as a column if literal dates are used
 - [ ] **Correct expected values**: arithmetic in expected columns verified independently; every row's output matches the stated rules
 - [ ] **Value set semantics**: value sets only used where every value produces the same result; not used as shorthand for "test multiple values"
-- [ ] **Irrelevant inputs use value sets**: an input the rule ignores appears as a value set spanning the values it ignores — never a fixed placeholder pinned in a converter, a field or the method body, and never merely asserted in `@Description`
+- [ ] **An input the rule claims to ignore varies**: where the rule says an input does not affect the outcome, a value set spans the values it ignores — never a fixed placeholder pinned in a converter, a field or the method body, and never merely asserted in `@Description`. An input this rule never mentions is the other case: hold it at one valid value and let its own table vary it
 - [ ] **One row per obligation**: every row discharges a behaviour no other row in that table reaches; where two rows share an expectation, what differs between them is what the rule is about — not a value further past the same boundary, a larger n in the same direction, or an input the rule ignores
 - [ ] **Every tier once**: a tier ladder has one row per tier — all of them, none twice, no "tier begins" row beside a "tier holds" row; each row's value set spans its tier, both boundaries included
 - [ ] **Combining tables prove an interaction**: any table exercising several rules together shows behaviour the single-rule tables cannot (a precedence, an ordering), not the earlier rules re-run end to end

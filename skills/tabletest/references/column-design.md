@@ -442,7 +442,7 @@ When you have multiple tables in a class:
 
 ## Empty Cells for Optional Inputs
 
-When an input column is not relevant to certain scenarios (e.g., a peak surcharge when testing off-peak rides), use blank cells to signal "not part of this scenario" — do not fill with 0 or a default value. This makes it immediately clear which inputs matter for each row.
+When an input is genuinely not present in certain scenarios (e.g., a peak surcharge on an off-peak ride), use blank cells to signal "absent" — do not fill with 0 or a default value. An input that *is* present but does not change the outcome is the other case, and takes a value set rather than a blank. This makes it immediately clear which inputs matter for each row.
 
 ```java
 @TableTest("""

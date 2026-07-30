@@ -139,7 +139,7 @@ Signs that concerns are mixed:
 - Scenario names need qualifiers like "...for eligibility" vs "...for pricing"
 - Two groups of expected outputs never both apply in the same row
 
-Fewer cases per test is the expected result of separating concerns: each test carries only the rows that express its own rule, holding other inputs at a fixed obviously-valid value. The test count also guides implementation — five concern tables suggest five functions.
+Fewer cases per test is the expected result of separating concerns: each test carries only the rows that express its own rule, holding the inputs that belong to *other* rules at a fixed obviously-valid value. An input this rule claims not to affect the outcome is the opposite case — see *Express "Regardless Of" Relationships*. The test count also guides implementation — five concern tables suggest five functions.
 
 When rules interact by precedence (rule A overrides rule B), add a focused test whose rows show the precedence directly: an input that triggers both rules, expecting A's outcome.
 
@@ -215,7 +215,7 @@ After writing, verify:
 - [ ] **Straightforward body**: the test body only arranges, acts, and asserts — no `if`/`switch`/`guard`/ternary, no loops over cases, no defaulting or parsing
 - [ ] **Rows are paired**: each case binds inputs to their expected outputs in one row — no parallel arrays, no accidental cartesian products (Swift `arguments:` with multiple collections)
 - [ ] **Concerns decomposed**: one parameterised test per rule; no monolithic case list mixing unrelated rules; precedence between rules shown by dedicated rows
-- [ ] **Minimal rows per concern**: each test has only the cases its rule needs; irrelevant inputs held at a fixed valid value
+- [ ] **Minimal rows per concern**: each test has only the cases its rule needs; inputs owned by other rules held at a fixed valid value, and an input this rule claims not to affect the outcome varied across the values it ignores instead
 - [ ] **Thresholds visible**: rules that compare against a limit show the limit in the row, with boundary cases at and just past it
 - [ ] **Tiers fully enumerated**: every tier represented; every boundary tested from both sides, including middle tiers
 - [ ] **Errors separated**: expected-exception cases in their own test using the framework's throw assertion — no sentinel expectations
