@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [1.7.0] - 2026-07-30
 
 ### Fixed
 - **tabletest**: Removed a second, contradictory statement about blank cells and converters. "Blank cells for irrelevant inputs" still told readers to handle null-to-default conversion *in a `@TypeConverter`* — the very thing a blank cell makes impossible, and the claim corrected elsewhere in the same file. Blank now explicitly means *absent*, with the empty value (`[:]`, `[]`, `{}`, `''`) as the way to reach a converter for defaults
