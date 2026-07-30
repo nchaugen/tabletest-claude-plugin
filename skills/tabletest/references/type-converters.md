@@ -167,29 +167,40 @@ the blank cell already says which half applies.
 
 ### Multiple Optional Parameters
 
-When you have multiple `Optional` parameters in the same test, use different column naming:
+Several parameters of the same wrapper type share **one** converter. Converter selection is by
+return type alone — the method name plays no part, and neither does the column or parameter it
+feeds:
 
 ```java
 @TableTest("""
-    Scenario          | Primary?  | Fallback?
-    Both present      | primary   | fallback
-    Primary only      | primary   | empty
-    Fallback only     | empty     | fallback
-    Neither present   | empty     | empty
+    Scenario          | Primary | Fallback | Resolved?
+    Both present      | primary | fallback | primary
+    Primary only      | primary | empty    | primary
+    Fallback only     | empty   | fallback | fallback
+    Neither present   | empty   | empty    | empty
     """)
-void resolvesPrimaryBeforeFallback(Optional<String> primary, Optional<String> fallback) {
-    // Test with both optionals
+void resolvesPrimaryBeforeFallback(Optional<String> primary, Optional<String> fallback, Optional<String> resolved) {
+    assertEquals(resolved, resolver.resolve(primary, fallback));
 }
 
 @TypeConverter
-public static Optional<String> primary(String value) {
-    return "empty".equals(value) ? Optional.empty() : Optional.of(value);
-}
-
-@TypeConverter
-public static Optional<String> fallback(String value) {
+public static Optional<String> toOptional(String value) {
     return "empty".equals(value) ? Optional.empty() : Optional.of(value);
 }
 ```
 
-**Important**: Column name matching works here. The converter method name should match the parameter name, and TableTest will use the appropriate converter for each column.
+**A second `@TypeConverter` returning the same type is a runtime error, not a second choice.** Give
+this class a `primary()` and a `fallback()` converter both returning `Optional<String>` and every row
+fails with:
+
+```
+TableTestException: Multiple type converters found for type java.util.Optional in class …
+```
+
+**The match is on the erased type**, so it is stronger than it looks: `Optional<String>` and
+`Optional<Boolean>` are both `java.util.Optional` and collide with each other too. One converter per
+class per wrapper type.
+
+When two columns of the same type genuinely need different parsing, the fix is not two converters —
+it is one converter that accepts both spellings, or two distinct parameter types (see *One Converter
+Per Target Type* in the main skill file).
