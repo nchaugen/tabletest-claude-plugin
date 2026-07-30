@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Fixed
+- **tabletest**: Corrected the rule for multiple type converters. The skill claimed two `@TypeConverter` methods returning the same wrapper type are selected by matching the parameter name — they are not, and the published example fails every row with `TableTestException: Multiple type converters found`. Selection is by return type alone, and the match is on the *erased* type, so `Optional<String>` and `Optional<Boolean>` collide with each other. Several parameters of one wrapper type share a single converter
+- **tabletest**: "Irrelevant input" meant two opposite things in two places. An input **another** rule owns is held at one obviously-valid value; an input **this** rule claims not to affect the outcome has to vary across the values it ignores, or the claim cannot be contradicted by any row. The distinction is now stated once, as a question to ask of your own table, and both misuses are corrected. Same fix applied to the table-driven-testing skill, which carried the identical conflict in its own checklist
+- **tabletest**: A converter is no longer described as being "for formatting only". Any domain object built from a table value belongs in one, whatever the construction idiom. What a regex inside a converter signals is a *cell* carrying two values — the repair is a column, never moving construction back into the test body
+- **tabletest**: A column blank for most of its rows now collapses into a map column before any table is split. Splitting first produced several tables fixing the same setup and reporting the same output column, which the skill elsewhere calls an over-split
+- **tabletest**: The worked example for annotation order no longer breaks three rules while demonstrating a fourth — its description published the whole fee algorithm, it claimed an input did not matter while never varying it, and it fused a classification with the arithmetic that follows it
+
+### Changed
+- **tabletest**: Guidance that encoded two values into one cell (`ERROR+1`, `TIMEOUT+3`, `OK in 10ms`) is removed. A flattened cell has to be parsed back in the method body, which tests the format rather than the rule; a pair that is really one value is a domain type, and a pair that is two values is two columns
+- **tabletest**: Patterns that kept a table short by moving its meaning into the test body are replaced. An unshowable expected value (an ANSI escape, Base64) gets a type whose constants carry it, so the table names the constant and built-in enum conversion does the rest — not a lookup map resolved in the body. Composite keys use short real values (`acme:search:v2`), not single-letter placeholders needing a legend the table does not contain
+- **tabletest**: Worked examples no longer put `if`, `switch` or a ternary in a `@TableTest` method body, no longer leave an expectation column holding one value in every row, and are named for the action the code performs rather than `test…`
+
 ## [1.7.0] - 2026-07-30
 
 ### Fixed
