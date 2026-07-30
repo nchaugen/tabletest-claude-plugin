@@ -10,9 +10,9 @@ The process of designing test scenarios can reveal bugs in the implementation. I
 ```java
 // Trying to write test for "both routes fail with fallback"
 @TableTest("""
-    Scenario          | Primary | Secondary | Fallback? | Response?
-    Primary fails     | ERROR   | OK        | true      | OK
-    Both fail         | ERROR   | ERROR     | true      | ERROR
+    Scenario          | Primary | Secondary | Fallback | Response?
+    Primary fails     | ERROR   | OK        | true     | OK
+    Both fail         | ERROR   | ERROR     | true     | ERROR
     """)
 ```
 

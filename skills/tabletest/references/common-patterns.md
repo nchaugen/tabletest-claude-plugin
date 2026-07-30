@@ -282,6 +282,7 @@ void records_response_times(
     Scenario          | Primary ms | Secondary ms | Response ms? |
     Primary fast      | 10         | 100          | <50          |  // Proves primary (10+buffer < 50 < 100)
     Secondary fast    | 100        | 10           | <50          |  // Proves secondary (10+buffer < 50 < 100)
+    Both slow         | 60         | 100          | <150         |  // Threshold tracks the operation times
     """)
 ```
 

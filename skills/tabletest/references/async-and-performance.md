@@ -19,6 +19,7 @@ When testing that operations don't block, use response time thresholds as observ
     Scenario          | Primary Delay | Async Delay | Response Within?
     Fast sync         | 10            | 10          | 100
     Slow async task   | 10            | 2000        | 100
+    Slow primary      | 200           | 10          | 300
     """)
 void async_operations_do_not_block(long primaryMs, long asyncMs, long maxResponseMs) {
     CountDownLatch asyncLatch = new CountDownLatch(asyncMs > 0 ? 1 : 0);
@@ -188,6 +189,7 @@ Note: When fallback executes, it runs synchronously (not async) because the rout
     Secondary in prod      | false  | false         | 10           | 10             | 50               | secondary  | [secondary]
     Primary in pilot mode  | true   | true          | 10           | 1000           | 50               | primary    | [primary, secondary]
     Primary in shadow mode | false  | true          | 1000         | 10             | 50               | secondary  | [secondary, primary]
+    Slow master in prod    | true   | false         | 200          | 10             | 300              | primary    | [primary]
     """)
 void routes_requests_based_on_context_flags(
         boolean isPrimary,
@@ -282,6 +284,7 @@ void completes_within_threshold(String operation, Long maxMs) {
     Fast Primary      | 10         | 100          | OK        | <50
     Fast Secondary    | 100        | 10           | OK        | <50
     Both slow         | 60         | 100          | OK        | <100
+    Both fail         | 10         | 10           | ERROR     | <50
     """)
 ```
 
@@ -409,6 +412,7 @@ Sometimes you need to make internal behavior observable for testing:
     Scenario     | Primary Time | Secondary Time | Response Within?
     Sync case    | 10           | 10             | 50
     Async case   | 10           | 1000           | 50
+    Slow primary | 200          | 10             | 300
     """)
 void proves_non_blocking_execution(long primaryMs, long secondaryMs, long maxResponseMs) {
     long start = System.nanoTime();

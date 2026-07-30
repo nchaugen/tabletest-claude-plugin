@@ -25,14 +25,15 @@ Converter methods can provide sensible defaults for missing map entries, making 
 
 ```java
 @TableTest("""
-    Scenario          | Config                                  | Expected?
-    All defaults      | [:]                                     | OK
-    Basic request     | [method: GET]                           | OK
-    With timeout      | [method: POST, timeout: 5000]           | OK
-    Full config       | [method: POST, timeout: 5000, retry: 3] | OK
+    Scenario          | Config                                  | Timeout Used? | Retries Used?
+    All defaults      | [:]                                     | 3000          | 1
+    Basic request     | [method: GET]                           | 3000          | 1
+    With timeout      | [method: POST, timeout: 5000]           | 5000          | 1
+    Full config       | [method: POST, timeout: 5000, retry: 3] | 5000          | 3
     """)
-void appliesConfiguredDefaults(RequestConfig config, String expected) {
-    assertEquals(expected, process(config));
+void appliesConfiguredDefaults(RequestConfig config, int timeoutUsed, int retriesUsed) {
+    assertEquals(timeoutUsed, gateway.timeoutFor(config));
+    assertEquals(retriesUsed, gateway.retriesFor(config));
 }
 
 @TypeConverter

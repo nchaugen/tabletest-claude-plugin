@@ -44,6 +44,7 @@ Scenario names should evolve as you add rows. Early names may be adequate initia
     Scenario                 | Primary | Secondary | Response?
     Secondary fails          | OK      | ERROR     | OK
     Primary fails            | ERROR   | OK        | OK
+    Both fail                | ERROR   | ERROR     | ERROR
     """)
 ```
 Names are clear because they're the only failure scenarios.

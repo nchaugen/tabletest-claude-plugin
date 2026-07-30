@@ -29,6 +29,7 @@ When every scenario uses the same set of properties, separate columns are cleare
     Scenario          | Primary Request  | Secondary Request | Response?
     Both ok           | OK in 100ms      | OK in 10ms        | OK in <50ms
     Primary fails     | ERROR in 100ms   | OK in 10ms        | OK in <50ms
+    Both fail         | ERROR in 100ms   | ERROR in 10ms     | ERROR in <150ms
     """)
 void respondsWithTheFirstSuccess(String primaryRequest, String secondaryRequest, String response) {
     // Need converter methods to parse each combined string
@@ -39,6 +40,7 @@ void respondsWithTheFirstSuccess(String primaryRequest, String secondaryRequest,
     Scenario          | Primary | Primary ms | Secondary | Secondary ms | Response? | Response ms?
     Both ok           | OK      | 100        | OK        | 10           | OK        | <50
     Primary fails     | ERROR   | 100        | OK        | 10           | OK        | <50
+    Both fail         | ERROR   | 100        | ERROR     | 10           | ERROR     | <150
     """)
 void respondsWithTheFirstSuccess(String primaryStatus, Long primaryMs, String secondaryStatus, Long secondaryMs,
           String responseStatus, Long responseMs) {
@@ -59,27 +61,27 @@ When different scenarios need different properties, maps with defaults are clear
 ```java
 // ❌ HARDER TO READ - many blank cells with separate columns
 @TableTest("""
-    Scenario          | Method | Timeout | Auth        | Retry | Cache | Expected?
-    Basic request     | GET    |         |             |       |       | OK
-    With timeout      | POST   | 5000    |             |       |       | OK
-    With auth         | GET    |         | Bearer xyz  |       |       | OK
-    Full config       | POST   | 5000    | Bearer xyz  | 3     | true  | OK
+    Scenario          | Method | Timeout | Auth        | Retry | Cache | Timeout Used?
+    Basic request     | GET    |         |             |       |       | 3000
+    With timeout      | POST   | 5000    |             |       |       | 5000
+    With auth         | GET    |         | Bearer xyz  |       |       | 3000
+    Full config       | POST   | 5000    | Bearer xyz  | 3     | true  | 5000
     """)
-void appliesRequestConfiguration(String method, Integer timeout, String auth, Integer retry, Boolean cache, String expected) {
+void appliesRequestConfiguration(String method, Integer timeout, String auth, Integer retry, Boolean cache, int timeoutUsed) {
     // Need to handle nulls and provide defaults in test method
 }
 
 // ✅ EASIER TO READ - map with defaults when properties vary
 @TableTest("""
-    Scenario          | Request Config                                  | Expected?
-    All defaults      | [:]                                             | OK
-    Basic request     | [method: GET]                                   | OK
-    With timeout      | [method: POST, timeout: 5000]                   | OK
-    With auth         | [method: GET, auth: Bearer xyz]                 | OK
-    Full config       | [method: POST, timeout: 5000, auth: Bearer xyz, retry: 3, cache: true] | OK
+    Scenario          | Request Config                                  | Timeout Used?
+    All defaults      | [:]                                             | 3000
+    Basic request     | [method: GET]                                   | 3000
+    With timeout      | [method: POST, timeout: 5000]                   | 5000
+    With auth         | [method: GET, auth: Bearer xyz]                 | 3000
+    Full config       | [method: POST, timeout: 5000, auth: Bearer xyz, retry: 3, cache: true] | 5000
     """)
-void appliesRequestConfiguration(RequestConfig config, String expected) {
-    assertEquals(expected, process(config));
+void appliesRequestConfiguration(RequestConfig config, int timeoutUsed) {
+    assertEquals(timeoutUsed, gateway.timeoutFor(config));
 }
 
 @TypeConverter
@@ -112,13 +114,13 @@ meant to remove. The "all defaults" row is `[:]`; a blank cell would skip the co
 1. **Different scenarios need different properties**
    ```java
    @TableTest("""
-       Scenario      | Config                                | Expected?
-       Minimal       | [method: GET]                         | OK
-       With timeout  | [method: POST, timeout: 5000]         | OK
-       Full options  | [method: POST, timeout: 5000, retry: 3, auth: Bearer xyz] | OK
+       Scenario      | Config                                | Retries Used?
+       Minimal       | [method: GET]                         | 1
+       With timeout  | [method: POST, timeout: 5000]         | 1
+       Full options  | [method: POST, timeout: 5000, retry: 3, auth: Bearer xyz] | 3
        """)
-   void appliesRequestConfiguration(RequestConfig config, String expected) {   // @TypeConverter applies defaults
-       assertEquals(expected, process(config));
+   void appliesRequestConfiguration(RequestConfig config, int retriesUsed) {   // @TypeConverter applies defaults
+       assertEquals(retriesUsed, gateway.retriesFor(config));
    }
    ```
 
@@ -228,6 +230,7 @@ Response time is actually a threshold, not exact time:
 @TableTest("""
     Scenario | Status | Response Time?
     Fast     | OK     | <50
+    Slow     | OK     | <150
     Error    | ERROR  | <50
     """)
 // Converter method only for parseResponseTime to handle "<50"
