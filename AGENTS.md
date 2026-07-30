@@ -41,6 +41,19 @@ history for comparison, audit, and re-grading. Conversation and run logs are nev
 node scripts/run-evals.js --skill tabletest --iteration N [--evals 1,2] [--compare-iteration M]
 ```
 
+**Who pays.** Generation runs on the **Claude subscription** — the eval agent is spawned without
+`ANTHROPIC_API_KEY` so the CLI uses the logged-in account. Grading still posts to the API and needs
+the key, so keep it exported. Two consequences:
+
+- **`cost_usd` is notional for generation, billed for grading.** Each `benchmark.json` stamps
+  `generation_auth` (`subscription` \| `api` \| `unknown` on a regrade of an older run) — read it
+  before quoting a dollar figure. `--api-generation` bills generation to the key instead, for a
+  machine with no subscription login.
+- **The constraint is now the usage cap, and it fails quietly.** A rate-limited eval scores 0 rather
+  than stopping the run, and a 0 swings the next two reports — once down, then back up as phantom
+  improvements (same signature as § Timeouts). Keep `--parallel` at or below 4 for a full suite, and
+  check every eval's `compiles` before believing a report.
+
 **Run it outside any command sandbox** (in Claude Code, with the sandbox override) — every
 invocation, including `--grade-only`. Sandboxed, grading fails with a wall of `fetch failed` that
 reads like an API outage, Gradle cannot start so every eval fails `compiles`, and — the damaging
