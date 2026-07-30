@@ -153,7 +153,7 @@ JUnit converts many standard types automatically: primitives, `String`, `Path`, 
 
 Built-in conversion also applies to collection elements: `[com/example]` → `List<Path>`, `[Bob: 1980-03-04]` → `Map<String, LocalDate>`, `{https://claude.ai}` → `Set<URL>`.
 
-**Date format limitation**: Built-in `LocalDate`/`LocalDateTime` conversion only handles ISO 8601 format (`yyyy-MM-dd`, e.g. `2024-01-15`). Non-standard formats — slash dates (`15/01/2024`), short years (`24-01-15`), locale-specific patterns — will fail at runtime. If any column contains non-ISO date strings, write a `@TypeConverter` method to handle the parsing (see Custom Type Converters section below).
+**Date format limitation**: Built-in `LocalDate`/`LocalDateTime` conversion only handles ISO 8601 (`yyyy-MM-dd`). Anything else — a dotted European date (`04.03.1980`), a written month (`4 March 1980`), a locale-specific pattern — fails at runtime, and the failure is a conversion error rather than a wrong value. A column carrying non-ISO dates needs a `@TypeConverter` (see Custom Type Converters below).
 
 ```java
 @TableTest("""
@@ -1001,13 +1001,12 @@ When a table covers error/rejection cases, include the exception type as an expe
 
 ```java
 @TableTest("""
-    Scenario        | Input    | Throws?
-    Empty string    | ''       | IllegalArgumentException
-    Letters only    | abc      | NumberFormatException
-    Negative amount | -10.00   | IllegalArgumentException
+    Scenario         | Item    | Throws?
+    Unlabelled item  | ''      | IllegalArgumentException
+    Unknown material | ceramic | UnsupportedMaterialException
     """)
-void rejectsInvalidInput(String input, Class<? extends Throwable> throws_) {
-    assertThrows(throws_, () -> parse(input));
+void rejectsUnsortableItems(String item, Class<? extends Throwable> throws_) {
+    assertThrows(throws_, () -> sorter.classify(item));
 }
 ```
 
@@ -1049,11 +1048,11 @@ is swallowed by the exception helper and a wrong result is reported as a thrown
 ```java
 // WRONG — the value check now only runs when nothing throws, and its failure is
 // caught and compared against the Throws? column
-assertEquals(throws_, thrownBy(() -> assertEquals(parsed, parser.parseDate(input))));
+assertEquals(throws_, thrownBy(() -> assertEquals(bin, sorter.classify(item))));
 ```
 
-A parser's successful formats and its rejections are two tables. A single rule's accept/reject
-boundary is one.
+What a classifier accepts and what it rejects are two tables. A single rule's accept/reject boundary
+is one.
 
 ### Null, Empty, and Blank Values
 
