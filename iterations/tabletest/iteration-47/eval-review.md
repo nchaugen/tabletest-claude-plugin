@@ -1,19 +1,18 @@
 # Eval Review — tabletest, Iteration 47
 
-**Model:** sonnet (claude-sonnet-5) · **Grading:** claude-sonnet-5 · **Date:** 2026-07-29 · **Evals:** 2
+**Model:** sonnet (claude-sonnet-5) · **Grading:** claude-sonnet-5 · **Date:** 2026-07-30 · **Evals:** 2
 
 ## Summary
 
-31/33 (93.9%) · 1864319 tokens · 389.7s · $1.4479
+32/33 (97.0%) · 1864319 tokens · 389.7s · $1.4479
 
 _Cost figures are Claude Code list-price estimates; actual billing may differ (e.g. promotional pricing). Timed-out evals score 0 with unrecorded token usage._
 
-> ⚠️ **5 assertion verdicts moved** vs iteration 45. These are deltas, not attributions: read each eval's `outputs/` and `narration.md` before explaining any of them, and do not start the next iteration until every entry in `analysis-todo.md` has a cause.
+> ⚠️ **4 assertion verdicts moved** vs iteration 45. These are deltas, not attributions: read each eval's `outputs/` and `narration.md` before explaining any of them, and do not start the next iteration until every entry in `analysis-todo.md` has a cause.
 
 ## Delta vs Iteration 45
 
-**Regressions (2):**
-- ❌ eval-2-parse-dates: `annotation-order`
+**Regressions (1):**
 - ❌ eval-20-collections-and-quoting: `no-if-switch-in-method`
 
 **Improvements (3):**
@@ -25,14 +24,14 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 | Eval | Pass Rate | Prev | Tokens | Prev | Time(s) | Prev |
 |------|-----------|------|--------|------|---------|------|
-| eval-2-parse-dates | 15/16 | 14/16 | 831223 | 606093 | 124.1 | 89.5 |
+| eval-2-parse-dates | 16/16 | 14/16 | 831223 | 606093 | 124.1 | 89.5 |
 | eval-20-collections-and-quoting | 16/17 | 16/17 | 1033096 | 1278784 | 265.6 | 354.9 |
 
 ## Per-Eval Results
 
-### ⚠️ Eval eval-2-parse-dates
+### ✅ Eval eval-2-parse-dates
 
-**15/16** · 831223 tokens · 124115ms
+**16/16** · 831223 tokens · 124115ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ✅ **null-as-blank-cell**: Null input is represented as a blank cell (not the string 'null') in the table
@@ -41,8 +40,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 - ✅ **type-conversion-addressed**: The response addresses type conversion for non-trivial column types — either by providing a @TypeConverter/converter method, or by using a cell representation that TableTest's built-in conversion handles (e.g. ISO-8601 date strings for LocalDate — relying on built-in conversion counts as addressed).
 - ✅ **has-descriptive-title**: Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'dateParsing' → 'Date Parsing'). Not a generic name like 'test1' or 'testMethod'.
 - ✅ **description-if-present-adds-information**: If @Description is present, it provides context beyond what the table rows already express — such as where/when the rule applies, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context (e.g. supported date formats are visible as table rows).
-- ❌ **annotation-order**: Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.
-  > Order violations: @DisplayName (line 58) after @Description (line 41)
+- ✅ **annotation-order**: Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.
 - ✅ **description-uses-textblock**: If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string """), not string concatenation with +. Passes if @Description is absent.
 - ✅ **empty-string-uses-quotes**: Empty string input uses quoted syntax (e.g. '' or "") in the table — not a blank cell, which represents null. The distinction between empty string and null is preserved.
 - ✅ **concerns-decomposed**: Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.

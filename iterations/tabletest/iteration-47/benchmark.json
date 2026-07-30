@@ -7,7 +7,7 @@
   "grading_effort": null,
   "skill_commit": "480254d955d2d144d87b2d4aaaad0935384160b4",
   "skill_digest": "027ac8e66a0bfa3f",
-  "timestamp": "2026-07-29T19:42:14.693Z",
+  "timestamp": "2026-07-30T12:47:59.967Z",
   "evals": [
     {
       "id": "eval-2-parse-dates",
@@ -16,21 +16,19 @@
       "fingerprint": "e177ae972625",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 15,
+        "assertions_passed": 16,
         "assertions_total": 16,
-        "pass_rate": 0.9375,
-        "failed_assertions": [
-          "annotation-order"
-        ],
+        "pass_rate": 1,
+        "failed_assertions": [],
         "total_tokens": 831223,
         "duration_ms": 124115,
         "cost_usd": 0.5666882499999999,
         "grading_usage": {
           "input_tokens": 4218,
-          "output_tokens": 1158,
-          "total_tokens": 5376,
+          "output_tokens": 908,
+          "total_tokens": 5126,
           "calls": 1,
-          "cost_usd": 0.030024,
+          "cost_usd": 0.026274,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -69,18 +67,18 @@
     }
   ],
   "summary": {
-    "assertions_passed": 31,
+    "assertions_passed": 32,
     "assertions_total": 33,
-    "pass_rate": 0.9393939393939394,
+    "pass_rate": 0.9696969696969697,
     "total_tokens": 1864319,
     "total_duration_ms": 389738,
     "total_cost_usd": 1.4479426999999998,
     "grading": {
       "input_tokens": 10397,
-      "output_tokens": 2327,
-      "total_tokens": 12724,
+      "output_tokens": 2077,
+      "total_tokens": 12474,
       "calls": 2,
-      "cost_usd": 0.066096,
+      "cost_usd": 0.062346,
       "evals_measured": 2,
       "rates_usd_per_mtok": {
         "input": 3,

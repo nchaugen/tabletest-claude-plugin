@@ -16,19 +16,19 @@
       "id": "exception-handled-cleanly",
       "text": "The empty string / exception case is handled — either via a Throws? column, assertThrows inside the method, or a separate @TableTest — rather than being silently omitted",
       "passed": true,
-      "evidence": "Separate @TableTest 'rejectsEmptyInput' with Throws? column and assertThrows call"
+      "evidence": "rejectsEmptyInput uses Throws? column with assertThrows"
     },
     {
       "id": "localdate-result-column",
       "text": "There is a result column typed as LocalDate (or using a string representation that maps to LocalDate)",
       "passed": true,
-      "evidence": "void parsesSupportedDateFormats(String input, LocalDate parsed) with Parsed? column"
+      "evidence": "void parsesSupportedDateFormats(String input, LocalDate parsed)"
     },
     {
       "id": "type-conversion-addressed",
       "text": "The response addresses type conversion for non-trivial column types — either by providing a @TypeConverter/converter method, or by using a cell representation that TableTest's built-in conversion handles (e.g. ISO-8601 date strings for LocalDate — relying on built-in conversion counts as addressed).",
       "passed": true,
-      "evidence": "ISO date strings like 2024-01-15 map to LocalDate via built-in conversion"
+      "evidence": "Parsed? column relies on built-in ISO conversion to LocalDate"
     },
     {
       "id": "has-descriptive-title",
@@ -40,13 +40,13 @@
       "id": "description-if-present-adds-information",
       "text": "If @Description is present, it provides context beyond what the table rows already express — such as where/when the rule applies, or open questions. Does NOT merely restate the column names or summarise what the rows show. It is acceptable to omit @Description if the table already conveys all relevant context (e.g. supported date formats are visible as table rows).",
       "passed": true,
-      "evidence": "'Slash format is day/month/year (DD/MM/YYYY); ... confirming day-first order.'"
+      "evidence": "Slash format is day/month/year (DD/MM/YYYY); ... Short-year format prefixes a two-digit year interpreted as 2000 + YY."
     },
     {
       "id": "annotation-order",
       "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
-      "passed": false,
-      "evidence": "Order violations: @DisplayName (line 58) after @Description (line 41)"
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
     },
     {
       "id": "description-uses-textblock",
@@ -64,25 +64,25 @@
       "id": "concerns-decomposed",
       "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
       "passed": true,
-      "evidence": "Two methods: parsesSupportedDateFormats and rejectsEmptyInput"
+      "evidence": "Two @TableTest methods: parsesSupportedDateFormats and rejectsEmptyInput"
     },
     {
       "id": "no-duplicate-rows-within-a-table",
       "text": "Judge each @TableTest in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by 2.19-covers-every-tier and quantifier-covered-by-rows. Judge every @TableTest method in the class; your evidence must name each method with PASS or FAIL.",
       "passed": true,
-      "evidence": "parsesSupportedDateFormats: PASS (ISO, Slash, Short year, Null - all distinct). rejectsEmptyInput: PASS (single distinct empty-string row)."
+      "evidence": "parsesSupportedDateFormats: PASS (ISO, Slash, Short year, Null - distinct); rejectsEmptyInput: PASS (single row)"
     },
     {
       "id": "no-table-reproves-another",
       "text": "Judge the class as a whole. The assertion FAILS if a whole @TableTest re-proves rules that earlier tables already established — an integration or end-to-end table whose rows re-prove established rules is the common case, and it fails however clean the other tables are. Sibling tables that each isolate one rule are NOT duplication merely because they share a baseline row: four surcharge tables that each show 'no surcharge' then 'surcharge applied' are four legitimate tables, not one duplicated four times. Collapsing several same-fixture tables into one, as concern-not-over-split requires, is likewise not a failure here. Rows you think are missing are never a failure here. Your evidence must name the re-proving table and the table it duplicates.",
       "passed": true,
-      "evidence": "Two tables cover distinct concerns (valid parsing vs error), no integration table re-proving rules"
+      "evidence": "No integration table re-proves rules; each table isolates its own concern"
     },
     {
       "id": "separates-valid-and-invalid",
       "text": "Valid parsing cases and error/exception cases are in separate @TableTest methods",
       "passed": true,
-      "evidence": "'rejectsEmptyInput' kept in its own table with a Throws? column rather than merged with the value table"
+      "evidence": "kept in its own table with a Throws? column rather than merged with the value table"
     },
     {
       "id": "has-tabletest-dependency",
@@ -97,15 +97,15 @@
       "evidence": "Compilation succeeded"
     }
   ],
-  "assertions_passed": 15,
+  "assertions_passed": 16,
   "assertions_total": 16,
-  "pass_rate": 0.9375,
+  "pass_rate": 1,
   "grading_usage": {
     "input_tokens": 4218,
-    "output_tokens": 1158,
-    "total_tokens": 5376,
+    "output_tokens": 908,
+    "total_tokens": 5126,
     "calls": 1,
-    "cost_usd": 0.030024,
+    "cost_usd": 0.026274,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15
