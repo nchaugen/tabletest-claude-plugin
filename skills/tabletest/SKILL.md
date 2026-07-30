@@ -860,19 +860,18 @@ Annotations on a `@TableTest` method must appear in this order:
 3. `@TableTest`
 
 ```java
-@DisplayName("Charges parking by duration band")
+@DisplayName("Defers a donor inside the interval for their donation type")
 @Description("""
-    First 2 hours are free. Hours 3-5 are charged at the standard rate.
-    Hours beyond 5 are charged at 2× the standard rate.
-    Weekend parking is always free regardless of duration.
+    Days Since Last counts from the end of the previous donation, not its start.
     """)
 @TableTest("""
-    Scenario           | Day      | Hours | Rate  | Free hrs? | Standard hrs? | Surcharge hrs? | Total fee?
-    Within free window | Monday   | 1     | 3.00  | 1         |               |                | 0.00
-    Standard rate      | Tuesday  | 4     | 3.00  | 2         | 2             |                | 6.00
-    With surcharge     | Wednesday| 7     | 3.00  | 2         | 3             | 2              | 21.00
+    Scenario                        | Donation Type | Days Since Last | Interval (days) | Deferred?
+    Whole blood, day before interval| whole blood   | 89              | 90              | true
+    Whole blood, at the interval    | whole blood   | 90              | 90              | false
+    Plasma, day before interval     | plasma        | 13              | 14              | true
+    Plasma, at the interval         | plasma        | 14              | 14              | false
     """)
-void calculatesParkingFee(...) { ... }
+void defersDonorInsideTheInterval(String donationType, int daysSinceLast, int intervalDays, boolean deferred) { ... }
 ```
 
 ### Use Concrete Domain Values
