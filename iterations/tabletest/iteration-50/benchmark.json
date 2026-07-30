@@ -1,0 +1,586 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 50,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "b589deb7e99e821a7ba12881fab84c1c90800069",
+  "skill_digest": "c3248d86599d354f",
+  "generation_auth": "subscription",
+  "timestamp": "2026-07-30T20:48:01.497Z",
+  "evals": [
+    {
+      "id": "eval-1-convert-repetitive-tests",
+      "name": "convert repetitive tests",
+      "skill": "tabletest",
+      "fingerprint": "65a3f44e52f9",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 573686,
+        "duration_ms": 57299,
+        "cost_usd": 0.46619419999999995,
+        "grading_usage": {
+          "input_tokens": 2531,
+          "output_tokens": 62,
+          "total_tokens": 2593,
+          "calls": 1,
+          "cost_usd": 0.008523,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-2-parse-dates",
+      "name": "parse dates",
+      "skill": "tabletest",
+      "fingerprint": "e177ae972625",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 16,
+        "assertions_total": 16,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 739489,
+        "duration_ms": 114261,
+        "cost_usd": 0.6267084999999999,
+        "grading_usage": {
+          "input_tokens": 4112,
+          "output_tokens": 1182,
+          "total_tokens": 5294,
+          "calls": 1,
+          "cost_usd": 0.030066,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-7-permission-check",
+      "name": "permission check",
+      "skill": "tabletest",
+      "fingerprint": "0f01fa22b565",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 574682,
+        "duration_ms": 52203,
+        "cost_usd": 0.4639905,
+        "grading_usage": {
+          "input_tokens": 3115,
+          "output_tokens": 438,
+          "total_tokens": 3553,
+          "calls": 1,
+          "cost_usd": 0.015915,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-8-money-parse",
+      "name": "money parse",
+      "skill": "tabletest",
+      "fingerprint": "21b99640ccbf",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 16,
+        "assertions_total": 16,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 720470,
+        "duration_ms": 88588,
+        "cost_usd": 0.5863069000000001,
+        "grading_usage": {
+          "input_tokens": 4187,
+          "output_tokens": 1154,
+          "total_tokens": 5341,
+          "calls": 1,
+          "cost_usd": 0.029871,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-9-bonus-contractor-structure",
+      "name": "bonus contractor structure",
+      "skill": "tabletest",
+      "fingerprint": "88bec2c915fc",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 478519,
+        "duration_ms": 66035,
+        "cost_usd": 0.47126979999999996,
+        "grading_usage": {
+          "input_tokens": 3609,
+          "output_tokens": 382,
+          "total_tokens": 3991,
+          "calls": 1,
+          "cost_usd": 0.016557,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-14-weekly-pay",
+      "name": "weekly pay",
+      "skill": "tabletest",
+      "fingerprint": "af17cfe3a33f",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 19,
+        "assertions_total": 22,
+        "pass_rate": 0.8636363636363636,
+        "failed_assertions": [
+          "1.6-readability-empty-cells",
+          "1.7-readability-scenario-names",
+          "1.14-depth-zero-rate"
+        ],
+        "total_tokens": 853524,
+        "duration_ms": 196162,
+        "cost_usd": 0.8487382,
+        "grading_usage": {
+          "input_tokens": 12831,
+          "output_tokens": 4178,
+          "total_tokens": 17009,
+          "calls": 2,
+          "cost_usd": 0.101163,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-15-reis-discount",
+      "name": "reis discount",
+      "skill": "tabletest",
+      "fingerprint": "7bd22c5e83c7",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 22,
+        "assertions_total": 28,
+        "pass_rate": 0.7857142857142857,
+        "failed_assertions": [
+          "2.1-decomposition-concern-separation",
+          "window-boundary-uses-purchase-time",
+          "2.17-zone-irrelevance-visible",
+          "zone-independent-counting",
+          "2.21-readability-relative-time",
+          "quantifier-covered-by-rows"
+        ],
+        "total_tokens": 797902,
+        "duration_ms": 365452,
+        "cost_usd": 1.1895600000000002,
+        "grading_usage": {
+          "input_tokens": 19805,
+          "output_tokens": 5603,
+          "total_tokens": 25408,
+          "calls": 3,
+          "cost_usd": 0.14346,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-18-convert-from-code",
+      "name": "convert from code",
+      "skill": "tabletest",
+      "fingerprint": "38e5599a7052",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 19,
+        "assertions_total": 27,
+        "pass_rate": 0.7037037037037037,
+        "failed_assertions": [
+          "black-box-columns",
+          "observable-io-only",
+          "no-duplicate-rows-within-a-table",
+          "separates-decision-and-premium",
+          "description-no-internals",
+          "depth-decision-boundaries",
+          "depth-premium-boundaries",
+          "rule-statable-from-table"
+        ],
+        "total_tokens": 1079291,
+        "duration_ms": 266124,
+        "cost_usd": 1.0273945,
+        "grading_usage": {
+          "input_tokens": 14766,
+          "output_tokens": 18713,
+          "total_tokens": 33479,
+          "calls": 2,
+          "cost_usd": 0.324993,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-20-collections-and-quoting",
+      "name": "collections and quoting",
+      "skill": "tabletest",
+      "fingerprint": "6b2c3046d75d",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 17,
+        "assertions_total": 17,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 2289675,
+        "duration_ms": 311375,
+        "cost_usd": 1.5130384999999995,
+        "grading_usage": {
+          "input_tokens": 6634,
+          "output_tokens": 1207,
+          "total_tokens": 7841,
+          "calls": 1,
+          "cost_usd": 0.038007,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-22-event-registration-tt",
+      "name": "event registration tt",
+      "skill": "tabletest",
+      "fingerprint": "57db0ea31d4d",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 29,
+        "assertions_total": 29,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 877168,
+        "duration_ms": 179450,
+        "cost_usd": 0.7962546,
+        "grading_usage": {
+          "input_tokens": 13724,
+          "output_tokens": 4871,
+          "total_tokens": 18595,
+          "calls": 2,
+          "cost_usd": 0.114237,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-23-loan-approval-tt",
+      "name": "loan approval tt",
+      "skill": "tabletest",
+      "fingerprint": "2a58f07f03e0",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 23,
+        "assertions_total": 23,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 1017292,
+        "duration_ms": 209514,
+        "cost_usd": 0.8667573000000002,
+        "grading_usage": {
+          "input_tokens": 12350,
+          "output_tokens": 6400,
+          "total_tokens": 18750,
+          "calls": 2,
+          "cost_usd": 0.13305,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-25-convert-from-spock",
+      "name": "convert from spock",
+      "skill": "tabletest",
+      "fingerprint": "40ec9330aca0",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 25,
+        "assertions_total": 27,
+        "pass_rate": 0.9259259259259259,
+        "failed_assertions": [
+          "concern-not-over-split",
+          "rule-statable-from-table"
+        ],
+        "total_tokens": 1402979,
+        "duration_ms": 408965,
+        "cost_usd": 1.4062291,
+        "grading_usage": {
+          "input_tokens": 19710,
+          "output_tokens": 5946,
+          "total_tokens": 25656,
+          "calls": 2,
+          "cost_usd": 0.14832,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-26-convert-from-kotest",
+      "name": "convert from kotest",
+      "skill": "tabletest",
+      "fingerprint": "293d24fec93a",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 25,
+        "assertions_total": 27,
+        "pass_rate": 0.9259259259259259,
+        "failed_assertions": [
+          "rule-statable-from-table",
+          "consistent-quantity-naming"
+        ],
+        "total_tokens": 1536560,
+        "duration_ms": 296473,
+        "cost_usd": 1.2697148,
+        "grading_usage": {
+          "input_tokens": 19268,
+          "output_tokens": 5335,
+          "total_tokens": 24603,
+          "calls": 2,
+          "cost_usd": 0.137829,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-27-convert-from-testng",
+      "name": "convert from testng",
+      "skill": "tabletest",
+      "fingerprint": "12eb88794529",
+      "results": {
+        "model": null,
+        "assertions_passed": 0,
+        "assertions_total": 26,
+        "pass_rate": 0,
+        "failed_assertions": [
+          "has-tabletest-annotation",
+          "options-as-map",
+          "options-type-converter",
+          "dimensions-as-list",
+          "uses-value-sets",
+          "concerns-decomposed",
+          "concern-not-over-split",
+          "rule-falsifiable-by-a-row",
+          "rule-statable-from-table",
+          "numeric-types-correct",
+          "scenario-column-present",
+          "scenario-names-describe-conditions",
+          "has-question-mark-column",
+          "business-language-columns",
+          "no-if-switch-in-method",
+          "annotation-order",
+          "has-descriptive-title",
+          "no-testng-artifacts",
+          "has-tabletest-dependency",
+          "compiles",
+          "tests-pass",
+          "testng-dependency-removed",
+          "consistent-quantity-naming",
+          "titles-form-a-family",
+          "no-duplicate-rows-within-a-table",
+          "no-table-reproves-another"
+        ],
+        "total_tokens": 0,
+        "duration_ms": 545742,
+        "cost_usd": 0,
+        "error": "claude exited with code 1:\n  result: API Error: Connection closed mid-response. The response above may be incomplete.\n  stderr: "
+      }
+    },
+    {
+      "id": "eval-28-convert-from-methodsource",
+      "name": "convert from methodsource",
+      "skill": "tabletest",
+      "fingerprint": "ad0194702861",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 22,
+        "assertions_total": 26,
+        "pass_rate": 0.8461538461538461,
+        "failed_assertions": [
+          "concern-not-over-split",
+          "rule-falsifiable-by-a-row",
+          "consistent-quantity-naming",
+          "held-constants-declared"
+        ],
+        "total_tokens": 1241057,
+        "duration_ms": 398759,
+        "cost_usd": 1.3391537999999998,
+        "grading_usage": {
+          "input_tokens": 21542,
+          "output_tokens": 8379,
+          "total_tokens": 29921,
+          "calls": 2,
+          "cost_usd": 0.190311,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-29-shopping-cart-tt",
+      "name": "shopping cart tt",
+      "skill": "tabletest",
+      "fingerprint": "648bf10c6d76",
+      "results": {
+        "model": null,
+        "assertions_passed": 0,
+        "assertions_total": 30,
+        "pass_rate": 0,
+        "failed_assertions": [
+          "has-tabletest-annotation",
+          "concerns-decomposed",
+          "no-duplicate-rows-within-a-table",
+          "no-table-reproves-another",
+          "separates-item-coupon-total-checkout",
+          "rows-independently-executable",
+          "coupon-before-after-columns",
+          "coupon-validity-not-coupon-types",
+          "scenario-column-present",
+          "has-question-mark-column",
+          "scenario-names-describe-conditions",
+          "business-language-columns",
+          "no-if-switch-in-method",
+          "annotation-order",
+          "has-descriptive-title",
+          "description-uses-textblock",
+          "single-assertion-in-method",
+          "test-data-visible",
+          "type-converters-for-complex-objects",
+          "coupon-as-single-column",
+          "uses-standard-map-syntax",
+          "description-not-redundant-with-scenarios",
+          "has-tabletest-dependency",
+          "rule-falsifiable-by-a-row",
+          "rule-statable-from-table",
+          "title-states-system-behaviour",
+          "compiles",
+          "quantifier-covered-by-rows",
+          "assertion-criteria-declared",
+          "consistent-quantity-naming"
+        ],
+        "total_tokens": 0,
+        "duration_ms": 545743,
+        "cost_usd": 0,
+        "error": "claude exited with code 1:\n  result: API Error: Connection closed mid-response. The response above may be incomplete.\n  stderr: "
+      }
+    },
+    {
+      "id": "eval-30-order-splitting-tt",
+      "name": "order splitting tt",
+      "skill": "tabletest",
+      "fingerprint": "9363ff0f4639",
+      "results": {
+        "model": null,
+        "assertions_passed": 0,
+        "assertions_total": 25,
+        "pass_rate": 0,
+        "failed_assertions": [
+          "has-tabletest-annotation",
+          "concerns-decomposed",
+          "rule-falsifiable-by-a-row",
+          "rule-statable-from-table",
+          "no-duplicate-rows-within-a-table",
+          "no-table-reproves-another",
+          "concern-fulfillment-method",
+          "concern-delivery-address",
+          "concern-availability",
+          "concern-warehouse-allocation",
+          "concern-companion-products",
+          "all-outputs-same-table",
+          "native-collection-output",
+          "scenario-column-present",
+          "has-question-mark-column",
+          "scenario-names-describe-conditions",
+          "business-language-columns",
+          "no-if-switch-in-method",
+          "annotation-order",
+          "has-descriptive-title",
+          "description-uses-textblock",
+          "has-tabletest-dependency",
+          "compiles",
+          "held-constants-declared",
+          "assertion-criteria-declared"
+        ],
+        "total_tokens": 0,
+        "duration_ms": 1499986,
+        "cost_usd": 0,
+        "error": "Timed out after 1500000ms"
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 272,
+    "assertions_total": 297,
+    "pass_rate": 0.9158249158249159,
+    "errored_evals": [
+      "eval-27-convert-from-testng",
+      "eval-29-shopping-cart-tt",
+      "eval-30-order-splitting-tt"
+    ],
+    "total_tokens": 14182294,
+    "total_duration_ms": 5602131,
+    "total_cost_usd": 12.871310699999997,
+    "grading": {
+      "input_tokens": 158184,
+      "output_tokens": 63850,
+      "total_tokens": 222034,
+      "calls": 23,
+      "cost_usd": 1.432302,
+      "evals_measured": 14,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}
