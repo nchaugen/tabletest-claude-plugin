@@ -113,6 +113,43 @@ function getTestSourceContent(fileContent, allFiles) {
 }
 
 /**
+ * Test source files as {path, content}, so a checker reporting line numbers can
+ * name the file the reader will open. Falls back to a single unnamed entry
+ * holding fileContent when no test sources were collected.
+ */
+function getTestSourceFiles(fileContent, allFiles) {
+  const testFiles = (allFiles || []).filter(f => /\.(java|kt)$/.test(f.path) && /(^|\/)src\//.test(f.path));
+  if (testFiles.length > 0) {
+    return testFiles;
+  }
+  return [{ path: null, content: fileContent }];
+}
+
+/**
+ * Split source lines into one block per member declaration: the annotations
+ * preceding a method plus its signature. A block never spans a method
+ * boundary, so an annotation belonging to an earlier method cannot be read as
+ * part of a later one. Returns arrays of 0-based line indices.
+ */
+function splitIntoMemberBlocks(lines) {
+  const methodSignature = /(?:fun|void|boolean|int|long|double|float|String|[A-Z]\w*(?:<[^>]*>)?)\s+(?:\w+|`[^`]+`)\s*\([^)]*\)\s*(?::\s*\S+\s*)?(?:throws\s+[^{]*)?\{/;
+  const blocks = [];
+  let current = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    current.push(i);
+    const endsBlock = methodSignature.test(lines[i]) || /^\s*\}/.test(lines[i]);
+    if (endsBlock) {
+      blocks.push(current);
+      current = [];
+    }
+  }
+  if (current.length > 0) blocks.push(current);
+
+  return blocks;
+}
+
+/**
  * Joined build-file content (pom.xml / build.gradle / build.gradle.kts), or null.
  */
 function getBuildFileContent(allFiles) {
@@ -242,32 +279,34 @@ const checkers = {
   },
 
   "annotation-order": ({ fileContent, allFiles }) => {
-    const content = getCheckContent(fileContent, allFiles);
-    // For each @TableTest, check that @DisplayName < @Description < @TableTest in position
-    // Find all annotation clusters (groups near test methods)
-    const methods = content.split(/(?=@(?:DisplayName|Description|TableTest))/);
-    let violations = [];
+    // Within each method's annotation block, require @DisplayName < @Description < @TableTest.
+    // Blocks are per method and per file, so an earlier method's @Description is never
+    // read as this method's.
+    const violations = [];
 
-    // Simpler approach: find each @TableTest and look backwards for annotation ordering
-    const lines = content.split('\n');
-    for (let i = 0; i < lines.length; i++) {
-      if (/@TableTest\s*\(/.test(lines[i])) {
-        // Look backwards for @DisplayName and @Description
-        let displayNameLine = -1;
-        let descriptionLine = -1;
-        for (let j = i - 1; j >= Math.max(0, i - 20); j--) {
-          if (/@DisplayName/.test(lines[j]) && displayNameLine === -1) displayNameLine = j;
-          if (/@Description/.test(lines[j]) && descriptionLine === -1) descriptionLine = j;
-        }
+    for (const file of getTestSourceFiles(fileContent, allFiles)) {
+      const lines = file.content.split('\n');
+      const where = file.path === null ? "" : `${file.path} `;
+
+      for (const block of splitIntoMemberBlocks(lines)) {
+        const lineOf = (regex) => {
+          const index = block.find(i => regex.test(lines[i]));
+          return index === undefined ? -1 : index;
+        };
+        const tableTestLine = lineOf(/@TableTest\s*\(/);
+        if (tableTestLine === -1) continue;
+
+        const displayNameLine = lineOf(/@DisplayName/);
+        const descriptionLine = lineOf(/@Description/);
 
         if (displayNameLine !== -1 && descriptionLine !== -1 && displayNameLine > descriptionLine) {
-          violations.push(`@DisplayName (line ${displayNameLine + 1}) after @Description (line ${descriptionLine + 1})`);
+          violations.push(`${where}@DisplayName (line ${displayNameLine + 1}) after @Description (line ${descriptionLine + 1})`);
         }
-        if (displayNameLine !== -1 && displayNameLine > i) {
-          violations.push(`@DisplayName (line ${displayNameLine + 1}) after @TableTest (line ${i + 1})`);
+        if (displayNameLine > tableTestLine) {
+          violations.push(`${where}@DisplayName (line ${displayNameLine + 1}) after @TableTest (line ${tableTestLine + 1})`);
         }
-        if (descriptionLine !== -1 && descriptionLine > i) {
-          violations.push(`@Description (line ${descriptionLine + 1}) after @TableTest (line ${i + 1})`);
+        if (descriptionLine > tableTestLine) {
+          violations.push(`${where}@Description (line ${descriptionLine + 1}) after @TableTest (line ${tableTestLine + 1})`);
         }
       }
     }
