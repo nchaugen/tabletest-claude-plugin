@@ -90,40 +90,53 @@ Changed "Secondary fails" to "Secondary fails, fallback ok" to distinguish from 
 
 **Evolution trigger:** When you add a new scenario and find yourself confused which existing scenario is which, that's the signal to refine all related scenario names.
 
-## Separate Tables When Column Sets Diverge
+## Collapse a Sparse Column Before Splitting the Table
 
-Keep scenarios in separate tables when one group of scenarios needs a column that is irrelevant (always blank) for another group. A column that is blank for more than half the rows signals the table is mixing two distinct sub-behaviours.
+A column blank for more than half its rows is a signal, but the repair is a **column** decision
+first. Ask what the sparse columns feed:
 
-**Example:** A resolver supports three sources (configured value, JUnit property, fallback) — these work well in one table. Adding a fourth source (properties file) that requires a `Properties Value` column — irrelevant to all other rows — is the signal to create a second focused table rather than adding a sparsely-populated column.
+- **The same output column.** They are members of one family, so they belong in one column — a map
+  column keyed by member (main skill file, *Collapse Sparse Columns into a Map*). Splitting instead
+  gives you several tables that fix the same setup and report the same output, which is the
+  over-split under *Decompose When You See These Signs*.
+- **A different output column.** Different concerns; separate tables.
 
-**Before (sparsely-populated column):**
+**Example:** a resolver supports four sources — configured value, JUnit property, properties file,
+and a built-in fallback. A column each leaves most rows blank in most of them:
+
 ```java
 @TableTest("""
-    Scenario             | Configured Dir | JUnit Property | Properties Value | Resolved Dir?
-    Configured wins      | my-config      | report/junit   |                  | my-config
-    JUnit property wins  |                | report/junit   |                  | report/junit
-    Fallback             |                |                |                  | build/junit-jupiter
-    Properties wins      |                |                | props/reports    | props/reports
+    Scenario                 | Configured Dir | JUnit Property | Properties Value | Resolved Dir?
+    Configured value set     | my-config      | report/junit   |                  | my-config
+    Only the JUnit property  |                | report/junit   |                  | report/junit
+    No source set            |                |                |                  | build/junit-jupiter
+    Only the properties file |                |                | props/reports    | props/reports
     """)
 ```
-The `Properties Value` column is blank for every row except one.
 
-**After (two focused tables):**
+Every row answers one question — which source wins — so the sources are one column:
+
 ```java
 @TableTest("""
-    Scenario             | Configured Dir | JUnit Property | Resolved Dir?
-    Configured wins      | my-config      | report/junit   | my-config
-    JUnit property wins  |                | report/junit   | report/junit
-    Fallback             |                |                | build/junit-jupiter
+    Scenario                 | Sources                                      | Resolved Dir?
+    Configured value set     | [configured: my-config, junit: report/junit] | my-config
+    Only the JUnit property  | [junit: report/junit]                        | report/junit
+    Only the properties file | [properties: props/reports]                  | props/reports
+    No source set            | [:]                                          | build/junit-jupiter
     """)
-void resolves_from_standard_sources(...) { ... }
-
-@TableTest("""
-    Scenario             | Properties Value | Resolved Dir?
-    Properties wins      | props/reports    | props/reports
-    Properties not set   |                  | build/junit-jupiter
-    """)
-void resolves_from_properties_file(...) { ... }
+void resolvesFromTheHighestPrioritySource(Map<String, String> sources, String resolvedDir) { ... }
 ```
 
-This is different from orthogonal concerns (where features don't affect each other at all). Here the concerns are related — same operation, same method — but their input structures diverge enough to warrant separate tables for clarity.
+Each row names which sources are set, the precedence reads down the `Resolved Dir?` column, and a
+fifth source adds a row rather than a column.
+
+The parameter is a `Map` here because the resolver takes the source map itself. Where a map column
+stands in for a domain object, the `@TypeConverter` returns **that object** and the parameter is its
+type — main skill file, *Collapse Sparse Columns into a Map*.
+
+**A second table is right when the output differs.** If the properties file also decided *when* the
+directory is re-read, that is a second output of a second rule, and it belongs in its own table with
+its own expectation column — not as a fifth source in this one.
+
+This is different again from orthogonal concerns above, where the features do not affect each other
+at all. Here they answer the same question, which is why they collapse rather than split.
