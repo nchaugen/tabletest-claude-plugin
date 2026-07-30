@@ -10,8 +10,8 @@ This guide documents patterns that emerge when testing real-world systems with T
 - [Pattern: Async Execution in Multi-Concern Tables](#pattern-async-execution-in-multi-concern-tables)
 - [Pattern: Test Helpers for Observing Behavior](#pattern-test-helpers-for-observing-behavior)
 - [Pattern: Recording Sequences with Controlled Stopping](#pattern-recording-sequences-with-controlled-stopping)
-- [Pattern: One-Letter Values for Composite Keys](#pattern-one-letter-values-for-composite-keys)
-- [Pattern: Static Constants for Readable Expected Values](#pattern-static-constants-for-readable-expected-values)
+- [Pattern: Composed Keys Stay Legible with Short Real Values](#pattern-composed-keys-stay-legible-with-short-real-values)
+- [Pattern: A Type for Values a Table Cannot Show](#pattern-a-type-for-values-a-table-cannot-show)
 - [Summary](#summary)
 
 ## Pattern: Consolidating Identity + Status
@@ -571,113 +571,85 @@ The test failure showed what control was missing. Add the stopping condition tha
 
 ---
 
-## Pattern: One-Letter Values for Composite Keys
+## Pattern: Composed Keys Stay Legible with Short Real Values
 
 ### Problem
-Testing systems that construct complex lookup keys from multiple inputs produces unreadable table values.
-
-**Unreadable:**
-```java
-| orgId         | featureId | version | Lookup Key
-| Organization1 | search    | v2      | Organization1:search:v2
-```
+A system builds a lookup key out of several inputs, and the composed key is too long to scan in a
+cell.
 
 ### Solution
-Use single-letter values as placeholders when testing key composition logic.
+Shorten the **values**, not the vocabulary: `acme:search:v2` is as scannable as a placeholder and
+still says what each part is.
 
-**Readable:**
 ```java
 @TableTest("""
-    Scenario       | orgId | featureId | version | Feature Toggles
-    Specific match | O     | F         | V       | [O:F:V: true]
-    Wild version   | O     | F         | V       | [O:F:*: true]
+    Scenario               | Organisation | Feature | Version | Registered Toggles     | Found?
+    Exact key registered   | acme         | search  | v2      | [acme:search:v2: true] | true
+    Any version registered | acme         | search  | v2      | [acme:search:*: true]  | true
+    Nothing registered     | acme         | search  | v2      | [:]                    | false
     """)
+void findsToggleByExactKeyOrWildcard(String organisation, String feature, String version,
+                                     Map<String, Boolean> registered, boolean found) { ... }
 ```
 
-**Format**: `O:F:V` clearly shows:
-- Organization: `O`
-- Feature: `F`
-- Version: `V`
+`*` stands for any value of that part, so the second row proves the wildcard entry is reached by a
+lookup for a specific version.
 
-With wildcards: `O:F:*` means "any version for this org+feature".
-
-### Benefits
-- **Readable**: Can see the pattern at a glance
-- **Traceable**: Each letter maps to an input column
-- **Concise**: Fits in table without wrapping
-- **Pattern-focused**: Tests composition logic, not specific values
+**Single letters cost more than they save.** `O:F:V` needs a legend, and the legend lives outside the
+table — the reader has to learn a private vocabulary before any row means anything (main skill file,
+*Use Concrete Domain Values*). Column names take the same rule: `Organisation`, not `orgId`.
 
 ### When to Use
-- Testing feature flags, keys, IDs constructed from multiple parts
-- Validating query strings or cache keys
-- Testing routing patterns or URL construction
-- Any system that concatenates inputs into formatted output
-
-### When Not to Use
-- Production values matter (use real values)
-- Testing validation logic (need realistic invalid inputs)
-- Single complex input (no composition to show)
-
-### Guidelines
-- Use consistent mapping: `O` always means orgId, `F` always means featureId
-- Document the mapping in a comment if not obvious
-- Keep pattern visible in expected output
-- Use wildcards `*` for "any" when relevant
-
-**Example with wildcards:**
-```java
-| orgId | Feature Toggle  | Meaning
-| O     | O:F:V           | Specific version for org O
-|       | *:F:V           | Any org (null → wildcard)
-| O     | O:F:*           | Org O, any version
-```
+- Keys, cache entries, query strings or routes composed from several inputs
+- Wildcard or precedence rules over those keys
 
 ---
 
-## Pattern: Static Constants for Readable Expected Values
+## Pattern: A Type for Values a Table Cannot Show
 
 ### Problem
-
-Expected values in a table are unreadable strings (ANSI escape codes, long URLs, raw bytes) that obscure the table's intent.
+An expected value is encoding-specific — an ANSI escape, Base64, raw bytes — and putting it in a cell
+destroys the table.
 
 ### Solution
-
-Define a `static final` map in the test class that translates readable names to actual values. The table uses the readable names; the test body looks them up.
+Give the column a **type** whose constants carry the raw value. The table names the constant, and
+nothing is translated in the test body:
 
 ```java
-private static final Map<String, String> COLOR = Map.of(
-    "cyan",   "\u001B[36m",
-    "green",  "\u001B[32m",
-    "yellow", "\u001B[33m"
-);
-
 @TableTest("""
-    Scenario        | Input     | Expected Color?
-    XML tag         | <root>    | cyan
-    XML attribute   | id="x"    | green
-    XML value       | some text | yellow
+    Scenario      | Input     | Color?
+    XML tag       | <root>    | CYAN
+    XML attribute | id="x"    | GREEN
+    XML value     | some text | YELLOW
     """)
-void colorizes_xml(String input, String colorName) {
-    String expected = COLOR.get(colorName);
-    assertThat(colorizer.colorize(input)).contains(expected);
+void colorizesEachXmlTokenType(String input, AnsiColor color) {
+    assertThat(colorizer.colorize(input)).contains(color.escape());
+}
+
+enum AnsiColor {
+    CYAN("\u001B[36m"), GREEN("\u001B[32m"), YELLOW("\u001B[33m");
+
+    private final String escape;
+
+    AnsiColor(String escape) { this.escape = escape; }
+
+    String escape() { return escape; }
 }
 ```
 
-### Benefits
-- Table stays readable — domain names instead of escape sequences
-- Single place to update if the underlying values change
-- Avoids noise in expected columns from encoding-specific characters
+JUnit converts an enum constant by name, so this needs no `@TypeConverter` at all.
+
+**Do not translate in the method body.** `String expected = COLOR.get(colorName)` puts the mapping
+where no reader of the published table can follow it — the cell then names something only the test
+code can resolve, which is what *Use Concrete Domain Values* rules out.
+
+**A `String` column with a converter does not work either.** Converters are chosen by parameter type,
+so a `String → String` converter would rewrite the `Input` column too (main skill file,
+*Domain-Specific Formatting*). The distinct type is what confines the conversion to one column.
 
 ### When to Use
-- Expected values are encoding-specific (ANSI codes, Base64, binary)
-- Expected values are long and repetitive (full URLs, complex regexes)
-- Multiple rows share the same set of possible expected values
-- The name of the value communicates intent better than the raw value
-
-### When Not to Use
-- Expected values are already readable and meaningful (inline them)
-- There are only 1–2 distinct expected values (no benefit to a lookup map)
-- Values vary per row with no repeated set
+- Encoding-specific expectations: escape codes, Base64, binary
+- A small closed set of values shared across rows
 
 ---
 
@@ -692,7 +664,7 @@ These patterns emerged from real-world TableTest usage. They solve common challe
 5. **Async Execution**: Wait for off-thread work before asserting
 6. **Test Helpers**: Observe behavior beyond return values (counts, sequences, side effects)
 7. **Recording Sequences**: Control stopping with expected sequences
-8. **One-Letter Values**: Improve readability for composite key testing
-9. **Static Constants for Readable Expected Values**: Translate unreadable strings to domain names via a lookup map
+8. **Composed Keys**: Short real values, never single-letter placeholders
+9. **A Type for Unshowable Values**: An enum carries the escape code; the table names the constant
 
 When facing similar challenges, consider these patterns before creating custom solutions.
