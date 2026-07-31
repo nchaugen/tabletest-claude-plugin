@@ -41,6 +41,22 @@ history for comparison, audit, and re-grading. Conversation and run logs are nev
 node scripts/run-evals.js --skill tabletest --iteration N [--evals 1,2] [--compare-iteration M]
 ```
 
+**Never pipe a run through `tail`, `head`, or a pager — redirect to a file or let it print.** A pipe
+to `tail` buffers until the process exits, so there is no interim progress at all, and then it
+discards everything outside its window. That window is sized for the run you expected; the lines you
+need are the ones an unexpected failure prints, and those are exactly what gets thrown away. Runs
+here take from one minute to ninety, so "wait for it to finish and read the last 60 lines" is the
+worst of both.
+
+**Follow a run in `iterations/<skill>/iteration-N/run.log`.** The runner opens it before the first
+eval and appends every log line as it happens (`run-evals.js:791`), so progress is observable there
+whatever you do with stdout — including for a run started in the background. `tail -20` *that file*
+as often as you like; it is a file, not a pipe. Per-eval `grading.json` and `timing.json` land as each
+eval completes, so results survive even if the console output is lost entirely.
+
+Two consequences for a long run: start it in the background and poll `run.log`, and never re-run
+something because you cannot see its output — check `run.log` and the per-eval artefacts first.
+
 **Who pays.** Generation runs on the **Claude subscription** — the eval agent is spawned without
 `ANTHROPIC_API_KEY` so the CLI uses the logged-in account. Grading still posts to the API and needs
 the key, so keep it exported. Two consequences:

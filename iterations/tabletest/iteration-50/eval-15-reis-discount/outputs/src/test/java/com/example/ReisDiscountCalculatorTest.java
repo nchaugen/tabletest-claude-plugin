@@ -1,4 +1,4 @@
-package com.example;
+    package com.example;
 
 import org.junit.jupiter.api.DisplayName;
 import org.tabletest.junit.Description;
