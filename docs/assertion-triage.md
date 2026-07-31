@@ -783,3 +783,17 @@ eval-18 27 → 29.
 
 Both evals are re-baselined by this and no comparison may span it. Gotcha:
 `assertions-that-name-a-table-never-pass`.
+
+### Two slots to watch after the 2026-07-31 split
+
+- **`premium-claim-boundary` (18) is flip-prone from birth.** Its first two gradings on the same
+  stored iteration-50 output disagreed (FAIL, then PASS), and the PASS is the correct verdict — the
+  0-against-1-claim pair exists across two tables (`computesSeniorPremiumFromRiskScore` at NEW/65/0
+  and `selectsPremiumFormulaByAge` at 65 with claims fixed at 1). The first grading simply did not
+  assemble the pair. Cross-table pairing is what the retarget deliberately allows, so the fix is not
+  to re-scope it; treat one verdict here as provisional and confirm on a re-grade.
+- **`new-purchase-inclusion-published` (15) is the first assertion in the suite that tests a join
+  between two tables.** Its first wording asked only whether the +1 was published somewhere, which a
+  `@Description` discharged while the two tables still disagreed about what their shared column name
+  meant. It now fails that shape. Watch it for over-fire on a solution that has no separate count
+  table — the text exempts that case explicitly.
