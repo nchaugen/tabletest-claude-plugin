@@ -885,3 +885,28 @@ the evidence "no src/main API signatures were provided", so it was removed again
 *the same task in four costumes* — so they have never demonstrated transfer and cutting three cannot
 take away what was not there. Only genuinely domain-neutral assertions can be re-hosted, which is
 exactly the two that were.
+
+### F2 — `options-as-map` no longer licenses the broken form (2026-08-01, slice 4 step 5)
+
+The old text ended "Rows with no options use a blank cell **or** `[:]`". A blank cell converts to
+null *before* converter lookup (`products/core/gotchas/blank-cell-bypasses-type-converter.md`), so it
+bypasses the `@TypeConverter` and hands the method null rather than a defaulted `PackageOptions`. The
+assertion therefore licensed the one form that cannot work — **and contradicted its own eval's ground
+truth**, which says so outright at `expected_output.md:40-44` ("The no-options row must be `[:]`
+(empty map), not a blank cell").
+
+Now decidable in both directions: FAILS on separate sparse columns, and FAILS when an options column
+exists but its no-options row is blank.
+
+**Re-graded both stored solutions to check the tightening broke nothing.** Neither verdict moved —
+iteration-50 PASSes (real converter, `[:]` row), iteration-45 FAILs (three sparse columns, no
+converter). What did change is the *evidence*: iteration-45's now reads "with blank cell for 'No
+special handling', not a single `[:]` map column", naming a defect the old wording had permitted. Same
+verdict, complete reason.
+
+**The repair is preventive, not corrective** — no stored output was passing on the licensed form, so
+nothing was being scored wrong today. It closes the hole before an output finds it.
+
+**One coupling to watch:** the assertion now states current core behaviour, and that behaviour is
+under review (`TODO.md`, core lane: "a blank cell never reaches a `@TypeConverter`" — decide + pin).
+If core changes so blanks reach converters, this text must change with it.
