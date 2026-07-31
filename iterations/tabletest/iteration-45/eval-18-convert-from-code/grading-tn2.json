@@ -1,0 +1,192 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "black-box-columns",
+      "text": "Table columns represent the method's public inputs (applicant type, age, claim count) and observable outputs (decision, premium) — not internal state like hasActivePolicy, internalRiskScore, or calculateRiskScore. Judge ONLY the column headers. Internal formulas or thresholds appearing in the @Description are graded by description-no-internals, not here.",
+      "passed": false,
+      "evidence": "Column header 'Risk Score? | Decision?     | Premium?' exposes an internal computed value as a column."
+    },
+    {
+      "id": "observable-io-only",
+      "text": "No column is named after private fields or internal variables (hasActivePolicy, internalRiskScore, riskScore). The test treats the method as a black box.",
+      "passed": false,
+      "evidence": "Both tables include a 'Risk Score?' column, e.g. 'Age | Claim Count | Risk Score? | Premium?' in pricesApprovedApplication."
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language (e.g. 'Applicant type', 'Age', 'Claims', 'Decision?', 'Premium?') — not code identifiers like 'applicantType', 'claimCount', 'String'.",
+      "passed": true,
+      "evidence": "Headers read 'Applicant Type | Age | Claim Count | Risk Score? | Decision? | Premium?' — domain wording, not code identifiers."
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names name the variation the row exercises, not the result it produces. The decidable test: FAILS when a scenario name states or paraphrases a value that appears in an expectation column of that same row — 'User cannot delete' beside an Allowed? cell of false, 'No discount applies' beside a Discount? cell of 0.00, 'Contractor gets no bonus' beside a Bonus? cell of 0. Also FAILS on generic labels ('Test 1', 'Test case 2'), which name no variation at all. PASSES otherwise. Naming the rule or the situation is correct even when it makes the outcome inferable — 'Delivery and pickup items always split', 'At the standard threshold, not above it', 'EU express, light package', 'Renewal with no claims', 'Missing name' all PASS. The failure this catches is a name echoing its own expectation cell, not a name that describes what the row is about, and not a name from which a reader who knows the rule could predict the outcome. A single offending name fails the assertion. Judge every @TableTest method in the class.",
+      "passed": true,
+      "evidence": "Scenario names like 'Renewal with no claims history', 'At the risk limit', 'Just past the risk limit' describe conditions, not outcomes."
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Decision?' or 'Premium?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Risk Score?, Decision?, Premium?, Risk Score?, Premium?"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "2 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "@DisplayName annotation present"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": true,
+      "evidence": "Two @TableTest methods: 'routesApplicationToDecision' and 'pricesApprovedApplication', addressing decision-routing vs premium-pricing separately."
+    },
+    {
+      "id": "no-duplicate-rows-within-a-table",
+      "text": "Judge each @TableTest in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by 2.19-covers-every-tier and quantifier-covered-by-rows. Judge every @TableTest method in the class; your evidence must name each method with PASS or FAIL.",
+      "passed": true,
+      "evidence": "routesApplicationToDecision: PASS — rows cover distinct auto-approval, rejection, and boundary cases with no repeats. pricesApprovedApplication: PASS — rows cover senior threshold and claims variation without repeating a discharged obligation."
+    },
+    {
+      "id": "no-table-reproves-another",
+      "text": "Judge the class as a whole. The assertion FAILS if a whole @TableTest re-proves rules that earlier tables already established — an integration or end-to-end table whose rows re-prove established rules is the common case, and it fails however clean the other tables are. Sibling tables that each isolate one rule are NOT duplication merely because they share a baseline row: four surcharge tables that each show 'no surcharge' then 'surcharge applied' are four legitimate tables, not one duplicated four times. Collapsing several same-fixture tables into one, as concern-not-over-split requires, is likewise not a failure here. Rows you think are missing are never a failure here. Your evidence must name the re-proving table and the table it duplicates.",
+      "passed": true,
+      "evidence": "pricesApprovedApplication tests distinct age/claim premium tiers (64/65, 40/2, 80/1) not duplicating rows already proven in routesApplicationToDecision."
+    },
+    {
+      "id": "separates-decision-and-premium",
+      "text": "Decision logic (AUTO_APPROVED/REJECTED/APPROVED) and premium calculation are not derived in the same table. Judge this as a property of the decomposition, not as a fixed two-table shape: any number of tables PASSES provided no single table derives both, and splitting premium further across several tables is not a failure here. FAILS when one table carries both a decision expectation column and a premium expectation column and asserts on both.",
+      "passed": false,
+      "evidence": "routesApplicationToDecision table has both 'Decision?' and 'Premium?' columns and asserts 'new EvaluationResult(decision, premium)' on both."
+    },
+    {
+      "id": "no-reimplemented-internals",
+      "text": "Test method body does not recompute internal formulas (e.g. risk score calculation). It only calls the public API (evaluateApplication) and asserts on the return value's fields. No arithmetic duplicating private method logic appears in the test.",
+      "passed": true,
+      "evidence": "Method body: 'EvaluationResult result = evaluator.evaluateApplication(...); assertEquals(new EvaluationResult(decision, premium), result);' — no formula recomputation."
+    },
+    {
+      "id": "description-no-internals",
+      "text": "@Description explains the test's purpose and business context — not internal formulas or implementation details (e.g. 'riskScore = age/10 + claimCount*15', 'rejected when riskScore > 75'). Black-box tests describe observable behaviour, not code internals.",
+      "passed": false,
+      "evidence": "\"Age is chosen to land exactly on the risk-score boundary (75/76) in the threshold rows\" exposes internal formula details."
+    },
+    {
+      "id": "decision-claim-cliff",
+      "text": "Rows at 4 and 5 prior claims show the approval-to-rejection cliff: 4 claims approves, 5 claims rejects. Judge wherever the approval decision is derived, not in a table with a particular name — rows in different tables satisfy this as well as rows in one. FAILS when no row carries 4 claims, or when no row carries 5 claims.",
+      "passed": false,
+      "evidence": "Claim Count values in the file are 0,6,0,5,5 (e.g. 'Renewal with a poor claims record | RENEWAL | 30 | 6 | 93 | REJECTED | 0') — no row anywhere carries 4 claims."
+    },
+    {
+      "id": "decision-cliff-independent-of-age",
+      "text": "The rejection at 5 claims is shown to hold across more than one realistic age — as a value set in one row or as separate rows. Judge wherever the approval decision is derived, not in a table with a particular name. The senior threshold (64 vs 65) is NOT what this asks for: it produces no decision difference and belongs to the premium rule.",
+      "passed": false,
+      "evidence": "'At the risk limit | NEW | 9 | 5 | 75 | APPROVED | 250.0' and 'Just past the risk limit | NEW | 10 | 5 | 76 | REJECTED | 0' are the only 5-claim rows, and the Description states these ages 'are not meant to represent a realistic applicant age there.'"
+    },
+    {
+      "id": "premium-claim-boundary",
+      "text": "The premium difference between 0 and 1 prior claim is shown, holding age constant (the impact of +15 risk score on premium). Judge wherever premium is derived, not in a table with a particular name — the two rows may sit in different tables provided they share an age. FAILS when no pair of rows at one age differs only in carrying 0 against 1 claim. BOTH rows of the pair must have their premium derived from the risk score: a row whose premium is 0 because the applicant was auto-approved is not a valid 0-claim side, since it shows the auto-approval override rather than the effect of a claim.",
+      "passed": false,
+      "evidence": "'New applicant, no claims | NEW | 40 | 0 | 4 | APPROVED | 108.0' has no matching 1-claim row at age 40 anywhere in either table."
+    },
+    {
+      "id": "premium-age-boundary",
+      "text": "The premium difference at age 64 against age 65 is shown, holding claims constant (standard against senior formula). Judge wherever premium is derived, not in a table with a particular name. FAILS when no pair of rows at one claim count differs only in carrying age 64 against age 65.",
+      "passed": true,
+      "evidence": "'Just below the senior threshold | 64 | 0 | 6 | 112.0' and 'At the senior threshold | 65 | 0 | 6 | 221.0' isolate age at fixed 0 claims."
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES. Do not fail a table merely because its values are simple or round — only these three conditions matter. One exemption applies to conditions (1) and (3): a table whose claim IS an invariance — that some input does not affect the outcome — correctly holds one expectation value across every row, because that constant is the rule's subject rather than evidence of a weak table. A single row varying that input over a value set (e.g. '{DHL, UPS, FEDEX} | 12.00') is the correct compact form and PASSES, provided the title or description states the invariance. Condition (2) is not exempted.",
+      "passed": true,
+      "evidence": "routesApplicationToDecision PASS: Decision? values vary (AUTO_APPROVED, REJECTED, APPROVED, APPROVED, REJECTED) and are not copies of any input cell; pricesApprovedApplication PASS: Premium? values (112.0, 221.0, 168.0, 280.5) vary and are not fixed or copied."
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone. Otherwise the assertion PASSES. Setup that merely constructs the objects named by the columns is not a failure. Comparison criteria applied by a helper or the assertion body are graded by assertion-criteria-declared, not here. Judge every @TableTest method in the class. Your evidence must list each method name with PASS or FAIL beside it; a verdict reported from a subset of the methods is not a verdict. A value counts as published if it appears ANYWHERE on the test class's published surface: any @DisplayName or @Description on any method, the class-level @Description, or a column of any table. A method with no @DisplayName publishes its own name as its title, with camelCase split into words, so method names count as published text. Clause (1) triggers only when the value appears ONLY in the method body or a field — a value stated in a sibling method's @Description is published, not hidden.",
+      "passed": true,
+      "evidence": "routesApplicationToDecision PASS: boundary values 75/76 appear directly in the 'Risk Score?' column and auto-approval logic is stated in @Description; pricesApprovedApplication PASS: @Description states 'Below age 65 the standard rate applies; from age 65 the senior rate applies.'"
+    },
+    {
+      "id": "title-states-system-behaviour",
+      "text": "Each @DisplayName (or the method name it falls back to) states what the code under test does, not an external fact it depends on. Apply the check mechanically: strike the system under test from the sentence — if it still reads as true, because it merely restates a regulation, standard, format, or domain fact, the title is about something else and fails. Judge ONLY the title — the @DisplayName, or the method name it falls back to. The @Description and the scenario names are other assertions' subject; a description that restates a domain rule is not this assertion's failure and must not be cited as one.",
+      "passed": true,
+      "evidence": "@DisplayName('Routes an application to auto-approval, rejection, or standard evaluation') and @DisplayName('Prices an approved application by age tier') both describe what the code does, not a domain fact."
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The generated tests pass when executed against InsuranceEvaluator",
+      "passed": true,
+      "evidence": "Tests passed"
+    },
+    {
+      "id": "held-constants-declared",
+      "text": "A value the rule's outcome depends on, and which the table holds constant for every row, must be visible as a column or named in the @DisplayName/@Description as deliberately held fixed. It must not sit silently in the test method body or a field. Readers generalise from what varies, so an unstated constant is read as part of the rule: a table whose every row happens to use one traveller category states, to its reader, a rule about that category. FAILS when the method body, a field, or a @TypeConverter fixes a value that (1) the outcome depends on, and (2) appears in no column and is not named in the title or description as held fixed. A value declared only in a source-code comment (// or /* */) FAILS: the published surface is the title, the description and the table, and a comment reaches none of them. A method with no @DisplayName publishes its own name as its title, with camelCase split into words, so a constant named in the method name is declared. PASSES when every such constant is either a column or declared. Values that cannot affect the outcome are not failures — a fixed clock used only to construct inputs, object identity, or fixture values the rule is indifferent to. Declaring a held constant in @Description is NOT redundancy and does not conflict with the description-* assertions: those forbid restating what the rows already show, whereas a held constant is precisely what the rows cannot show.",
+      "passed": true,
+      "evidence": "@Description states 'Applicant Type is fixed to NEW so no row is auto-approved,' declaring the constant hardcoded in evaluator.evaluateApplication(\"NEW\", age, claimCount)."
+    },
+    {
+      "id": "assertion-criteria-declared",
+      "text": "A comparison criterion applied by the assertion must be stated on the published surface — the table, the @DisplayName, or the @Description. FAILS when a helper or the assertion body applies ordering (sorting either side before comparing), a numeric tolerance, subset or 'contains' matching, or normalisation of the actual or expected value, and no column, title or description says so. Such a criterion is a rule the test enforces and no table claims: a reader cannot tell whether order is part of the behaviour or an artefact of the comparison. PASSES when each such criterion is named — a description sentence ('the expected column lists substrings the message must contain', 'shipments are compared without regard to order') or a column that makes it evident — and passes when the assertion is a plain equality on the values the columns name. Constructing the objects the columns name is not a criterion. The title is the @DisplayName, or the method name it falls back to, with camelCase split into words. A conventional floating-point epsilon (an assertEquals delta of the order of 0.001 on a decimal column, or BigDecimal.compareTo) is numeric hygiene, not a rule, and is exempt. What this assertion is for is a criterion that changes which behaviours the test would accept — ordering, subset matching, normalisation — since those are rules the test enforces while no table claims them.",
+      "passed": true,
+      "evidence": "Both methods use plain equality: 'assertEquals(new EvaluationResult(decision, premium), result);' with no sorting, tolerance, or subset matching."
+    }
+  ],
+  "assertions_passed": 22,
+  "assertions_total": 29,
+  "pass_rate": 0.7586206896551724,
+  "grading_usage": {
+    "input_tokens": 13701,
+    "output_tokens": 13200,
+    "total_tokens": 26901,
+    "calls": 2,
+    "cost_usd": 0.239103,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}

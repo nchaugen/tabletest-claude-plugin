@@ -1,0 +1,107 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 42,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "mixed: e630143 (evals 14,22,23,26 from next/iteration-8), 4c761b5 (evals 15,18 from next/iteration-9)",
+  "skill_digest": "faea8d4a26353180",
+  "generation_auth": "unknown",
+  "timestamp": "2026-07-31T22:02:59.315Z",
+  "evals": [
+    {
+      "id": "eval-15-reis-discount",
+      "name": "reis discount",
+      "skill": "tabletest",
+      "fingerprint": "11991da60eb2",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 25,
+        "assertions_total": 33,
+        "pass_rate": 0.7575757575757576,
+        "failed_assertions": [
+          "2.1-decomposition-concern-separation",
+          "three-schemes-distinguished",
+          "window-boundary-uses-purchase-time",
+          "2.17-zone-irrelevance-visible",
+          "zone-independent-counting",
+          "2.20-readability-one-row-per-tier",
+          "2.21-readability-relative-time",
+          "quantifier-covered-by-rows"
+        ],
+        "total_tokens": 1352328,
+        "duration_ms": 369989,
+        "cost_usd": 1.2375369,
+        "grading_usage": {
+          "input_tokens": 25894,
+          "output_tokens": 8648,
+          "total_tokens": 34542,
+          "calls": 3,
+          "cost_usd": 0.207402,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-18-convert-from-code",
+      "name": "convert from code",
+      "skill": "tabletest",
+      "fingerprint": "40afafcfcf86",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 24,
+        "assertions_total": 29,
+        "pass_rate": 0.8275862068965517,
+        "failed_assertions": [
+          "separates-decision-and-premium",
+          "description-no-internals",
+          "decision-claim-cliff",
+          "decision-cliff-independent-of-age",
+          "premium-claim-boundary"
+        ],
+        "total_tokens": 897958,
+        "duration_ms": 213658,
+        "cost_usd": 0.7880677000000003,
+        "grading_usage": {
+          "input_tokens": 14025,
+          "output_tokens": 16686,
+          "total_tokens": 30711,
+          "calls": 2,
+          "cost_usd": 0.292365,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 49,
+    "assertions_total": 62,
+    "pass_rate": 0.7903225806451613,
+    "errored_evals": [],
+    "total_tokens": 2250286,
+    "total_duration_ms": 583647,
+    "total_cost_usd": 2.0256046000000003,
+    "grading": {
+      "input_tokens": 39919,
+      "output_tokens": 25334,
+      "total_tokens": 65253,
+      "calls": 5,
+      "cost_usd": 0.49976699999999996,
+      "evals_measured": 2,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}

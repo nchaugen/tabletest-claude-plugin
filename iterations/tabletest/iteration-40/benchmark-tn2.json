@@ -1,0 +1,110 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 40,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "unknown",
+  "skill_digest": "unknown",
+  "generation_auth": "unknown",
+  "timestamp": "2026-07-31T21:59:41.591Z",
+  "evals": [
+    {
+      "id": "eval-15-reis-discount",
+      "name": "reis discount",
+      "skill": "tabletest",
+      "fingerprint": "11991da60eb2",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 23,
+        "assertions_total": 33,
+        "pass_rate": 0.696969696969697,
+        "failed_assertions": [
+          "2.1-decomposition-concern-separation",
+          "three-schemes-distinguished",
+          "scheme-derived-once",
+          "window-boundary-uses-purchase-time",
+          "2.16-no-duplicate-tier-mapping",
+          "2.17-zone-irrelevance-visible",
+          "2.19-depth-all-tiers",
+          "2.20-readability-one-row-per-tier",
+          "no-table-reproves-another",
+          "held-constants-declared"
+        ],
+        "total_tokens": 2287509,
+        "duration_ms": 411343,
+        "cost_usd": 1.48132635,
+        "grading_usage": {
+          "input_tokens": 26491,
+          "output_tokens": 12502,
+          "total_tokens": 38993,
+          "calls": 3,
+          "cost_usd": 0.267003,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-18-convert-from-code",
+      "name": "convert from code",
+      "skill": "tabletest",
+      "fingerprint": "40afafcfcf86",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 23,
+        "assertions_total": 29,
+        "pass_rate": 0.7931034482758621,
+        "failed_assertions": [
+          "no-duplicate-rows-within-a-table",
+          "separates-decision-and-premium",
+          "description-no-internals",
+          "decision-claim-cliff",
+          "decision-cliff-independent-of-age",
+          "premium-claim-boundary"
+        ],
+        "total_tokens": 826034,
+        "duration_ms": 148196,
+        "cost_usd": 0.5551305999999999,
+        "grading_usage": {
+          "input_tokens": 14439,
+          "output_tokens": 15670,
+          "total_tokens": 30109,
+          "calls": 2,
+          "cost_usd": 0.278367,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 46,
+    "assertions_total": 62,
+    "pass_rate": 0.7419354838709677,
+    "errored_evals": [],
+    "total_tokens": 3113543,
+    "total_duration_ms": 559539,
+    "total_cost_usd": 2.03645695,
+    "grading": {
+      "input_tokens": 40930,
+      "output_tokens": 28172,
+      "total_tokens": 69102,
+      "calls": 5,
+      "cost_usd": 0.5453699999999999,
+      "evals_measured": 2,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}

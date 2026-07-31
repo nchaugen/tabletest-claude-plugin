@@ -797,3 +797,57 @@ Both evals are re-baselined by this and no comparison may span it. Gotcha:
   `@Description` discharged while the two tables still disagreed about what their shared column name
   meant. It now fails that shape. Watch it for over-fire on a solution that has no separate count
   table — the text exempts that case explicitly.
+
+### What the cross-iteration regrade established — 2026-07-31 (`tn2` on iterations 40/42/44/45/46/50)
+
+Six stored eval-15 solutions and five eval-18 solutions, re-graded under the repaired definitions.
+$2.16, no generation. The question was whether the retargeted and split assertions **discriminate**
+between solutions, or merely fail all of them the way the compound originals did.
+
+| Assertion | 40 | 42 | 44 | 45 | 46 | 50 | Discriminates? |
+|---|---|---|---|---|---|---|---|
+| `2.1-decomposition-concern-separation` | F | F | F | F | **P** | F | 1 of 6 |
+| `three-schemes-distinguished` | F | F | F | F | F | F | **no — 0 of 6** |
+| `scheme-derived-once` | F | P | P | P | P | P | 5 of 6 |
+| `2.17-zone-irrelevance-visible` | F | F | F | **P** | **P** | F | 2 of 6 |
+| `new-purchase-inclusion-published` | P | P | P | P | P | **F** | 1 of 6 |
+| `2.2`, `2.18`, `period-ticket-excluded-from-count`, `count-derived-from-raw-history` | P | P | P | P | P | P | no — 6 of 6 |
+| `separates-decision-and-premium` | F | F | **P** | F | — | F | 1 of 5 |
+| `decision-claim-cliff` | F | F | F | F | — | F | **no — 0 of 5** |
+| `decision-cliff-independent-of-age` | F | F | F | F | — | F | **no — 0 of 5** |
+| `premium-claim-boundary` | F | F | F | F | — | **P** | 1 of 5 |
+| `premium-age-boundary` | P | P | P | P | — | P | no — 5 of 5 |
+
+**The retarget works.** Four assertions that the table-scoped wording could not vary now vary, and
+each flip is attributable to a specific structure: iteration-44 is the only eval-18 output whose
+decision table carries no premium column; iteration-45 and -46 are the only eval-15 outputs putting
+zone value sets where the percentage is decided; iteration-46 is the only one dispatching on category
+without re-deriving the ladder.
+
+**No firm answer-key entry was contradicted.** `2.17`/15 and `separates-decision-and-premium`/18 both
+stay FAIL on iteration-40, as the key records, and the `depth-premium-boundaries` split reproduces
+the key's own basis — age boundary covered, claim boundary not.
+
+**Three assertions still never pass, and the reason is now a measurement rather than a defect.**
+This is the distinction that matters against the retired `depth-*` pair: those never passed because
+they were compound and table-scoped, so no output could satisfy them as written. These three are
+single-clause, judged wherever the rule is stated, and **verified achievable against the domain**:
+
+- `three-schemes-distinguished` (0 of 6) — no solution models the ticket type of the *purchase being
+  made*; all six treat ticket type only as a property of past purchases. The prompt says Reis applies
+  to single tickets, so a period-ticket purchase getting no discount is derivable.
+- `decision-claim-cliff` and `decision-cliff-independent-of-age` (0 of 5) — `riskScore = age/10 +
+  claims*15`, rejected above 75. So **4 claims approves at every realistic age** (rejection would need
+  age > 150) and **5 claims rejects at every age ≥ 10**. The cliff is the observable rule. All five
+  solutions instead pick age 9 to sit exactly on 75 — an unrealistic applicant age chosen to probe the
+  internal threshold. Four of the five say so in a description ("not meant to represent a realistic
+  applicant age", "no minimum applicant age is enforced").
+
+That last one is a repeated skill gap worth teaching, not an assertion to soften: the outputs reach
+for the implementation's boundary instead of the rule's. Same family as `black-box-columns` and
+`no-reimplemented-internals`, showing up in row choice rather than column choice.
+
+**One design defect in the new eval-15 ladder.** `three-schemes-distinguished` was authored as the
+floor and `scheme-derived-once` as the ceiling, but measured across six solutions the floor passes 0
+and the ceiling passes 5. The rungs are ordered wrong. `2.1` (1 of 6) is the genuinely hard middle.
+Either relabel, or accept that the floor is really a headroom assertion.
