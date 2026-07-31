@@ -381,12 +381,39 @@ the second is expensive, and it does not have to be asked once per promotion.
    checklist line still carrying wording the prose had already replaced. Verify by grepping for a
    distinctive phrase from every claim the batch measured, before and after.
 7. **Close the batch with one official full iteration.** Its regression report is the evidence
-   for every promotion in the batch, and its `benchmark.json` becomes the new baseline. Then trim:
-   keep only that iteration dir (commit its `benchmark.json`, `eval-review.md`, `outputs/`,
-   `grading.json`, `timing.json`) and the partial iterations it supersedes go; git history retains
-   them. The next run reads the baseline from disk. **Before deleting anything, check
-   `docs/grader-tuning.md` § The sweep** — outputs whose fingerprints still match are re-gradable and
-   must survive, and a variance probe must be distilled before it is swept.
+   for every promotion in the batch, and its `benchmark.json` becomes the new baseline. The next run
+   reads the baseline from disk.
+
+   **Keep iteration directories by default. Trimming is a size decision, not a hygiene one, and
+   nothing here is currently near a size that justifies it** (2026-07-31: all of `iterations/` is
+   37 MB against a 54 MB `.git`; a full iteration is 1–6 MB). The repo's distil-then-delete
+   lifecycle governs *documents* — plans, working notes, things that were scaffolding for a decision.
+   **Stored outputs and gradings are measurement data, and this repo's method is re-reading them:**
+   artefact-first analysis compares a run against outputs from three or four earlier iterations, and
+   validating an assertion edit means re-grading old outputs whose correct verdict you already know.
+   Every iteration kept is another free test case for the next assertion repair.
+
+   **Four things a trim would destroy, so check all four before deleting anything:**
+
+   - **`conversation.jsonl` and `*.log` are gitignored** (`.gitignore`), so "git history retains
+     them" is false for exactly the files that hold the raw transcript and the per-block thinking
+     tokens. Deleting an iteration directory destroys those permanently. Only tracked files —
+     `benchmark.json`, `eval-review.md`, `outputs/`, `grading*.json`, `timing.json`, `narration.md` —
+     are recoverable, and only by path from a commit.
+   - **A closing run supersedes only the evals it actually ran.** `iteration-50` covered 14 of 17, so
+     it supersedes nothing for evals 27, 29 and 30 — their newest stored results are still in
+     `iteration-45`. The mechanical test: an iteration holding the newest result for any eval is one
+     `loadOfficialBenchmark` still selects, and deleting it silently changes what `--compare-official`
+     resolves to.
+   - **The answer key is bound to one set of outputs** by `scored_against.iteration`
+     (`score-grader.js:67`) — currently `iteration-40`. Sweep those outputs and the key can score
+     nothing.
+   - **`docs/grader-tuning.md` § The sweep** — outputs whose fingerprints still match current
+     definitions are re-gradable and must survive, and a variance probe must be distilled before it
+     is swept.
+
+   When size does eventually justify a trim, drop **variance probes and superseded regrades** first
+   (many benchmarks over one set of outputs), never the outputs themselves.
 8. Tag and release (see Release) — that is where the single version bump for the whole batch
    happens, and where `## [Unreleased]` becomes `## [X.Y.Z] - <date>`.
 
