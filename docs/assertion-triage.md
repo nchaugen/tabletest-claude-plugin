@@ -910,3 +910,41 @@ nothing was being scored wrong today. It closes the hole before an output finds 
 **One coupling to watch:** the assertion now states current core behaviour, and that behaviour is
 under review (`TODO.md`, core lane: "a blank cell never reaches a `@TypeConverter`" — decide + pin).
 If core changes so blanks reach converters, this text must change with it.
+
+### Seven of eval-20's syntax assertions converted to checkers — 2026-08-01 (slice 4 step 6)
+
+`list-syntax-correct`, `set-syntax-correct`, `empty-list-explicit`, `special-chars-quoted`,
+`pipe-quoted`, `no-blank-collection-elements` and `newline-in-cell` are now `deterministic`. All
+seven agree with the LLM verdicts they replace — eval-20 stays 17/17 — so the conversion moved no
+slot, which is the only acceptable outcome for a regime the suite compares across.
+
+**A naive cell split cannot grade this eval.** The old idiom, `split("|").filter(c => c.length > 0)`,
+breaks on the exact values eval-20 exists to test: it shreds `["tech:milestone|v2", "biz:sales"]` at a
+pipe that is data, and it silently drops blank cells. The new `splitRowCells` tracks `[]`/`{}` depth
+and quotes, and preserves blanks.
+
+**Two things had to be read from the declared parameter types, not guessed from the cell:**
+
+- `{tech, business, urgent}` on a `String` column is a **value set** that runs the row three times,
+  not a `Set` literal. Only the declared type tells them apart, so `set-syntax-correct` checks
+  Set-typed columns only.
+- An unquoted colon is a defect **only in a List or Set column**, where `[tech:java]` parses as a map.
+  In a Map column the colons are the syntax.
+
+**The scenario column is optional, and assuming otherwise is an off-by-one that looks like a real
+finding.** The first draft mapped column i to parameter i−1 always. On `sumsListElements(List<Integer>
+numbers, int sum)` — two columns, two parameters, no scenario column — that made the `Sum?`
+expectation column look like the List column, and the checker reported the skill's own correct
+example as a violation. A table has a scenario column when it has one more column than the method has
+parameters; anything else is guessing.
+
+**Wired into `lint-skill-examples.js`, and it immediately found a real defect.**
+`common-patterns.md:286` published a table using end-of-row `//` comments. `RowParser.line()` is
+`either(comment(), row())` — **a comment must be a whole line**, so the trailing text was a fifth cell
+against a four-column header. The example taught syntax the parser rejects. Fixed to whole-line
+comments in the same commit.
+
+**`empty-string-element-quoted` was deliberately left `llm`.** Its decidable core — a blank element
+inside a collection — is *identical* to `no-blank-collection-elements`, so converting both would
+create two slots that can never disagree: one slot counted twice, the same error as four conversion
+evals hosting one task. Either reword it to test something the other does not, or delete it.

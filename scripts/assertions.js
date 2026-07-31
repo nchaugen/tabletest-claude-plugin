@@ -90,6 +90,228 @@ function countDataRows(content) {
 }
 
 /**
+ * Split a table row into the cells its pipes actually separate.
+ *
+ * `split("|")` shreds exactly the values these checkers exist to judge: the pipe in
+ * `"tech:milestone|v2"` is data, not a separator. Depth tracks `[]`/`{}`, quotes suppress
+ * everything inside them, and **blank cells are preserved** — dropping them, as the older
+ * `filter(c => c.length > 0)` idiom does, silently changes a row's shape and hides the
+ * blank-cell defects outright.
+ */
+function splitRowCells(line) {
+  const cells = [];
+  let current = "";
+  let depth = 0;
+  let quote = null;
+
+  for (const ch of line) {
+    if (quote) {
+      if (ch === quote) quote = null;
+      current += ch;
+    } else if (ch === '"' || ch === "'") {
+      quote = ch;
+      current += ch;
+    } else if (ch === "[" || ch === "{") {
+      depth++;
+      current += ch;
+    } else if (ch === "]" || ch === "}") {
+      depth--;
+      current += ch;
+    } else if (ch === "|" && depth === 0) {
+      cells.push(current.trim());
+      current = "";
+    } else {
+      current += ch;
+    }
+  }
+  cells.push(current.trim());
+  return cells;
+}
+
+/**
+ * The elements of a collection cell, or null when the cell is not one.
+ *
+ * Splits on the commas at the collection's own depth, so nested collections and quoted commas
+ * stay whole. Blank elements are preserved deliberately: `[a, , c]` must surface as a blank
+ * element, since that is the defect `no-blank-collection-elements` exists to catch.
+ */
+function parseCollectionElements(cell) {
+  const text = String(cell).trim();
+  const open = text[0];
+  if (open !== "[" && open !== "{") return null;
+  const close = open === "[" ? "]" : "}";
+  if (text[text.length - 1] !== close) return null;
+
+  const inner = text.slice(1, -1);
+  if (inner.trim() === "") return [];
+
+  const elements = [];
+  let current = "";
+  let depth = 0;
+  let quote = null;
+
+  for (const ch of inner) {
+    if (quote) {
+      if (ch === quote) quote = null;
+      current += ch;
+    } else if (ch === '"' || ch === "'") {
+      quote = ch;
+      current += ch;
+    } else if (ch === "[" || ch === "{") {
+      depth++;
+      current += ch;
+    } else if (ch === "]" || ch === "}") {
+      depth--;
+      current += ch;
+    } else if (ch === "," && depth === 0) {
+      elements.push(current.trim());
+      current = "";
+    } else {
+      current += ch;
+    }
+  }
+  elements.push(current.trim());
+  return elements;
+}
+
+/** Is the whole element wrapped in one pair of quotes? */
+function isQuoted(element) {
+  const t = String(element).trim();
+  return t.length >= 2 && ((t[0] === '"' && t[t.length - 1] === '"') || (t[0] === "'" && t[t.length - 1] === "'"));
+}
+
+/** Does the element start a nested collection, so brackets in it are structure, not stray syntax? */
+function isNestedCollection(element) {
+  const t = String(element).trim();
+  return t[0] === "[" || t[0] === "{";
+}
+
+/**
+ * Split a parameter list on the commas between parameters, not the ones inside generics.
+ * Handles both `List<String> tags` (Java) and `tags: List<String>` (Kotlin).
+ */
+function parseParameterList(text) {
+  if (!text || !text.trim()) return [];
+  const parts = [];
+  let current = "";
+  let depth = 0;
+  for (const ch of text) {
+    if (ch === "<") depth++;
+    else if (ch === ">") depth--;
+    if (ch === "," && depth === 0) {
+      parts.push(current.trim());
+      current = "";
+      continue;
+    }
+    current += ch;
+  }
+  parts.push(current.trim());
+
+  return parts.filter(Boolean).map((part) => {
+    const kotlin = part.match(/^(\w+)\s*:\s*(.+)$/);
+    if (kotlin) return { name: kotlin[1], type: kotlin[2].trim() };
+    const split = part.lastIndexOf(" ");
+    if (split === -1) return { name: part, type: part };
+    return { name: part.slice(split + 1).trim(), type: part.slice(0, split).trim() };
+  });
+}
+
+const LIST_TYPE = /^(?:java\.util\.)?(?:List|Collection|Iterable|ArrayList|MutableList)\b/;
+const SET_TYPE = /^(?:java\.util\.)?(?:Set|HashSet|LinkedHashSet|MutableSet)\b/;
+
+/**
+ * Every `@TableTest` in the file, paired with the parameter list of the method it annotates.
+ *
+ * **Column i+1 feeds parameter i** — the scenario column is a display name, not a parameter — and
+ * that mapping is what lets a checker ask "is this column declared `List`?" rather than guess from
+ * the cell. Guessing is not good enough here: `{tech, business, urgent}` on a `String` column is a
+ * value set that runs the row three times, not a `Set` literal, and only the declared type tells
+ * them apart.
+ */
+function tableTestTables(content) {
+  const tableRegex = /@TableTest\s*\(\s*(?:value\s*=\s*)?"{3}([\s\S]*?)"{3}\s*\)/g;
+  const tables = [];
+  let match;
+
+  while ((match = tableRegex.exec(content)) !== null) {
+    const lines = match[1]
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0 && l.includes("|"));
+    if (lines.length === 0) continue;
+
+    const after = content.slice(match.index + match[0].length);
+    const signature = after.match(/(?:fun|void|[A-Za-z_$][\w<>,\[\].\s]*?)\s+(\w+|`[^`]+`)\s*\(([^)]*)\)/);
+
+    // Leading/trailing pipes are optional, and whether one is present is a property of the
+    // table's style, not of a row. Decide it from the header and apply it to every row —
+    // deciding per row cannot tell `a | b | ` (a blank last cell) from `| a | b |` (edge pipes),
+    // and guessing wrong shifts every column off its parameter.
+    let headers = splitRowCells(lines[0]);
+    let rows = lines.slice(1).map(splitRowCells);
+    const dropLeading = headers.length > 1 && headers[0] === "" && lines[0].trimStart().startsWith("|");
+    const dropTrailing =
+      headers.length > 1 && headers[headers.length - 1] === "" && lines[0].trimEnd().endsWith("|");
+    const trim = (cells) => {
+      const out = cells.slice();
+      if (dropLeading && out[0] === "") out.shift();
+      if (dropTrailing && out[out.length - 1] === "") out.pop();
+      return out;
+    };
+    if (dropLeading || dropTrailing) {
+      headers = trim(headers);
+      rows = rows.map(trim);
+    }
+
+    // **The scenario column is optional**, so column-to-parameter mapping cannot assume it.
+    // A table with one more column than the method has parameters has a scenario column, which
+    // is a display name and feeds nothing; a table whose counts match has none, and column 0
+    // feeds parameter 0. Assuming it is always present shifts every column one parameter left
+    // and makes an expectation column look like the collection column beside it.
+    const params = signature ? parseParameterList(signature[2]) : [];
+    tables.push({
+      method: signature ? signature[1] : null,
+      params,
+      hasScenarioColumn: headers.length === params.length + 1,
+      headers,
+      rows,
+    });
+  }
+  return tables;
+}
+
+/**
+ * Walk every data cell of every table as {table, rowIndex, columnIndex, header, cell, param}.
+ * `param` is the declared parameter the column feeds, or null for the scenario column.
+ */
+function eachDataCell(content) {
+  const cells = [];
+  for (const table of tableTestTables(content)) {
+    table.rows.forEach((row, rowIndex) => {
+      row.forEach((cell, columnIndex) => {
+        cells.push({
+          table,
+          rowIndex,
+          columnIndex,
+          header: table.headers[columnIndex] || `column ${columnIndex + 1}`,
+          cell,
+          param: table.params[columnIndex - (table.hasScenarioColumn ? 1 : 0)] || null,
+        });
+      });
+    });
+  }
+  return cells;
+}
+
+/** Standard shape for a checker that reports the first few violations it found. */
+function verdict(violations, cleanEvidence) {
+  return {
+    passed: violations.length === 0,
+    evidence: violations.length === 0 ? cleanEvidence : violations.slice(0, 3).join("; "),
+  };
+}
+
+/**
  * Get content to check: prefer generated files from allFiles, fall back to fileContent.
  */
 function getCheckContent(fileContent, allFiles) {
@@ -670,6 +892,123 @@ const checkers = {
     };
   },
 
+  "list-syntax-correct": ({ fileContent, allFiles }) => {
+    const content = getTestSourceContent(fileContent, allFiles);
+    const listCells = eachDataCell(content).filter((c) => c.param && LIST_TYPE.test(c.param.type));
+    const violations = listCells
+      .filter((c) => c.cell !== "" && !c.cell.startsWith("["))
+      .map((c) => `${c.table.method} row ${c.rowIndex + 1}, column "${c.header}": ${c.cell} is not bracket syntax`);
+    if (listCells.length === 0) {
+      return { passed: true, evidence: "No List-typed column in any table — nothing to check." };
+    }
+    return verdict(violations, `All ${listCells.length} List-typed cell(s) use bracket syntax.`);
+  },
+
+  "set-syntax-correct": ({ fileContent, allFiles }) => {
+    const content = getTestSourceContent(fileContent, allFiles);
+    const setCells = eachDataCell(content).filter((c) => c.param && SET_TYPE.test(c.param.type));
+    const violations = setCells
+      .filter((c) => c.cell !== "" && !c.cell.startsWith("{"))
+      .map((c) => `${c.table.method} row ${c.rowIndex + 1}, column "${c.header}": ${c.cell} is not brace syntax`);
+    if (setCells.length === 0) {
+      return { passed: true, evidence: "No Set-typed column in any table — nothing to check." };
+    }
+    return verdict(violations, `All ${setCells.length} Set-typed cell(s) use brace syntax.`);
+  },
+
+  "empty-list-explicit": ({ fileContent, allFiles }) => {
+    const content = getTestSourceContent(fileContent, allFiles);
+    const listCells = eachDataCell(content).filter((c) => c.param && LIST_TYPE.test(c.param.type));
+    if (listCells.length === 0) {
+      return { passed: true, evidence: "No List-typed column in any table — nothing to check." };
+    }
+    const explicit = listCells.find((c) => c.cell === "[]");
+    return {
+      passed: Boolean(explicit),
+      evidence: explicit
+        ? `${explicit.table.method} row ${explicit.rowIndex + 1} writes the empty list as [] in column "${explicit.header}".`
+        : "No List-typed cell is written as []; an empty list is never distinguished from a blank cell (null).",
+    };
+  },
+
+  "special-chars-quoted": ({ fileContent, allFiles }) => {
+    const content = getTestSourceContent(fileContent, allFiles);
+    const violations = [];
+    for (const c of eachDataCell(content)) {
+      const elements = parseCollectionElements(c.cell);
+      if (!elements) continue;
+      // A Map cell is written `[k: v]`, so its colons are structure. Only a List or Set column
+      // turns an unquoted colon into a mis-parse — the element becomes a map entry.
+      const colonIsData = c.param && (LIST_TYPE.test(c.param.type) || SET_TYPE.test(c.param.type));
+      for (const element of elements) {
+        if (element === "" || isQuoted(element) || isNestedCollection(element)) continue;
+        const offenders = [];
+        if (colonIsData && element.includes(":")) offenders.push("colon");
+        if (element.includes("|")) offenders.push("pipe");
+        if (/[\][{}]/.test(element)) offenders.push("bracket");
+        if (offenders.length > 0) {
+          violations.push(
+            `${c.table.method} row ${c.rowIndex + 1}, column "${c.header}": element ${element} contains an unquoted ${offenders.join("/")}`
+          );
+        }
+      }
+    }
+    return verdict(violations, "Every collection element containing a colon, pipe or bracket is quoted.");
+  },
+
+  "pipe-quoted": ({ fileContent, allFiles }) => {
+    const content = getTestSourceContent(fileContent, allFiles);
+    const violations = [];
+    let quotedPipes = 0;
+    for (const c of eachDataCell(content)) {
+      const elements = parseCollectionElements(c.cell) || [c.cell];
+      for (const element of elements) {
+        if (!element.includes("|")) continue;
+        if (isQuoted(element) || isNestedCollection(element)) quotedPipes++;
+        else violations.push(`${c.table.method} row ${c.rowIndex + 1}, column "${c.header}": ${element} holds an unquoted pipe`);
+      }
+    }
+    if (violations.length === 0 && quotedPipes === 0) {
+      return { passed: true, evidence: "No value in any table contains a pipe — nothing to check." };
+    }
+    return verdict(violations, `All ${quotedPipes} pipe-containing value(s) are quoted.`);
+  },
+
+  "no-blank-collection-elements": ({ fileContent, allFiles }) => {
+    const content = getTestSourceContent(fileContent, allFiles);
+    const violations = [];
+    for (const c of eachDataCell(content)) {
+      const elements = parseCollectionElements(c.cell);
+      if (!elements) continue;
+      elements.forEach((element, i) => {
+        if (element === "") {
+          violations.push(
+            `${c.table.method} row ${c.rowIndex + 1}, column "${c.header}": ${c.cell} has a blank element at position ${i + 1}`
+          );
+        }
+      });
+    }
+    return verdict(violations, "No collection value contains a blank element.");
+  },
+
+  "newline-in-cell": ({ fileContent, allFiles }) => {
+    const content = getTestSourceContent(fileContent, allFiles);
+    // A literal line break inside a row cannot survive as a row: it splits into two lines and the
+    // halves carry the wrong number of cells. Column-count agreement with the header is therefore
+    // the decidable form of "the newline did not break the row structure".
+    const violations = [];
+    for (const table of tableTestTables(content)) {
+      table.rows.forEach((row, i) => {
+        if (row.length !== table.headers.length) {
+          violations.push(
+            `${table.method} row ${i + 1}: ${row.length} cells against ${table.headers.length} headers — a row split by a literal line break, or an unquoted pipe`
+          );
+        }
+      });
+    }
+    return verdict(violations, "Every data row has the same cell count as its header; no row is broken by a literal newline.");
+  },
+
   "output-is-kotlin": ({ allFiles }) => {
     const ktFiles = allFiles.filter(f => f.path.endsWith(".kt") && /src\/test\//.test(f.path));
     const javaFiles = allFiles.filter(f => f.path.endsWith(".java") && /src\/test\//.test(f.path));
@@ -813,4 +1152,13 @@ for (const [alias, target] of Object.entries(aliases)) {
   if (checkers[target]) checkers[alias] = checkers[target];
 }
 
-module.exports = { checkers, extractTableTestMethodBodies, parseTableHeaders, countDataRows };
+module.exports = {
+  checkers,
+  extractTableTestMethodBodies,
+  parseTableHeaders,
+  countDataRows,
+  splitRowCells,
+  parseCollectionElements,
+  parseParameterList,
+  tableTestTables,
+};

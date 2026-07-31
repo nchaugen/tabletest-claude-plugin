@@ -107,6 +107,29 @@ const exampleChecks = {
     return result.passed ? [] : [result.evidence];
   },
 
+  // The collection-and-quoting checkers, wired in when eval-20's assertions became deterministic
+  // (slice 4 step 6). They are pure table-syntax rules, so a skill illustration is exactly the
+  // kind of text they should judge — and the skill teaches this notation, so an example getting
+  // it wrong teaches the syntax its own evals penalise. Only the checkers that FAIL on a defect
+  // are wired: `empty-list-explicit` asserts a table *contains* an empty list, which is a
+  // property of an eval fixture rather than of every illustration, so it is deliberately absent.
+  ...Object.fromEntries(
+    [
+      "list-syntax-correct",
+      "set-syntax-correct",
+      "special-chars-quoted",
+      "pipe-quoted",
+      "no-blank-collection-elements",
+      "newline-in-cell",
+    ].map((id) => [
+      id,
+      (code) => {
+        const result = checkers[id]({ fileContent: code, allFiles: [] });
+        return result.passed ? [] : [result.evidence];
+      },
+    ])
+  ),
+
   "uninformative-method-name": (code) =>
     extractTableTestMethodBodies(code)
       .map(({ name }) => name.replace(/`/g, ""))
