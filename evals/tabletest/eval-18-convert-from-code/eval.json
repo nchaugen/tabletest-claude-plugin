@@ -75,7 +75,7 @@
     },
     {
       "id": "separates-decision-and-premium",
-      "text": "Decision logic (AUTO_APPROVED/REJECTED/APPROVED) and premium calculation are in separate @TableTest methods",
+      "text": "Decision logic (AUTO_APPROVED/REJECTED/APPROVED) and premium calculation are not derived in the same table. Judge this as a property of the decomposition, not as a fixed two-table shape: any number of tables PASSES provided no single table derives both, and splitting premium further across several tables is not a failure here. FAILS when one table carries both a decision expectation column and a premium expectation column and asserts on both.",
       "type": "llm"
     },
     {
@@ -89,13 +89,23 @@
       "type": "llm"
     },
     {
-      "id": "depth-decision-boundaries",
-      "text": "Approval decision table covers the rejection boundary thoroughly: 5 claims triggers rejection regardless of realistic age (risk score crosses 75), 4 claims results in approval. Rows at 4 and 5 claims with varying ages demonstrate this cliff. The senior threshold (64 vs 65) is NOT expected here — it produces no decision difference (both APPROVED) and belongs to the premium table.",
+      "id": "decision-claim-cliff",
+      "text": "Rows at 4 and 5 prior claims show the approval-to-rejection cliff: 4 claims approves, 5 claims rejects. Judge wherever the approval decision is derived, not in a table with a particular name — rows in different tables satisfy this as well as rows in one. FAILS when no row carries 4 claims, or when no row carries 5 claims.",
       "type": "llm"
     },
     {
-      "id": "depth-premium-boundaries",
-      "text": "Approved premium table covers boundary effects: the premium jump from 0 to 1 claim (impact of +15 risk score on premium), and the premium difference at age 64 vs 65 (standard vs senior formula). These boundary conditions document how premium changes at each threshold.",
+      "id": "decision-cliff-independent-of-age",
+      "text": "The rejection at 5 claims is shown to hold across more than one realistic age — as a value set in one row or as separate rows. Judge wherever the approval decision is derived, not in a table with a particular name. The senior threshold (64 vs 65) is NOT what this asks for: it produces no decision difference and belongs to the premium rule.",
+      "type": "llm"
+    },
+    {
+      "id": "premium-claim-boundary",
+      "text": "The premium difference between 0 and 1 prior claim is shown, holding age constant (the impact of +15 risk score on premium). Judge wherever premium is derived, not in a table with a particular name — the two rows may sit in different tables provided they share an age. FAILS when no pair of rows at one age differs only in carrying 0 against 1 claim.",
+      "type": "llm"
+    },
+    {
+      "id": "premium-age-boundary",
+      "text": "The premium difference at age 64 against age 65 is shown, holding claims constant (standard against senior formula). Judge wherever premium is derived, not in a table with a particular name. FAILS when no pair of rows at one claim count differs only in carrying age 64 against age 65.",
       "type": "llm"
     },
     {

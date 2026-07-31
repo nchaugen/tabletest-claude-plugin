@@ -758,3 +758,28 @@ Original numbering, still current for the mechanical work:
 4. Whatever remains unstable is the irreducible floor, and `--grade-runs 3` is the only lever left.
 
 This is a regime change: re-baseline afterwards, and no comparison may span it.
+
+## Assertion ids retired by the 2026-07-31 suite edit
+
+Rows above naming these ids describe measurements that were made; they are kept as measured. The ids
+themselves no longer exist, so a fresh grading will report them as `not-hosted`.
+
+| Retired | Replaced by | Eval |
+|---|---|---|
+| `depth-decision-boundaries` | `decision-claim-cliff` + `decision-cliff-independent-of-age` | 18 |
+| `depth-premium-boundaries` | `premium-claim-boundary` + `premium-age-boundary` | 18 |
+
+Both were compound *and* scoped to a table named by role, and **neither had ever passed** — evals 18
+ran in iterations 40, 42, 44, 45 and 50 and both failed every time, a standing −2 invisible in the
+score history because it never moved. The split gives each clause its own slot and judges it wherever
+the rule is derived.
+
+Five texts were retargeted the same way, off a named table and onto the rule: `separates-decision-and-premium`
+(18), and `2.1-decomposition-concern-separation`, `2.2-children-flat-discount`,
+`2.17-zone-irrelevance-visible`, `2.18-adult-senior-value-set` (15). Five assertions were added to
+eval-15 (`three-schemes-distinguished`, `scheme-derived-once`, `period-ticket-excluded-from-count`,
+`count-derived-from-raw-history`, `new-purchase-inclusion-published`). Slot totals: eval-15 28 → 33,
+eval-18 27 → 29.
+
+Both evals are re-baselined by this and no comparison may span it. Gotcha:
+`assertions-that-name-a-table-never-pass`.

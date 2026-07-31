@@ -7,12 +7,22 @@
   "assertions": [
     {
       "id": "2.1-decomposition-concern-separation",
-      "text": "Discount ladder, and traveller eligibility are in separate tables. Rolling window counting as a third table is desirable.",
+      "text": "The mapping from traveller category and ticket type to which discount applies is not in the same table as the count → percentage ladder, and the ladder consumes a count it does not itself derive. Judge this as a property of the decomposition, not as a fixed table count: a solution using four or more tables PASSES provided both conditions hold, and adding a table that covers a further dimension is never a failure here. FAILS when one table both decides the discount by traveller category and maps counts to percentages, or when the ladder table derives its own count from a raw history.",
+      "type": "llm"
+    },
+    {
+      "id": "three-schemes-distinguished",
+      "text": "All three discount outcomes appear as distinct expectations somewhere in the class: no discount for a period ticket, a flat 20% for a child single ticket, and a ladder-derived percentage for an adult/senior single ticket. Judge wherever each is stated — they need not share a table, and no particular table name is required.",
+      "type": "llm"
+    },
+    {
+      "id": "scheme-derived-once",
+      "text": "The mapping from traveller category and ticket type to which discount scheme applies is derived in one table. FAILS when a sibling table repeats traveller-category rows to re-derive it. A solution need not name a 'scheme' concept and must not be rewarded for doing so — what is judged is that the mapping is derived in a single place.",
       "type": "llm"
     },
     {
       "id": "2.2-children-flat-discount",
-      "text": "Children's flat 20% discount is represented — either as a row in the eligibility table or a separate note. It does not follow the ladder.",
+      "text": "Children's flat 20% discount is represented — as a row wherever the discount that applies is decided, or a separate note. It does not follow the ladder. Judge wherever that rule is stated, not in a table with a particular name.",
       "type": "llm"
     },
     {
@@ -31,6 +41,16 @@
       "type": "llm"
     },
     {
+      "id": "period-ticket-excluded-from-count",
+      "text": "A past purchase that is not a single ticket is shown by row not to count toward the travel count. FAILS when period tickets appear only where the discount for the purchase being made is decided, and never in the rule that decides whether a past purchase counts. Judge wherever countability is decided, not in a table with a particular name.",
+      "type": "llm"
+    },
+    {
+      "id": "count-derived-from-raw-history",
+      "text": "A table takes a purchase history and produces a travel count, and at least one of its histories contains both counting and non-counting purchases. FAILS when every count the ladder consumes is supplied as a bare number and no table derives one from a history.",
+      "type": "llm"
+    },
+    {
       "id": "2.9-correctness-value-set-tier-semantics",
       "text": "Value sets in the tier table contain exactly the values that produce the same discount. No cross-tier contamination.",
       "type": "llm"
@@ -43,6 +63,11 @@
     {
       "id": "2.16-no-duplicate-tier-mapping",
       "text": "The tier-to-discount mapping is expressed once — not repeated across multiple tables. A price application table (if present) should test the arithmetic (base price × discount → final price) without re-enumerating which ticket counts map to which tier.",
+      "type": "llm"
+    },
+    {
+      "id": "new-purchase-inclusion-published",
+      "text": "Where the ticket being bought enters its own travel count is visible on the published surface — a column name, a @DisplayName or a @Description — not only in a method body. Either placement is correct: the count may include the purchase being made, or the ladder may apply the +1. FAILS when a count table yields 0 for an empty history and the ladder maps a count of 5 to 5%, because the +1 is then stated nowhere and the two tables cannot be joined by a reader.",
       "type": "llm"
     },
     {
@@ -67,7 +92,7 @@
     },
     {
       "id": "2.17-zone-irrelevance-visible",
-      "text": "The eligibility/passenger-type table includes a Zone column (or equivalent) with a value set to show that the discount applies regardless of zone — rather than silently omitting zone. The requirement explicitly says 'regardless of the zones you travel in'.",
+      "text": "Wherever the discount percentage is decided, a Zone column (or equivalent) carries a value set showing that the discount applies regardless of zone — rather than silently omitting zone. The requirement explicitly says 'regardless of the zones you travel in'. Judge wherever that rule is stated, not in a table with a particular name. This is about the percentage, not about counting, which zone-independent-counting covers.",
       "type": "llm"
     },
     {
@@ -77,7 +102,7 @@
     },
     {
       "id": "2.18-adult-senior-value-set",
-      "text": "Adult and senior are expressed as a value set {ADULT, SENIOR} (or equivalent) in at least one row of the eligibility table, since they follow identical discount rules. Not enumerated as separate rows with the same outcome.",
+      "text": "Adult and senior are expressed as a value set {ADULT, SENIOR} (or equivalent) in at least one row wherever traveller category appears, since they follow identical discount rules. Not enumerated as separate rows with the same outcome. Judge wherever traveller category is stated, not in a table with a particular name.",
       "type": "llm"
     },
     {
