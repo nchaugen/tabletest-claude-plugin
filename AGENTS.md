@@ -160,11 +160,14 @@ to it and has failed in a recent baseline.** Everything else is promotion-time r
 evidence. Two consequences worth stating, because both are easy to get wrong:
 
 - An eval at 100% teaches nothing during iteration, however good it is. Keep it for promotion.
-- Near-duplicate evals bill separately for the same finding. The four conversion evals
-  (25/26/27/28) are one task from four source frameworks, and their eval-unique assertions
-  (`no-*-syntax`, `*-dependency-removed`) rarely move — so a failure they surface is usually in
-  an assertion the other three share. Run **one** per iteration cycle, rotating; all four at
-  promotion.
+- Near-duplicate evals bill separately for the same finding, and **this is what evals 26, 27 and 28
+  were cut for on 2026-08-01.** They and eval-25 were one task — the same 17-row shipping table — from
+  four source frameworks, differing by 9–10 lines of a 150-line `expected_output.md`, and between them
+  they guarded a single generic line of skill text (`SKILL.md:1106`). Their eval-unique assertions
+  (`no-*-syntax`, `*-dependency-removed`) are deterministic greps that rarely move. **Eval-25 is the
+  survivor**: the only cross-language case (Groovy source → Kotlin output) and one of only two Kotlin
+  projects in the suite. Before adding an eval, ask what it tests that an existing one does not — four
+  hosts of one task is one host measured four times, not four.
 
 Pick the loop per change, from the previous baseline's failing-assertion set, rather than
 reusing a fixed list — the discriminating core drifts as failures are fixed. A well-chosen loop is

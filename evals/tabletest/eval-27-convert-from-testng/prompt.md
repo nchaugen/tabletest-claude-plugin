@@ -1,1 +1,0 @@
-I have this TestNG parameterized test at `src/test/java/com/example/ShippingCostCalculatorTest.java` for our shipping cost calculator and I'd like to convert it to use TableTest. Can you convert it?

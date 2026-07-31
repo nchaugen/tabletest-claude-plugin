@@ -16,12 +16,29 @@ const path = require("path");
 const { computeEvalFingerprint, loadOfficialBenchmark } = require("./run-evals.js");
 
 /**
+ * The evals a benchmark still carries that have since been removed from the suite.
+ *
+ * A deleted eval fingerprints as the hash of no files at all, so it reads as "changed" and would
+ * otherwise hold the baseline stale for ever — a check that can never pass is a check nobody runs.
+ * Retirement is benign in a way staleness is not: a comparison iterates the evals the *run* holds,
+ * so a baseline entry with no definition behind it is inert rather than silently excluded.
+ * `hasDefinition` is injected to keep the decision a pure function of what exists.
+ */
+function retiredEvals(stampedEvals, hasDefinition) {
+  return stampedEvals.filter((entry) => !hasDefinition(entry.id)).map((entry) => entry.id);
+}
+
+/**
  * The evals whose stored fingerprint no longer matches their definition on disk — the ones a
  * comparison against this benchmark would silently exclude. `fingerprintOf` is injected so the
  * decision stays a pure function of what is stamped versus what is current.
+ *
+ * Evals with no definition are retired, not stale, and are reported separately; without
+ * `hasDefinition` every eval counts as defined, which is the pre-retirement behaviour.
  */
-function staleEvals(stampedEvals, fingerprintOf) {
+function staleEvals(stampedEvals, fingerprintOf, hasDefinition = () => true) {
   return stampedEvals
+    .filter((entry) => hasDefinition(entry.id))
     .filter((entry) => entry.fingerprint && entry.fingerprint !== fingerprintOf(entry.id))
     .map((entry) => entry.id);
 }
@@ -64,8 +81,13 @@ function main() {
     source = benchmark._iterationName || "official";
   }
 
-  const stale = staleEvals(benchmark.evals, (id) =>
-    computeEvalFingerprint(path.join("evals", args.skill, id))
+  const hasDefinition = (id) =>
+    fs.existsSync(path.join("evals", args.skill, id, "eval.json"));
+  const retired = retiredEvals(benchmark.evals, hasDefinition);
+  const stale = staleEvals(
+    benchmark.evals,
+    (id) => computeEvalFingerprint(path.join("evals", args.skill, id)),
+    hasDefinition
   );
 
   const regime = `${benchmark.grading_model || "unknown"}/${benchmark.grading_effort || "default"}`;
@@ -81,8 +103,16 @@ function main() {
     );
   }
 
+  if (retired.length > 0) {
+    console.log(
+      `ℹ️  ${retired.length} eval(s) in this benchmark are retired — no longer in the suite, so a ` +
+      `comparison ignores them: ${retired.join(", ")}`
+    );
+  }
+
   if (stale.length === 0) {
-    console.log(`✅ Every eval matches the current definitions; this baseline is live.`);
+    const live = benchmark.evals.length - retired.length;
+    console.log(`✅ All ${live} evals still in the suite match the current definitions; this baseline is live.`);
     return;
   }
 
@@ -95,4 +125,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { staleEvals };
+module.exports = { staleEvals, retiredEvals };
