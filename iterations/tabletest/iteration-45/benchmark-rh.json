@@ -1,0 +1,96 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 45,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "7cfcec22efed8446a3693b4ce4a6276ba36a8d65",
+  "skill_digest": "3f72990a10701532",
+  "generation_auth": "unknown",
+  "timestamp": "2026-07-31T23:28:36.271Z",
+  "evals": [
+    {
+      "id": "eval-29-shopping-cart-tt",
+      "name": "shopping cart tt",
+      "skill": "tabletest",
+      "fingerprint": "494dc8a7c7ec",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 30,
+        "assertions_total": 33,
+        "pass_rate": 0.9090909090909091,
+        "failed_assertions": [
+          "scenario-names-describe-conditions",
+          "rule-falsifiable-by-a-row",
+          "quantifier-covered-by-rows"
+        ],
+        "total_tokens": 1026101,
+        "duration_ms": 341857,
+        "cost_usd": 1.1694253,
+        "grading_usage": {
+          "input_tokens": 34271,
+          "output_tokens": 19038,
+          "total_tokens": 53309,
+          "calls": 3,
+          "cost_usd": 0.388383,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-30-order-splitting-tt",
+      "name": "order splitting tt",
+      "skill": "tabletest",
+      "fingerprint": "979bdcb9c556",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 26,
+        "assertions_total": 26,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 1925865,
+        "duration_ms": 610221,
+        "cost_usd": 2.0226827999999997,
+        "grading_usage": {
+          "input_tokens": 26282,
+          "output_tokens": 5466,
+          "total_tokens": 31748,
+          "calls": 2,
+          "cost_usd": 0.160836,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 56,
+    "assertions_total": 59,
+    "pass_rate": 0.9491525423728814,
+    "errored_evals": [],
+    "total_tokens": 2951966,
+    "total_duration_ms": 952078,
+    "total_cost_usd": 3.1921080999999996,
+    "grading": {
+      "input_tokens": 60553,
+      "output_tokens": 24504,
+      "total_tokens": 85057,
+      "calls": 5,
+      "cost_usd": 0.549219,
+      "evals_measured": 2,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}

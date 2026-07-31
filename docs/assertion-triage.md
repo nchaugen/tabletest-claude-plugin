@@ -851,3 +851,37 @@ for the implementation's boundary instead of the rule's. Same family as `black-b
 floor and `scheme-derived-once` as the ceiling, but measured across six solutions the floor passes 0
 and the ceiling passes 5. The rungs are ordered wrong. `2.1` (1 of 6) is the genuinely hard middle.
 Either relabel, or accept that the floor is really a headroom assertion.
+
+### Re-hosting the group-confined assertions — 2026-08-01 (slice 4 step 2)
+
+Cutting evals 26–28 would strand six assertions on eval-25. Only **two of the six could actually be
+re-hosted**, and the reason the other four could not is a constraint worth stating once.
+
+| Assertion | Re-hosted to | Verdict on stored outputs |
+|---|---|---|
+| `concern-not-over-split` | 14, 18, 29 | 14 PASS · **18 FAIL** · 29 PASS |
+| `titles-form-a-family` | 15, 29, 30 | 15 PASS · 29 PASS · 30 PASS |
+
+**`concern-not-over-split` earned its transfer immediately.** On iteration-50's eval-18 it fails, and
+correctly: `computesStandardPremiumFromRiskScore` (age fixed at 30) and
+`computesSeniorPremiumFromRiskScore` (age fixed at 65) vary the same input, produce the same
+`Premium?` column, and differ only in the held age. One table with an `Age` column and six rows says
+the same thing — a handful, not a cross-product, so the assertion's own collapse guards are met. That
+is a real design defect the suite could not see before, and it is new attributable headroom on
+eval-18.
+
+**No contradiction with `separates-decision-and-premium`,** which permits splitting premium across
+several tables. One decision table plus one premium table carrying an `Age` column satisfies both.
+
+**The four that could not move, and the general rule.** `options-as-map`, `options-type-converter`,
+`dimensions-as-list` and `numeric-types-correct` all depend on eval-25's *fixture*, and the grader is
+never shown a fixture — see the gotcha `grader-never-sees-the-fixture`. Concretely: eval-29 already
+carries `coupon-as-single-column` and `type-converters-for-complex-objects`, so the first two would
+have been near-duplicates in a second wording; no eval in the suite has a fixed-arity same-kind tuple
+for `dimensions-as-list` to judge; and `numeric-types-correct` **passed vacuously on eval-29** with
+the evidence "no src/main API signatures were provided", so it was removed again.
+
+**All four survive on eval-25 and lose nothing by the cut.** Their four hosts were evals 25–28 —
+*the same task in four costumes* — so they have never demonstrated transfer and cutting three cannot
+take away what was not there. Only genuinely domain-neutral assertions can be re-hosted, which is
+exactly the two that were.
