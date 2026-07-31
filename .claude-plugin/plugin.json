@@ -1,7 +1,7 @@
 {
   "name": "tabletest",
   "description": "Skills for writing TableTest-style JUnit tests (Java/Kotlin), table-driven tests in other ecosystems (Python, Swift, JavaScript, Go, C#), and clarifying behaviour through concrete example tables",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "author": {
     "name": "Nils Christian Haugen",
     "url": "https://github.com/nchaugen"

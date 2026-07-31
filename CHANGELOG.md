@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [1.8.0] - 2026-07-31
 
 ### Fixed
 - **tabletest**: Corrected the rule for multiple type converters. The skill claimed two `@TypeConverter` methods returning the same wrapper type are selected by matching the parameter name — they are not, and the published example fails every row with `TableTestException: Multiple type converters found`. Selection is by return type alone, and the match is on the *erased* type, so `Optional<String>` and `Optional<Boolean>` collide with each other. Several parameters of one wrapper type share a single converter
