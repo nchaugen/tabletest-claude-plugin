@@ -740,7 +740,7 @@ function parseArgs(argv) {
     console.error("  --nudge-skill       Append a prompt nudge to invoke the relevant skill (for models that don't trigger skills on their own)");
     console.error("  --grading-suffix S  Isolate a re-grade: write grading-S.json, benchmark-S.json, eval-review-S.md");
     console.error("  --parallel N        Max parallel evals (default: 4)");
-    console.error("  --timeout SECONDS   Override each eval's generation timeout (useful for slow local LLMs)");
+    console.error("  --timeout SECONDS   Override each eval's generation timeout, ceiling included (slow local LLMs)");
     console.error("  --grade-runs N      Grade each assertion N times and take the majority verdict (default 1)");
     console.error("  --grade-only        Re-grade existing outputs");
     console.error("  --api-generation    Bill generation to ANTHROPIC_API_KEY instead of the subscription");
@@ -1036,6 +1036,58 @@ function generationEnv(baseEnv, { apiGeneration = false, provider = "anthropic" 
   return env;
 }
 
+/**
+ * Ceiling on an eval's generation timeout, in ms.
+ *
+ * Across the 79 successful runs stored under `iterations/tabletest` the slowest was 665s and the
+ * 95th percentile 518s, so 900s is ~1.35x the worst case ever observed. The evals that carried
+ * `timeout_ms: 1500000` were budgeted at 2.3x that, and iteration-50 spent the difference: eval-30
+ * hit a dropped connection mid-thinking at ~31,800 thinking tokens, the CLI retried, and the retry
+ * re-thought from zero for another ten minutes before the timeout fired. A tighter ceiling would
+ * have bought the same (absent) answer for 40% less wall-clock and tokens.
+ *
+ * The clamp lives here rather than in each `eval.json` because `computeEvalFingerprint` hashes
+ * `eval.json` wholesale — editing `timeout_ms` in seven definitions would change seven
+ * fingerprints and force a re-baseline to buy nothing.
+ */
+const GENERATION_TIMEOUT_CEILING_MS = 900000;
+
+/**
+ * The generation timeout for one eval: an explicit `--timeout` wins outright, since its documented
+ * purpose is giving a slow local model more room than any eval definition anticipates. Absent that,
+ * the eval's own `timeout_ms` applies, clamped to the ceiling above.
+ */
+function generationTimeoutFor(evalDef, args) {
+  if (args.timeoutMs) return args.timeoutMs;
+  if (!evalDef.timeout_ms) return undefined;   // runClaude's own default
+  return Math.min(evalDef.timeout_ms, GENERATION_TIMEOUT_CEILING_MS);
+}
+
+/**
+ * Ask the CLI to return a readable summary of the model's reasoning.
+ *
+ * `thinking.display` is a request parameter, and Claude Code — not this script — builds the
+ * request, so no CLI flag, settings key or env var reaches it (and `--setting-sources ""` would
+ * bar the settings route anyway). The control protocol does: with `--input-format stream-json`
+ * the CLI accepts control requests on stdin, and `set_max_thinking_tokens` carries
+ * `thinking_display`. Verified against CLI 2.1.220 — the control response is a success and the
+ * thinking blocks come back with text instead of an empty string.
+ *
+ * **This does not change what is measured.** `display` governs visibility only: the model thinks
+ * the same and is billed the same under either setting. `max_thinking_tokens` is left null
+ * deliberately — the API rejects a thinking budget on Claude 5-family models, so a number here
+ * would at best be dropped silently and at worst move the regime. Depth is `--effort`'s job.
+ */
+const THINKING_DISPLAY_REQUEST = {
+  type: "control_request",
+  request_id: "thinking-display",
+  request: {
+    subtype: "set_max_thinking_tokens",
+    max_thinking_tokens: null,
+    thinking_display: "summarized",
+  },
+};
+
 function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, apiGeneration = false, timeoutMs = 600000 }) {
   return new Promise((resolve, reject) => {
     let settled = false;
@@ -1057,7 +1109,8 @@ function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, apiG
     if (systemPrompt) {
       args.push("--system-prompt", systemPrompt);
     }
-    args.push("-p", prompt);
+    // The prompt travels on stdin rather than `-p` so the control request above can precede it.
+    args.push("--input-format", "stream-json");
 
     let stdout = "";
     let stderr = "";
@@ -1067,8 +1120,16 @@ function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, apiG
     const proc = spawn("claude", args, {
       cwd,
       env,
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'],
     });
+
+    proc.stdin.on("error", () => { /* the close handler reports what the process actually did */ });
+    proc.stdin.write(`${JSON.stringify(THINKING_DISPLAY_REQUEST)}\n`);
+    proc.stdin.write(`${JSON.stringify({
+      type: "user",
+      message: { role: "user", content: [{ type: "text", text: prompt }] },
+    })}\n`);
+    proc.stdin.end();
 
     const timer = setTimeout(() => {
       proc.kill("SIGTERM");
@@ -1213,7 +1274,7 @@ async function generateOne(evalDef, worktreePath, iterationDir, args) {
       cwd: agentCwd,
       pluginDir: agentCwd,
       apiGeneration: args.apiGeneration,
-      timeoutMs: args.timeoutMs || evalDef.timeout_ms,
+      timeoutMs: generationTimeoutFor(evalDef, args),
     });
 
     fs.writeFileSync(
@@ -2387,15 +2448,50 @@ function appendToLedger(benchmark, comparison, context, repoRoot) {
  * gitignored and trimmed each cycle, while this is small, and because the write order shows
  * drafts and revisions the final output no longer contains.
  *
- * Thinking text is encrypted (signature only) for Claude 5-family models, so it appears
- * only for models that return it in the clear.
+ * Thinking *cost* is recorded even when thinking *text* is not. The CLI emits a
+ * `system/thinking_tokens` event per delta, and consecutive ones are collapsed here into one line
+ * per thinking block. That line is what makes a run that spent everything and produced nothing
+ * readable at a glance: iteration-50's eval-30 shows a block reaching ~31,800 tokens, then an
+ * `api_retry`, then a second block re-thinking from zero until the timeout — a diagnosis that
+ * previously took hand-parsing the gitignored transcript. `api_retry` is carried for the same
+ * reason: it was the other half of that story.
  */
 function narrationMarkdown(conversationJsonl, evalId) {
   const steps = [];
+  // A thinking block arrives as a run of per-delta events; hold the open run until something
+  // else interrupts it, so one block is one line rather than several hundred.
+  let thinkingRun = null;
+  const closeThinkingRun = () => {
+    if (!thinkingRun) return;
+    steps.push({
+      kind: "thinking-cost",
+      body: `~${thinkingRun.tokens.toLocaleString()} thinking tokens (${thinkingRun.deltas} deltas)`,
+    });
+    thinkingRun = null;
+  };
+
   for (const line of String(conversationJsonl).split("\n")) {
     if (!line.trim()) continue;
     let event;
     try { event = JSON.parse(line); } catch { continue; }
+
+    if (event?.type === "system" && event.subtype === "thinking_tokens") {
+      if (!thinkingRun) thinkingRun = { tokens: 0, deltas: 0 };
+      thinkingRun.tokens = Math.max(thinkingRun.tokens, event.estimated_tokens || 0);
+      thinkingRun.deltas += 1;
+      continue;
+    }
+    closeThinkingRun();
+
+    if (event?.type === "system" && event.subtype === "api_retry") {
+      const reason = event.error_status || event.error || "unknown";
+      steps.push({
+        kind: "retry",
+        body: `API retry ${event.attempt}/${event.max_retries} after ${event.retry_delay_ms}ms (${reason})`,
+      });
+      continue;
+    }
+
     if (event?.message?.role !== "assistant") continue;
     const content = event.message.content;
     if (!Array.isArray(content)) continue;
@@ -2412,11 +2508,12 @@ function narrationMarkdown(conversationJsonl, evalId) {
       }
     }
   }
+  closeThinkingRun();
 
   let md = `# Narration — ${evalId}\n\n`;
-  md += `The agent's visible narration and file writes, in order, distilled from\n`;
-  md += `\`conversation.jsonl\`. Thinking text is absent unless the model returns it in the\n`;
-  md += `clear (Claude 5-family models encrypt it).\n\n`;
+  md += `The agent's visible narration, thinking cost and file writes, in order, distilled from\n`;
+  md += `\`conversation.jsonl\`. Thinking text appears when the run asked the CLI for a summary\n`;
+  md += `(\`thinking_display: "summarized"\`); the per-block token counts appear either way.\n\n`;
   if (steps.length === 0) {
     md += `_No narration recorded._\n`;
     return md;
@@ -2424,6 +2521,8 @@ function narrationMarkdown(conversationJsonl, evalId) {
   for (const step of steps) {
     if (step.kind === "writes") md += `**${step.body}**\n\n`;
     else if (step.kind === "thinks") md += `> (thinking) ${step.body.replace(/\n/g, "\n> ")}\n\n`;
+    else if (step.kind === "thinking-cost") md += `_[${step.body}]_\n\n`;
+    else if (step.kind === "retry") md += `⚠️ _${step.body}_\n\n`;
     else md += `${step.body}\n\n`;
   }
   return md;
@@ -2881,6 +2980,11 @@ module.exports = {
   skillProvenance,
   inheritedProvenance,
   generationEnv,
+  // generation
+  runClaude,
+  generationTimeoutFor,
+  GENERATION_TIMEOUT_CEILING_MS,
+  THINKING_DISPLAY_REQUEST,
   // cli
   parseEvalIds,
   resolveModel,

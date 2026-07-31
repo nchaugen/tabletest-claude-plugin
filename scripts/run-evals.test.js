@@ -46,6 +46,9 @@ const {
   skillProvenance,
   inheritedProvenance,
   generationEnv,
+  generationTimeoutFor,
+  GENERATION_TIMEOUT_CEILING_MS,
+  THINKING_DISPLAY_REQUEST,
   analysisBaselineOf,
   pairedWithBaseline,
   summariseEvals,
@@ -1461,6 +1464,78 @@ describe("narrationMarkdown", () => {
     const md = narrationMarkdown(jsonl, "eval-15-x");
     assert.doesNotMatch(md, /\bprompt\b|\bls\b/);
     assert.match(md, /No narration recorded/);
+  });
+
+  const thinkingDelta = (estimated) =>
+    JSON.stringify({ type: "system", subtype: "thinking_tokens", estimated_tokens: estimated }) + "\n";
+
+  test("collapses a run of thinking deltas into one line carrying the block's cost", () => {
+    const jsonl = thinkingDelta(50) + thinkingDelta(9000) + thinkingDelta(31800);
+    assert.match(narrationMarkdown(jsonl, "eval-30-x"), /~31,800 thinking tokens \(3 deltas\)/);
+  });
+
+  test("separates the thinking blocks either side of an interruption", () => {
+    const jsonl =
+      thinkingDelta(50) + thinkingDelta(31800) +
+      line([{ type: "text", text: "Now writing the table." }]) +
+      thinkingDelta(50) + thinkingDelta(900);
+    const md = narrationMarkdown(jsonl, "eval-30-x");
+    assert.match(md, /~31,800 thinking tokens \(2 deltas\)/);
+    assert.match(md, /~900 thinking tokens \(2 deltas\)/);
+  });
+
+  // The retry is what turned eval-30's timeout from a mystery into a diagnosis: the second
+  // thinking block was the first one being redone after the connection dropped.
+  test("names an API retry, so a repeated thinking block is not read as fresh work", () => {
+    const jsonl =
+      thinkingDelta(31800) +
+      JSON.stringify({
+        type: "system", subtype: "api_retry", attempt: 1, max_retries: 10,
+        retry_delay_ms: 509, error: "unknown", error_status: null,
+      }) + "\n" +
+      thinkingDelta(23700);
+    const md = narrationMarkdown(jsonl, "eval-30-x");
+    assert.match(md, /API retry 1\/10 after 509ms \(unknown\)/);
+    assert.ok(md.indexOf("31,800") < md.indexOf("API retry"));
+    assert.ok(md.indexOf("API retry") < md.indexOf("23,700"));
+  });
+});
+
+describe("generationTimeoutFor", () => {
+  test("clamps an eval's own budget to the ceiling", () => {
+    assert.equal(
+      generationTimeoutFor({ timeout_ms: 1500000 }, {}),
+      GENERATION_TIMEOUT_CEILING_MS
+    );
+  });
+
+  test("leaves a budget already under the ceiling alone", () => {
+    assert.equal(generationTimeoutFor({ timeout_ms: 600000 }, {}), 600000);
+  });
+
+  // The flag exists for slow local models, which need more room than any definition anticipates,
+  // so it has to beat the ceiling rather than be clipped by it.
+  test("lets an explicit --timeout exceed the ceiling", () => {
+    assert.equal(generationTimeoutFor({ timeout_ms: 1500000 }, { timeoutMs: 3600000 }), 3600000);
+  });
+
+  test("falls through to runClaude's own default when the eval sets no budget", () => {
+    assert.equal(generationTimeoutFor({}, {}), undefined);
+  });
+});
+
+describe("THINKING_DISPLAY_REQUEST", () => {
+  // The CLI validates both fields together: thinking_display must be "summarized", "omitted" or
+  // null, and max_thinking_tokens an integer or null. A thinking budget is rejected by the API on
+  // Claude 5-family models, so it stays null and depth stays --effort's business.
+  test("asks for a summary without setting a thinking budget", () => {
+    assert.equal(THINKING_DISPLAY_REQUEST.request.subtype, "set_max_thinking_tokens");
+    assert.equal(THINKING_DISPLAY_REQUEST.request.thinking_display, "summarized");
+    assert.equal(THINKING_DISPLAY_REQUEST.request.max_thinking_tokens, null);
+  });
+
+  test("serialises to one line, since the CLI reads stdin newline-delimited", () => {
+    assert.doesNotMatch(JSON.stringify(THINKING_DISPLAY_REQUEST), /\n/);
   });
 });
 

@@ -95,11 +95,21 @@ comparison is honest but it is still partial. Before this, a single transient ti
 five-eval run from 71/72 to 54/72 and produced 17 phantom moved verdicts, one per assertion the eval
 owns.
 
-**Timeouts:** the runner's default is 600s. An eval whose recent runs exceed ~60% of its
-budget needs an explicit `timeout_ms`, or it will eventually time out — which now costs a re-run and
-the wall-clock rather than a corrupted comparison, per the rule above. What it still costs is the
-answer: the eval is excluded, so whatever question you were asking of it goes unanswered until you
-re-run.
+**Timeouts:** the runner's default is 600s and **every eval's budget is clamped to a 900s ceiling**
+(`GENERATION_TIMEOUT_CEILING_MS`). An eval whose recent runs exceed ~60% of its budget needs an
+explicit `timeout_ms`, up to that ceiling — beyond it, a run consistently taking 10+ minutes is
+telling you the eval is too big, not that the budget is too small. The clamp lives in the runner
+rather than in each `eval.json` on purpose: `eval.json` is hashed into the fingerprint, so editing
+`timeout_ms` there re-baselines the eval. `--timeout` overrides both, for slow local models.
+
+The ceiling is set from the stored runs, not from taste: across 79 successful generations the
+slowest was 665s and the p95 518s. The seven evals previously budgeted at 1500s were carrying 2.3x
+the worst case ever observed, and iteration-50 paid for the slack — eval-30 hit a dropped connection
+mid-thinking, retried, and re-thought from zero for another ten minutes before timing out.
+
+Timing out still costs a re-run and the wall-clock rather than a corrupted comparison, per the rule
+above. What it still costs is the answer: the eval is excluded, so whatever question you were asking
+of it goes unanswered until you re-run.
 
 **Spend runs only on questions reading cannot answer.** A run buys exactly one thing: evidence about
 what the guidance *causes an agent to do*. Everything else about a change is free to check — whether
@@ -266,13 +276,19 @@ the artefacts under `iterations/<skill>/<variant>/iteration-N/<eval>/`:
   and in what words ("a combining table for the one genuine precedence question"), and the write
   order shows drafts the final output no longer contains.
 - `conversation.jsonl` — the raw transcript `narration.md` is distilled from. Gitignored and
-  trimmed each cycle. **Thinking text is unavailable for Claude 5-family models** — the blocks arrive
-  with a signature and an empty `thinking` field, because `thinking.display` defaults to `"omitted"`
-  on that family. A **summary** is available in principle (`display: "summarized"`), but it is a
-  request parameter and the eval agent is a headless `claude` CLI process, so Claude Code builds the
-  request — no runner flag, CLI flag, settings key, or env var reaches it, and the runner passes
-  `--setting-sources ""` regardless. The raw chain of thought is never returned under any setting.
-  Narration and tool calls are all you get, and they are usually enough.
+  trimmed each cycle. **Thinking arrives as a summary, and its cost is recorded either way.**
+  `thinking.display` defaults to `"omitted"` on Claude 5-family models, which is why blocks used to
+  arrive with a signature and an empty `thinking` field. It is a request parameter, so no CLI flag,
+  settings key or env var reaches it — but the **control protocol** does: the runner passes
+  `--input-format stream-json` and sends `set_max_thinking_tokens` with
+  `thinking_display: "summarized"` before the prompt (`THINKING_DISPLAY_REQUEST` in `run-evals.js`).
+  This changes visibility only — the model thinks and bills the same either way, so runs before and
+  after it stay comparable. The raw chain of thought is still never returned under any setting.
+  Independently, the CLI emits a `system/thinking_tokens` event per delta, so **`narration.md` carries
+  a per-block thinking-token line and any `api_retry`** even on a run that produced nothing. That is
+  what makes a spent-everything-produced-nothing run readable: iteration-50's eval-30 shows a block
+  reaching ~31,800 tokens, a dropped connection, then a second block re-thinking from zero until the
+  timeout — five lines, no transcript parsing.
 
 **Two verdicts that look like findings and are not.** A grader can fail an assertion whose own
 wording the output satisfies — check the assertion text against the artefact before believing a
