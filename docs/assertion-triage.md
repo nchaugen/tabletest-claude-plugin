@@ -73,7 +73,11 @@ least one PASS and one FAIL case before it is trusted** (`docs/grader-answer-key
 - **`business-language-columns`** — a code-ism list over column headers (`Id`, `Str`, `Int`, `param`,
   `result`, camelCase, snake_case). Its eval-29 flip was on `Product Id`, which a list matches.
 - **`consistent-quantity-naming`** — comparing output-column headers across the `@TableTest` methods
-  of one class is string work with no judgement in it. It did not flip, so this conversion buys cost
+  of one class is string work with no judgement in it. **Correction 2026-07-31: it does flip.** It had
+  not, at the time this was written; `iteration-50 [v1]` flipped it on eval-26 (FAIL → PASS) while the
+  `Weight (kg)` / `Actual Weight (kg)` divergence stayed in the output, and held it stable on eval-28
+  in the same pass. That strengthens the case for the conversion rather than weakening it — the
+  judgement-free version cannot flip. This conversion buys cost
   and permanence rather than stability.
 
 ## Bounded — narrow the criterion

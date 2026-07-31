@@ -238,3 +238,67 @@ and `concern-not-over-split` need no confirmation.
   lost `1.7-readability-scenario-names`. Not covered by this addendum.
 - **Evals 27, 29 and 30 produced no output** and are unmeasured. Their baselines are 24/26, 23/30 and
   25/25. Eval-27's measurement is still owed before slice 4 cuts it.
+
+---
+
+# Confirmation — second grading pass (`[v1]`, 2026-07-31)
+
+`--grade-only --grading-suffix v1` over the same stored outputs, 14 evals, $1.45, no generation.
+Evals 27/29/30 excluded: their `outputs/` hold only an empty `response.md`.
+
+**272 → 274.** Eleven of fourteen evals re-graded identically, including eval-15 (six failures, same
+set), eval-14 and eval-25. Three moved, on seven slot flips:
+
+| Eval | g1 | g2 | Flips |
+|---|---|---|---|
+| 18-convert-from-code | 19/27 | **20/27** | `rule-statable-from-table` → PASS, `description-no-internals` → PASS, `no-table-reproves-another` → FAIL |
+| 26-convert-from-kotest | 25/27 | **27/27** | `rule-statable-from-table` → PASS, `consistent-quantity-naming` → PASS |
+| 28-convert-from-methodsource | 22/26 | **21/26** | `rule-statable-from-table` → FAIL |
+
+## Two corrections to the addendum above
+
+**1. eval-18's `rule-statable-from-table` is not a confirmed regression.** The addendum called it
+"real", reasoning from the artefact: iteration-45 published a `Risk Score?` column and iteration-50
+dropped it. The artefact reading stands, but the verdict does not survive a second grading — it
+flipped to PASS. It flipped on all three evals that carry it (18 and 26 to PASS, 28 to FAIL), so
+**three of the seven flips are one assertion.** That matches `assertion-triage.md:12`, which already
+names it the least stable in the suite. Do not act on it in either direction.
+
+**2. eval-26's `consistent-quantity-naming` is not a confirmed regression either, and the reason I
+trusted it was wrong.** The addendum called it "trustworthy" because `assertion-triage.md:75` records
+that it never flipped. **It flipped here** — eval-26 FAIL → PASS, taking that eval to 27/27. The
+`Weight (kg)` / `Actual Weight (kg)` divergence is still in the output; the grader stopped counting
+it. `assertion-triage.md` corrected.
+
+Its sibling verdict on **eval-28 is stable across both passes**, so the assertion is not uniformly
+unstable — it held on one host and flipped on the other.
+
+## What survives both passes
+
+Act only on these:
+
+- **eval-15** — all six failures, identical sets. The `2.1` / `2.17` / `quantifier-covered-by-rows`
+  regression is confirmed, and so is the API-shape cause in `narration.md:41`.
+- **eval-28** — `concern-not-over-split`, `rule-falsifiable-by-a-row`, `consistent-quantity-naming`.
+- **eval-18** — `no-duplicate-rows-within-a-table` and `separates-decision-and-premium`. Note the
+  latter is stable *within* this run and still inconsistent *across* runs: iteration-45 passed a
+  structurally similar output. That is a cross-run inconsistency, not grading noise, and the repair
+  is drafted (`products/claude-plugin/plans/eval-15-dimension-model-draft.md` § 11).
+
+## What this does to the headline
+
+The addendum's "six of the nine losses are cross-table defects" now rests on five confirmed slots,
+not six, and eval-26 has left the regression list entirely — under g2 it is **+1** against its
+baseline rather than −1. The cross-table finding is weaker than first stated but not withdrawn: it
+still carries eval-28's three and eval-18's two, all stable.
+
+**The re-graded per-eval deltas against the official baseline** are 15 −3, 18 −2, 26 **+1**, 28 −3.
+Do not add these up against the single-pass baseline and read the total as a result — the baseline is
+one grading pass and this is another, so the comparison inherits the same ±3 spread it just measured.
+
+## Consequence for the suite-edit window
+
+**Three of eval-18's and eval-26's seven flips sit on `rule-statable-from-table`, which
+`assertion-triage.md` has already scheduled for splitting by clause.** This run is the fourth
+independent probe to say so. Raise its priority in the window: it is now costing more comparisons
+than any other single assertion.
