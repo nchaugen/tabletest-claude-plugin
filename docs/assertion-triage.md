@@ -1167,6 +1167,29 @@ reads 27/32 rather than 29/32 and **both new failures are correct**, so this is 
 a regression. When a scoping fix stops one assertion punishing something, verify the right assertion
 picks it up.
 
-**Promoted.** `iteration-50` and `iteration-51` both rebuilt from stored gradings and renamed to the
-plain name in one commit; `check-baseline.js` exits 0 with all 14 evals live. Total grading spend for
-the repair cycle: **$1.84** across both iterations, no generation.
+**The tenth flipper, fixed the same way.** eval-14 `1.3-depth-overtime-boundary` asked for a value
+"just above (41 or similar)" and never said what that meant as a number. Three probe passes read the
+output's 45 as "similar" and a fourth did not, **on a byte-identical grading prompt** — it shares a
+batch with none of the repaired assertions, so the assertion text was the only thing that could have
+decided it, and it declined to. Replaced with the test the expected output already implies ("the
+40/41 pair shows where overtime starts"): one row at exactly 40 and one greater than 40 and no
+greater than 41, in the same column of the same table; 42 or above discharges nothing, because 41–44
+could still be regular under a different threshold. The verdict is unchanged (40 and 45 still FAIL,
+eval-14 still 19/23) — **this buys stability, not level** — and the grader's evidence now reads back
+the test mechanically: *"no row with value >40 and <=41 exists"*.
+
+**Give a boundary assertion an interval, not an adverb.** "Just above", "near", "close to" and "or
+similar" are the shape to look for; every one of them is a slot waiting to flip. Write `> 40 and
+<= 41`.
+
+**Promoted.** `iteration-50` and `iteration-51` rebuilt from stored gradings and renamed to the plain
+name; `check-baseline.js` exits 0 with all 14 evals live at **285/312**. Total grading spend for the
+repair cycle: **$1.90** across both iterations, no generation.
+
+**One process note worth keeping.** `git mv` fails silently-ish on an *untracked* file — the freshly
+written `grading-fx2.json` was not yet in the index, so the promotion rename did not happen and the
+rebuild reassembled from the stale `grading.json` while stamping it with the *current* fingerprint.
+Score and verdict were identical so nothing looked wrong; only the evidence string differed. **After
+promoting a regrade, grep one promoted `grading.json` for a phrase only the new assertion could have
+produced** — the fingerprint guard will not catch this, by design (it protects comparison, not
+regrade validity).
