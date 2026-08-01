@@ -34,7 +34,7 @@
       "id": "no-duplicate-role-output",
       "text": "No two rows share both the same Role value and the same boolean output — forces value set consolidation (e.g. USER can READ and USER can WRITE, both true, should be one row with {READ, WRITE}).",
       "passed": true,
-      "evidence": "USER rows: {READ,WRITE}=true, DELETE=false; GUEST: READ=true, {WRITE,DELETE}=false; no role+output pair repeats"
+      "evidence": "Rows: ADMIN/true, USER/true, USER/false, GUEST/true, GUEST/false - no role+outcome pair repeats"
     },
     {
       "id": "has-descriptive-title",
@@ -64,7 +64,7 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names name the variation the row exercises, not the result it produces. The decidable test: FAILS when a scenario name states or paraphrases a value that appears in an expectation column of that same row — 'User cannot delete' beside an Allowed? cell of false, 'No discount applies' beside a Discount? cell of 0.00, 'Contractor gets no bonus' beside a Bonus? cell of 0. Also FAILS on generic labels ('Test 1', 'Test case 2'), which name no variation at all. PASSES otherwise. Naming the rule or the situation is correct even when it makes the outcome inferable — 'Delivery and pickup items always split', 'At the standard threshold, not above it', 'EU express, light package', 'Renewal with no claims', 'Missing name' all PASS. The failure this catches is a name echoing its own expectation cell, not a name that describes what the row is about, and not a name from which a reader who knows the rule could predict the outcome. A single offending name fails the assertion. Judge every @TableTest method in the class.",
       "passed": true,
-      "evidence": "'Admin, any action', 'User, read or write', 'User, delete', 'Guest, read', 'Guest, write or delete' name conditions, not outcomes"
+      "evidence": "Scenario names: 'Admin, any action', 'User, read or write', 'User, delete', 'Guest, read', 'Guest, write or delete'"
     },
     {
       "id": "has-tabletest-dependency",
@@ -84,10 +84,10 @@
   "pass_rate": 1,
   "grading_usage": {
     "input_tokens": 3174,
-    "output_tokens": 420,
-    "total_tokens": 3594,
+    "output_tokens": 409,
+    "total_tokens": 3583,
     "calls": 1,
-    "cost_usd": 0.015822,
+    "cost_usd": 0.015657,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

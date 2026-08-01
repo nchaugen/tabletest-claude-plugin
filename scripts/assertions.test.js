@@ -314,3 +314,25 @@ describe("column-to-parameter mapping", () => {
     assert.equal(checkers["set-syntax-correct"](set).passed, true);
   });
 });
+
+describe("annotation-order vacuity", () => {
+  const src = (content) => ({ fileContent: content, allFiles: [{ path: "src/test/java/T.java", content }] });
+
+  test("marks the verdict VACUOUS when no method carries an orderable annotation", () => {
+    const r = checkers["annotation-order"](src('class T {\n  @TableTest("""\n  A | B?\n  1 | 2\n  """)\n  void t(int a, int b) { }\n}'));
+    assert.equal(r.passed, true);
+    assert.match(r.evidence, /^VACUOUS/);
+  });
+
+  test("counts the annotated methods it actually ordered", () => {
+    const r = checkers["annotation-order"](src('class T {\n  @DisplayName("x")\n  @TableTest("""\n  A | B?\n  1 | 2\n  """)\n  void t(int a, int b) { }\n}'));
+    assert.equal(r.passed, true);
+    assert.doesNotMatch(r.evidence, /VACUOUS/);
+    assert.match(r.evidence, /1 annotated method/);
+  });
+
+  test("still fails a genuine ordering violation", () => {
+    const r = checkers["annotation-order"](src('class T {\n  @Description("d")\n  @DisplayName("x")\n  @TableTest("""\n  A | B?\n  1 | 2\n  """)\n  void t(int a, int b) { }\n}'));
+    assert.equal(r.passed, false);
+  });
+});

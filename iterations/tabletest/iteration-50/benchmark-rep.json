@@ -1,0 +1,173 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 50,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "b589deb7e99e821a7ba12881fab84c1c90800069",
+  "skill_digest": "c3248d86599d354f",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-01T00:09:11.629Z",
+  "evals": [
+    {
+      "id": "eval-1-convert-repetitive-tests",
+      "name": "convert repetitive tests",
+      "skill": "tabletest",
+      "fingerprint": "653f374b717e",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 573686,
+        "duration_ms": 57299,
+        "cost_usd": 0.46619419999999995,
+        "grading_usage": {
+          "input_tokens": 2560,
+          "output_tokens": 65,
+          "total_tokens": 2625,
+          "calls": 1,
+          "cost_usd": 0.008655,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-2-parse-dates",
+      "name": "parse dates",
+      "skill": "tabletest",
+      "fingerprint": "51899e8a4e43",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 16,
+        "assertions_total": 16,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 739489,
+        "duration_ms": 114261,
+        "cost_usd": 0.6267084999999999,
+        "grading_usage": {
+          "input_tokens": 4154,
+          "output_tokens": 1231,
+          "total_tokens": 5385,
+          "calls": 1,
+          "cost_usd": 0.030927,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-7-permission-check",
+      "name": "permission check",
+      "skill": "tabletest",
+      "fingerprint": "ac6c9c89e70b",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 574682,
+        "duration_ms": 52203,
+        "cost_usd": 0.4639905,
+        "grading_usage": {
+          "input_tokens": 3174,
+          "output_tokens": 409,
+          "total_tokens": 3583,
+          "calls": 1,
+          "cost_usd": 0.015657,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-8-money-parse",
+      "name": "money parse",
+      "skill": "tabletest",
+      "fingerprint": "1d21b311487a",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 16,
+        "assertions_total": 16,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 720470,
+        "duration_ms": 88588,
+        "cost_usd": 0.5863069000000001,
+        "grading_usage": {
+          "input_tokens": 4246,
+          "output_tokens": 1023,
+          "total_tokens": 5269,
+          "calls": 1,
+          "cost_usd": 0.028083,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-9-bonus-contractor-structure",
+      "name": "bonus contractor structure",
+      "skill": "tabletest",
+      "fingerprint": "9c0dcdf3e398",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 478519,
+        "duration_ms": 66035,
+        "cost_usd": 0.47126979999999996,
+        "grading_usage": {
+          "input_tokens": 3670,
+          "output_tokens": 713,
+          "total_tokens": 4383,
+          "calls": 1,
+          "cost_usd": 0.021705,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 71,
+    "assertions_total": 71,
+    "pass_rate": 1,
+    "errored_evals": [],
+    "total_tokens": 3086846,
+    "total_duration_ms": 378386,
+    "total_cost_usd": 2.6144698999999996,
+    "grading": {
+      "input_tokens": 17804,
+      "output_tokens": 3441,
+      "total_tokens": 21245,
+      "calls": 5,
+      "cost_usd": 0.105027,
+      "evals_measured": 5,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}

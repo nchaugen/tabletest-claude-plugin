@@ -948,3 +948,37 @@ comments in the same commit.
 inside a collection — is *identical* to `no-blank-collection-elements`, so converting both would
 create two slots that can never disagree: one slot counted twice, the same error as four conversion
 evals hosting one task. Either reword it to test something the other does not, or delete it.
+
+### The two assertion repairs — 2026-08-01 (slice 4, batched with steps 2–6)
+
+**`description-if-present-adds-information` flip-flopped on the same bytes.** iteration-49 failed
+eval-7 for having no `@Description`; iteration-50 passed the identical output, calling it "vacuously
+satisfied". The permission to omit was in the text all along — as the *last* sentence, after the text
+had opened "If @Description is present…". The repair leads with the decidable case instead:
+
+> PASSES when no @Description is present anywhere in the class — omitting it is always acceptable,
+> and this assertion NEVER penalises its absence.
+
+Applied to all five hosts (1, 2, 7, 8, 9), whose texts had drifted only in their per-eval example.
+Re-graded: all five PASS, **no verdict moved**, and the three no-`@Description` outputs now pass with
+evidence naming the absence rather than a coin-flip.
+
+**`annotation-order` passed vacuously, and the fix was not where the plan expected.** An output
+writing no `@DisplayName` and no `@Description` has nothing to order, so it passed with the evidence
+"Annotations in correct order" — which reads as a win when the real change was the annotations
+disappearing (iteration-49 recorded exactly that on eval-20). The checker now counts the methods it
+actually ordered and returns a marked verdict when that count is zero:
+
+> VACUOUS: no @TableTest method carries a @DisplayName or @Description, so there was no ordering to
+> check. This pass is not evidence that ordering improved.
+
+**Deliberately still a PASS.** Requiring the annotation would contradict `has-descriptive-title`,
+which accepts a descriptive method name instead — so the honest fix is to make the vacuity legible,
+not to invent a failure. The residual limit is real and worth stating: the slot can still move
+FAIL→PASS when annotations vanish. The evidence now says so in the report.
+
+**It moved no fingerprints, which the plan predicted it would.** The sequencing note expected this
+repair to re-fingerprint 15 of 17 evals. It re-fingerprinted **none**: the defect was in
+`scripts/assertions.js`, and the fingerprint covers `prompt.md`, `eval.json`, `expected_output.md`
+and `project/` only. **Check where a repair actually lives before sizing its blast radius** — a
+checker fix is free, an assertion-text fix costs a re-baseline on every host.

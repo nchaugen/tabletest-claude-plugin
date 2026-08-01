@@ -46,7 +46,7 @@
       "id": "description-if-present-adds-information",
       "text": "PASSES when no @Description is present anywhere in the class — omitting it is always acceptable, and this assertion NEVER penalises its absence. Do not fail it for a missing @Description, and do not treat a @DisplayName as a substitute. When a @Description IS present, it must provide context beyond what the table rows already express — such as fixed values shared by all rows, or where/when the rule applies — and FAILS when it merely restates the column names or summarises what the rows already show.",
       "passed": true,
-      "evidence": "No @Description present in the @TableTest annotation; only column headers and rows are shown."
+      "evidence": "No @Description present in the @TableTest annotation; only column headers and rows shown."
     },
     {
       "id": "annotation-order",
@@ -84,10 +84,10 @@
   "pass_rate": 1,
   "grading_usage": {
     "input_tokens": 2560,
-    "output_tokens": 66,
-    "total_tokens": 2626,
+    "output_tokens": 65,
+    "total_tokens": 2625,
     "calls": 1,
-    "cost_usd": 0.00867,
+    "cost_usd": 0.008655,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

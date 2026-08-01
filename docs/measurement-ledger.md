@@ -154,3 +154,4 @@ The correction lives only in the forward-looking baseline copy.
 | 2026-07-31 | `iteration-50 [f2]` | regrade | 1 | `c3248d8659` | claude-sonnet-5/default | `dfd6ae10` | 25/27 | — | $0.16 | — | vs iteration 49: 0/1 comparable, 0 moved. |
 | 2026-07-31 | `iteration-45 [f2]` | regrade | 1 | `3f72990a10` | claude-sonnet-5/default | `dfd6ae10` | 20/27 | — | $0.21 | — | vs iteration 44: 0/1 comparable, 0 moved. |
 | 2026-07-31 | `iteration-50 [det]` | regrade | 1 | `c3248d8659` | claude-sonnet-5/default | `50d77458` | 17/17 | — | $0.02 | — | vs iteration 49: 0/1 comparable, 0 moved. |
+| 2026-08-01 | `iteration-50 [rep]` | regrade | 5 | `c3248d8659` | claude-sonnet-5/default | `f4e66760` | 71/71 | — | $0.11 | — | vs iteration 49: 0/5 comparable, 0 moved. |

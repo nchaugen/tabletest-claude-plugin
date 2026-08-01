@@ -505,6 +505,12 @@ const checkers = {
     // Blocks are per method and per file, so an earlier method's @Description is never
     // read as this method's.
     const violations = [];
+    // How many @TableTest methods actually carried an annotation this could order. A method with
+    // neither @DisplayName nor @Description has nothing to get wrong, so it passes — correctly,
+    // but for no reason the assertion is about. Counting them is what stops a later reader taking
+    // "annotations are in the right order" for a win when the real change was the annotations
+    // disappearing: iteration-49 recorded exactly that on eval-20.
+    let orderable = 0;
 
     for (const file of getTestSourceFiles(fileContent, allFiles)) {
       const lines = file.content.split('\n');
@@ -520,6 +526,7 @@ const checkers = {
 
         const displayNameLine = lineOf(/@DisplayName/);
         const descriptionLine = lineOf(/@Description/);
+        if (displayNameLine !== -1 || descriptionLine !== -1) orderable++;
 
         if (displayNameLine !== -1 && descriptionLine !== -1 && displayNameLine > descriptionLine) {
           violations.push(`${where}@DisplayName (line ${displayNameLine + 1}) after @Description (line ${descriptionLine + 1})`);
@@ -533,10 +540,19 @@ const checkers = {
       }
     }
 
+    if (violations.length === 0 && orderable === 0) {
+      return {
+        passed: true,
+        evidence:
+          "VACUOUS: no @TableTest method carries a @DisplayName or @Description, so there was no " +
+          "ordering to check. This pass is not evidence that ordering improved — do not read a " +
+          "move onto it as a win.",
+      };
+    }
     return {
       passed: violations.length === 0,
       evidence: violations.length === 0
-        ? "Annotations in correct order: @DisplayName, @Description, @TableTest"
+        ? `Annotations in correct order (@DisplayName, @Description, @TableTest) across ${orderable} annotated method(s)`
         : `Order violations: ${violations.join("; ")}`,
     };
   },
