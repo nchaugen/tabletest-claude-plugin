@@ -1,4 +1,4 @@
-## Include Traceability Columns
+### Include Traceability Columns
 
 When a table exercises a pipeline — input, then an intermediate result, then a final result — include
 the intermediate as an expectation column. A reader can then trace the logic step by step, and when a

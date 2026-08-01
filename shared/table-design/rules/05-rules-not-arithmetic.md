@@ -1,4 +1,4 @@
-## Separate Rules from Arithmetic
+### Separate Rules from Arithmetic
 
 Tables specify the interesting decisions — classifications, eligibility rules, tier lookups, state
 transitions — not that multiplication works.

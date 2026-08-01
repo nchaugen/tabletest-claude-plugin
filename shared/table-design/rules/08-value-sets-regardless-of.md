@@ -1,4 +1,4 @@
-## Use Value Sets for "Regardless Of" Relationships
+### Use Value Sets for "Regardless Of" Relationships
 
 When an input exists but does not affect the outcome of a {{row}}, say so with data rather than prose:
 put every value the rule ignores in the cell.

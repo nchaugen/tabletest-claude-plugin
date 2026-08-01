@@ -1,4 +1,4 @@
-## Decompose When You See These Signs
+### Decompose When You See These Signs
 
 *One Rule, One Axis* gives the first test — a behaviour you cannot name without "and" is two
 concerns. These are the signs that show up later, once the table exists:

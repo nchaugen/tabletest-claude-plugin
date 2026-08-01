@@ -1,4 +1,4 @@
-## Use Concrete Domain Values
+### Use Concrete Domain Values
 
 Cell values are concrete, meaningful domain data — not abstract flags, codes, or placeholders. An
 expectation value is traceable to the input values in its own {{row}}.

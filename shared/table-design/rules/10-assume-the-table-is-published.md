@@ -1,4 +1,4 @@
-## Assume the Table Is Published
+### Assume the Table Is Published
 
 Write every table as if a reader will meet it in a published report, never having seen the code. Only
 three surfaces reach that reader, and they divide the work:

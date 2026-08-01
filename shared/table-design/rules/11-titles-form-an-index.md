@@ -1,4 +1,4 @@
-## Write Titles That Form an Index
+### Write Titles That Form an Index
 
 {{Title_surface}} is the line a reader scans in the report index. **Judge titles as a set, never one
 at a time:** a title that reads well on its own page can still be an unscannable entry in the list.

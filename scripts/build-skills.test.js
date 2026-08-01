@@ -126,9 +126,9 @@ describe("the shared table-design core", () => {
     }
   });
 
-  test("gives every rule a heading, so the rendered core reads as sections", () => {
+  test("gives every rule an h3 heading, so it nests under each skill's Table Design section", () => {
     for (const { slug, template } of rules) {
-      assert.match(template, /^## \S/m, slug);
+      assert.match(template, /^### \S/m, slug);
     }
   });
 

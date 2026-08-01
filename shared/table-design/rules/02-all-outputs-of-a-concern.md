@@ -1,4 +1,4 @@
-## Include All Outputs of a Concern
+### Include All Outputs of a Concern
 
 When an operation produces several observable outputs, include them all as expectation columns in one
 table. Each {{row}} then gives the complete picture of what happens for that scenario. Splitting the

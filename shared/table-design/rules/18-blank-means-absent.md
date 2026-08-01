@@ -1,4 +1,4 @@
-## Blank Means Absent
+### Blank Means Absent
 
 Use a blank cell when a value is genuinely absent. Blank means **absent** — not zero, not a default,
 and not irrelevant.

@@ -1,4 +1,4 @@
-## A Combining Table Needs Its Own Rule
+### A Combining Table Needs Its Own Rule
 
 Once every rule has a table, the pull is to add one more that runs the whole feature end to end. It
 re-proves what the single-rule tables already established, and it reads as redundant however clean

@@ -1,4 +1,4 @@
-## Make Thresholds Visible
+### Make Thresholds Visible
 
 When a rule depends on a threshold or limit, include it as a column — even when the value is constant
 across every {{row}}.

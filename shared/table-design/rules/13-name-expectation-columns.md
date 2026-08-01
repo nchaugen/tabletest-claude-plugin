@@ -1,4 +1,4 @@
-## Name Expectation Columns Clearly
+### Name Expectation Columns Clearly
 
 End every expectation column with a `?` **suffix**, so a reader can tell at a glance which columns are
 outputs being verified and which are inputs being provided. Input columns never take `?` — including

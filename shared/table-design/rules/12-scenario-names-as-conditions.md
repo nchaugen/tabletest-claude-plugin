@@ -1,4 +1,4 @@
-## Name Scenarios by Condition, Not Outcome
+### Name Scenarios by Condition, Not Outcome
 
 Good {{names}} answer "under what circumstances?" — not "what happens?". The outcome is already in the
 expectation columns; naming it twice adds nothing, and when the expectation changes the {{name_noun}}

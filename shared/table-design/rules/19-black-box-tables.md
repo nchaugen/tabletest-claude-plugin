@@ -1,4 +1,4 @@
-## Design Black-Box Tables
+### Design Black-Box Tables
 
 Model observable inputs and outputs. Avoid internal flags and setup-only columns unless they are part
 of the public contract.

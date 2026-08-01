@@ -1,4 +1,4 @@
-## Give Each Obligation Exactly One {{Row}}
+### Give Each Obligation Exactly One {{Row}}
 
 The right number of {{rows}} is a covering problem. List the concern's **obligations** — the distinct
 behaviours the rule must demonstrate — then write the smallest set of {{rows}} that covers all of

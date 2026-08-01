@@ -1,4 +1,4 @@
-## Cover Every Tier and Both Sides of Every Boundary
+### Cover Every Tier and Both Sides of Every Boundary
 
 When inputs map to tiers — rate bands, size categories, standings — every tier appears in the
 {{rows}}, and every boundary is exercised from both sides: the last value inside a tier and the first

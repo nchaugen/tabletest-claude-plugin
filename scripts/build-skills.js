@@ -174,14 +174,38 @@ function replaceRegion(content, body) {
   return `${region.before}\n\n${body.trim()}\n\n${region.after}`;
 }
 
-/** Each skill's `SKILL.md` path, whether or not it carries a region. */
+/**
+ * Every `SKILL.md` the build owns: the published skills, plus any in-development variant.
+ *
+ * **Variants are included deliberately.** A variant is a full copy of a skill directory and the
+ * runner hands the agent that copy, so a variant whose region was never filled would be measured
+ * with a region the build has not written — the run would be attributed to the shared core while
+ * testing something else.
+ */
 function skillFiles() {
+  const found = [];
+
   const skillsDir = path.join(repoRoot, "skills");
-  if (!fs.existsSync(skillsDir)) return [];
-  return fs.readdirSync(skillsDir)
-    .filter(name => fs.existsSync(path.join(skillsDir, name, "SKILL.md")))
-    .sort()
-    .map(name => ({ skill: name, file: path.join(skillsDir, name, "SKILL.md") }));
+  if (fs.existsSync(skillsDir)) {
+    for (const skill of fs.readdirSync(skillsDir).sort()) {
+      const file = path.join(skillsDir, skill, "SKILL.md");
+      if (fs.existsSync(file)) found.push({ skill, file });
+    }
+  }
+
+  const variantsDir = path.join(repoRoot, "skill-variants");
+  if (fs.existsSync(variantsDir)) {
+    for (const skill of fs.readdirSync(variantsDir).sort()) {
+      const skillVariants = path.join(variantsDir, skill);
+      if (!fs.statSync(skillVariants).isDirectory()) continue;
+      for (const variant of fs.readdirSync(skillVariants).sort()) {
+        const file = path.join(skillVariants, variant, "SKILL.md");
+        if (fs.existsSync(file)) found.push({ skill, file });
+      }
+    }
+  }
+
+  return found;
 }
 
 /**

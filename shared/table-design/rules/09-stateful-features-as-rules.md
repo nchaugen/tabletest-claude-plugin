@@ -1,4 +1,4 @@
-## Frame Stateful Features as Transition Rules
+### Frame Stateful Features as Transition Rules
 
 When a feature involves state — queues, workflows, inventories — frame each {{row}} as a state
 transition rule: the state before, the action, the state after, and any message or result.

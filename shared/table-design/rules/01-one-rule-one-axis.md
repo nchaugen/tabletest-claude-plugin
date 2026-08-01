@@ -1,4 +1,4 @@
-## One Rule, One Axis
+### One Rule, One Axis
 
 A table is one rule varying along one axis. The axis is what the {{rows}} change; everything else is
 either held constant or collapsed into a value set. Most decomposition questions are that one

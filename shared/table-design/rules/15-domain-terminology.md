@@ -1,4 +1,4 @@
-## Use Domain Terminology
+### Use Domain Terminology
 
 Column names use domain or feature terminology that readers understand without knowing the
 implementation. Avoid parameter names, variable names, and internal API terms.
