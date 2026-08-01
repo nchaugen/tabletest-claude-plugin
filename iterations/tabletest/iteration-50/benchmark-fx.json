@@ -1,0 +1,390 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 50,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "b589deb7e99e821a7ba12881fab84c1c90800069",
+  "skill_digest": "c3248d86599d354f",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-01T09:35:26.924Z",
+  "evals": [
+    {
+      "id": "eval-22-event-registration-tt",
+      "name": "event registration tt",
+      "skill": "tabletest",
+      "fingerprint": "ad77568405e9",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 28,
+        "assertions_total": 29,
+        "pass_rate": 0.9655172413793104,
+        "failed_assertions": [
+          "quantifier-covered-by-rows"
+        ],
+        "total_tokens": 877168,
+        "duration_ms": 179450,
+        "cost_usd": 0.7962546,
+        "grading_usage": {
+          "input_tokens": 14470,
+          "output_tokens": 5678,
+          "total_tokens": 20148,
+          "calls": 2,
+          "cost_usd": 0.12858,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-23-loan-approval-tt",
+      "name": "loan approval tt",
+      "skill": "tabletest",
+      "fingerprint": "ff53b33466df",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 23,
+        "assertions_total": 23,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 1017292,
+        "duration_ms": 209514,
+        "cost_usd": 0.8667573000000002,
+        "grading_usage": {
+          "input_tokens": 12941,
+          "output_tokens": 5180,
+          "total_tokens": 18121,
+          "calls": 2,
+          "cost_usd": 0.116523,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-25-convert-from-spock",
+      "name": "convert from spock",
+      "skill": "tabletest",
+      "fingerprint": "cf05d6e40ec6",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 25,
+        "assertions_total": 27,
+        "pass_rate": 0.9259259259259259,
+        "failed_assertions": [
+          "concern-not-over-split",
+          "rule-statable-from-table"
+        ],
+        "total_tokens": 1402979,
+        "duration_ms": 408965,
+        "cost_usd": 1.4062291,
+        "grading_usage": {
+          "input_tokens": 20211,
+          "output_tokens": 5711,
+          "total_tokens": 25922,
+          "calls": 2,
+          "cost_usd": 0.146298,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-1-convert-repetitive-tests",
+      "name": "convert repetitive tests",
+      "skill": "tabletest",
+      "fingerprint": "653f374b717e",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 573686,
+        "duration_ms": 57299,
+        "cost_usd": 0.46619419999999995,
+        "grading_usage": {
+          "input_tokens": 2560,
+          "output_tokens": 59,
+          "total_tokens": 2619,
+          "calls": 1,
+          "cost_usd": 0.008565,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-2-parse-dates",
+      "name": "parse dates",
+      "skill": "tabletest",
+      "fingerprint": "43191e76eadf",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 16,
+        "assertions_total": 16,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 739489,
+        "duration_ms": 114261,
+        "cost_usd": 0.6267084999999999,
+        "grading_usage": {
+          "input_tokens": 4395,
+          "output_tokens": 1071,
+          "total_tokens": 5466,
+          "calls": 1,
+          "cost_usd": 0.02925,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-7-permission-check",
+      "name": "permission check",
+      "skill": "tabletest",
+      "fingerprint": "ac6c9c89e70b",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 574682,
+        "duration_ms": 52203,
+        "cost_usd": 0.4639905,
+        "grading_usage": {
+          "input_tokens": 3174,
+          "output_tokens": 351,
+          "total_tokens": 3525,
+          "calls": 1,
+          "cost_usd": 0.014787,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-8-money-parse",
+      "name": "money parse",
+      "skill": "tabletest",
+      "fingerprint": "884d3fafda09",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 16,
+        "assertions_total": 16,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 720470,
+        "duration_ms": 88588,
+        "cost_usd": 0.5863069000000001,
+        "grading_usage": {
+          "input_tokens": 4487,
+          "output_tokens": 894,
+          "total_tokens": 5381,
+          "calls": 1,
+          "cost_usd": 0.026871,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-9-bonus-contractor-structure",
+      "name": "bonus contractor structure",
+      "skill": "tabletest",
+      "fingerprint": "9c0dcdf3e398",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 478519,
+        "duration_ms": 66035,
+        "cost_usd": 0.47126979999999996,
+        "grading_usage": {
+          "input_tokens": 3670,
+          "output_tokens": 686,
+          "total_tokens": 4356,
+          "calls": 1,
+          "cost_usd": 0.0213,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-14-weekly-pay",
+      "name": "weekly pay",
+      "skill": "tabletest",
+      "fingerprint": "b18a2536c694",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 19,
+        "assertions_total": 23,
+        "pass_rate": 0.8260869565217391,
+        "failed_assertions": [
+          "1.3-depth-overtime-boundary",
+          "1.6-readability-empty-cells",
+          "1.7-readability-scenario-names",
+          "1.14-depth-zero-rate"
+        ],
+        "total_tokens": 853524,
+        "duration_ms": 196162,
+        "cost_usd": 0.8487382,
+        "grading_usage": {
+          "input_tokens": 13456,
+          "output_tokens": 4675,
+          "total_tokens": 18131,
+          "calls": 2,
+          "cost_usd": 0.110493,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-15-reis-discount",
+      "name": "reis discount",
+      "skill": "tabletest",
+      "fingerprint": "ca4eed22d503",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 26,
+        "assertions_total": 34,
+        "pass_rate": 0.7647058823529411,
+        "failed_assertions": [
+          "2.1-decomposition-concern-separation",
+          "three-schemes-distinguished",
+          "window-boundary-uses-purchase-time",
+          "new-purchase-inclusion-published",
+          "2.17-zone-irrelevance-visible",
+          "zone-independent-counting",
+          "2.21-readability-relative-time",
+          "quantifier-covered-by-rows"
+        ],
+        "total_tokens": 797902,
+        "duration_ms": 365452,
+        "cost_usd": 1.1895600000000002,
+        "grading_usage": {
+          "input_tokens": 25673,
+          "output_tokens": 11106,
+          "total_tokens": 36779,
+          "calls": 3,
+          "cost_usd": 0.243609,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-18-convert-from-code",
+      "name": "convert from code",
+      "skill": "tabletest",
+      "fingerprint": "e6dc3ac194ef",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 22,
+        "assertions_total": 30,
+        "pass_rate": 0.7333333333333333,
+        "failed_assertions": [
+          "black-box-columns",
+          "observable-io-only",
+          "no-duplicate-rows-within-a-table",
+          "separates-decision-and-premium",
+          "description-no-internals",
+          "decision-claim-cliff",
+          "decision-cliff-independent-of-age",
+          "concern-not-over-split"
+        ],
+        "total_tokens": 1079291,
+        "duration_ms": 266124,
+        "cost_usd": 1.0273945,
+        "grading_usage": {
+          "input_tokens": 16039,
+          "output_tokens": 25717,
+          "total_tokens": 41756,
+          "calls": 2,
+          "cost_usd": 0.433872,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-20-collections-and-quoting",
+      "name": "collections and quoting",
+      "skill": "tabletest",
+      "fingerprint": "51e09385504d",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 17,
+        "assertions_total": 17,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 2289675,
+        "duration_ms": 311375,
+        "cost_usd": 1.5130384999999995,
+        "grading_usage": {
+          "input_tokens": 6232,
+          "output_tokens": 173,
+          "total_tokens": 6405,
+          "calls": 1,
+          "cost_usd": 0.021291,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 231,
+    "assertions_total": 254,
+    "pass_rate": 0.9094488188976378,
+    "errored_evals": [],
+    "total_tokens": 11404677,
+    "total_duration_ms": 2315428,
+    "total_cost_usd": 10.262442099999998,
+    "grading": {
+      "input_tokens": 127308,
+      "output_tokens": 61301,
+      "total_tokens": 188609,
+      "calls": 19,
+      "cost_usd": 1.3014389999999998,
+      "evals_measured": 12,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}
