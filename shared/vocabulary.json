@@ -11,7 +11,9 @@
     "each_table": "each @TableTest",
     "every_table": "every @TableTest method in the class",
     "coverage_assertions": "2.19-covers-every-tier and quantifier-covered-by-rows",
-    "empty_value_notation": "`''` for a string, `[]` `{}` `[:]` for a collection"
+    "empty_value_notation": "`''` for a string, `[]` `{}` `[:]` for a collection",
+    "title_surface": "`@DisplayName`, or the method name when there is none",
+    "description_surface": "`@Description`"
   },
   "spec-by-example": {
     "names": "scenario names",
@@ -24,7 +26,9 @@
     "each_table": "each table",
     "every_table": "every table in the response",
     "coverage_assertions": "this eval's own coverage assertions",
-    "empty_value_notation": "`''` for a string, `[]` `{}` `[:]` for a collection"
+    "empty_value_notation": "`''` for a string, `[]` `{}` `[:]` for a collection",
+    "title_surface": "the table's heading",
+    "description_surface": "the note beneath the table"
   },
   "table-driven-testing": {
     "names": "scenario ids",
@@ -37,6 +41,8 @@
     "each_table": "each parametrized test",
     "every_table": "every parametrized test in the file",
     "coverage_assertions": "this eval's own coverage assertions",
-    "empty_value_notation": "the language's own empty literal — `''`, `[]`, `{}`"
+    "empty_value_notation": "the language's own empty literal — `''`, `[]`, `{}`",
+    "title_surface": "the test function name, or the display name the framework shows",
+    "description_surface": "the test's docstring or leading comment"
   }
 }

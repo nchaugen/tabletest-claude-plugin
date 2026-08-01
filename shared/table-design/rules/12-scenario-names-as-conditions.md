@@ -11,4 +11,9 @@ Naming the rule or the situation is correct even when it makes the outcome infer
 avoid is a {{name_noun}} echoing its own expectation cell, and a generic label that names no variation
 at all.
 
+**A priority or decision table is where this goes wrong most often**, because such a table almost
+always publishes the winner as an expectation column. "Configured wins" beside a `Source?` of
+`CONFIGURED` restates its own answer; "Both sources set" and "Input dir absent" say which case the
+{{row}} is.
+
 {{example}}
