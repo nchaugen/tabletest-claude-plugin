@@ -8,13 +8,13 @@
   "skill_commit": "b589deb7e99e821a7ba12881fab84c1c90800069",
   "skill_digest": "c3248d86599d354f",
   "generation_auth": "subscription",
-  "timestamp": "2026-07-31T22:31:49.199Z",
+  "timestamp": "2026-08-01T00:17:35.059Z",
   "evals": [
     {
       "id": "eval-1-convert-repetitive-tests",
       "name": "convert repetitive tests",
       "skill": "tabletest",
-      "fingerprint": "65a3f44e52f9",
+      "fingerprint": "653f374b717e",
       "results": {
         "model": "claude-sonnet-5",
         "assertions_passed": 13,
@@ -25,11 +25,11 @@
         "duration_ms": 57299,
         "cost_usd": 0.46619419999999995,
         "grading_usage": {
-          "input_tokens": 2531,
-          "output_tokens": 62,
-          "total_tokens": 2593,
+          "input_tokens": 2560,
+          "output_tokens": 66,
+          "total_tokens": 2626,
           "calls": 1,
-          "cost_usd": 0.008523,
+          "cost_usd": 0.00867,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -41,7 +41,7 @@
       "id": "eval-2-parse-dates",
       "name": "parse dates",
       "skill": "tabletest",
-      "fingerprint": "e177ae972625",
+      "fingerprint": "51899e8a4e43",
       "results": {
         "model": "claude-sonnet-5",
         "assertions_passed": 16,
@@ -52,11 +52,11 @@
         "duration_ms": 114261,
         "cost_usd": 0.6267084999999999,
         "grading_usage": {
-          "input_tokens": 4112,
-          "output_tokens": 1182,
-          "total_tokens": 5294,
+          "input_tokens": 4154,
+          "output_tokens": 1142,
+          "total_tokens": 5296,
           "calls": 1,
-          "cost_usd": 0.030066,
+          "cost_usd": 0.029592,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -68,7 +68,7 @@
       "id": "eval-7-permission-check",
       "name": "permission check",
       "skill": "tabletest",
-      "fingerprint": "0f01fa22b565",
+      "fingerprint": "ac6c9c89e70b",
       "results": {
         "model": "claude-sonnet-5",
         "assertions_passed": 13,
@@ -79,11 +79,11 @@
         "duration_ms": 52203,
         "cost_usd": 0.4639905,
         "grading_usage": {
-          "input_tokens": 3115,
-          "output_tokens": 438,
-          "total_tokens": 3553,
+          "input_tokens": 3174,
+          "output_tokens": 420,
+          "total_tokens": 3594,
           "calls": 1,
-          "cost_usd": 0.015915,
+          "cost_usd": 0.015822,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -95,7 +95,7 @@
       "id": "eval-8-money-parse",
       "name": "money parse",
       "skill": "tabletest",
-      "fingerprint": "21b99640ccbf",
+      "fingerprint": "1d21b311487a",
       "results": {
         "model": "claude-sonnet-5",
         "assertions_passed": 16,
@@ -106,11 +106,11 @@
         "duration_ms": 88588,
         "cost_usd": 0.5863069000000001,
         "grading_usage": {
-          "input_tokens": 4187,
-          "output_tokens": 1154,
-          "total_tokens": 5341,
+          "input_tokens": 4246,
+          "output_tokens": 1009,
+          "total_tokens": 5255,
           "calls": 1,
-          "cost_usd": 0.029871,
+          "cost_usd": 0.027873,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -122,7 +122,7 @@
       "id": "eval-9-bonus-contractor-structure",
       "name": "bonus contractor structure",
       "skill": "tabletest",
-      "fingerprint": "88bec2c915fc",
+      "fingerprint": "9c0dcdf3e398",
       "results": {
         "model": "claude-sonnet-5",
         "assertions_passed": 13,
@@ -133,11 +133,11 @@
         "duration_ms": 66035,
         "cost_usd": 0.47126979999999996,
         "grading_usage": {
-          "input_tokens": 3609,
-          "output_tokens": 382,
-          "total_tokens": 3991,
+          "input_tokens": 3670,
+          "output_tokens": 615,
+          "total_tokens": 4285,
           "calls": 1,
-          "cost_usd": 0.016557,
+          "cost_usd": 0.020235,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -149,26 +149,27 @@
       "id": "eval-14-weekly-pay",
       "name": "weekly pay",
       "skill": "tabletest",
-      "fingerprint": "af17cfe3a33f",
+      "fingerprint": "c1644135c345",
       "results": {
         "model": "claude-sonnet-5",
         "assertions_passed": 19,
-        "assertions_total": 22,
-        "pass_rate": 0.8636363636363636,
+        "assertions_total": 23,
+        "pass_rate": 0.8260869565217391,
         "failed_assertions": [
           "1.6-readability-empty-cells",
           "1.7-readability-scenario-names",
-          "1.14-depth-zero-rate"
+          "1.14-depth-zero-rate",
+          "no-table-reproves-another"
         ],
         "total_tokens": 853524,
         "duration_ms": 196162,
         "cost_usd": 0.8487382,
         "grading_usage": {
-          "input_tokens": 12831,
-          "output_tokens": 4178,
-          "total_tokens": 17009,
+          "input_tokens": 13215,
+          "output_tokens": 4320,
+          "total_tokens": 17535,
           "calls": 2,
-          "cost_usd": 0.101163,
+          "cost_usd": 0.104445,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -180,12 +181,12 @@
       "id": "eval-15-reis-discount",
       "name": "reis discount",
       "skill": "tabletest",
-      "fingerprint": "11991da60eb2",
+      "fingerprint": "4ad81e2e3b6e",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 25,
-        "assertions_total": 33,
-        "pass_rate": 0.7575757575757576,
+        "assertions_passed": 26,
+        "assertions_total": 34,
+        "pass_rate": 0.7647058823529411,
         "failed_assertions": [
           "2.1-decomposition-concern-separation",
           "three-schemes-distinguished",
@@ -200,11 +201,11 @@
         "duration_ms": 365452,
         "cost_usd": 1.1895600000000002,
         "grading_usage": {
-          "input_tokens": 24781,
-          "output_tokens": 12079,
-          "total_tokens": 36860,
+          "input_tokens": 25146,
+          "output_tokens": 12111,
+          "total_tokens": 37257,
           "calls": 3,
-          "cost_usd": 0.255528,
+          "cost_usd": 0.257103,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -216,30 +217,32 @@
       "id": "eval-18-convert-from-code",
       "name": "convert from code",
       "skill": "tabletest",
-      "fingerprint": "40afafcfcf86",
+      "fingerprint": "f09aedb58e36",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 22,
-        "assertions_total": 29,
-        "pass_rate": 0.7586206896551724,
+        "assertions_passed": 21,
+        "assertions_total": 30,
+        "pass_rate": 0.7,
         "failed_assertions": [
           "black-box-columns",
           "observable-io-only",
-          "no-duplicate-rows-within-a-table",
           "separates-decision-and-premium",
           "description-no-internals",
           "decision-claim-cliff",
-          "decision-cliff-independent-of-age"
+          "decision-cliff-independent-of-age",
+          "premium-claim-boundary",
+          "rule-statable-from-table",
+          "concern-not-over-split"
         ],
         "total_tokens": 1079291,
         "duration_ms": 266124,
         "cost_usd": 1.0273945,
         "grading_usage": {
-          "input_tokens": 15163,
-          "output_tokens": 21495,
-          "total_tokens": 36658,
+          "input_tokens": 15547,
+          "output_tokens": 15783,
+          "total_tokens": 31330,
           "calls": 2,
-          "cost_usd": 0.367914,
+          "cost_usd": 0.283386,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -251,7 +254,7 @@
       "id": "eval-20-collections-and-quoting",
       "name": "collections and quoting",
       "skill": "tabletest",
-      "fingerprint": "6b2c3046d75d",
+      "fingerprint": "51e09385504d",
       "results": {
         "model": "claude-sonnet-5",
         "assertions_passed": 17,
@@ -262,11 +265,11 @@
         "duration_ms": 311375,
         "cost_usd": 1.5130384999999995,
         "grading_usage": {
-          "input_tokens": 6634,
-          "output_tokens": 1207,
-          "total_tokens": 7841,
+          "input_tokens": 6232,
+          "output_tokens": 154,
+          "total_tokens": 6386,
           "calls": 1,
-          "cost_usd": 0.038007,
+          "cost_usd": 0.021006,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -290,10 +293,10 @@
         "cost_usd": 0.7962546,
         "grading_usage": {
           "input_tokens": 13724,
-          "output_tokens": 4871,
-          "total_tokens": 18595,
+          "output_tokens": 4731,
+          "total_tokens": 18455,
           "calls": 2,
-          "cost_usd": 0.114237,
+          "cost_usd": 0.112137,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -317,10 +320,10 @@
         "cost_usd": 0.8667573000000002,
         "grading_usage": {
           "input_tokens": 12350,
-          "output_tokens": 6400,
-          "total_tokens": 18750,
+          "output_tokens": 5426,
+          "total_tokens": 17776,
           "calls": 2,
-          "cost_usd": 0.13305,
+          "cost_usd": 0.11844,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -332,7 +335,7 @@
       "id": "eval-25-convert-from-spock",
       "name": "convert from spock",
       "skill": "tabletest",
-      "fingerprint": "40ec9330aca0",
+      "fingerprint": "32ab55d37857",
       "results": {
         "model": "claude-sonnet-5",
         "assertions_passed": 25,
@@ -346,11 +349,11 @@
         "duration_ms": 408965,
         "cost_usd": 1.4062291,
         "grading_usage": {
-          "input_tokens": 19710,
-          "output_tokens": 5946,
-          "total_tokens": 25656,
+          "input_tokens": 19839,
+          "output_tokens": 6292,
+          "total_tokens": 26131,
           "calls": 2,
-          "cost_usd": 0.14832,
+          "cost_usd": 0.153897,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -558,8 +561,8 @@
   ],
   "summary": {
     "assertions_passed": 278,
-    "assertions_total": 304,
-    "pass_rate": 0.9144736842105263,
+    "assertions_total": 307,
+    "pass_rate": 0.9055374592833876,
     "errored_evals": [
       "eval-27-convert-from-testng",
       "eval-29-shopping-cart-tt",
@@ -569,11 +572,11 @@
     "total_duration_ms": 5602131,
     "total_cost_usd": 12.871310699999997,
     "grading": {
-      "input_tokens": 163557,
-      "output_tokens": 73108,
-      "total_tokens": 236665,
+      "input_tokens": 164667,
+      "output_tokens": 65783,
+      "total_tokens": 230450,
       "calls": 23,
-      "cost_usd": 1.587291,
+      "cost_usd": 1.480746,
       "evals_measured": 14,
       "rates_usd_per_mtok": {
         "input": 3,
