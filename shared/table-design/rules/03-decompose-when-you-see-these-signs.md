@@ -3,7 +3,7 @@
 *One Rule, One Axis* gives the first test — a behaviour you cannot name without "and" is two
 concerns. These are the signs that show up later, once the table exists:
 
-- Some {{rows}} need columns that other {{rows}} leave blank throughout.
+- Some {{rows}} need columns that other {{rows}} leave {{unused_cell}}.
 - {{Names}} need qualifiers — "…for eligibility" against "…for pricing".
 - The table has two groups of expectation columns that never both apply in the same {{row}}.
 

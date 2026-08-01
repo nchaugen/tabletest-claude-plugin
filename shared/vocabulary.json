@@ -13,7 +13,8 @@
     "coverage_assertions": "2.19-covers-every-tier and quantifier-covered-by-rows",
     "empty_value_notation": "`''` for a string, `[]` `{}` `[:]` for a collection",
     "title_surface": "`@DisplayName`, or the method name when there is none",
-    "description_surface": "`@Description`"
+    "description_surface": "`@Description`",
+    "unused_cell": "blank throughout"
   },
   "spec-by-example": {
     "names": "scenario names",
@@ -28,7 +29,8 @@
     "coverage_assertions": "this eval's own coverage assertions",
     "empty_value_notation": "`''` for a string, `[]` `{}` `[:]` for a collection",
     "title_surface": "the table's heading",
-    "description_surface": "the note beneath the table"
+    "description_surface": "the note beneath the table",
+    "unused_cell": "blank throughout"
   },
   "table-driven-testing": {
     "names": "scenario ids",
@@ -43,6 +45,7 @@
     "coverage_assertions": "this eval's own coverage assertions",
     "empty_value_notation": "the language's own empty literal — `''`, `[]`, `{}`",
     "title_surface": "the test function name, or the display name the framework shows",
-    "description_surface": "the test's docstring or leading comment"
+    "description_surface": "the test's docstring or leading comment",
+    "unused_cell": "at a placeholder value throughout"
   }
 }

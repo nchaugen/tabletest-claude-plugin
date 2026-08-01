@@ -583,6 +583,36 @@ with a canonical sort where it is.
 
 `Streams?` carries the `?`; `Items` does not. Only the column being verified takes the suffix.
 
+### Model Rejection as an Expected Column
+
+When a table covers cases the system rejects, the rejection is an **expectation column** — the error
+type, or the reason — never a decision taken in the test body. Each row then states its own
+outcome where the reader can see it.
+
+**Whether accepted and rejected rows share a table is decided by what the table is about.**
+
+- **The table's whole expectation is whether the call is rejected** — a boundary straddling a
+  validation limit, the last accepted value beside the first rejected one. That is *one rule*, and
+  splitting it puts the two halves of a single boundary where no reader sees them together. Keep one
+  table, leave the rejection column blank where nothing is rejected, and compare the outcome as a
+  value.
+- **Rejection is one outcome among several** — a parser returning values for good input and rejecting
+  malformed input. Those are two concerns and belong in two tables.
+
+**Never branch in the body to choose how to assert.** Picking between a rejection assertion and a
+value assertion per row puts the rule back where the table cannot show it, and it is the failure
+both shapes above exist to avoid.
+
+One rule — the whole table asks whether the registration is accepted:
+
+| Scenario              | Name  | Email           | Valid? | Rejection Reason?  |
+|-----------------------|-------|-----------------|--------|--------------------|
+| Complete registration | Ada   | ada@example.com | yes    |                    |
+| Missing name          |       | ada@example.com | no     | Name is required   |
+| Email without @       | Ada   | ada.example.com | no     | Email is malformed |
+
+`Rejection Reason?` is blank where nothing is rejected — the same column, not a second table.
+
 ### Use Concrete Domain Values
 
 Cell values are concrete, meaningful domain data — not abstract flags, codes, or placeholders. An
@@ -763,6 +793,7 @@ Before handing off to implementation, verify the example table.
 - [ ] **Titles form an index**: read the titles as a sorted list — each states an action the code performs (not a label for a topic), one grammatical shape runs across them, and no three share an uninformative opener
 - [ ] **No scenario name restates its own row's answer**: read each scenario name beside the expectation cells of that row — none states or paraphrases one of them, and none is a generic label
 - [ ] **Expectation columns marked**: at least one column uses the `?` suffix (never a prefix), no input column does, and a compound result stays a native collection rather than a flattened string
+- [ ] **Rejection expressed as data**: rejected rows carry the error type or reason in an expectation column, never a hardcoded outcome in the body; accepted and rejected rows share a table only where the whole expectation is acceptance, and no row branches the assertion
 - [ ] **Concrete values**: expectation values are literal domain values traceable to the input columns of their own row — not abstract codes, and not hidden behind named constants
 - [ ] **Domain language**: column names use the business vocabulary, not parameter names, field names or internal API terms
 - [ ] **Thresholds visible**: a rule that depends on a threshold or limit shows it as a column, with boundary rows at and just past it
