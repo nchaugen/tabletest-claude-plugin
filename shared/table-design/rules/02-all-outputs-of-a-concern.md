@@ -17,3 +17,5 @@ tested. Two repairs, and which is right depends on the rule:
   completeness".
 
 {{example}}
+
+**Check:** **Complete outputs**: all observable outputs of the same rule sit in one table, and every expectation column there is exercised by the {{rows}} that table varies — one constant down all {{rows}}, or moving only as a side effect of another, belongs to a different rule's table

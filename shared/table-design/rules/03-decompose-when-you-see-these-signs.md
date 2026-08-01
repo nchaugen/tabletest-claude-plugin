@@ -31,3 +31,5 @@ Where no such name exists the tables are genuinely distinct and belong apart —
 collapsing would cross-multiply, or leave {{rows}} whose purpose is no longer legible.
 
 {{example}}
+
+**Check:** **Decomposed, not over-split**: no table mixes concerns (blank-throughout columns, qualified {{names}}, two groups of expectation columns), and no set of same-fixture tables reports one expectation column that a family column would collapse

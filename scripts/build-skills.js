@@ -98,17 +98,33 @@ const FRAMEWORK_NOUNS = [
   /\bGolang\b/, /\bmarkdown\b/i,
 ];
 
-/** The shared table-design rules, in file order, as {slug, template}. */
+/**
+ * The shared table-design rules, in file order, as {slug, template, check}.
+ *
+ * A rule file ends with a `**Check:**` line — the terse form for sweeping a finished table, as
+ * against the prose that teaches how to write one. It is **split off the body**, not rendered
+ * twice: the guidance region carries the rule, the checklist region carries the check, and both
+ * come from this one file so they cannot drift apart.
+ */
 function loadTableDesignRules() {
   const rulesDir = path.join(sharedTableDesignDir, "rules");
   if (!fs.existsSync(rulesDir)) return [];
   return fs.readdirSync(rulesDir)
     .filter(f => f.endsWith(".md"))
     .sort()
-    .map(f => ({
-      slug: path.basename(f, ".md"),
-      template: fs.readFileSync(path.join(rulesDir, f), "utf-8").trim(),
-    }));
+    .map(f => {
+      const slug = path.basename(f, ".md");
+      const text = fs.readFileSync(path.join(rulesDir, f), "utf-8").trim();
+      const marker = text.lastIndexOf("**Check:**");
+      if (marker === -1) {
+        throw new Error(`shared/table-design/rules/${f} has no **Check:** line — every rule needs its checklist form`);
+      }
+      return {
+        slug,
+        template: text.slice(0, marker).trim(),
+        check: text.slice(marker + "**Check:**".length).trim(),
+      };
+    });
 }
 
 /** One skill's illustration of one rule, or null when it has none. */
@@ -136,8 +152,29 @@ function renderTableDesign(skill, vocabulary) {
   }).join("\n\n");
 }
 
-const REGION_BEGIN = "<!-- BEGIN GENERATED table-design — do not edit here; source is shared/table-design/ -->";
-const REGION_END = "<!-- END GENERATED table-design -->";
+/**
+ * The checklist form of every rule, for one skill.
+ *
+ * Roughly a third of each skill's Quality Checks restated a shared rule in its own words — 34 lines
+ * across the three skills for 19 rules — which is the surface most certain to drift, because a
+ * checklist is a restatement by construction.
+ */
+function renderTableDesignChecks(skill, vocabulary) {
+  return loadTableDesignRules()
+    .map(({ slug, check }) => `- [ ] ${render(check, vocabulary, `shared/table-design/rules/${slug}.md`)}`)
+    .join("\n");
+}
+
+const REGIONS = {
+  "table-design": renderTableDesign,
+  "table-design-checks": renderTableDesignChecks,
+};
+
+const beginMarker = (name) => `<!-- BEGIN GENERATED ${name} — do not edit here; source is shared/table-design/ -->`;
+const endMarker = (name) => `<!-- END GENERATED ${name} -->`;
+
+const REGION_BEGIN = beginMarker("table-design");
+const REGION_END = endMarker("table-design");
 
 /**
  * Split a `SKILL.md` around its generated region, or null when it carries none.
@@ -146,30 +183,32 @@ const REGION_END = "<!-- END GENERATED table-design -->";
  * opening marker and no closing one *is* an error and throws: treating the rest of the file as
  * region body would let the next build delete everything below it.
  */
-function findRegion(content) {
-  const start = content.indexOf(REGION_BEGIN);
+function findRegion(content, name = "table-design") {
+  const begin = beginMarker(name);
+  const end = endMarker(name);
+  const start = content.indexOf(begin);
   if (start === -1) {
-    if (content.includes(REGION_END)) {
-      throw new Error("SKILL.md has a closing table-design marker with no opening one");
+    if (content.includes(end)) {
+      throw new Error(`SKILL.md has a closing ${name} marker with no opening one`);
     }
     return null;
   }
-  const end = content.indexOf(REGION_END, start);
-  if (end === -1) {
-    throw new Error("SKILL.md has an opening table-design marker with no closing one — refusing to treat the rest of the file as generated");
+  const stop = content.indexOf(end, start);
+  if (stop === -1) {
+    throw new Error(`SKILL.md has an opening ${name} marker with no closing one — refusing to treat the rest of the file as generated`);
   }
   return {
-    before: content.slice(0, start + REGION_BEGIN.length),
-    body: content.slice(start + REGION_BEGIN.length, end).trim(),
-    after: content.slice(end),
+    before: content.slice(0, start + begin.length),
+    body: content.slice(start + begin.length, stop).trim(),
+    after: content.slice(stop),
   };
 }
 
 /** The same `SKILL.md` with `body` between its markers. Throws when there is no region to fill. */
-function replaceRegion(content, body) {
-  const region = findRegion(content);
+function replaceRegion(content, body, name = "table-design") {
+  const region = findRegion(content, name);
   if (region === null) {
-    throw new Error("SKILL.md carries no table-design region to fill — add the markers first");
+    throw new Error(`SKILL.md carries no ${name} region to fill — add the markers first`);
   }
   return `${region.before}\n\n${body.trim()}\n\n${region.after}`;
 }
@@ -218,14 +257,16 @@ function findRegionDrift() {
   const vocabulary = loadVocabulary();
   const drift = [];
   for (const { skill, file } of skillFiles()) {
-    const region = findRegion(fs.readFileSync(file, "utf-8"));
-    if (region === null) continue;
-    if (!vocabulary[skill]) {
-      throw new Error(`No vocabulary for skill "${skill}" — add it to shared/vocabulary.json`);
-    }
-    const expected = renderTableDesign(skill, vocabulary[skill]).trim();
-    if (region.body !== expected) {
-      drift.push({ skill, file: path.relative(repoRoot, file) });
+    const content = fs.readFileSync(file, "utf-8");
+    for (const [name, renderer] of Object.entries(REGIONS)) {
+      const region = findRegion(content, name);
+      if (region === null) continue;
+      if (!vocabulary[skill]) {
+        throw new Error(`No vocabulary for skill "${skill}" — add it to shared/vocabulary.json`);
+      }
+      if (region.body !== renderer(skill, vocabulary[skill]).trim()) {
+        drift.push({ skill, name, file: path.relative(repoRoot, file) });
+      }
     }
   }
   return drift;
@@ -237,8 +278,11 @@ function writeSkillRegions() {
   const written = [];
   for (const { skill, file } of skillFiles()) {
     const content = fs.readFileSync(file, "utf-8");
-    if (findRegion(content) === null) continue;
-    const updated = replaceRegion(content, renderTableDesign(skill, vocabulary[skill]));
+    let updated = content;
+    for (const [name, renderer] of Object.entries(REGIONS)) {
+      if (findRegion(updated, name) === null) continue;
+      updated = replaceRegion(updated, renderer(skill, vocabulary[skill]), name);
+    }
     if (updated !== content) {
       fs.writeFileSync(file, updated);
       written.push(path.relative(repoRoot, file));
@@ -321,7 +365,10 @@ function main() {
     const assertionDrift = findAssertionDrift();
     const regionDrift = findRegionDrift();
     if (assertionDrift.length === 0 && regionDrift.length === 0) {
-      const regions = skillFiles().filter(({ file }) => findRegion(fs.readFileSync(file, "utf-8")) !== null).length;
+      const regions = skillFiles().reduce((n, { file }) => {
+        const content = fs.readFileSync(file, "utf-8");
+        return n + Object.keys(REGIONS).filter(name => findRegion(content, name) !== null).length;
+      }, 0);
       console.log(`Every generated copy matches its source in shared/ (${regions} skill region(s) checked).`);
       return 0;
     }
@@ -335,7 +382,7 @@ function main() {
     }
     if (regionDrift.length > 0) {
       console.error(`${regionDrift.length} skill region(s) diverge from shared/table-design/:`);
-      for (const d of regionDrift) console.error(`  ${d.file}`);
+      for (const d of regionDrift) console.error(`  ${d.file} — ${d.name}`);
     }
     console.error("Edit the source under shared/, then run: node scripts/build-skills.js");
     return 1;
@@ -378,4 +425,8 @@ module.exports = {
   skillFiles,
   REGION_BEGIN,
   REGION_END,
+  REGIONS,
+  beginMarker,
+  endMarker,
+  renderTableDesignChecks,
 };

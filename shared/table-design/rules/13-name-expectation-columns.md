@@ -16,3 +16,5 @@ formatting logic back into the test body. Use a set where order is not part of t
 with a canonical sort where it is.
 
 {{example}}
+
+**Check:** **Expectation columns marked**: at least one column uses the `?` suffix (never a prefix), no input column does, and a compound result stays a native collection rather than a flattened string

@@ -744,16 +744,37 @@ The example table is not a throwaway artefact — it is the first draft of the l
 
 ## Quality Checks
 
-Before handing off to implementation, verify the example table:
+Before handing off to implementation, verify the example table.
 
-- [ ] **Named concern**: The table has a clear name describing the single behaviour it specifies
-- [ ] **Multiple rows**: At least 2–3 rows — enough to reveal the column structure and decision boundaries
-- [ ] **Business language**: All column headers use domain terms, not implementation terms
-- [ ] **Concrete values**: Cell values are recognisable domain data, not abstract codes or boolean flags
-- [ ] **Traceable outputs**: Expected output values are derivable from input values where possible
-- [ ] **Conditions as scenarios**: Scenario names describe the situation, not the expected result
-- [ ] **Domain-expert readable**: A domain expert could confirm or challenge every row without reading code
-- [ ] **One concern per table**: All rows belong to the same decision, transformation, or rule
-- [ ] **Edge cases considered**: Boundary values, absent inputs, and rejection cases are represented
-- [ ] **Open questions noted**: Uncertain cells or unresolved decisions are marked, not silently left blank
-- [ ] **Irrelevant inputs shown**: When a rule holds regardless of an input, that is expressed with multiple values in one cell, not omitted
+**Table design** — the shared rules above, in checklist form:
+
+<!-- BEGIN GENERATED table-design-checks — do not edit here; source is shared/table-design/ -->
+
+- [ ] **One rule per table**: every row and column serves this table's one axis; a behaviour you cannot name without "and" has been split
+- [ ] **Complete outputs**: all observable outputs of the same rule sit in one table, and every expectation column there is exercised by the rows that table varies — one constant down all rows, or moving only as a side effect of another, belongs to a different rule's table
+- [ ] **Decomposed, not over-split**: no table mixes concerns (blank-throughout columns, qualified scenario names, two groups of expectation columns), and no set of same-fixture tables reports one expectation column that a family column would collapse
+- [ ] **Combining tables prove an interaction**: any table exercising several rules together shows behaviour the single-rule tables cannot (a precedence, an ordering), not the earlier rules re-run end to end
+- [ ] **Rules separated from arithmetic**: every expectation cell is predictable from its row in one step; a classification and the calculation that follows it are two tables
+- [ ] **One row per obligation**: every row discharges a behaviour no other row in that table reaches; where two rows share an expectation, what differs between them is what the rule is about — not a value further past the same boundary, a larger n in the same direction, or an input the rule ignores
+- [ ] **Every tier once**: a tier ladder has one row per tier — all of them, none twice — and every boundary is exercised from both sides, middle tiers included
+- [ ] **Value set semantics**: value sets appear only where every value produces the same result, never as shorthand for "test several values"; an input this rule claims not to affect the outcome varies across the values it ignores, while an input another rule owns is held at one valid value
+- [ ] **Stateful rows independent**: transition rows carry their own before-state and after-state; no row depends on another having run
+- [ ] **Held constants declared**: every value the outcome depends on that the table fixes for all rows is a column, or is named in the title or description as held fixed — never left only in the test body, a field, a conversion helper, or a comment
+- [ ] **Titles form an index**: read the titles as a sorted list — each states an action the code performs (not a label for a topic), one grammatical shape runs across them, and no three share an uninformative opener
+- [ ] **No scenario name restates its own row's answer**: read each scenario name beside the expectation cells of that row — none states or paraphrases one of them, and none is a generic label
+- [ ] **Expectation columns marked**: at least one column uses the `?` suffix (never a prefix), no input column does, and a compound result stays a native collection rather than a flattened string
+- [ ] **Concrete values**: expectation values are literal domain values traceable to the input columns of their own row — not abstract codes, and not hidden behind named constants
+- [ ] **Domain language**: column names use the business vocabulary, not parameter names, field names or internal API terms
+- [ ] **Thresholds visible**: a rule that depends on a threshold or limit shows it as a column, with boundary rows at and just past it
+- [ ] **Traceability columns**: an intermediate expectation appears only where the value is observable from the public API — never reimplemented from internal logic; if a formula would have to be reimplemented to fill it, decompose instead
+- [ ] **Blank means absent**: a column whose input is genuinely absent for a row uses a blank cell, not 0 or a default; an input that is present but irrelevant is a value set instead, and nothing converts a blank to a default on the way in
+- [ ] **Black-box design**: columns represent observable inputs and outputs, not internal flags or implementation details
+
+<!-- END GENERATED table-design-checks -->
+
+**This skill's own checks** — what a facilitated example table needs beyond a well-designed one:
+
+- [ ] **Multiple rows**: at least 2–3 rows — enough to reveal the column structure and decision boundaries
+- [ ] **Domain-expert readable**: a domain expert could confirm or challenge every row without reading code
+- [ ] **Open questions noted**: uncertain cells or unresolved decisions are marked, not silently left blank
+- [ ] **Edge cases raised in the conversation**: absent inputs and rejection cases were asked about, not assumed away

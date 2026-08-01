@@ -19,3 +19,5 @@ the cell is a different scenario; converting a blank to a default on the way in 
 Do not fill a genuinely blank cell with filler like `N/A` or `none`.
 
 {{example}}
+
+**Check:** **Blank means absent**: a column whose input is genuinely absent for a {{row}} uses a blank cell, not 0 or a default; an input that is present but irrelevant is a value set instead, and nothing converts a blank to a default on the way in

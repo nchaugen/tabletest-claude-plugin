@@ -35,3 +35,5 @@ runs the whole feature to re-prove one already-proven total is the same combinin
 {{rows}}.
 
 {{example}}
+
+**Check:** **Combining tables prove an interaction**: any table exercising several rules together shows behaviour the single-rule tables cannot (a precedence, an ordering), not the earlier rules re-run end to end

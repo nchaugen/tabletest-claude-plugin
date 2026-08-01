@@ -20,3 +20,5 @@ because it looks like plumbing: one that builds every entry with the same zone h
 the whole table, and no column says so.
 
 {{example}}
+
+**Check:** **Held constants declared**: every value the outcome depends on that the table fixes for all {{rows}} is a column, or is named in the title or description as held fixed — never left only in the test body, a field, a conversion helper, or a comment

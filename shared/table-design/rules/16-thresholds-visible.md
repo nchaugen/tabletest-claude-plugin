@@ -11,3 +11,5 @@ just over it — become natural to add once the threshold is visible.
 differ. The answer may reveal a second axis that belongs as new {{rows}} or as a separate table.
 
 {{example}}
+
+**Check:** **Thresholds visible**: a rule that depends on a threshold or limit shows it as a column, with boundary {{rows}} at and just past it

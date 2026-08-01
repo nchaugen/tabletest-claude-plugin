@@ -32,3 +32,5 @@ two rules, two questions, two {{rows}} in two tables. Showing the value once, in
 reached first, feels like coverage and is not. **Count obligations per rule, never per value.**
 
 {{example}}
+
+**Check:** **One {{row}} per obligation**: every {{row}} discharges a behaviour no other {{row}} in that table reaches; where two {{rows}} share an expectation, what differs between them is what the rule is about — not a value further past the same boundary, a larger n in the same direction, or an input the rule ignores

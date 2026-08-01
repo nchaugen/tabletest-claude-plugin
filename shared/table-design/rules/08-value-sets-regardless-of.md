@@ -15,3 +15,5 @@ one obviously-valid value. An input that *this* rule claims not to affect has to
 values it ignores — otherwise no {{row}} could ever contradict the claim.
 
 {{example}}
+
+**Check:** **Value set semantics**: value sets appear only where every value produces the same result, never as shorthand for "test several values"; an input this rule claims not to affect the outcome varies across the values it ignores, while an input another rule owns is held at one valid value

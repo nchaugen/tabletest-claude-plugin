@@ -14,3 +14,5 @@ forces the reader to look up every number, which is exactly the indirection the 
 remove.
 
 {{example}}
+
+**Check:** **Concrete values**: expectation values are literal domain values traceable to the input columns of their own {{row}} — not abstract codes, and not hidden behind named constants

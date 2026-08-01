@@ -15,3 +15,5 @@ Separate tables reduce {{rows}} by avoiding unnecessary permutations, and the ta
 implementation: five concern tables suggest five functions.
 
 {{example}}
+
+**Check:** **One rule per table**: every {{row}} and column serves this table's one axis; a behaviour you cannot name without "and" has been split

@@ -14,3 +14,5 @@ This usually needs a narrower function to call. A table that can only reach the 
 the seam is missing, not that the table must fuse.
 
 {{example}}
+
+**Check:** **Rules separated from arithmetic**: every expectation cell is predictable from its {{row}} in one step; a classification and the calculation that follows it are two tables

@@ -12,3 +12,5 @@ A sequential path — step 1, then step 2, then step 3 — creates {{row}} depen
 at all.
 
 {{example}}
+
+**Check:** **Stateful {{rows}} independent**: transition {{rows}} carry their own before-state and after-state; no {{row}} depends on another having run

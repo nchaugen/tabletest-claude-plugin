@@ -13,3 +13,5 @@ intermediate is pointing at a separate concern that needs its own table. Decompo
 intermediate becomes an expectation in one table and an input in the next.
 
 {{example}}
+
+**Check:** **Traceability columns**: an intermediate expectation appears only where the value is observable from the public API — never reimplemented from internal logic; if a formula would have to be reimplemented to fill it, decompose instead

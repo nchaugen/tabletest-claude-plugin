@@ -17,3 +17,5 @@ always publishes the winner as an expectation column. "Configured wins" beside a
 {{row}} is.
 
 {{example}}
+
+**Check:** **No {{name}} restates its own {{row}}'s answer**: read each {{name}} beside the expectation cells of that {{row}} — none states or paraphrases one of them, and none is a generic label

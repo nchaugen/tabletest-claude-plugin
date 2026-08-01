@@ -26,3 +26,5 @@ variation — see *Name Scenarios by Condition, Not Outcome*. A title says what 
 {{names}} get in.
 
 {{example}}
+
+**Check:** **Titles form an index**: read the titles as a sorted list — each states an action the code performs (not a label for a topic), one grammatical shape runs across them, and no three share an uninformative opener

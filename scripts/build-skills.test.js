@@ -16,6 +16,9 @@ const {
   findRegionDrift,
   REGION_BEGIN,
   REGION_END,
+  beginMarker,
+  endMarker,
+  renderTableDesignChecks,
 } = require("./build-skills.js");
 
 const vocabulary = {
@@ -225,5 +228,47 @@ describe("the generated SKILL.md region", () => {
 
   test("keeps every migrated skill's region in step with the shared source", () => {
     assert.deepEqual(findRegionDrift().map(d => d.file), [], "run: node scripts/build-skills.js");
+  });
+});
+
+describe("the generated checklist", () => {
+  const vocabularies = loadVocabulary();
+
+  test("gives every rule a check, so the checklist cannot fall behind the rules", () => {
+    for (const { slug, check } of loadTableDesignRules()) {
+      assert.ok(check && check.length > 0, `${slug} has an empty **Check:** line`);
+    }
+  });
+
+  test("splits the check off the rule body rather than rendering it twice", () => {
+    for (const { slug, template } of loadTableDesignRules()) {
+      assert.doesNotMatch(template, /\*\*Check:\*\*/, `${slug} still carries its check in the body`);
+    }
+    for (const skill of Object.keys(vocabularies)) {
+      assert.doesNotMatch(renderTableDesign(skill, vocabularies[skill]), /\*\*Check:\*\*/, skill);
+    }
+  });
+
+  test("emits one checklist item per rule, for every skill", () => {
+    const ruleCount = loadTableDesignRules().length;
+    for (const skill of Object.keys(vocabularies)) {
+      const lines = renderTableDesignChecks(skill, vocabularies[skill]).split("\n");
+      assert.equal(lines.length, ruleCount, skill);
+      for (const line of lines) assert.match(line, /^- \[ \] \*\*/, `${skill}: ${line}`);
+    }
+  });
+
+  test("renders each skill's checklist in its own vocabulary", () => {
+    assert.match(renderTableDesignChecks("table-driven-testing", vocabularies["table-driven-testing"]), /one case per obligation/i);
+    assert.match(renderTableDesignChecks("spec-by-example", vocabularies["spec-by-example"]), /one row per obligation/i);
+  });
+
+  test("keeps the two regions independent, so a skill may carry either or both", () => {
+    const both = `x\n${beginMarker("table-design")}\nA\n${endMarker("table-design")}\ny\n${beginMarker("table-design-checks")}\nB\n${endMarker("table-design-checks")}\nz`;
+    assert.equal(findRegion(both, "table-design").body, "A");
+    assert.equal(findRegion(both, "table-design-checks").body, "B");
+    const onlyChecks = `x\n${beginMarker("table-design-checks")}\nB\n${endMarker("table-design-checks")}`;
+    assert.equal(findRegion(onlyChecks, "table-design"), null);
+    assert.equal(findRegion(onlyChecks, "table-design-checks").body, "B");
   });
 });

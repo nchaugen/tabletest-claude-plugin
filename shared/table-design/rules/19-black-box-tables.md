@@ -9,3 +9,5 @@ normalisation outside the body entirely. When you find yourself writing logic in
 column or helper it should have been.
 
 {{example}}
+
+**Check:** **Black-box design**: columns represent observable inputs and outputs, not internal flags or implementation details

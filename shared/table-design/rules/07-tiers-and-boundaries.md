@@ -16,3 +16,5 @@ boundaries — a separate "tier begins" {{row}} then discharges nothing the "tie
 not.
 
 {{example}}
+
+**Check:** **Every tier once**: a tier ladder has one {{row}} per tier — all of them, none twice — and every boundary is exercised from both sides, middle tiers included
