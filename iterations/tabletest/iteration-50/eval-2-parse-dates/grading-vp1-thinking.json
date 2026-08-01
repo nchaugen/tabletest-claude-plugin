@@ -1,0 +1,21 @@
+{
+  "eval": 2,
+  "model": "claude-sonnet-5",
+  "calls": [
+    {
+      "assertions": [
+        "exception-handled-cleanly",
+        "localdate-result-column",
+        "type-conversion-addressed",
+        "description-if-present-adds-information",
+        "concerns-decomposed",
+        "no-duplicate-rows-within-a-table",
+        "no-table-reproves-another",
+        "separates-valid-and-invalid"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "I'm working through the test assertions one by one. The exception handling is properly separated with a Throws column, the date parsing correctly returns LocalDate objects, and the ISO string conversion is being used appropriately. The @Description annotation is present and adds useful context about the assumptions being made, particularly around how short years are interpreted and what happens outside the supported range.\n\nThe test structure cleanly separates valid and invalid cases across two focused tables with no duplicate rows within each, and there's no redundant integration testing. I notice the century-window assumption is mentioned in the description but there's no explicit row demonstrating it—however, that's not required by the assertion criteria, so all checks pass. Now I'll generate the JSON output."
+    }
+  ]
+}

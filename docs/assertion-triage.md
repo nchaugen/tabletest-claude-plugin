@@ -989,3 +989,39 @@ repair to re-fingerprint 15 of 17 evals. It re-fingerprinted **none**: the defec
 `scripts/assertions.js`, and the fingerprint covers `prompt.md`, `eval.json`, `expected_output.md`
 and `project/` only. **Check where a repair actually lives before sizing its blast radius** — a
 checker fix is free, an assertion-text fix costs a re-baseline on every host.
+
+## Variance probe on the cut suite — predictions pre-registered 2026-08-01, before results
+
+Three identical re-grades (`vp1`/`vp2`/`vp3`) of stored outputs across all 14 live evals —
+`iteration-50` for 12, `iteration-51` for evals 29 and 30. ~$6, no generation. **First probe with the
+grader's reasoning captured** (`grading-vp*-thinking.json`), so each flip can be read rather than
+counted.
+
+**Why the full suite rather than the known flippers.** The six evals a flipper-only probe would drop
+(1, 2, 7, 8, 9, 20) cost **$0.14 per pass** in grading — the saving over three passes is $0.42.
+Against that, a subset probe can confirm known flippers but cannot **discover** newly-unstable slots,
+which is the thing most likely to have changed: the 4.9% baseline was measured on `iteration-40`'s
+outputs under a v1.6.0-era skill, and `consistent-quantity-naming` has already flipped once after
+being recorded as stable. A subset also breaks the denominator, so the rate would not be comparable
+to 4.9%.
+
+**Predictions, recorded before the results:**
+
+1. **`rule-statable-from-table` stays the top flipper.** 4 flips in the v1/v2/v3 probe, 3 more between
+   the anchor's two gradings. If it is not the worst slot here, something material changed.
+2. **The seven converted eval-20 assertions contribute zero flips** — true by construction, so this
+   is a check on the conversion, not a finding. A flip there means a checker reads mutable state.
+3. **`premium-claim-boundary` (eval-18, new) flips.** It already disagreed across its first two
+   gradings, where the second found a cross-table pair the first missed.
+4. **`1.7-readability-scenario-names` (eval-14) flips.** Observed once already between the `rh` probe
+   and the sweep — and `vp1` came in at 20/23 against the sweep's 19/23 before this was written.
+5. **The overall rate lands at or below 4.9%**, since seven llm slots became deterministic and the
+   suite shrank. **A materially higher rate would mean the new assertions are noisier than what they
+   replaced** — the outcome that would most change what to do next.
+6. **At least one slot flips that is on no prior list.** The outputs are two skill versions newer than
+   the ones the 4.9% figure was measured on.
+
+**What each outcome implies.** A slot that flips *and* whose two reasonings cite different parts of
+the output needs a scoping fix (name the surface). One whose reasonings cite the same evidence and
+reach opposite conclusions needs a decidability fix (or a deterministic checker). That distinction is
+what the captured reasoning is for, and it is the first time it has been available.

@@ -1,0 +1,19 @@
+{
+  "eval": 9,
+  "model": "claude-sonnet-5",
+  "calls": [
+    {
+      "assertions": [
+        "contractor-uses-value-set",
+        "four-core-rules-covered",
+        "expects-bonus-percentage",
+        "description-if-present-adds-information",
+        "scenario-names-describe-conditions",
+        "business-language-columns"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "I'm working through the assertions one by one. The contractor value set checks out with SALES and ENGINEERING in the Department column. All four core rules are present, so that passes. The Bonus Percentage column contains the right values as percentages rather than fractions. The description helpfully clarifies that these are percentage points, not decimal fractions, which adds useful context beyond just the data itself. I'm partway through checking the fifth assertion.\n\nScenario names like \"Senior in sales\" and \"Contractor, any department\" describe the conditions being tested rather than the outcomes, which is correct. The column names use business language appropriately with Level, Department, and Bonus Percentage."
+    }
+  ]
+}

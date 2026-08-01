@@ -1,0 +1,38 @@
+{
+  "eval": 14,
+  "model": "claude-sonnet-5",
+  "calls": [
+    {
+      "assertions": [
+        "1.2-error-has-expected-column",
+        "1.3-depth-overtime-boundary",
+        "1.4-depth-combined-scenario",
+        "1.5-depth-error-edge-cases",
+        "1.6-readability-empty-cells",
+        "1.7-readability-scenario-names",
+        "1.8-correctness-expected-values",
+        "1.9-correctness-value-set-semantics",
+        "1.11-format-description",
+        "1.14-depth-zero-rate"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "Looking at the test assertions now. The first one checks that rejectsNegativeHourlyRate has the expected \"Throws?\" column, which it does. For the depth overtime boundary test, the split table contains values at 40 and 45, but the assertion expects the threshold itself and something just above it like 41—45 seems a bit far off from what's really needed here.\n\nThe combined scenario assertion looks for an \"All hour types combined\" row with values 40,5,8,8, which exists in the pay calculation table. The error edge cases test requires showing negative hours behavior, and there's a row with -10,0,0,0,20 that floors at zero, plus a separate row rejecting negative rates. For readability, I'm checking whether the Sunday and Holiday columns use 0 instead of blank cells in the pay table.\n\nThe scenario names are descriptive like \"Regular hours paid at base rate\" and \"Correction drives pay below zero\" rather than generic test labels. Verifying the arithmetic: 40×20=800, 5×20×1.5=150, 8×20×2=320 for each of Sunday and Holiday, totaling 1590 when combined. The negative row shows -10×20=-200 floored to 0, consistent with the stated semantics. The split table correctly shows 30,40,0 mapping to 45→40,5. The description for computesWeeklyPayFromClassifiedHours mentions negative hours as corrections or adjustments, providing context beyond just the raw calculation.\n\nHowever, the zero rate row in rejectsNegativeHourlyRate only tests that it throws an exception—it doesn't actually demonstrate that a zero rate produces zero pay through calculatePay with an assertion on the pay value itself. This assertion fails."
+    },
+    {
+      "assertions": [
+        "1.15-format-clean-method",
+        "business-language-columns",
+        "concerns-decomposed",
+        "no-duplicate-rows-within-a-table",
+        "no-table-reproves-another",
+        "separates-classification-and-calculation",
+        "held-constants-declared",
+        "concern-not-over-split"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "I'm checking the first assertion about test method formatting—no if statements or ternary operators are present, and since all hours are specified without nulls, there's no need for null-handling logic, so it passes. Moving on to evaluate the business language columns like \"Weekday Hours,\" \"Regular Hours?,\" \"Overtime Hours?,\" and \"Hourly Rate.\"\n\nFor the concerns decomposition, the structure has the three expected tables plus an end-to-end test, which seems structurally sound. Now I'm verifying each table for duplicate rows—the split table has three distinct cases (below, at, just past threshold), the pay calculation table has six different scenarios, and the rejection table has three rate cases, all without duplicates. But I'm noticing the end-to-end test appears to re-prove the split and pay calculation with hardcoded values that match an existing row, which could be problematic. It's a plain @Test rather than a @TableTest, but it still re-proves the combined scenario, so I'll mark it as failing. The remaining criteria check out: the split and pay calculation are properly separated into distinct methods, the held constants are declared in the @Description, and the three tables each address their own concern without fragmenting a single issue across multiple tables.\n\nNow I need to verify the business-language criterion more carefully—the parameter types like \"double weekdayHours\" are fine since they describe columns rather than parameters. For the format-clean-method check, there's no hidden null handling here since the table has no blank cells, so it passes trivially. The expected output uses explicit zeros for Sunday and Holiday hours rather than blank cells, which is a different readability concern, not a format-clean issue. I should now document the no-duplicate-rows-within-a-table criterion by marking each method with PASS or FAIL as evidence."
+    }
+  ]
+}
