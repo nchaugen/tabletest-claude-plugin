@@ -5,7 +5,8 @@
   "assertions": [
     {
       "id": "produces-markdown-table",
-      "text": "Output contains a markdown table"
+      "text": "Output contains a markdown table",
+      "type": "deterministic"
     },
     {
       "id": "express-split-by-uk-free-tier",
@@ -25,7 +26,8 @@
     },
     {
       "id": "output-column-has-question-mark",
-      "text": "At least one output column ends with '?'"
+      "text": "At least one output column ends with '?'",
+      "type": "deterministic"
     },
     {
       "id": "concrete-domain-values",

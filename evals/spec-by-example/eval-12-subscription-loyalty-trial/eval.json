@@ -5,7 +5,8 @@
   "assertions": [
     {
       "id": "produces-multiple-tables",
-      "text": "Output contains at least 2 separate markdown tables"
+      "text": "Output contains at least 2 separate markdown tables",
+      "type": "deterministic"
     },
     {
       "id": "annual-no-trial-rule-represented",

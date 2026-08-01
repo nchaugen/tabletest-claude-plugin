@@ -5,11 +5,13 @@
   "assertions": [
     {
       "id": "produces-markdown-table",
-      "text": "Output contains a markdown table (using | column | syntax)"
+      "text": "Output contains a markdown table (using | column | syntax)",
+      "type": "deterministic"
     },
     {
       "id": "output-column-has-question-mark",
-      "text": "At least one output column name ends with '?' (e.g. 'Eligible?' or 'Approved?')"
+      "text": "At least one output column name ends with '?' (e.g. 'Eligible?' or 'Approved?')",
+      "type": "deterministic"
     },
     {
       "id": "business-language-columns",
@@ -33,7 +35,8 @@
     },
     {
       "id": "scenario-column-present",
-      "text": "Table has a scenario/description column as the leftmost column"
+      "text": "Table has a scenario/description column as the leftmost column",
+      "type": "deterministic"
     },
     {
       "id": "threshold-as-column",

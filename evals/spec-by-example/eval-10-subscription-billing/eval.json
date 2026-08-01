@@ -5,7 +5,8 @@
   "assertions": [
     {
       "id": "produces-multiple-tables",
-      "text": "Output contains at least 2 separate markdown tables (not everything crammed into one table)"
+      "text": "Output contains at least 2 separate markdown tables (not everything crammed into one table)",
+      "type": "deterministic"
     },
     {
       "id": "tables-have-distinct-concerns",
@@ -13,7 +14,8 @@
     },
     {
       "id": "output-columns-have-question-marks",
-      "text": "At least one output column in each table ends with '?'"
+      "text": "At least one output column in each table ends with '?'",
+      "type": "deterministic"
     },
     {
       "id": "refund-exception-covered",
