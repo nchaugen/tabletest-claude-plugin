@@ -114,7 +114,22 @@ into `outputs/` on the failure path too, and `timing.json` records `harvested_fi
 stays out of the totals — a partial answer is not a score — but you can see how far it got and decide
 whether a re-run is worth buying. Before this the working directory was deleted in `finally` and the
 checkpoints went with it, which quietly contradicted the skills: they promise the agent that each
-test written "can't be lost to a timeout". Before this, a single transient timeout took a
+test written "can't be lost to a timeout".
+
+**Exclusion is provisional, and here is the trigger to revisit it.** Every skill tells the agent to
+deliver incrementally so a timeout does not cost everything — *"each method written is a
+checkpoint"*. **That is a claim about behaviour, and this suite exists to measure those.** An agent
+that ships three of five tables before the budget ends has partly succeeded; one that thinks for
+fifteen minutes and ships nothing has not — and today both read as `excluded`. The two are already
+separable in code: each language profile declares `deliverablePath`/`deliverableContent`, and
+`gradeOne` computes `hasDeliverable` from them.
+
+**Gather evidence before changing anything, which the harvest now makes free:** grade a timed-out
+eval's salvaged files, annotate the number on its ledger row, and leave the totals alone. If the rule
+does change, change it narrowly — score a timeout **only when it delivered**, and keep excluding the
+ones that produced nothing. Blanket inclusion re-introduces the phantom-regression failure exclusion
+was built to prevent. Full reasoning:
+`products/claude-plugin/decisions/timed-out-evals-are-excluded-for-now.md` (private docs repo). Before this, a single transient timeout took a
 five-eval run from 71/72 to 54/72 and produced 17 phantom moved verdicts, one per assertion the eval
 owns.
 
