@@ -229,6 +229,20 @@ summarized thinking text. It is the material for diagnosing an unstable slot —
 identical bytes stored, a flip can be read as *the grader looked at a different part of the output*
 or *it applied a different clause of the same assertion*, which need opposite fixes.
 
+**Opt in with `--capture-thinking`; it is OFF by default, and that default is load-bearing.**
+The summary text is *additional billed output*. On the suite's largest LLM-assertion eval, grading
+output went from **15,783 tokens to 28,553** with capture on. Grading posts a **non-streaming**
+request at `max_tokens: 32000`, and Anthropic's guidance is that anything above ~16K output must
+stream or the connection drops — so the extra volume pushed eval-18 past the line and it began
+failing **reproducibly** with `fetch failed` after a ~10-minute hang, while every smaller eval in the
+same batch succeeded. Left on globally it would have made the biggest eval flaky *and* changed the
+default regime under every future comparison.
+
+**The underlying flaw predates the flag: grading does not stream.** Any eval whose grading output
+approaches 16K is near the edge regardless. Fixing it means streaming the grading request, which
+changes the grader's transport — a **void comparison** under AGENTS.md § Evolving the eval suite —
+so it belongs in its own window, not bolted onto a probe.
+
 **The reasoning was always being generated and billed; the default just hid it.** On this model
 family adaptive thinking is on whenever `thinking` is omitted, and `thinking.display` defaults to
 `"omitted"` — so thinking blocks were arriving with an empty text field, and `extractGradingText`
@@ -244,6 +258,10 @@ call. Re-run that comparison on a wider set before trusting it across the suite.
 **Two gates it does not cross.** `extractGradingText` still takes the first text block, so the
 response parsing is untouched; and no `grading.json` schema changed, so `--rebuild`, the report and
 the answer key all read exactly what they read before.
+
+**A `fetch failed` on one eval while others succeed is this, not the network.** Check the eval's
+`grading_usage.output_tokens` before assuming an outage — near 16K and climbing means the
+non-streaming request is the cause.
 
 **Not available on every grader model.** The parameter is gated on the same predicate as `effort`:
 the older family (haiku-4-5) takes `{type: "enabled", budget_tokens: N}` and rejects `adaptive`. A

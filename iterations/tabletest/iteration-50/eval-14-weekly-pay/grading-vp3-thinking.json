@@ -1,0 +1,38 @@
+{
+  "eval": 14,
+  "model": "claude-sonnet-5",
+  "calls": [
+    {
+      "assertions": [
+        "1.2-error-has-expected-column",
+        "1.3-depth-overtime-boundary",
+        "1.4-depth-combined-scenario",
+        "1.5-depth-error-edge-cases",
+        "1.6-readability-empty-cells",
+        "1.7-readability-scenario-names",
+        "1.8-correctness-expected-values",
+        "1.9-correctness-value-set-semantics",
+        "1.11-format-description",
+        "1.14-depth-zero-rate"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "I'm checking the test assertions against the actual code. The first assertion about the error column passes since it's present in the rejectsNegativeHourlyRate table. For the overtime boundary assertion, the test uses rows at 40 and 45 hours, but the assertion expects values closer together like 40 and 41—45 is acceptable as \"just past\" but not ideally adjacent to the threshold.\n\nThe combined scenario assertion passes since it includes all four hour types. The error edge cases assertion also passes because negative hours and rates are properly handled. However, the empty cells assertion fails—the code uses 0 values instead of blank cells for irrelevant columns, and the parameters are declared as double rather than Integer.\n\nFor scenario naming, I'm reconsidering whether names like \"Regular hours paid at base rate\" and \"Overtime hours paid at 1.5x\" violate the requirement against outcome-based naming. These descriptions explicitly state the expected multiplier outcomes rather than describing the work pattern itself, which seems to conflict with what the assertion asks for. I'm leaning toward this failing since the names are outcome-focused rather than scenario-focused.\n\nNow checking the arithmetic across all test cases: regular hours at base rate, overtime at 1.5x multiplier, Sunday and holiday shifts at 2x multiplier all calculate correctly. The combined total of 1590 is accurate, and the correction logic properly floors negative values at zero. The split table correctly distributes hours, and the rate table appropriately accepts zero and positive values while rejecting negatives. Everything checks out arithmetically.\n\nThe descriptions for both test functions provide useful context beyond what's visible in the rows themselves—explaining the assumption about negative hours as corrections and clarifying that hours are hardcoded while only the rate varies. This adds meaningful information without restating the multipliers, so the description requirement passes.\n\nHowever, the zero-rate scenario in rejectsNegativeHourlyRate only demonstrates that a zero rate doesn't throw an exception; it doesn't actually show the pay output being zero. The assertion specifically requires demonstrating that pay is zero regardless of hours worked, which would need an actual zero pay value in the output, not just the absence of an exception. Since there's no corresponding zero-rate row in the computesWeeklyPayFromClassifiedHours table showing pay equals zero, this fails the strict criteria."
+    },
+    {
+      "assertions": [
+        "1.15-format-clean-method",
+        "business-language-columns",
+        "concerns-decomposed",
+        "no-duplicate-rows-within-a-table",
+        "no-table-reproves-another",
+        "separates-classification-and-calculation",
+        "held-constants-declared",
+        "concern-not-over-split"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "Looking at the test assertions now. The first one checks if test methods follow arrange/act/assert structure without conditional logic—the rate table doesn't show blank cells, it uses 0 values directly, and there's no null-handling logic visible, so this passes. The second assertion is about business-language column names like \"Weekday Hours\" and \"Regular Hours,\" but the text cuts off mid-evaluation.\n\nContinuing through the remaining assertions: the third checks that multiple tables address distinct concerns like splitting hours, calculating pay, and validating rates—all present. The fourth verifies no duplicate rows within each table, and I'm checking all three tables systematically. Table 1 has three distinct threshold scenarios, Table 2 covers different multipliers for regular/overtime/Sunday/holiday pay, and Table 3 tests zero/positive/negative rates—no duplicates across any of them. For the fifth assertion about tables not re-proving each other, there's an end-to-end test that's a single @Test rather than a table test, so I need to determine whether it duplicates what the table tests already cover. Table 3 holds 40 regular hours constant across all rows, which is properly declared in the description. Table 2 keeps the hourly rate at 20 throughout, but since it's visible as a column, that satisfies the requirement. No hidden constants are missing, so this passes. The three tables each address distinct concerns—split logic, pay calculation, and rate rejection—without fragmenting a single concern.\n\nNow I'm verifying the negative-hours-visible assertion and compiling the evidence. For assertion 1.15, the test method uses a direct assertEquals without any if/ternary logic, which passes. The calculatePay test handles BigDecimal conversion correctly. The assertion about blank Sunday hours being converted to 0 via @TypeConverter isn't directly demonstrated here since the tables use explicit zeros, but the test method itself doesn't contain inline null-handling logic, so it still satisfies the requirement.\n\nFinalizing the JSON output."
+    }
+  ]
+}

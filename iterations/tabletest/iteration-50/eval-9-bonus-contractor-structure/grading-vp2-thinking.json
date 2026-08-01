@@ -1,0 +1,19 @@
+{
+  "eval": 9,
+  "model": "claude-sonnet-5",
+  "calls": [
+    {
+      "assertions": [
+        "contractor-uses-value-set",
+        "four-core-rules-covered",
+        "expects-bonus-percentage",
+        "description-if-present-adds-information",
+        "scenario-names-describe-conditions",
+        "business-language-columns"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "Going through each assertion now: the contractor value set with SALES and ENGINEERING checks out, all four core rules are present, the bonus percentage column correctly shows percentages rather than amounts, and the description field adds useful context about how the percentages are expressed."
+    }
+  ]
+}

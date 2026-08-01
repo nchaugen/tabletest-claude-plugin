@@ -1,0 +1,39 @@
+{
+  "eval": 22,
+  "model": "claude-sonnet-5",
+  "calls": [
+    {
+      "assertions": [
+        "validation-rules-covered",
+        "blank-for-absent-optional",
+        "blank-vs-value-set-correct",
+        "business-language-columns",
+        "scenario-names-describe-conditions",
+        "concerns-decomposed",
+        "no-duplicate-rows-within-a-table",
+        "no-table-reproves-another",
+        "separates-validation-and-pricing",
+        "validation-includes-optional-fields"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "I'm checking each assertion against the test data. The validation rules assertion passes since it covers missing email, malformed email, and missing name cases. The optional fields assertion also passes—when fields are omitted, the corresponding cells are blank. For the pricing table assertion, dietary and accessibility fields aren't included as columns at all rather than appearing as blank cells, so the assertion about value sets versus blanks doesn't directly apply here since these fields are handled as null in the code itself.\n\nThe business language columns all check out—Scenario, Name, Email, Dietary Requirements, Accessibility Needs, Accepted?, Has Error Message?, Registration Timing, Group Size, Discount?, and Price are all clear. For scenario names, I'm verifying they describe conditions rather than outcomes: \"Valid name and email,\" \"Optional fields omitted,\" \"Missing name,\" \"Missing email,\" and \"Malformed email\" all describe the test conditions appropriately. The pricing table scenarios like \"Early registration, small group\" and \"On the cutoff date, small group\" also describe conditions correctly.\n\nThe two methods handle distinct concerns—validation and pricing—with no overlap. Looking at the validation table's five rows, each covers a separate obligation: valid data, optional fields omitted, missing name, missing email, and malformed email. The pricing table's five rows are similarly distinct: early-bird discount, on cutoff date, below group size threshold, at group size threshold, and both conditions applying. No duplicates within either table, and since there are only these two tables, there's no re-proving happening. The validation table does include the optional fields columns with blanks shown when they're omitted, though I notice it doesn't explicitly show a case where only one optional field is provided while the other is blank.\n\nNow I'm generating the JSON output."
+    },
+    {
+      "assertions": [
+        "descriptive-registration-date",
+        "cutoff-date-column-if-literal-dates",
+        "description-no-irrelevant-information",
+        "discount-column-preferred",
+        "optional-fields-has-expected-column",
+        "description-no-redundant-field-values",
+        "rule-falsifiable-by-a-row",
+        "rule-statable-from-table",
+        "quantifier-covered-by-rows"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "I'm checking each assertion against the code to verify they pass. The first two assertions about descriptive registration dates and cutoff date columns both pass. Now I'm examining the third assertion about whether descriptions contain irrelevant information, looking at the validation description that mentions registration date and group size being held at a single valid value. The early-bird and group discounts don't stack, so the higher rate applies when both conditions are met — the table demonstrates this in the \"Early registration, large group\" row. The validation rule for name and email is handled separately, so those don't need to appear as columns. Moving on to check the discount column preference: since \"Discount?\" is present in the output, the rule is satisfied regardless of whether \"Price?\" also appears alongside it. Now examining whether the optional fields validation is working as expected. The validation table passes because the Accepted? column has varying boolean values that don't copy the input columns. The pricing table also passes since the Discount? and Price columns vary and don't mirror the input values. For the rule-statable-from-table check, the validatesEmailAndName method holds date and group size at fixed values that are already published in the description, so there are no hidden values—the rule can be stated from the table columns alone. The early-bird cutoff date of 2025-03-01 and group discount threshold of 5+ are both explicitly stated in the descriptions, along with the base price of £100 and discount rates shown in the column values. The non-stacking rule is also published, so both methods pass. Now I'm checking for quantifying language like \"regardless of\" or \"any\" in the descriptions to see if there are claims that apply universally across all rows."
+    }
+  ]
+}

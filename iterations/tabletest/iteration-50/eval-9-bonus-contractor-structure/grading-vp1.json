@@ -10,19 +10,19 @@
       "id": "contractor-uses-value-set",
       "text": "CONTRACTOR row uses a value set for Department (e.g. {SALES, ENGINEERING}) to express 'regardless of department' — not a dummy placeholder like 'ANY' or 'N/A', and not enumerated as separate rows.",
       "passed": true,
-      "evidence": "CONTRACTOR     | {SALES, ENGINEERING}  | 0.0"
+      "evidence": "Contractor, any department | CONTRACTOR | {SALES, ENGINEERING}  | 0.0"
     },
     {
       "id": "four-core-rules-covered",
       "text": "The four level×department combinations (SENIOR+SALES, SENIOR+ENGINEERING, JUNIOR+SALES, JUNIOR+ENGINEERING) are all present in the table(s)",
       "passed": true,
-      "evidence": "Senior in sales... Senior in engineering... Junior in sales... Junior in engineering"
+      "evidence": "Senior in sales...Senior in engineering...Junior in sales...Junior in engineering"
     },
     {
       "id": "expects-bonus-percentage",
       "text": "The expected output column contains bonus percentages (e.g. 15%, 12%, 0%) — not bonus amounts. The method returns a percentage, and the table should reflect that.",
       "passed": true,
-      "evidence": "Bonus Percentage? | 15.0 ... 12.0 ... 8.0 ... 5.0 ... 0.0"
+      "evidence": "Bonus Percentage?\" column with values 15.0, 12.0, 8.0, 5.0, 0.0"
     },
     {
       "id": "no-if-switch-in-method",
@@ -40,7 +40,7 @@
       "id": "description-if-present-adds-information",
       "text": "PASSES when no @Description is present anywhere in the class — omitting it is always acceptable, and this assertion NEVER penalises its absence. Do not fail it for a missing @Description, and do not treat a @DisplayName as a substitute. When a @Description IS present, it must provide context beyond what the table rows already express — such as how bonus rates are applied (e.g. as percentage or fixed amount), or open questions — and FAILS when it merely restates the column names or summarises what the rows already show.",
       "passed": true,
-      "evidence": "Bonus Percentage? is expressed in percentage points (15.0 means 15%), not as a fraction (0.15)."
+      "evidence": "expressed in percentage points (15.0 means 15%), not as a fraction (0.15)"
     },
     {
       "id": "annotation-order",
@@ -58,7 +58,7 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names name the variation the row exercises, not the result it produces. The decidable test: FAILS when a scenario name states or paraphrases a value that appears in an expectation column of that same row — 'User cannot delete' beside an Allowed? cell of false, 'No discount applies' beside a Discount? cell of 0.00, 'Contractor gets no bonus' beside a Bonus? cell of 0. Also FAILS on generic labels ('Test 1', 'Test case 2'), which name no variation at all. PASSES otherwise. Naming the rule or the situation is correct even when it makes the outcome inferable — 'Delivery and pickup items always split', 'At the standard threshold, not above it', 'EU express, light package', 'Renewal with no claims', 'Missing name' all PASS. The failure this catches is a name echoing its own expectation cell, not a name that describes what the row is about, and not a name from which a reader who knows the rule could predict the outcome. A single offending name fails the assertion. Judge every @TableTest method in the class.",
       "passed": true,
-      "evidence": "Senior in sales | Contractor, any department"
+      "evidence": "Senior in sales, Contractor, any department"
     },
     {
       "id": "business-language-columns",
@@ -84,10 +84,10 @@
   "pass_rate": 1,
   "grading_usage": {
     "input_tokens": 3670,
-    "output_tokens": 734,
-    "total_tokens": 4404,
+    "output_tokens": 635,
+    "total_tokens": 4305,
     "calls": 1,
-    "cost_usd": 0.02202,
+    "cost_usd": 0.020535,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

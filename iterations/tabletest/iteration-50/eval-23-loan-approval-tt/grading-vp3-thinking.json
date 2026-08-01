@@ -1,0 +1,34 @@
+{
+  "eval": 23,
+  "model": "claude-sonnet-5",
+  "calls": [
+    {
+      "assertions": [
+        "threshold-verifiable-from-table",
+        "concrete-domain-values",
+        "scenario-names-describe-conditions",
+        "business-language-columns",
+        "concerns-decomposed",
+        "no-duplicate-rows-within-a-table",
+        "no-table-reproves-another",
+        "covers-age-credit-income",
+        "description-no-redundant-field-values",
+        "depth-stable-income-effect"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "Looking at the test data across these rows to verify the threshold logic—I'm checking whether the assertions match what the table shows, particularly around the approval and rejection patterns based on the different parameter combinations. So rows 4 and 6 both at senior age (65) with scores 600 and 610 respectively form a valid bracketing pair showing the credit threshold for seniors, even if not perfectly adjacent. The assertion passes because both the age and credit boundaries are demonstrable. Checking the scenario names now—they all describe the conditions being tested rather than echoing the results, so that requirement is satisfied too. 's fine - the credit threshold at 650 with both income values isn't redundant since it shows the threshold enforces rejection regardless of income status. Now checking the obligations across all rows: age thresholds for young and senior premiums, credit boundaries above and below 650, income effects with true/false/null states, and precedence rules. Row 1 shows young customers above threshold get approved based on credit alone, while row 2 demonstrates that at the threshold, rejection applies regardless of income - this covers the key decision points without full cross-multiplication. PASS. Checking for redundancy across the test cases—Row2 and Row4 test different age brackets with the same threshold rejection pattern, so they're not duplicates. Row3 is distinct because it specifically tests the precedence when income is null at the threshold, which Row2 doesn't cover. The test matrix covers strategic combinations rather than a full cross-product, and there's no duplication across rows.\n\nNow I'm verifying the income effect by looking at rows that hold age and credit score constant while varying income status. Rows 7 and 8 both have age 40 and score 700 but differ in income (false vs. blank), producing different decisions (REJECTED vs. PENDING_REVIEW), which demonstrates the income effect. I need to confirm there's also a convincing case showing income true leading to approval.\n\nActually, looking more carefully, the assertion only requires one pair showing the effect, which rows 7 and 8 satisfy. So the depth-stable-income-effect check passes. For covers-age-credit-income, I can verify all three dimensions are represented: income status through rows 7 and 8, age boundary through rows 5 and 6, and credit boundary through rows 1 and 2.\n\nNow examining the description-no-redundant-field-values assertion, the description mentions \"Senior applicants are those aged 65 and older\" which references the age threshold of 65. The question is whether stating this policy rule counts as pinning a specific field value, or if it's just describing the general decision logic.\n\nLooking at the guidance, this is similar to saying \"approved above credit score of 650\" - it's describing a threshold/policy rather than fixing age to one specific value across every row. So this passes the assertion.\n\nThe next assumption about below-threshold scores rejecting applicants regardless of income status is correctly stating precedence rules rather than fixed values, which aligns with what the assertion expects.\n\nNow I need to finalize whether all assertions pass, being careful about the senior threshold - the boundary rows should bracket the threshold with one qualifying just above and one failing at or below it, showing different decisions. The threshold falls somewhere between 600 and 610, which is verifiable even if not pinned to an exact boundary like 601—the assertion doesn't require adjacent values, just that the threshold can be located. I'll mark this as passing. Now let me reconsider the concerns-decomposed table to check if there's redundancy across the eight rows, particularly around how the standard threshold case is being tested."
+    },
+    {
+      "assertions": [
+        "rule-falsifiable-by-a-row",
+        "rule-statable-from-table",
+        "title-states-system-behaviour",
+        "held-constants-declared"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "I'm working through a test table to validate different age and income scenarios against approval rules, checking how the system handles edge cases like threshold boundaries and missing data. The scenario names in the table cells explicitly mention the threshold values like \"at the 650 threshold\" and \"at the 600 threshold,\" which satisfies the requirement that thresholds be stated in the table. The operation is clearly loan approval evaluation based on age, credit score, and income stability—all stated in the column headers. The test uses direct assertions without hidden criteria, so it passes the rule-statable-from-table check. Now I'm evaluating whether the method name \"evaluatesLoanApproval\" adequately states what the system behavior is. Checking whether each expectation value varies across rows—they do, ranging from APPROVED to REJECTED to PENDING_REVIEW—and confirming that no expectation cell matches any input cell verbatim, which passes the rule. For the statable-from-table rule, the scenario descriptions explicitly mention threshold values like \"650 threshold\" and \"600 threshold\" on the surface, satisfying the publication requirement, even though the actual evaluator implementation isn't shown here.\n\nThe method name \"evaluatesLoanApproval\" in camelCase correctly describes what the code does without needing to strip the system under test, so that passes too. Now I'm reconsidering the statable-from-table rule more carefully—the operation involves age-dependent thresholds that vary between 600 and 650, plus precedence logic where score overrides income, which can't be fully derived from column headers and values alone."
+    }
+  ]
+}

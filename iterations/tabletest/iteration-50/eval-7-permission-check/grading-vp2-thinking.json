@@ -1,0 +1,16 @@
+{
+  "eval": 7,
+  "model": "claude-sonnet-5",
+  "calls": [
+    {
+      "assertions": [
+        "no-duplicate-role-output",
+        "description-if-present-adds-information",
+        "scenario-names-describe-conditions"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "I'm checking the validation rules for the role-based access control test cases. The no-duplicate-role-output check passes since each role appears with different outcome values. There's no @Description annotation present, which is expected. The scenario names are properly formatted without outcome values embedded in them, so that validation passes as well."
+    }
+  ]
+}

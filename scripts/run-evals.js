@@ -450,7 +450,7 @@ function extractGradingThinking(data) {
   return blocks.length > 0 ? blocks.join("\n\n") : null;
 }
 
-async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropic", effort = null) {
+async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropic", effort = null, captureThinking = false) {
   if (provider === "ollama") {
     const resp = await postGradingRequest("http://localhost:11434/api/chat", {
       method: "POST",
@@ -482,7 +482,21 @@ async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropi
       max_tokens: acceptsTemperature(resolved) ? GRADING_MAX_TOKENS : GRADING_MAX_TOKENS_WITH_THINKING,
       ...(acceptsTemperature(resolved) ? { temperature: GRADING_TEMPERATURE } : {}),
       ...(effort && acceptsEffort(resolved) ? { output_config: { effort } } : {}),
-      // Ask for the grader's reasoning back as a readable summary.
+      // Ask for the grader's reasoning back as a readable summary — OPT-IN via --capture-thinking.
+      //
+      // **Off by default because it is not free.** The summary text is additional billed output: on
+      // the suite's largest LLM-assertion eval it took grading output from 15,783 tokens to 28,553.
+      // Grading posts a NON-STREAMING request at max_tokens 32000, and Anthropic's guidance is that
+      // requests above ~16K output must stream or the connection drops — so the extra volume pushed
+      // eval-18 past the line and it began failing reproducibly with `fetch failed` after a ~10-minute
+      // hang, while every smaller eval succeeded. Turning it on globally would therefore have made the
+      // biggest eval flaky and changed the default regime under every future comparison.
+      //
+      // Keep it for diagnosis (a variance probe, an unstable slot), where reading *why* the grader
+      // flipped is worth the cost and the run is deliberate. The real fix for the transport is to
+      // stream grading requests, which is a void-comparison change and belongs in its own window.
+      //
+      // Original note follows.
       //
       // On this model family adaptive thinking is already on when `thinking` is omitted, and
       // `display` defaults to `"omitted"` — so thinking blocks were arriving with an EMPTY text
@@ -497,7 +511,9 @@ async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropi
       //
       // Gated on the same predicate as `effort`: the older family (haiku-4-5) takes
       // `{type: "enabled", budget_tokens: N}` and rejects `adaptive`.
-      ...(acceptsEffort(resolved) ? { thinking: { type: "adaptive", display: "summarized" } } : {}),
+      ...(captureThinking && acceptsEffort(resolved)
+        ? { thinking: { type: "adaptive", display: "summarized" } }
+        : {}),
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
     }),
@@ -672,6 +688,7 @@ function parseArgs(argv) {
     // Generation authenticates with the subscription unless asked otherwise; see generationEnv.
     apiGeneration: false,
     rebuild: false,
+    captureThinking: false,
     reportOnly: false,
     timeoutMs: null,   // null = use each eval's timeout_ms (or runClaude default)
   };
@@ -707,6 +724,9 @@ function parseArgs(argv) {
         break;
       case "--grading-model":
         args.gradingModel = argv[++i];
+        break;
+      case "--capture-thinking":
+        args.captureThinking = true;
         break;
       case "--grading-suffix":
         args.gradingSuffix = argv[++i];
@@ -1575,7 +1595,7 @@ function parseLlmGrading(gradingText) {
   return null;
 }
 
-async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, provider = "anthropic", gradeRuns = 1, effort = null) {
+async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, provider = "anthropic", gradeRuns = 1, effort = null, captureThinking = false) {
   const evalDir = path.join(
     iterationDir,
     `eval-${evalDef.id}-${evalDef.slug}`
@@ -1652,7 +1672,7 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, prov
       let llmGrading = null;
       let missing = [];
       for (let attempt = 1; attempt <= 2; attempt++) {
-        const { text: gradingText, thinking, usage } = await gradeViaApi(GRADING_SYSTEM_PROMPT, gradingPrompt, model, provider, effort);
+        const { text: gradingText, thinking, usage } = await gradeViaApi(GRADING_SYSTEM_PROMPT, gradingPrompt, model, provider, effort, captureThinking);
         gradingUsage = addUsage(gradingUsage, usage);
         if (thinking) {
           thinkingRecords.push({
@@ -1781,7 +1801,7 @@ async function gradeResponses(evals, iterationDir, args) {
     const batch = evals.slice(i, i + args.parallel);
     await Promise.all(
       batch.map((evalDef) =>
-        gradeOne(evalDef, iterationDir, args.gradingModel, args.gradingSuffix, args.provider, args.gradeRuns, gradingEffortFor(evalDef, args)).catch((err) => {
+        gradeOne(evalDef, iterationDir, args.gradingModel, args.gradingSuffix, args.provider, args.gradeRuns, gradingEffortFor(evalDef, args), args.captureThinking).catch((err) => {
           logError(`  ✗ Eval ${evalDef.id} — GRADING FAILED: ${err.message}`);
           failures.push({ evalDef, message: err.message });
           const errDir = path.join(iterationDir, `eval-${evalDef.id}-${evalDef.slug}`);
@@ -3059,5 +3079,6 @@ module.exports = {
   acceptsTemperature,
   extractGradingText,
   extractGradingThinking,
+  parseArgs,
   missingAssertionIds,
 };

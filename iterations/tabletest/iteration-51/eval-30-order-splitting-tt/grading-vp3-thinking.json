@@ -1,0 +1,37 @@
+{
+  "eval": 30,
+  "model": "claude-sonnet-5",
+  "calls": [
+    {
+      "assertions": [
+        "concerns-decomposed",
+        "rule-falsifiable-by-a-row",
+        "rule-statable-from-table",
+        "no-duplicate-rows-within-a-table",
+        "no-table-reproves-another",
+        "concern-fulfillment-method",
+        "concern-delivery-address",
+        "concern-availability",
+        "concern-warehouse-allocation",
+        "concern-companion-products"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "I'm checking the test assertions against the implementation. The first test passes—the five methods each handle a distinct concern. For the second test, I'm verifying that the rule is falsifiable by examining the fulfillment type table, where the expectations show different groupings like camera/battery, camera with lens, and battery with charger. These aren't fixed values or direct copies from the input, but rather mappings based on fulfillment type logic.\n\nContinuing through the other tables—address, availability, warehouse, and companion—they all pass this test since their expectations vary across rows and aren't verbatim copies of input cells. For the third test, I'm checking whether any hidden values in the method bodies are needed to predict the expectations. The fulfillment method uses a warehouse constant \"wh1\" that doesn't affect the rule, and the availability method references a field for address, but these don't introduce hidden thresholds that would be necessary to predict the outcomes.\n\nThe companion group values appear in the method body as a hardcoded list, but the description explicitly states \"Camera and lens are declared as a companion group in every row of this table,\" so this is published information and passes the test. All five methods pass overall: separatesShipmentsByFulfillmentType, separatesShipmentsByDeliveryAddress, shipsInStockItemsWithoutWaitingForDelayedItems, minimisesShipmentCountAcrossWarehouses, and keepsCompanionsTogetherWhenPossible.\n\nNow checking for duplicate rows within each table—the fulfillment type table has three rows covering different combinations of fulfillment types and addresses, which addresses the key obligations without redundancy.\n\nThe address, availability, warehouse, and companion tables each have distinct rows with no duplicates, and since there's no integration table reprising concerns, the no-table-reproves-another check passes as well.\n\nMoving through the concern-specific assertions: fulfillment type, delivery address, and availability each have their own tables and pass. For warehouse allocation, the table exists with a method to minimize shipment count, though it only covers two rows and doesn't demonstrate the overlap and correct-pair test cases—but that's about completeness, not whether the concern itself is represented as a separate table, which it is.\n\nCompanion products also have their own dedicated table. PASS."
+    },
+    {
+      "assertions": [
+        "all-outputs-same-table",
+        "native-collection-output",
+        "scenario-names-describe-conditions",
+        "business-language-columns",
+        "held-constants-declared",
+        "assertion-criteria-declared",
+        "titles-form-a-family"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "Looking at the test assertions now. The first test passes—each fulfillment method has its own single output column without overlap. The second test fails because the native collection output uses colon-separated strings like \"camera:DELIVERY:addr1\", which is exactly the anti-pattern I'm trying to avoid since colons conflict with map syntax and require quoting. The third test seems to be about scenario names describing the concern, but the thought cuts off there.\n\nChecking the scenario names against expectations—they all describe conditions rather than restating specific values. Names like \"Delivery and pickup mixed,\" \"All delivery items,\" \"Same address,\" and \"Two equally minimal warehouse splits are possible\" characterize the structural situation without spelling out the exact result. This passes the test.\n\nThe columns use business language: \"Scenario,\" \"Items,\" \"Shipments by Fulfillment?\", \"Shipments by Address?\", \"Stock,\" \"Shipments by Availability?\", \"Shipments by Warehouse?\"—all appropriate terminology.\n\nFor held constants, I'm verifying that values the outcome depends on are declared in the description rather than shown as columns. Warehouse ID \"wh1\" appears in the test descriptions like \"held in a single warehouse (wh1)\" and \"in stock in a single warehouse (wh1),\" so that's properly declared.\n\nThe delivery address in the camera/lens test is also held constant and stated in the description: \"Camera and lens are both DELIVERY items to the same address.\" The companion group source comes from the Order constructor, which is fine since WarehouseInventory doesn't track that separately—not a held constant issue.\n\nFor assertion criteria, the comparison uses assertEquals on maps and sets where the groupByDeliveryAddress helper creates keys by joining addresses with commas sorted via TreeSet, but that's just for keying purposes, not affecting the actual comparison logic. ipments by delivery address\", \"Ships in-stock items immediately without waiting for delayed items\", \"Splits across warehouses in the minimum number of shipments needed to cover the order\", and \"Keeps companion products on the same warehouse shipment when it does not cost extra shipments\". The verbs vary—\"Separates\", \"Ships\", \"Splits\", \"Keeps\"—and they're all present tense describing the splitter's behavior, so there's a consistent grammatical structure even though the opening words differ."
+    }
+  ]
+}

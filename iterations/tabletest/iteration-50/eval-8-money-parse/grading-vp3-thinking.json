@@ -1,0 +1,20 @@
+{
+  "eval": 8,
+  "model": "claude-sonnet-5",
+  "calls": [
+    {
+      "assertions": [
+        "exception-has-expected-column",
+        "exception-cases-handled",
+        "description-if-present-adds-information",
+        "concerns-decomposed",
+        "no-duplicate-rows-within-a-table",
+        "no-table-reproves-another",
+        "separates-valid-and-invalid"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "Now I'm checking the test criteria: the exception column properly indicates which cases throw exceptions, all three exception scenarios are covered, there's no description annotation to evaluate, and the test cases are nicely split into valid and invalid tables. I need to verify there aren't any duplicate rows within each table.\n\nLooking at the valid cases for parsing amounts—10.00, 0.01, and null—those are all distinct. The invalid cases for rejecting amounts—empty strings, letters, and negative values—are also unique. No reproving between tables, valid and invalid are properly separated, and all seven assertions check out."
+    }
+  ]
+}

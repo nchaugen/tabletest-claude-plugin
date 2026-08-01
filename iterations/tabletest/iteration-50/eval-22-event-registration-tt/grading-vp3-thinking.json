@@ -1,0 +1,39 @@
+{
+  "eval": 22,
+  "model": "claude-sonnet-5",
+  "calls": [
+    {
+      "assertions": [
+        "validation-rules-covered",
+        "blank-for-absent-optional",
+        "blank-vs-value-set-correct",
+        "business-language-columns",
+        "scenario-names-describe-conditions",
+        "concerns-decomposed",
+        "no-duplicate-rows-within-a-table",
+        "no-table-reproves-another",
+        "separates-validation-and-pricing",
+        "validation-includes-optional-fields"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "I'm working through the test assertions to verify the table structure. The validation rules are covered with rows for missing names and malformed emails, and optional fields are correctly left blank when omitted. The pricing table properly excludes dietary and accessibility columns entirely rather than leaving them blank, which satisfies the assertion through proper omission.\n\nThe column names use business language appropriately, and each scenario name describes its conditions without echoing the actual output values like discount percentages or prices. The two methods handle distinct concerns separately, and I'm checking whether there are any duplicate rows.\n\nLooking at the validation table, I see five distinct scenarios: valid input, optional fields omitted, missing name, missing email, and malformed email. The pricing table also has five distinct rows covering early registration with small group, the cutoff date scenario, below the group threshold, at the group size threshold, and when both conditions apply. No duplicates in either table. Since there are only these two tables and they don't re-prove each other's logic, validation and pricing concerns remain properly separated. The validation table includes the optional fields—Dietary Requirements and Accessibility Needs—with both blank and populated values represented. All checks pass."
+    },
+    {
+      "assertions": [
+        "descriptive-registration-date",
+        "cutoff-date-column-if-literal-dates",
+        "description-no-irrelevant-information",
+        "discount-column-preferred",
+        "optional-fields-has-expected-column",
+        "description-no-redundant-field-values",
+        "rule-falsifiable-by-a-row",
+        "rule-statable-from-table",
+        "quantifier-covered-by-rows"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "I'm checking each assertion against the code to verify they pass. The first two assertions about descriptive registration dates and cutoff date columns both check out. Now I'm examining the third assertion about whether the descriptions contain any irrelevant information—looking at the validation description for registration date and group size, which are held constant at specific values since pricing is handled separately.\n\nThe description mentions that dietary requirements and accessibility needs are optional, and notes that the \"optional fields omitted\" row confirms null values don't affect acceptance. But I'm noticing this last part might be restating what the rows already demonstrate rather than adding new information the rows can't convey. The assertion passes when descriptions add context like fixed thresholds in the method body, currency, or when rules apply—things rows alone can't show. The fixed date and group size values are legitimate to mention since they're in the body, but that final sentence about null values confirming acceptance seems redundant with what the row itself shows.\n\nLooking at the pricing description, it properly states thresholds not visible in columns (the 2025-03-01 cutoff, group size of 5) and explains the stacking rule—that when both early-bird and group discounts apply, the higher rate wins. This is information that needs to be published and isn't fully captured by the table alone.\n\nFor validation, explaining that null values don't affect acceptance is borderline, but it's really just naming the interpretation that the blank rows already demonstrate, which falls within what's acceptable per the assertion's own guidance about deliberate assumptions.\n\nMoving on to check the other assertions: the discount and price columns are both present as expected, the optional fields match what's required, and the scenario names avoid restating literal cell values like specific dates or numbers. The description does hold certain inputs fixed like date and group size, which is fine since those are parameters rather than redundant restatements.\n\nNow I'm checking whether the rules are actually falsifiable by examining the table outputs—the Accepted? column shows variation across rows, so it's not all the same value, and the expectation cells aren't just copying input columns verbatim.\n\nFor the pricing table, the Discount? values also vary and aren't direct copies of inputs, so both tables pass this check.\n\nFor rule-statable-from-table, I'm verifying that all the key thresholds and parameters mentioned in the description are actually published: the 2025-03-01 cutoff date, the group size threshold of 5, the base price of £100, and what the discount fraction represents. The operation itself is nameable from the available columns and values, so both validation methods should work.\n\nNow I'm ready to produce the verdict for validatesEmailAndName\n\n—it doesn't really need numeric thresholds beyond the acceptance criteria, and while email validity isn't explicitly defined numerically, the operation is clearly nameable from the column headers, so it passes.\n\nFor appliesEarlyBirdAndGroupDiscount, all the values are published in the description as I've already noted, so that passes too.\n\nThe overall assessment passes with both methods supported by evidence.\n\nFor quantifier-covered-by-rows, I'm checking whether the descriptions use quantifying language like \"regardless of X\"—they don't. The phrasing is more specific like \"since validation is covered separately,\" so there are no quantifier claims present, which means the assertion passes automatically.\n\nNow I'll write the JSON output."
+    }
+  ]
+}

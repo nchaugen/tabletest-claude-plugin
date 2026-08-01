@@ -40,6 +40,7 @@ const {
   acceptsTemperature,
   extractGradingText,
   extractGradingThinking,
+  parseArgs,
   missingAssertionIds,
   computeEvalFingerprint,
   fingerprintsDiffer,
@@ -1771,5 +1772,20 @@ describe("extractGradingThinking", () => {
     assert.equal(extractGradingThinking(null), null);
     assert.equal(extractGradingThinking({}), null);
     assert.equal(extractGradingThinking({ content: [{ type: "thinking" }] }), null);
+  });
+});
+
+describe("--capture-thinking", () => {
+  const base = { gradingModel: "sonnet", parallel: 1, gradingSuffix: null, provider: "anthropic", gradeRuns: 1 };
+
+  test("is off by default, so the request carries no thinking parameter", () => {
+    assert.equal(parseArgs(["node", "x", "--skill", "tabletest", "--iteration", "1"]).captureThinking, false);
+  });
+
+  test("is set by the flag", () => {
+    assert.equal(
+      parseArgs(["node", "x", "--skill", "tabletest", "--iteration", "1", "--capture-thinking"]).captureThinking,
+      true
+    );
   });
 });

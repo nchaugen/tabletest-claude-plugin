@@ -1,0 +1,14 @@
+{
+  "eval": 20,
+  "model": "claude-sonnet-5",
+  "calls": [
+    {
+      "assertions": [
+        "empty-tag-case-covered"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "Looking at the test cases for empty tag handling—when an empty string is in the tags list, it gets filtered out regardless of the category value, which is the expected behavior across these scenarios."
+    }
+  ]
+}

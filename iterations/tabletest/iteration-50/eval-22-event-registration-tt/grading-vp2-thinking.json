@@ -1,0 +1,39 @@
+{
+  "eval": 22,
+  "model": "claude-sonnet-5",
+  "calls": [
+    {
+      "assertions": [
+        "validation-rules-covered",
+        "blank-for-absent-optional",
+        "blank-vs-value-set-correct",
+        "business-language-columns",
+        "scenario-names-describe-conditions",
+        "concerns-decomposed",
+        "no-duplicate-rows-within-a-table",
+        "no-table-reproves-another",
+        "separates-validation-and-pricing",
+        "validation-includes-optional-fields"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "I'm checking each assertion against the code to verify they pass. The validation rules cover missing names and malformed emails, optional fields show blank cells when omitted, and the pricing table correctly excludes irrelevant fields like dietary and accessibility restrictions rather than using blanks as placeholders. Checking the scenario names across both tables - they describe conditions rather than results, like \"Early registration, small group\" and \"Missing email\" without stating the output values. The validation table has five rows where \"Valid name and email\" and \"Optional fields omitted\" both test acceptance as true but cover different requirements, so they're not duplicates.\n\nBoth methods handle their distinct concerns without overlap - validation checks email and name with optional field handling, while pricing applies early bird and group discounts across boundary conditions. The validation table includes Dietary Requirements and Accessibility Needs as columns with varying values rather than hardcoding them, so all requirements pass."
+    },
+    {
+      "assertions": [
+        "descriptive-registration-date",
+        "cutoff-date-column-if-literal-dates",
+        "description-no-irrelevant-information",
+        "discount-column-preferred",
+        "optional-fields-has-expected-column",
+        "description-no-redundant-field-values",
+        "rule-falsifiable-by-a-row",
+        "rule-statable-from-table",
+        "quantifier-covered-by-rows"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "I'm checking each assertion against the code to verify they pass. The first one about descriptive registration dates using \"before cutoff\", \"on cutoff\", and \"after cutoff\" with a type converter looks good. The second assertion about cutoff date columns with literal dates also passes since descriptive values are being used. Now I'm examining the third assertion about whether the descriptions contain any irrelevant information, starting with the first @Description annotation about registration date and group size. The base price is £100 across all rows, with discounts applied as a fraction of that amount. Early-bird and group discounts have specific thresholds—the cutoff date for early-bird and a group size of 5 or more—and they never stack, so the higher rate wins. Name and email stay constant. This should pass since I'm stating the actual rules and thresholds that govern the calculations, not arbitrarily restating column values. For the discount-column-preferred assertion, the output uses 'Discount?' which satisfies the requirement, and since both 'Discount?' and 'Price?' columns are present, the rule is met.\n\nThe optional-fields assertion passes because the 'Accepted?' column is there. For the redundant-field-values check, I'm looking at whether scenario names restate literal input values—\"Missing name\" and \"Missing email\" don't restate the blank cells, and in the pricing table, \"Early registration, small group\" uses descriptive language rather than exact literals like \"1\" for group size. The scenario \"On the cutoff date, small group\" uses \"cutoff date\" while the column shows \"on cutoff\"—these are conceptually similar but not exact literal repetitions, so it should still pass.\n\nLooking at the description clause, the first description mentions fixed values for registration date and group size, but those aren't columns in the pricing table itself, so that's fine. The second description about base price and the note about name/email being held constant elsewhere—those are all allowed since they're either not columns in this table or are just fixed method values. This assertion likely passes.\n\nNow checking whether the rules are falsifiable by examining both tables, starting with the validation table. The discount rates in the pricing table are specified in the description, and all necessary values are documented either in the columns or the description itself. Both test methods pass validation. For the quantifier coverage check, the descriptions don't contain any quantifying language like \"regardless of,\" so there's no quantifier claim to validate against—the assertion passes by default."
+    }
+  ]
+}

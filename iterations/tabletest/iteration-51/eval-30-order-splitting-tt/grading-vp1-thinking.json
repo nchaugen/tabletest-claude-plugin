@@ -1,0 +1,37 @@
+{
+  "eval": 30,
+  "model": "claude-sonnet-5",
+  "calls": [
+    {
+      "assertions": [
+        "concerns-decomposed",
+        "rule-falsifiable-by-a-row",
+        "rule-statable-from-table",
+        "no-duplicate-rows-within-a-table",
+        "no-table-reproves-another",
+        "concern-fulfillment-method",
+        "concern-delivery-address",
+        "concern-availability",
+        "concern-warehouse-allocation",
+        "concern-companion-products"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "I'm checking the test file against the assertions. The first test passes—the five methods each handle a distinct concern. For the second test, I'm verifying that the expectations in each table row vary properly rather than just copying the input columns. Looking at the fulfillment table, the rows show different combinations of items for delivery and pickup modes, so they're not just repeating the same pattern. Fulfillment and Address methods pass straightforwardly. For Availability, the status mappings (IN_STOCK to IMMEDIATE, BACKORDERED/PRE_ORDERED to WHEN_AVAILABLE) are directly visible in the table columns, so the operation is nameable from the data itself. For Warehouse, I'm checking whether the minimal warehouse cover operation is derivable from the column headers alone.\n\nNow I'm examining the Companion method more carefully—the DisplayName explains the tie-breaker logic, but the actual companion pairing (camera and lens) is hardcoded in the method body rather than appearing in any table column or description, which could violate the requirement that values needed to predict expectations must be published in the table or documentation.\n\nHowever, the @Description explicitly states \"Camera and lens are declared as a companion group in every row of this table,\" so the companion relationship is actually published and documented. That passes the rule-statable-from-table check.\n\nMoving on to check for duplicate rows: the Fulfillment table has three distinct rows covering different obligation types, the Address table has two different addresses, and the Availability table has three rows but they don't fully cover all combinations—particularly, there's no row showing all items in stock without any backordered or preordered items held separately.\n\nThe Warehouse and Companion tables each have two rows with no duplicates. All tables pass the no-duplicate-rows check.\n\nEach table isolates a single concern with no overlap, and all nine concerns—fulfillment method, delivery address, availability, warehouse allocation, and companion products—are each represented in their own dedicated tables. The warehouse allocation table does implement the minimize-shipments logic, though it only has two rows instead of the four-item row mentioned in the reference decomposition, but that's a coverage issue rather than a structural one.\n\nNow I'm verifying the rule-falsifiable-by-a-row assertion for the warehouse table—the two rows have different expectation formats, so they're not identical across conditions. I'm also checking whether the companion table's expectation column is a direct copy of the input Stock column format or if it's been transformed."
+    },
+    {
+      "assertions": [
+        "all-outputs-same-table",
+        "native-collection-output",
+        "scenario-names-describe-conditions",
+        "business-language-columns",
+        "held-constants-declared",
+        "assertion-criteria-declared",
+        "titles-form-a-family"
+      ],
+      "run": 1,
+      "attempt": 1,
+      "thinking": "I'm checking whether each assertion about the data structure is satisfied. The first one looks good—each concern has a single table containing all outputs. For the second assertion about native collection output, I'm noticing that while the output columns use Map and Set types, the Items column represents data as colon-separated strings, which could conflict with map syntax, though the assertion is specifically about the compound output format rather than the input representation. The output columns use native maps like `[DELIVERY: {camera}, PICKUP: {battery}]`, which satisfies the requirement for compound outputs to be expressed as native collections rather than hand-rolled strings. The Items and Stock columns are inputs, not outputs, so they're not subject to this assertion—and the output side passes the native-collection test.\n\nNow checking scenario names against the assertion that they describe conditions rather than results. The Fulfillment table scenarios like \"Delivery and pickup mixed\" and \"All delivery items\" clearly name the conditions. The Address table's \"Same address\" and \"Different addresses\" describe the situation. The Availability table scenarios like \"Camera in stock, lens backordered\" state the conditions without repeating the exact result values. The Warehouse scenario \"One warehouse can cover the whole order\" names the rule or situation, which makes the outcome inferrable but doesn't explicitly state the result—this is acceptable per the rules.\n\nThe Companion table similarly uses situation-based naming like \"Two equally minimal warehouse splits are possible\" and \"Companions share no common warehouse,\" which describe conditions rather than outcomes. No generic labels appear, so this passes.\n\nFor business language, the column headers—\"Scenario,\" \"Items,\" \"Shipments by Fulfillment?,\" \"Shipments by Address?,\" \"Stock,\" \"Shipments by Availability?,\" \"Shipments by Warehouse?\"—use appropriate business terminology. Each method's description declares which facets are held constant, like \"All items are in stock in a single warehouse (wh1),\" and the Companion table does the same.\n\nOn quantity, the model defaults to 1 for every OrderItem without mentioning it in the title or description, but the response text states that item quantity doesn't affect splitting. Since the outcome doesn't depend on it, this assumption exempts it from the held-constants rule—values that can't affect the outcome don't need declaration. I'm now checking whether specific constants like productId and address are properly held across the tables.\n\nThe first two tables both use warehouse \"wh1\" and the companion group between camera and lens is declared in the description, so that looks compliant. Now I need to verify the assertion criteria—the test uses map equality with LinkedHashMap, and since Map.equals ignores order for both HashMap and LinkedHashMap, and the Sets are unordered, there's no undisclosed sorting criterion being applied.\n\nThe addressKey method does use TreeSet for sorting addresses when building the grouping key, but that's just part of the object identity function for grouping, not a comparison criterion affecting how the assertion evaluates. The groupByAvailability grouping is straightforward, and there's no subset matching, tolerance, or hidden normalization beyond basic equality, so this passes.\n\nNow looking at the test titles using @DisplayName—they describe what each test does: separating shipments by fulfillment type, by delivery address, handling in-stock items immediately without waiting for delayed items, and splitting across warehouses efficiently. The verbs vary (\"Separates,\" \"Ships,\" \"Splits,\" \"Keeps\") but they all follow the same grammatical pattern: verb-first with a subject and details, creating a consistent family of test descriptions."
+    }
+  ]
+}
