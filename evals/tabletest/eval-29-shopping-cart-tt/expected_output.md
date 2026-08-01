@@ -165,5 +165,6 @@ by containment is a uniform pattern whose criterion is stated (the column name a
 "mentions"/"must contain"); it satisfies `rule-statable-from-table`.
 
 A genuine, minor legibility nit worth noting but not weighting heavily: a `Product Id` header leaks the
-`Id` code-ism where the cell values are product *names* (`Widget`), so `Product` reads cleaner — the kind
-of small polish `business-language-columns` exists to catch.
+`Id` code-ism where the cell values are product *names* (`Widget`), so `Product` reads cleaner. It is a
+nit and not a violation — **`business-language-columns` PASSES on `Product Id`**, which judges the form of
+a header (English words in Title Case) and not whether the quantity it names is technical.

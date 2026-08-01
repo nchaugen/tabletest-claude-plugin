@@ -181,9 +181,11 @@ Representation is the secondary axis and carries latitude. The rewarded shape mo
 as native TableTest collections (sets for the unordered shipment/product semantics, or ordered
 lists/maps with a canonical sort), with a non-colliding item separator so nothing needs quoting. A
 string-encoded output (structure packed into `"W1:[...]"` strings with describe-helpers) is a real but
-inferior choice: it passes today because no assertion rewards native collections, and it reads poorly in
-the report. Do not treat its use as a decomposition failure — the concern separation is what this eval
-scores first.
+inferior choice: it **fails `native-collection-output`**, which exists to reward the native shape, and it
+reads poorly in the report. Do not let it count a second time against the decomposition assertions — the
+concern separation is what this eval scores first. The *input* item shorthand is a separate matter and
+carries no penalty at all: `camera:DELIVERY:Addr-A` is a sanctioned input form, and only the separator's
+collision with map syntax (which forces quoting) makes a slash read better.
 
 Two grading notes for this eval. `business-language-columns` judges column *names*, not cell values, and
 the `?` suffix on output columns is the expected convention (see `has-question-mark-column`) — `Shipments?`
