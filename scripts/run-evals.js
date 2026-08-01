@@ -429,6 +429,27 @@ function extractGradingText(data) {
   return text.text;
 }
 
+/**
+ * The grader's own reasoning for this call, or null when the response carried none.
+ *
+ * Sonnet-5 grades with a thinking budget (`GRADING_MAX_TOKENS_WITH_THINKING`), so these blocks are
+ * produced and billed on every call — they were simply dropped, because `extractGradingText` takes
+ * the first text block and discards the rest. Keeping them costs nothing at request time and is
+ * what makes an unstable slot diagnosable: with two passes over identical bytes stored, a flip can
+ * be read as "the grader looked at a different part of the output" or "it applied a different
+ * clause of the same assertion", which need opposite fixes.
+ *
+ * **This reads the response only.** The request is untouched, so no verdict, comparison or baseline
+ * is affected by capturing it — unusually for anything in the grading path.
+ */
+function extractGradingThinking(data) {
+  if (!data || !Array.isArray(data.content)) return null;
+  const blocks = data.content
+    .filter((block) => block && block.type === "thinking" && typeof block.thinking === "string")
+    .map((block) => block.thinking);
+  return blocks.length > 0 ? blocks.join("\n\n") : null;
+}
+
 async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropic", effort = null) {
   if (provider === "ollama") {
     const resp = await postGradingRequest("http://localhost:11434/api/chat", {
@@ -461,12 +482,32 @@ async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropi
       max_tokens: acceptsTemperature(resolved) ? GRADING_MAX_TOKENS : GRADING_MAX_TOKENS_WITH_THINKING,
       ...(acceptsTemperature(resolved) ? { temperature: GRADING_TEMPERATURE } : {}),
       ...(effort && acceptsEffort(resolved) ? { output_config: { effort } } : {}),
+      // Ask for the grader's reasoning back as a readable summary.
+      //
+      // On this model family adaptive thinking is already on when `thinking` is omitted, and
+      // `display` defaults to `"omitted"` — so thinking blocks were arriving with an EMPTY text
+      // field, which is why nothing was captured before. The reasoning was being generated and
+      // billed either way; the default just refused to show it.
+      //
+      // **This changes the request, not only the response**, so it is not free of instrument risk
+      // the way a pure response-side change would be. It is low risk — `display` is documented as
+      // controlling visibility only, with thinking happening and billing the same under every
+      // setting — but "low" is not "none", so it was validated by re-grading stored outputs and
+      // comparing verdicts before being kept.
+      //
+      // Gated on the same predicate as `effort`: the older family (haiku-4-5) takes
+      // `{type: "enabled", budget_tokens: N}` and rejects `adaptive`.
+      ...(acceptsEffort(resolved) ? { thinking: { type: "adaptive", display: "summarized" } } : {}),
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
     }),
   }, "Anthropic");
   const data = await resp.json();
-  return { text: extractGradingText(data), usage: data.usage || {} };
+  return {
+    text: extractGradingText(data),
+    thinking: extractGradingThinking(data),
+    usage: data.usage || {},
+  };
 }
 
 // List prices per million tokens for the models this project grades with. Grading cost was
@@ -1592,6 +1633,11 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, prov
   // calls are free in practice.
   let llmResults = [];
   let gradingUsage = {};
+  // The grader's reasoning, one record per API call, written beside the grading rather than inside
+  // it: it is bulky, and nothing that reads `grading.json` (`--rebuild`, the report, the answer key)
+  // needs it. Kept in git because it is measurement data — the material for diagnosing a flip.
+  const thinkingRecords = [];
+
   for (let i = 0; i < llmAssertions.length; i += LLM_GRADING_BATCH_SIZE) {
     const batch = llmAssertions.slice(i, i + LLM_GRADING_BATCH_SIZE);
     const llmEvalDef = { ...evalDef, assertions: batch };
@@ -1606,8 +1652,16 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, prov
       let llmGrading = null;
       let missing = [];
       for (let attempt = 1; attempt <= 2; attempt++) {
-        const { text: gradingText, usage } = await gradeViaApi(GRADING_SYSTEM_PROMPT, gradingPrompt, model, provider, effort);
+        const { text: gradingText, thinking, usage } = await gradeViaApi(GRADING_SYSTEM_PROMPT, gradingPrompt, model, provider, effort);
         gradingUsage = addUsage(gradingUsage, usage);
+        if (thinking) {
+          thinkingRecords.push({
+            assertions: batch.map((a) => a.id),
+            run: run + 1,
+            attempt,
+            thinking,
+          });
+        }
         llmGrading = parseLlmGrading(gradingText);
         if (!llmGrading) {
           throw new Error(
@@ -1652,6 +1706,20 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, prov
     JSON.stringify(grading, null, 2),
     "utf-8"
   );
+
+  const thinkingFile = gradingSuffix ? `grading-${gradingSuffix}-thinking.json` : "grading-thinking.json";
+  const thinkingPath = path.join(evalDir, thinkingFile);
+  if (thinkingRecords.length > 0) {
+    fs.writeFileSync(
+      thinkingPath,
+      JSON.stringify({ eval: evalDef.id, model: resolveModel(model), calls: thinkingRecords }, null, 2),
+      "utf-8"
+    );
+  } else if (fs.existsSync(thinkingPath)) {
+    // A re-grade that captured nothing must not leave the previous run's reasoning behind, where it
+    // would read as this grading's own.
+    fs.unlinkSync(thinkingPath);
+  }
 
   const status = grading.pass_rate === 1 ? "✓" : "✗";
   log(
@@ -2990,5 +3058,6 @@ module.exports = {
   resolveModel,
   acceptsTemperature,
   extractGradingText,
+  extractGradingThinking,
   missingAssertionIds,
 };

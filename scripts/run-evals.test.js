@@ -39,6 +39,7 @@ const {
   resolveModel,
   acceptsTemperature,
   extractGradingText,
+  extractGradingThinking,
   missingAssertionIds,
   computeEvalFingerprint,
   fingerprintsDiffer,
@@ -1742,5 +1743,33 @@ describe("loadOfficialBenchmark with a failed generation in the newest iteration
 
     assert.equal(entry.results.assertions_passed, 17);
     assert.equal(entry.results.error, undefined);
+  });
+});
+
+describe("extractGradingThinking", () => {
+  test("returns null when the response carries no thinking block", () => {
+    assert.equal(extractGradingThinking({ content: [{ type: "text", text: "{}" }] }), null);
+  });
+
+  test("returns the reasoning when the response carries one", () => {
+    const data = { content: [{ type: "thinking", thinking: "weighing clause (2)" }, { type: "text", text: "{}" }] };
+    assert.equal(extractGradingThinking(data), "weighing clause (2)");
+  });
+
+  test("joins several thinking blocks in order", () => {
+    const data = {
+      content: [
+        { type: "thinking", thinking: "first" },
+        { type: "thinking", thinking: "second" },
+        { type: "text", text: "{}" },
+      ],
+    };
+    assert.equal(extractGradingThinking(data), "first\n\nsecond");
+  });
+
+  test("is safe on a malformed response rather than throwing, since it never gates a verdict", () => {
+    assert.equal(extractGradingThinking(null), null);
+    assert.equal(extractGradingThinking({}), null);
+    assert.equal(extractGradingThinking({ content: [{ type: "thinking" }] }), null);
   });
 });

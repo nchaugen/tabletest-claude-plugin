@@ -220,3 +220,31 @@ The common workstream resumes when all of these hold:
   candidate regrade before promoting it.
 - Every dead suffix is distilled into `docs/assertion-triage.md` and swept.
 - A `--compare-official` run of any loop reports `N of N evals comparable` rather than exit code 2.
+
+## Capturing the grader's reasoning
+
+`grading{suffix}-thinking.json` sits beside each grading file and holds the grader's own reasoning,
+one record per API call: the assertion ids in that batch, the run and attempt number, and the
+summarized thinking text. It is the material for diagnosing an unstable slot — with two passes over
+identical bytes stored, a flip can be read as *the grader looked at a different part of the output*
+or *it applied a different clause of the same assertion*, which need opposite fixes.
+
+**The reasoning was always being generated and billed; the default just hid it.** On this model
+family adaptive thinking is on whenever `thinking` is omitted, and `thinking.display` defaults to
+`"omitted"` — so thinking blocks were arriving with an empty text field, and `extractGradingText`
+discarded them along with everything that was not the first text block. Nothing extra is being paid
+for; `GRADING_MAX_TOKENS_WITH_THINKING = 32000` was already sized for it.
+
+**This is a request change, so it is not free of instrument risk.** `display` is documented as
+controlling visibility only — thinking happens and bills the same under every setting — which makes
+the risk low, but low is not none. It was validated the way any grading change should be: re-grade
+stored outputs and compare. On eval-7, **13/13 both ways, no verdict moved**, at $0.0147 for the
+call. Re-run that comparison on a wider set before trusting it across the suite.
+
+**Two gates it does not cross.** `extractGradingText` still takes the first text block, so the
+response parsing is untouched; and no `grading.json` schema changed, so `--rebuild`, the report and
+the answer key all read exactly what they read before.
+
+**Not available on every grader model.** The parameter is gated on the same predicate as `effort`:
+the older family (haiku-4-5) takes `{type: "enabled", budget_tokens: N}` and rejects `adaptive`. A
+haiku regrade therefore captures nothing, and its `grading-*-thinking.json` is simply absent.
