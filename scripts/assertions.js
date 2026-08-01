@@ -44,49 +44,95 @@ function extractTableTestMethodBodies(content) {
   return results;
 }
 
-/**
- * Parse column names from @TableTest annotation table headers.
- * Looks for the first pipe-delimited line after @TableTest.
- */
-function parseTableHeaders(content) {
-  const tableTestRegex = /@TableTest\s*\(\s*(?:value\s*=\s*)?["\"]{3}([\s\S]*?)["\"]{3}\s*\)/g;
-  const allHeaders = [];
+/** Is this line markdown's alignment row (`|---|:--:|`) rather than a row of data? */
+function isAlignmentRow(line) {
+  const cells = line.split("|").map(c => c.trim()).filter(c => c.length > 0);
+  return cells.length > 0 && cells.every(c => /^:?-{1,}:?$/.test(c));
+}
+
+/** The pipe-delimited lines of one table block, header first, alignment row removed. */
+function pipeLines(text) {
+  return text
+    .split("\n")
+    .map(l => l.trim())
+    .filter(l => l.length > 0 && l.includes("|") && !isAlignmentRow(l));
+}
+
+/** The text of every `@TableTest` table literal in Java or Kotlin source. */
+function tableTestLiterals(content) {
+  const tableTestRegex = /@TableTest\s*\(\s*(?:value\s*=\s*)?"{3}([\s\S]*?)"{3}\s*\)/g;
+  const literals = [];
   let match;
-
   while ((match = tableTestRegex.exec(content)) !== null) {
-    const tableContent = match[1];
-    const lines = tableContent.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-
-    for (const line of lines) {
-      if (line.includes('|')) {
-        const cols = line.split('|').map(c => c.trim()).filter(c => c.length > 0);
-        allHeaders.push(cols);
-        break; // first pipe-delimited line is the header
-      }
-    }
+    literals.push(match[1]);
   }
-
-  return allHeaders;
+  return literals;
 }
 
 /**
- * Count pipe-delimited data rows (non-header, non-empty) in @TableTest tables.
+ * Every markdown table in the content, as its pipe-delimited lines.
+ *
+ * **The alignment row is what identifies a table**, and requiring it is deliberate: a prose
+ * sentence mentioning `{yes | no}` also contains a pipe, and without the alignment row every
+ * such sentence reads as a one-row table. A block ends at the first line that is not a row,
+ * so two tables separated by prose stay two tables.
  */
-function countDataRows(content) {
-  const tableTestRegex = /@TableTest\s*\(\s*(?:value\s*=\s*)?["\"]{3}([\s\S]*?)["\"]{3}\s*\)/g;
-  let totalRows = 0;
-  let match;
+function markdownTableBlocks(content) {
+  const blocks = [];
+  let current = [];
+  let aligned = false;
 
-  while ((match = tableTestRegex.exec(content)) !== null) {
-    const tableContent = match[1];
-    const lines = tableContent.split('\n').map(l => l.trim()).filter(l => l.length > 0 && l.includes('|'));
-    // First line is header, rest are data rows
-    if (lines.length > 1) {
-      totalRows += lines.length - 1;
+  const flush = () => {
+    if (aligned && current.length > 0) blocks.push(current);
+    current = [];
+    aligned = false;
+  };
+
+  for (const raw of content.split("\n")) {
+    const line = raw.trim();
+    if (line.includes("|")) {
+      if (isAlignmentRow(line)) aligned = true;
+      else current.push(line);
+      continue;
     }
+    flush();
   }
+  flush();
 
-  return totalRows;
+  return blocks;
+}
+
+/**
+ * Every table in the content, as its pipe-delimited lines with the header first.
+ *
+ * Two notations carry a table in this repo: a `@TableTest` text block in Java or Kotlin source,
+ * and a markdown table in a `spec-by-example` response. Reading only the first is what made the
+ * markdown checkers report "No table headers found" and fail authoritatively.
+ *
+ * **`@TableTest` wins when the content has any**, because its own table lines would otherwise be
+ * found a second time by the markdown scan and double every row count.
+ */
+function tableLineBlocks(content) {
+  const literals = tableTestLiterals(content);
+  if (literals.length > 0) {
+    return literals.map(pipeLines).filter(lines => lines.length > 0);
+  }
+  return markdownTableBlocks(content);
+}
+
+/**
+ * Parse the column names of every table, in either notation.
+ * The first pipe-delimited line of a table is its header.
+ */
+function parseTableHeaders(content) {
+  return tableLineBlocks(content).map(lines =>
+    lines[0].split("|").map(c => c.trim()).filter(c => c.length > 0)
+  );
+}
+
+/** Count the data rows (non-header, non-alignment, non-empty) of every table. */
+function countDataRows(content) {
+  return tableLineBlocks(content).reduce((total, lines) => total + lines.length - 1, 0);
 }
 
 /**
@@ -993,6 +1039,43 @@ const checkers = {
     };
   },
 
+  // --- Markdown tables (spec-by-example skill) ---
+
+  "produces-markdown-table": ({ fileContent, allFiles }) => {
+    const content = getCheckContent(fileContent, allFiles);
+    const tables = parseTableHeaders(content);
+    return {
+      passed: tables.length > 0,
+      evidence: tables.length > 0
+        ? `${tables.length} markdown table(s); first header: ${tables[0].join(" | ")}`
+        : "No markdown table found (a table needs a header row, an alignment row, and pipe-delimited cells)",
+    };
+  },
+
+  "produces-multiple-tables": ({ fileContent, allFiles }) => {
+    const content = getCheckContent(fileContent, allFiles);
+    const tables = parseTableHeaders(content);
+    return {
+      passed: tables.length >= 2,
+      evidence: `${tables.length} markdown table(s): ${tables.map(h => `"${h[0]}"`).join(", ") || "none"}`,
+    };
+  },
+
+  "output-columns-have-question-marks": ({ fileContent, allFiles }) => {
+    const content = getCheckContent(fileContent, allFiles);
+    const tables = parseTableHeaders(content);
+    if (tables.length === 0) {
+      return { passed: false, evidence: "No table headers found" };
+    }
+    const without = tables.filter(headers => !headers.some(h => h.endsWith("?")));
+    return {
+      passed: without.length === 0,
+      evidence: without.length === 0
+        ? `All ${tables.length} table(s) name at least one output column with '?'`
+        : `No '?' column in: ${without.map(h => h.join(" | ")).join("; ")}`,
+    };
+  },
+
   // --- Python (table-driven-testing skill) ---
 
   "uses-parametrize": ({ fileContent, allFiles }) => {
@@ -1105,6 +1188,7 @@ const aliases = {
   "2.13-format-annotation-order": "annotation-order",
   "2.14-format-description-textblock": "description-uses-textblock",
   "result-column-with-question-mark": "has-question-mark-column",
+  "output-column-has-question-mark": "has-question-mark-column",
   "1.10-format-displayname": "has-descriptive-title",
   "2.10-format-displayname": "has-descriptive-title",
 };

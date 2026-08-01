@@ -7,6 +7,8 @@ const {
   parseCollectionElements,
   parseParameterList,
   tableTestTables,
+  parseTableHeaders,
+  countDataRows,
 } = require("./assertions.js");
 
 const testSource = (content) => ({
@@ -334,5 +336,95 @@ describe("annotation-order vacuity", () => {
   test("still fails a genuine ordering violation", () => {
     const r = checkers["annotation-order"](src('class T {\n  @Description("d")\n  @DisplayName("x")\n  @TableTest("""\n  A | B?\n  1 | 2\n  """)\n  void t(int a, int b) { }\n}'));
     assert.equal(r.passed, false);
+  });
+});
+
+describe("tables in markdown", () => {
+  const markdown = (content) => ({ fileContent: content, allFiles: [] });
+
+  const loanTable = `## Loan approval
+
+| Scenario | Age | Credit score | Approved? |
+|---|---|---|---|
+| Standard applicant | 40 | 700 | yes |
+| Score at threshold | 40 | 650 | no |
+`;
+
+  test("reads the header of a markdown table, ignoring the alignment row", () => {
+    assert.deepEqual(parseTableHeaders(loanTable), [["Scenario", "Age", "Credit score", "Approved?"]]);
+  });
+
+  test("counts markdown data rows without counting the alignment row", () => {
+    assert.equal(countDataRows(loanTable), 2);
+  });
+
+  test("separates two markdown tables split by prose", () => {
+    const two = `${loanTable}
+Some prose between the tables.
+
+| Scenario | Tier | Rate? |
+| --- | :--: | ---: |
+| Senior | senior | 0.8 |
+`;
+    assert.deepEqual(parseTableHeaders(two).map(h => h[0]), ["Scenario", "Scenario"]);
+    assert.equal(countDataRows(two), 3);
+  });
+
+  test("does not read a prose line containing a pipe as a table", () => {
+    const prose = "Write the value set as `{yes | no}` when the input does not matter.\n";
+    assert.deepEqual(parseTableHeaders(prose), []);
+    assert.equal(countDataRows(prose), 0);
+  });
+
+  test("tolerates a table written without leading and trailing pipes", () => {
+    const bare = `Scenario | Approved?
+--- | ---
+Standard applicant | yes
+`;
+    assert.deepEqual(parseTableHeaders(bare), [["Scenario", "Approved?"]]);
+    assert.equal(countDataRows(bare), 1);
+  });
+
+  test("reads a @TableTest source exactly once, not a second time as markdown", () => {
+    const java = `class T {
+  @TableTest("""
+      Scenario | Age | Approved?
+      Standard | 40  | yes
+      Senior   | 70  | no
+      """)
+  void approves(String scenario, int age, boolean approved) { }
+}`;
+    assert.deepEqual(parseTableHeaders(java), [["Scenario", "Age", "Approved?"]]);
+    assert.equal(countDataRows(java), 2);
+  });
+
+  test("scenario-column-present judges the leftmost markdown column", () => {
+    assert.equal(checkers["scenario-column-present"](markdown(loanTable)).passed, true);
+    const outputFirst = "| Approved? | Age |\n|---|---|\n| yes | 40 |\n";
+    assert.equal(checkers["scenario-column-present"](markdown(outputFirst)).passed, false);
+  });
+
+  test("output-column-has-question-mark finds a markdown output column", () => {
+    assert.equal(checkers["output-column-has-question-mark"](markdown(loanTable)).passed, true);
+    const noQuestion = "| Scenario | Age | Approved |\n|---|---|---|\n| Standard | 40 | yes |\n";
+    assert.equal(checkers["output-column-has-question-mark"](markdown(noQuestion)).passed, false);
+  });
+
+  test("produces-markdown-table needs a rendered table, not just pipes", () => {
+    assert.equal(checkers["produces-markdown-table"](markdown(loanTable)).passed, true);
+    assert.equal(checkers["produces-markdown-table"](markdown("No table here, only prose.")).passed, false);
+  });
+
+  test("produces-multiple-tables needs two separate tables", () => {
+    assert.equal(checkers["produces-multiple-tables"](markdown(loanTable)).passed, false);
+    const two = `${loanTable}\n| Scenario | Rate? |\n|---|---|\n| Senior | 0.8 |\n`;
+    assert.equal(checkers["produces-multiple-tables"](markdown(two)).passed, true);
+  });
+
+  test("output-columns-have-question-marks requires one in every table", () => {
+    const both = `${loanTable}\n| Scenario | Rate? |\n|---|---|\n| Senior | 0.8 |\n`;
+    assert.equal(checkers["output-columns-have-question-marks"](markdown(both)).passed, true);
+    const one = `${loanTable}\n| Scenario | Rate |\n|---|---|\n| Senior | 0.8 |\n`;
+    assert.equal(checkers["output-columns-have-question-marks"](markdown(one)).passed, false);
   });
 });
