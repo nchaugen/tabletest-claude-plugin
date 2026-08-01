@@ -57,9 +57,9 @@ Key properties of this table:
 Start by agreeing on what the table will describe. Use a verb phrase from the domain:
 
 - "Car Rental Eligibility"
-- "Loan Approval Decision"
-- "Discount Calculation"
-- "Order Status Transition"
+- "Blood Donation Deferral"
+- "Medication Dose Calculation"
+- "Waste Sorting Classification"
 
 Getting the name right focuses the examples and later becomes the test method name.
 If you cannot name it cleanly, the behaviour may be two concerns — keep that in mind.
@@ -88,7 +88,7 @@ it as more examples arrive.
 
 - Ask: "What is the system's response or decision?"
 - Ask: "What do we verify to know the behaviour is correct?"
-- Suffix output column names with `?` (`Eligible?`, `Discount?`, `Error Message?`).
+- Suffix output column names with `?` (`Eligible?`, `Deferral Period?`, `Error Message?`).
 
 **The `?` suffix is reserved for output columns only.** Do not use `?` on input columns,
 even when the input is a yes/no condition. Input columns describe the given state; output
@@ -96,9 +96,9 @@ columns describe what the system decides or produces.
 
 | Good (Input)         | Bad (Input)           | Why bad                        |
 |----------------------|-----------------------|--------------------------------|
-| `Loyalty Member`     | `Loyalty Member?`     | `?` implies this is an output  |
-| `Within 24h`         | `Within 24h?`         | This is a given condition      |
-| `Trial Active`       | `Trial?`              | This is an input state         |
+| `Repeat Donor`       | `Repeat Donor?`       | `?` implies this is an output  |
+| `Within Rest Period` | `Within Rest Period?` | This is a given condition      |
+| `Vent Open`          | `Vent?`               | This is an input state         |
 | `Has Licence`        | `Has Licence?`        | This is a given fact           |
 
 ### 4. Add More Examples
@@ -148,14 +148,14 @@ column are harder to read and easier to get out of sync than one row with a valu
 **State and status values** — value sets are especially useful when a rule holds
 regardless of which status or state an entity is in:
 
-| Scenario                              | Current Status       | Target Status | Allowed? | Reason?            |
-|---------------------------------------|----------------------|---------------|----------|--------------------|
-| Cancellation from pre-shipment states | {PENDING, CONFIRMED} | CANCELLED     | yes      |                    |
-| Cancellation after shipment           | SHIPPED              | CANCELLED     | no       | Already dispatched |
+| Scenario                              | Current Status          | Target Status | Allowed? | Reason?               |
+|---------------------------------------|-------------------------|---------------|----------|-----------------------|
+| Deferral from any pre-donation state  | {SCREENING, REGISTERED} | DEFERRED      | yes      |                       |
+| Deferral after the donation completed | COMPLETED               | DEFERRED      | no       | Session already closed |
 
 Without the value set, you would need two almost-identical rows. One row with
-`{PENDING, CONFIRMED}` states the rule more precisely: cancellation is allowed
-from any pre-shipment state, not just the two listed.
+`{SCREENING, REGISTERED}` states the rule more precisely: deferral is allowed
+from any pre-donation state, not just the two listed.
 
 ### 6. Focus Tables on Rules, Not Arithmetic
 
@@ -165,15 +165,15 @@ state transitions — not test that multiplication works.
 
 **Good decomposition** — tables focus on the rule:
 
-| Scenario              | Package weight | Destination zone | Size category? | Surcharge? |
-|-----------------------|----------------|-----------------|----------------|------------|
-| Light domestic parcel | 0.5 kg         | Domestic         | Standard       | none       |
-| Heavy domestic parcel | 12 kg          | Domestic         | Oversize       | 5.00       |
-| Light international   | 0.5 kg         | International    | Standard       | none       |
-| Heavy international   | 12 kg          | International    | Oversize       | 8.50       |
+| Scenario              | Item weight | Material  | Size category? | Surcharge? |
+|-----------------------|-------------|-----------|----------------|------------|
+| Light recyclable      | 0.5 kg      | cardboard | Standard       | none       |
+| Heavy recyclable      | 12 kg       | cardboard | Oversize       | 5.00       |
+| Light hazardous       | 0.5 kg      | solvent   | Standard       | none       |
+| Heavy hazardous       | 12 kg       | solvent   | Oversize       | 8.50       |
 
-The interesting rule is how weight and destination determine the size category and
-surcharge. Once the category is known, shipping cost = base rate + surcharge is
+The interesting rule is how weight and material determine the size category and
+surcharge. Once the category is known, disposal fee = base rate + surcharge is
 arithmetic — a separate, minimal table.
 
 **Signs you are testing arithmetic, not rules:**
@@ -281,13 +281,13 @@ be in a real case?" Use that answer.
 Where possible, output values should be derivable from the input values by a reader
 with no additional knowledge:
 
-| Scenario               | Base Price | Discount | Final Price? |
-|------------------------|------------|----------|--------------|
-| 10% loyalty discount   | 100        | 10%      | 90           |
-| 20% bulk order         | 200        | 20%      | 160          |
+| Scenario               | Body weight (kg) | Dose per kg (mg) | Dose (mg)? |
+|------------------------|------------------|------------------|------------|
+| Standard adult         | 70               | 5                | 350        |
+| Paediatric             | 20               | 5                | 100        |
 
-`90` is traceable: `100 − 10% = 90`. Prefer this over a symbolic placeholder like
-`discounted`. When an output is not mathematically derivable, make it a real domain
+`350` is traceable: `70 × 5 = 350`. Prefer this over a symbolic placeholder like
+`computed`. When an output is not mathematically derivable, make it a real domain
 value the reader recognises (`Economy`, `Rejected`, `EUR 99.00`).
 
 ### Make Thresholds and Limits Visible
