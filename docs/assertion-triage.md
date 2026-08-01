@@ -944,10 +944,17 @@ parameters; anything else is guessing.
 against a four-column header. The example taught syntax the parser rejects. Fixed to whole-line
 comments in the same commit.
 
-**`empty-string-element-quoted` was deliberately left `llm`.** Its decidable core — a blank element
-inside a collection — is *identical* to `no-blank-collection-elements`, so converting both would
-create two slots that can never disagree: one slot counted twice, the same error as four conversion
-evals hosting one task. Either reword it to test something the other does not, or delete it.
+**`empty-string-element-quoted` was a duplicate, and is now `empty-tag-case-covered`.** Its decidable
+core — a blank element inside a collection — was *identical* to `no-blank-collection-elements`, so
+converting both would have created two slots that can never disagree: one slot counted twice, the same
+error as four conversion evals hosting one task.
+
+**Resolved by rewording rather than deleting, because the prompt states a rule the suite was not
+covering.** eval-20's prompt says "An empty tag string is never kept, whatever the category", and no
+assertion asked whether any row exercises it. The slot now judges **coverage** — does a row feed an
+empty tag in at all — and explicitly hands the syntax question back to `no-blank-collection-elements`.
+Renamed because the id should say what it tests; it had no answer-key entry, so nothing was bound to
+the old name.
 
 ### The two assertion repairs — 2026-08-01 (slice 4, batched with steps 2–6)
 
