@@ -1789,3 +1789,25 @@ describe("--capture-thinking", () => {
     );
   });
 });
+
+describe("harvesting a failed generation", () => {
+  const { harvestGeneratedFiles } = require("./run-evals.js");
+
+  test("copies the files the agent wrote before it ran out of budget", (t) => {
+    if (!harvestGeneratedFiles) return t.skip("harvestGeneratedFiles not exported");
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "harvest-"));
+    const agentCwd = path.join(root, "work");
+    const evalDir = path.join(root, "eval");
+    fs.mkdirSync(path.join(agentCwd, "src/test/java/com/example"), { recursive: true });
+    fs.mkdirSync(path.join(evalDir, "outputs"), { recursive: true });
+    fs.writeFileSync(path.join(agentCwd, "src/test/java/com/example/FeeTest.java"), "class FeeTest {}");
+    fs.writeFileSync(path.join(agentCwd, "pom.xml"), "<project/>");
+
+    harvestGeneratedFiles(agentCwd, evalDir, { id: 1, slug: "x", skill: "tabletest" });
+
+    assert.ok(fs.existsSync(path.join(evalDir, "outputs/src/test/java/com/example/FeeTest.java")),
+      "a test file written before the timeout must survive — the skills promise it is a checkpoint");
+    assert.ok(fs.existsSync(path.join(evalDir, "outputs/pom.xml")));
+    fs.rmSync(root, { recursive: true });
+  });
+});

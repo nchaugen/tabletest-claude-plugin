@@ -1379,23 +1379,7 @@ async function generateOne(evalDef, worktreePath, iterationDir, args) {
       );
     }
 
-    // Collect generated test files from agent working directory
-    const profile = languageProfile(evalDef);
-    const testFiles = collectTestFiles(agentCwd, profile);
-    for (const tf of testFiles) {
-      const rel = path.relative(agentCwd, tf);
-      const dest = path.join(evalDir, "outputs", rel);
-      fs.mkdirSync(path.dirname(dest), { recursive: true });
-      fs.cpSync(tf, dest);
-    }
-
-    // Collect build files from agent working directory (for dependency assertions)
-    for (const buildFile of profile.buildFiles) {
-      const src = path.join(agentCwd, buildFile);
-      if (fs.existsSync(src)) {
-        fs.cpSync(src, path.join(evalDir, "outputs", buildFile));
-      }
-    }
+    harvestGeneratedFiles(agentCwd, evalDir, evalDef);
 
     // Run build verification if project scaffolding was present
     if (hasProject) {
@@ -1434,15 +1418,52 @@ async function generateOne(evalDef, worktreePath, iterationDir, args) {
       `ERROR: ${err.message}`,
       "utf-8"
     );
+
+    // Salvage whatever the agent had written before it ran out of budget. The eval stays excluded
+    // from the totals; this is so the work is inspectable rather than silently deleted below.
+    let harvested = 0;
+    try {
+      harvestGeneratedFiles(agentCwd, evalDir, evalDef);
+      harvested = collectTestFiles(agentCwd, languageProfile(evalDef)).length;
+    } catch { /* harvesting is best-effort — never mask the original failure */ }
+    if (harvested > 0) {
+      logError(`    salvaged ${harvested} generated file(s) written before the failure`);
+    }
+
     fs.writeFileSync(
       path.join(evalDir, "timing.json"),
-      JSON.stringify({ error: err.message, duration_ms: Date.now() - startedAt }, null, 2),
+      JSON.stringify({ error: err.message, duration_ms: Date.now() - startedAt, harvested_files: harvested }, null, 2),
       "utf-8"
     );
   } finally {
     // Clean up per-eval working directory
     if (hasProject && fs.existsSync(agentCwd)) {
       fs.rmSync(agentCwd, { recursive: true });
+    }
+  }
+}
+
+/**
+ * Copy whatever the agent wrote out of its working directory into `outputs/`.
+ *
+ * **Called on the timeout path as well as the success path, and that is the point.** The skills tell
+ * the agent that each test written is "a checkpoint that can't be lost to a timeout"
+ * (`tabletest/SKILL.md`), but the working directory is deleted in `finally`, so before this the
+ * harness discarded exactly those checkpoints and left `response.md` reading `ERROR:`. A timed-out
+ * eval is still **excluded from the totals** — a partial answer is not a score — but its files now
+ * survive, so you can see how far it got and decide whether a re-run is worth buying.
+ */
+function harvestGeneratedFiles(agentCwd, evalDir, evalDef) {
+  const profile = languageProfile(evalDef);
+  for (const tf of collectTestFiles(agentCwd, profile)) {
+    const dest = path.join(evalDir, "outputs", path.relative(agentCwd, tf));
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.cpSync(tf, dest);
+  }
+  for (const buildFile of profile.buildFiles) {
+    const src = path.join(agentCwd, buildFile);
+    if (fs.existsSync(src)) {
+      fs.cpSync(src, path.join(evalDir, "outputs", buildFile));
     }
   }
 }
@@ -3021,6 +3042,7 @@ if (require.main === module) {
 // Exported for scripts/run-evals.test.js. Everything here is either pure or takes its
 // collaborators as arguments, so the suite needs no network and no eval fixtures.
 module.exports = {
+  harvestGeneratedFiles,
   computeEvalFingerprint,
   fingerprintsDiffer,
   loadEvalsFromDir,

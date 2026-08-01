@@ -103,6 +103,14 @@ formats one). Point a checker at prose you control and it audits itself.
 Regression detection compares against the previous iteration's `benchmark.json` (same
 variant); `--compare-official` also compares a variant against the latest official baseline.
 
+**A failed generation is excluded, not scored zero — and its files are now salvaged.** Whatever the
+agent had written before it ran out of budget is copied into `outputs/` on the failure path too, and
+`timing.json` records `harvested_files`. The eval stays out of the totals, because a partial answer
+is not a score; the point is that you can see how far it got and decide whether a re-run is worth
+buying. Before this the working directory was deleted in `finally` and the checkpoints went with it —
+which quietly contradicted the skills, which promise the agent that each test written "can't be lost
+to a timeout".
+
 **A failed generation is excluded, not scored zero.** When an eval times out or crashes it produced
 no answer, so it is left out of the summary totals, named in `summary.errored_evals`, and excluded
 from the comparison the way a changed definition is (`generation-failed`). Its tokens and cost still
