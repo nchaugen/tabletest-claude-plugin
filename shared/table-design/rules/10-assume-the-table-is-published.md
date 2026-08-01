@@ -19,6 +19,21 @@ comment — a comment reaches no published surface at all. The helper is the eas
 because it looks like plumbing: one that builds every entry with the same zone has pinned zone for
 the whole table, and no column says so.
 
+**What the assertion tolerates is part of the rule too.** A comparison that sorts either side before
+comparing, accepts a subset, matches "contains" rather than equals, or normalises case or whitespace
+is *enforcing a rule*: it changes which behaviours the test would accept, and none of it reaches the
+reader. Ordering is the usual one, and a shared helper is where it hides — written once, then
+invisible at every call site, so a reader cannot tell whether order is part of the behaviour or an
+artefact of the comparison. Two repairs, and the second is better where it fits:
+
+- **Name it** — one sentence in the description, or a column that makes it evident.
+- **Remove the need for it** — an unordered collection as the expectation says order does not matter
+  *in the table itself*, which beats saying so in prose; an ordered one with a canonical sort says it
+  does.
+
+Numeric tolerance is not a criterion: a conventional epsilon on a decimal column is exempt. Nor is
+constructing the objects the columns name.
+
 {{example}}
 
 **Check:** **Held constants declared**: every value the outcome depends on that the table fixes for all {{rows}} is a column, or is named in the title or description as held fixed — never left only in the test body, a field, a conversion helper, or a comment

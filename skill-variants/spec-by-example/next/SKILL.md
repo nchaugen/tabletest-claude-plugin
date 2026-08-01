@@ -438,6 +438,11 @@ values".
 one obviously-valid value. An input that *this* rule claims not to affect has to vary across the
 values it ignores — otherwise no row could ever contradict the claim.
 
+**Value sets work on two axes — check both.** *Within* a row, group input values that produce the
+same outcome. *Across* rows, collapse duplicates: when two input kinds follow identical rules
+everywhere, one row with both values replaces two identical ones. It is easy to apply one axis
+and miss the other.
+
 | Scenario                           | Donor Age | Haemoglobin | Recent Travel | Eligible? |
 |------------------------------------|-----------|-------------|---------------|-----------|
 | Below the minimum age              | 16        | {125, 140}  | {yes, no}     | no        |
@@ -488,6 +493,21 @@ It is **not** declared when it sits in the test body, in a field, in a conversio
 comment — a comment reaches no published surface at all. The helper is the easiest hiding place
 because it looks like plumbing: one that builds every entry with the same zone has pinned zone for
 the whole table, and no column says so.
+
+**What the assertion tolerates is part of the rule too.** A comparison that sorts either side before
+comparing, accepts a subset, matches "contains" rather than equals, or normalises case or whitespace
+is *enforcing a rule*: it changes which behaviours the test would accept, and none of it reaches the
+reader. Ordering is the usual one, and a shared helper is where it hides — written once, then
+invisible at every call site, so a reader cannot tell whether order is part of the behaviour or an
+artefact of the comparison. Two repairs, and the second is better where it fits:
+
+- **Name it** — one sentence in the description, or a column that makes it evident.
+- **Remove the need for it** — an unordered collection as the expectation says order does not matter
+  *in the table itself*, which beats saying so in prose; an ordered one with a canonical sort says it
+  does.
+
+Numeric tolerance is not a criterion: a conventional epsilon on a decimal column is exempt. Nor is
+constructing the objects the columns name.
 
 Crew size never varies, so a reader takes the rule to be about two-pilot crews. Make it a column:
 
