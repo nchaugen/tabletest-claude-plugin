@@ -26,7 +26,7 @@
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario ids describe conditions ('senior without clearance', 'trip just over limit') — not outcomes ('approved', 'declined').",
+      "text": "Scenario ids name the variation the case exercises, not the result it produces. The decidable test: FAILS when a scenario id states or paraphrases a value that appears in an expectation column of that same case — 'User cannot delete' beside an Allowed? cell of false, 'No discount applies' beside a Discount? cell of 0.00, 'Contractor gets no bonus' beside a Bonus? cell of 0. Also FAILS on generic labels ('Test 1', 'Test case 2'), which name no variation at all. PASSES otherwise. Naming the rule or the situation is correct even when it makes the outcome inferable — 'Delivery and pickup items always split', 'At the standard threshold, not above it', 'EU express, light package', 'Renewal with no claims', 'Missing name' all PASS. The failure this catches is an id echoing its own expectation cell, not an id that describes what the case is about, and not an id from which a reader who knows the rule could predict the outcome. A single offending id fails the assertion. Judge every parametrized test in the file.",
       "type": "llm"
     },
     {
@@ -45,8 +45,8 @@
       "type": "llm"
     },
     {
-      "id": "minimal-rows-per-concern",
-      "text": "Each parametrized test has only the cases needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer cases per test is expected when concerns are properly separated.",
+      "id": "no-duplicate-rows-within-a-table",
+      "text": "Judge each parametrized test in isolation. The assertion FAILS if a case re-covers an obligation an earlier case in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one case per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A case that discharges an obligation no other case reaches earns its place however simple it looks, and a value set that covers several values in one case is the preferred discharge, never a failure. Cases that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a linear premium sampled at 0, 2 and 4 claims: two samples state the effect and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one case per rate band — because each then discharges an obligation of its own. CASES YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess cases only, and coverage is judged by this eval's own coverage assertions. Judge every parametrized test in the file; your evidence must name each parametrized test with PASS or FAIL.",
       "type": "llm"
     },
     {

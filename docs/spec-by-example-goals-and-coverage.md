@@ -2,6 +2,13 @@
 
 Last updated: 2026-04-06
 
+> **Every pass rate below is from `iteration-1` and is void** (2026-08-01). That baseline was graded
+> on no recorded model, before the sonnet standard; `iteration-2` re-baselined the suite at 110/130.
+> The assertion inventory is stale too: `minimal-rows-per-concern` was replaced by
+> `no-duplicate-rows-within-a-table`, and five mechanical assertions are now graded in code. Read
+> `evals/spec-by-example/*/eval.json` for the inventory and the newest `benchmark.json` for the
+> rates. Rewrite this document from the slice 6 step 3 regrade.
+
 ## Purpose
 
 The spec-by-example skill helps clarify requirements before implementation by working

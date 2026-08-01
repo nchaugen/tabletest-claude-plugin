@@ -459,6 +459,14 @@ than cost is the constraint, generation parallelism is the lever, and it does no
 The suite is the instrument, the skill the subject — a score delta means something only when
 exactly one of them changed between the compared iterations.
 
+- **An assertion id shared across suites has one text, and `eval.json` is not where you edit it.**
+  Its source is `shared/assertions/<id>.md`; `node scripts/build-skills.js` renders it through each
+  suite's vocabulary (`shared/assertions/vocabulary.json`) and writes it into every `eval.json` that
+  carries the id. Edit the source, run the build, commit both. Editing the `eval.json` copy is
+  reverted by the next build, and `node --test` fails on the divergence meanwhile. The vocabulary is
+  what makes one text legitimate in three places — `@TableTest method` / `markdown table` /
+  `parametrized test` — so if a rule cannot be stated without a framework noun the vocabulary lacks,
+  it is not shared guidance; leave it in the eval.
 - **Sequence, don't interleave.** Freeze the suite within a comparison cycle. Land suite
   changes as their own commits (`feat(evals):`, `fix(evals):`), re-baseline the published
   skill, then resume skill iteration.
