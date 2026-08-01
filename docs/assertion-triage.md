@@ -1193,3 +1193,62 @@ Score and verdict were identical so nothing looked wrong; only the evidence stri
 promoting a regrade, grep one promoted `grading.json` for a phrase only the new assertion could have
 produced** — the fingerprint guard will not catch this, by design (it protects comparison, not
 regrade validity).
+
+## Porting the repaired texts to the two thin suites — measured 2026-08-01 (`benchmark-s6b.json`)
+
+Slice 6 § 0b unified two assertion ids across the three suites from one source
+(`shared/assertions/`, rendered per suite by `scripts/build-skills.js`) and tagged five mechanical
+`spec-by-example` assertions `deterministic`. The regrade holds the outputs, the grader model and the
+prompts fixed and moves only the assertion texts, so it is a **clean A/B of the instrument**.
+
+**Read the in-iteration pair, not the report.** `analysis-todo-s6b.md` compares against
+`iteration-1`, which is void by regime, and its 25 moved lines mix the regime change with this one.
+The comparison that means something is `benchmark.json` against `benchmark-s6b.json` inside
+`iteration-2`: **110/130 → 105/130, 13 slots moved.** `table-driven-testing` is 42/44 → 42/44 with
+**nothing moved** — the port cost it nothing, as a 42/44 tripwire should behave.
+
+**The level fell and the accuracy rose.** Every changed-text verdict I read against the artefact is
+correct in the new run and wrong in the old one.
+
+| Slot | Old verdict | New verdict | Read against the artefact |
+|---|---|---|---|
+| `scenario-names-describe-conditions`/4 | PASS | **FAIL** | 'Senior applicant, mid-range score only qualifies due to age' beside `Approved? = yes`. Correct. |
+| `scenario-names-describe-conditions`/21 | PASS | **FAIL** | 'Standard registration, no discount' beside `Early-Bird Applies? = no`, `Group Discount Applies? = no`. Correct. |
+| `no-duplicate-rows-within-a-table`/5 | PASS | **FAIL** | '31 days' and '90 days' both discharge 'past boundary → no'. Correct. |
+| `no-duplicate-rows-within-a-table`/24 | PASS | **FAIL** | 39/40/41 pin the boundary; 'Well into overtime, 50' re-shows the same arithmetic. Correct — it is the worked example in the assertion's own text. |
+| `no-duplicate-rows-within-a-table`/10 | PASS | **FAIL** | 0h/12h/23h59 all restate 'no before the boundary'. Correct. |
+| `no-duplicate-rows-within-a-table`/4 | FAIL | **PASS** | Old evidence complained the rows were *not decomposed into per-concern tables* — a `concerns-decomposed` judgement under an excess-rows assertion. |
+| `no-duplicate-rows-within-a-table`/16 | FAIL | **PASS** | Old evidence: 'Table 1 **needs** 9 rows … since concerns weren't separated'. It failed a table for rows it had just called necessary. |
+
+**Two failure shapes, both cured by the same edit.** The old 192-character text produced *direction*
+errors (a decomposition or coverage complaint filed under an assertion that polices excess) and
+*shallow* passes — eval-24's entire old evidence is "Table 1 has 5 rows, Table 2 has 4 rows, Table 3
+has 3 rows, Table 4 has 3 rows", a row count with no judgement in it. Both are the confirming-instance
+stop this document has recorded before. The replacement states the excess-only scope in capitals,
+names the boundary-versus-linear-sample distinction, and requires per-table PASS/FAIL evidence — and
+the new evidence strings cite specific row pairs every time.
+
+**A short assertion does not fail safe.** It fails *quietly*: it passes on the first good example and
+its evidence reads like a finding. Two of the five new FAILs above sat behind an old PASS whose
+evidence was a list of *correct* names.
+
+**6 untouched slots also moved, and 4 of them are one flip.** eval-16's `concerns-decomposed`,
+`3.2-depth-fulfillment-scenarios`, `3.3-depth-delivery-address-scenarios` and
+`3.4-depth-availability-scenarios` all turn on a single contested reading — whether Table 1 is a
+legitimate combined table or three concerns merged. The old run read it merged (decomposition FAIL,
+depth PASS); the new run reads it combined (decomposition PASS, depth FAIL). **Count that as one
+unstable judgement with four consequences, not four flips**, or eval-16 will look four times noisier
+than it is. `extreme-discount-row`/6 and `refund-table-shows-proportion`/10 are ordinary single
+flips. Nothing here was edited, so the batched grading prompt is the only channel: changing one
+assertion's text changes the prompt its batch-mates are judged in.
+
+**The fix for eval-16 already exists and has a price.** `tabletest`'s `concerns-decomposed` text
+carries the clause sbe's lacks — "closely-related concerns may share one method … four methods
+covering five concerns is fine" — which is exactly the contested reading. Porting it is one file in
+`shared/assertions/`, but `concerns-decomposed` holds **5 divergent texts inside `tabletest`**, so
+unifying it rewrites `tabletest` assertion texts and forces a `tabletest --grade-only` regrade.
+Same for `business-language-columns` (8 texts). Schedule those two deliberately.
+
+**Cost.** $0.81 grading for 10 `spec-by-example` evals, $0.13 for 5 `table-driven-testing` evals, no
+generation. Both runs exit 0 — the void-regime guard fires on the *report's* iteration-1 comparison
+and warns rather than exiting 2, because the baseline is pre-guard.

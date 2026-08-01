@@ -4,54 +4,54 @@
       "id": "produces-markdown-table",
       "text": "Output contains a markdown table",
       "passed": true,
-      "evidence": "| Scenario | Order Quantity | Bulk Threshold (Policy) | Loyalty Status | ... |"
+      "evidence": "3 markdown table(s); first header: Scenario | Order Quantity | Bulk Threshold (Policy) | Loyalty Status | Bulk Discount Applies? | Loyalty Discount Applies?"
     },
     {
       "id": "does-not-invent-resolution",
       "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved",
       "passed": true,
-      "evidence": "Table 2 — Combining Discounts When Both Apply (OPEN — needs team decision)"
+      "evidence": "Table 2 lists four different policy computations (Stacked, Sequential, Higher-only, Capped) without picking one, and Open Questions explicitly ask which to adopt."
     },
     {
       "id": "covers-both-discounts-applying",
       "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)",
       "passed": true,
-      "evidence": "| Bulk order, loyalty member | 25 units | 20 units | Member | yes | yes |"
+      "evidence": "'Bulk order, loyalty member | 25 units | 20 units | Member | yes | yes'"
     },
     {
       "id": "open-question-surfaced",
       "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note",
       "passed": true,
-      "evidence": "### Open Questions for the Team"
+      "evidence": "### Open Questions for the Team' table with explicit questions like 'Stacked, higher-only, or capped?'"
     },
     {
       "id": "output-column-has-question-mark",
       "text": "At least one output column ends with '?'",
       "passed": true,
-      "evidence": "| Scenario | Base Price | Bulk Discount (Policy) | Loyalty Discount (Policy) | Final Discount? | Final Price? |"
+      "evidence": "Question-mark columns: Bulk Discount Applies?, Loyalty Discount Applies?, Final Discount?, Final Price?"
     },
     {
       "id": "extreme-discount-row",
       "text": "Table includes at least one row with a high combined discount (e.g. large order + top loyalty tier) that would force a decision about whether a cap applies — making the cap question concrete, not theoretical.",
-      "passed": true,
-      "evidence": "| Stacked — additive | 100 | 15% | 10% | 25% | 75.00 |"
+      "passed": false,
+      "evidence": "All Table 2 rows use the same fixed 'Base Price 100, Bulk 15%, Loyalty 10%' scenario with no large-order or top-tier variation to make an extreme discount concrete."
     },
     {
       "id": "scenario-column-present",
       "text": "Table has a scenario/description column as the leftmost column",
       "passed": true,
-      "evidence": "| Scenario | Order Quantity | Bulk Threshold (Policy) | Loyalty Status |"
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"#\""
     }
   ],
-  "assertions_passed": 7,
+  "assertions_passed": 6,
   "assertions_total": 7,
-  "pass_rate": 1,
+  "pass_rate": 0.8571428571428571,
   "grading_usage": {
-    "input_tokens": 2891,
-    "output_tokens": 1087,
-    "total_tokens": 3978,
+    "input_tokens": 2817,
+    "output_tokens": 1455,
+    "total_tokens": 4272,
     "calls": 1,
-    "cost_usd": 0.024978,
+    "cost_usd": 0.030276,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

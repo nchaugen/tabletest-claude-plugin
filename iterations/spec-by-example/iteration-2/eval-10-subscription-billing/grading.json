@@ -4,37 +4,37 @@
       "id": "produces-multiple-tables",
       "text": "Output contains at least 2 separate markdown tables (not everything crammed into one table)",
       "passed": true,
-      "evidence": "Table 1: Trial Period Outcome ... Table 2: Refund Eligibility ... Table 3: Prorated Refund Amount"
+      "evidence": "3 markdown table(s): \"Scenario\", \"Scenario\", \"Scenario\""
     },
     {
       "id": "tables-have-distinct-concerns",
       "text": "The tables cover distinct concerns — e.g. pricing/plans is separate from cancellation/refund rules",
       "passed": true,
-      "evidence": "Table 1: Trial Period Outcome, Table 2: Refund Eligibility (24-Hour Exception Rule), Table 3: Prorated Refund Amount"
+      "evidence": "Table 1: Trial Period Outcome, Table 2: Refund Eligibility, Table 3: Prorated Refund Amount"
     },
     {
       "id": "output-columns-have-question-marks",
       "text": "At least one output column in each table ends with '?'",
       "passed": true,
-      "evidence": "| Billing Event? | Plan After? | Amount Charged? |; | Refund Eligible? | Reason? |; | Refund Amount? |"
+      "evidence": "All 3 table(s) name at least one output column with '?'"
     },
     {
       "id": "refund-exception-covered",
       "text": "The 24-hour no-refund exception is included as a distinct scenario row",
       "passed": true,
-      "evidence": "| Cancel just under the 24-hour window | Monthly | 23 hours 59 minutes | no | Within 24 hours of renewal charge |"
+      "evidence": "Cancel just under the 24-hour window | ... | no | Within 24 hours of renewal charge"
     },
     {
       "id": "business-language-columns",
       "text": "Column names use domain/business language — no implementation terms like 'boolean', 'int', 'isProrated', camelCase identifiers",
       "passed": true,
-      "evidence": "| Scenario | Days Into Trial | Trial Length (Policy) | Action | Billing Event? | Plan After? | Amount Charged? |"
+      "evidence": "Columns like 'Scenario', 'Refund Eligible?', 'Reason?', 'Unused Days', 'Refund Amount?'"
     },
     {
       "id": "trial-cancellation-row",
       "text": "Includes a row or scenario for cancelling during the free trial — no charge was made, so no refund applies. This case should be explicit, not omitted.",
       "passed": true,
-      "evidence": "| Subscriber cancels before trial ends | 10 | 30 days | Cancel | none | Cancelled | |"
+      "evidence": "Subscriber cancels before trial ends | 10 | 30 days | Cancel | none | Cancelled |"
     },
     {
       "id": "prorated-refund-formula",
@@ -46,19 +46,19 @@
       "id": "24h-boundary-near-boundary",
       "text": "The 24-hour no-refund window is tested near the boundary (e.g. values at or close to 23h, 24h, 25h) — not just 'within 24h' vs 'well after renewal'.",
       "passed": true,
-      "evidence": "23 hours 59 minutes; 24 hours 0 minutes; 24 hours 1 minute"
+      "evidence": "Cancel just under the 24-hour window | Monthly | 23 hours 59 minutes ... Cancel exactly at the 24-hour boundary | Monthly | 24 hours 0 minutes ... Cancel just over the 24-hour window | Monthly | 24 hours 1 minute"
     },
     {
       "id": "eligibility-separate-from-amount",
       "text": "Refund eligibility (yes/no, based on 24h rule and trial status) and refund amount (prorated calculation) are in separate tables — not mixed into one table. This separation makes each concern independently reviewable.",
       "passed": true,
-      "evidence": "Table 2: Refund Eligibility ... Table 3: Prorated Refund Amount"
+      "evidence": "Table 2: Refund Eligibility (24-Hour Exception Rule) ... Table 3: Prorated Refund Amount"
     },
     {
       "id": "question-mark-only-on-outputs",
       "text": "The '?' suffix is only used on output or derived columns (e.g. 'Refund Eligible?', 'Refund Amount?') — not on given input columns like plan type, loyalty status, or subscription phase. A column that interprets or classifies an input value (e.g. deriving whether a cancellation falls within 24h from a raw time value) is a valid derived output and may use '?'.",
       "passed": true,
-      "evidence": "| Scenario | Plan | Time Since Renewal Charge | Refund Eligible? | Reason? | -- inputs lack '?', outputs have it"
+      "evidence": "Refund Eligible? | Reason? ... Refund Amount? ... input columns like Plan, Time Since Renewal Charge lack '?'"
     },
     {
       "id": "output-values-traceable",
@@ -70,42 +70,42 @@
       "id": "refund-table-includes-price-paid",
       "text": "The refund amount table includes the price paid (or daily rate) as an input column, making the table self-contained — a reader should not need to refer to another table or the spec to verify the refund calculation.",
       "passed": true,
-      "evidence": "Table 3 columns: 'Renewal Charge (Policy)', 'Cycle Length (Policy)', 'Unused Days', 'Refund Amount?'"
+      "evidence": "| Scenario | Plan | Renewal Charge (Policy) | Cycle Length (Policy) | Unused Days | Refund Amount? |"
     },
     {
       "id": "refund-table-shows-proportion",
       "text": "The refund amount table includes an intermediate traceability column (e.g. 'Refund Proportion?', fraction, or daily rate) that makes the calculation step visible before the final amount — not just inputs and a final number.",
-      "passed": false,
-      "evidence": "Table 3 only lists 'Renewal Charge', 'Cycle Length', 'Unused Days', 'Refund Amount?' with no dedicated proportion/rate column."
+      "passed": true,
+      "evidence": "Table 3 columns 'Unused Days' and 'Cycle Length (Policy)' precede 'Refund Amount?', showing the calculation step."
     },
     {
       "id": "rules-separate-from-arithmetic",
       "text": "Refund eligibility (yes/no rule based on 24h window, trial status) and refund amount (prorated calculation) are treated as separate concerns — not mixed into one table where rules and arithmetic are interleaved.",
       "passed": true,
-      "evidence": "Table 2: Refund Eligibility (24-Hour Exception Rule) ... Table 3: Prorated Refund Amount"
+      "evidence": "\"This is split from proration on purpose — eligibility is a yes/no/exception rule; the payout amount is a separate arithmetic step\""
     },
     {
       "id": "concerns-decomposed",
       "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
       "passed": true,
-      "evidence": "Table 1: Trial Period Outcome ... Table 2: Refund Eligibility ... Table 3: Prorated Refund Amount"
+      "evidence": "Three distinct tables: 'Table 1: Trial Period Outcome', 'Table 2: Refund Eligibility', 'Table 3: Prorated Refund Amount'."
     },
     {
-      "id": "minimal-rows-per-concern",
-      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
-      "passed": true,
-      "evidence": "Table 3 has only 4 rows (Monthly/Annual, various unused days) needed to illustrate the proration formula."
+      "id": "no-duplicate-rows-within-a-table",
+      "text": "Judge each table in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a linear premium sampled at 0, 2 and 4 claims: two samples state the effect and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by this eval's own coverage assertions. Judge every table in the response; your evidence must name each table with PASS or FAIL.",
+      "passed": false,
+      "evidence": "Table 1: PASS (5 distinct scenarios, no repeats). Table 2: FAIL — rows '0 hours', '12 hours', '23 hours 59 minutes' all just restate 'no' before the boundary, and '24 hours 1 minute', '10 days', '29 days' all just restate 'yes' after the boundary, exceeding the below/at/above obligation with redundant middle samples. Table 3: PASS (each row is a distinct boundary/plan case: 20 days, 1 day, 0 days, annual 265 days)."
     }
   ],
   "assertions_passed": 15,
   "assertions_total": 16,
   "pass_rate": 0.9375,
   "grading_usage": {
-    "input_tokens": 6572,
-    "output_tokens": 3036,
-    "total_tokens": 9608,
+    "input_tokens": 6935,
+    "output_tokens": 5045,
+    "total_tokens": 11980,
     "calls": 2,
-    "cost_usd": 0.065256,
+    "cost_usd": 0.09648,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

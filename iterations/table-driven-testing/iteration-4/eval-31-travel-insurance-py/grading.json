@@ -22,55 +22,55 @@
       "id": "threshold-as-column",
       "text": "Policy thresholds (age 70, 90-day trip limit) appear as explicit values in the test data alongside the applicant's actual values, making the comparison visible to the reader — not only baked invisibly into which cases were chosen.",
       "passed": false,
-      "evidence": "Rows only have age, has_medical_clearance, decision — no explicit threshold column value like 'age_limit=70' shown alongside age."
+      "evidence": "Ages 69/70/71 and trip_days 90/91 are chosen without any explicit threshold column or value showing the policy limit alongside the actual value."
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario ids describe conditions ('senior without clearance', 'trip just over limit') — not outcomes ('approved', 'declined').",
+      "text": "Scenario ids name the variation the case exercises, not the result it produces. The decidable test: FAILS when a scenario id states or paraphrases a value that appears in an expectation column of that same case — 'User cannot delete' beside an Allowed? cell of false, 'No discount applies' beside a Discount? cell of 0.00, 'Contractor gets no bonus' beside a Bonus? cell of 0. Also FAILS on generic labels ('Test 1', 'Test case 2'), which name no variation at all. PASSES otherwise. Naming the rule or the situation is correct even when it makes the outcome inferable — 'Delivery and pickup items always split', 'At the standard threshold, not above it', 'EU express, light package', 'Renewal with no claims', 'Missing name' all PASS. The failure this catches is an id echoing its own expectation cell, not an id that describes what the case is about, and not an id from which a reader who knows the rule could predict the outcome. A single offending id fails the assertion. Judge every parametrized test in the file.",
       "passed": true,
-      "evidence": "id=\"at the age limit without clearance\", id=\"just over the trip length limit\""
+      "evidence": "IDs like 'at the age limit without clearance' and 'just over the trip length limit' describe conditions, not outcomes."
     },
     {
       "id": "domain-parameter-names",
       "text": "Parametrize argument names use domain language (age, trip_days, decision) — not generic names like a, b, val1, expected1.",
       "passed": true,
-      "evidence": "(\"age\", \"has_medical_clearance\", \"decision\") and (\"trip_days\", \"decision\")"
+      "evidence": "(\"age\", \"has_medical_clearance\", \"decision\") and (\"trip_days\", \"decision\") are domain-language names."
     },
     {
       "id": "concrete-domain-values",
       "text": "Case values use concrete domain values (73, 91, Decision.APPROVED) — not abstract placeholders like 'CATEGORY_A' or magic sentinel numbers with no domain meaning.",
       "passed": true,
-      "evidence": "pytest.param(70, False, Decision.DECLINED, ...), pytest.param(91, Decision.MANUAL_REVIEW, ...)"
+      "evidence": "pytest.param(69, False, Decision.APPROVED, ...), pytest.param(91, Decision.MANUAL_REVIEW, ...) use concrete domain values."
     },
     {
       "id": "concerns-decomposed",
       "text": "Multiple parametrized tests are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
       "passed": true,
-      "evidence": "Four distinct tests: test_eligibility_by_age_and_medical_clearance, test_trip_length_threshold, test_long_trip_goes_to_manual_review_regardless_of_age_and_clearance, test_restricted_destination_declines_regardless_of_age_trip_length_and_clearance"
+      "evidence": "Four distinct parametrized tests: test_eligibility_by_age_and_medical_clearance, test_trip_length_threshold, test_long_trip_goes_to_manual_review..., test_restricted_destination_declines...."
     },
     {
-      "id": "minimal-rows-per-concern",
-      "text": "Each parametrized test has only the cases needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer cases per test is expected when concerns are properly separated.",
+      "id": "no-duplicate-rows-within-a-table",
+      "text": "Judge each parametrized test in isolation. The assertion FAILS if a case re-covers an obligation an earlier case in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one case per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A case that discharges an obligation no other case reaches earns its place however simple it looks, and a value set that covers several values in one case is the preferred discharge, never a failure. Cases that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a linear premium sampled at 0, 2 and 4 claims: two samples state the effect and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one case per rate band — because each then discharges an obligation of its own. CASES YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess cases only, and coverage is judged by this eval's own coverage assertions. Judge every parametrized test in the file; your evidence must name each parametrized test with PASS or FAIL.",
       "passed": false,
-      "evidence": "test_restricted_destination... stacks age×trip_days×clearance = 8 cross-product cases; test_long_trip... stacks age×clearance = 6 cases, more than needed to show override."
+      "evidence": "test_long_trip_goes_to_manual_review_regardless_of_age_and_clearance stacks age x clearance (6 combos) all yielding MANUAL_REVIEW, and test_restricted_destination_declines... stacks age x trip_days x clearance (8 combos) all yielding DECLINED — full cross-products restating the same rule, matching the excess pattern described."
     },
     {
       "id": "separates-age-duration-destination",
       "text": "Age/clearance policy, trip-duration policy, and destination restriction are separated into distinct parametrized tests, rather than every rule exercised through one combined table.",
       "passed": true,
-      "evidence": "test_eligibility_by_age_and_medical_clearance, test_trip_length_threshold, and test_restricted_destination_declines_regardless_of_age_trip_length_and_clearance are separate tests."
+      "evidence": "test_eligibility_by_age_and_medical_clearance, test_trip_length_threshold, and test_restricted_destination_declines_regardless_of_age_trip_length_and_clearance are each focused on one policy."
     },
     {
       "id": "precedence-visible",
       "text": "Rule precedence is visible from concrete cases: a restricted destination with an otherwise approvable profile is DECLINED, and a >90-day trip is MANUAL_REVIEW even when the age/clearance rule alone would decline or approve.",
       "passed": true,
-      "evidence": "test_restricted_destination_declines_regardless_of_age_trip_length_and_clearance ... == Decision.DECLINED; test_long_trip_goes_to_manual_review_regardless_of_age_and_clearance ... == Decision.MANUAL_REVIEW"
+      "evidence": "pytest.param(age=30, trip_days=30, destination_restricted=True, has_medical_clearance=True) => DECLINED shows restricted destination overriding an otherwise approvable profile; test_trip_length_threshold's age=30, trip_days=91 => MANUAL_REVIEW shows long trip overriding age-based approval."
     },
     {
       "id": "clearance-effect-visible",
       "text": "The effect of medical clearance for applicants aged 70+ is visible from paired cases: the same senior profile appears with clearance (APPROVED) and without (DECLINED). The clearance parameter's effect must be readable from the rows, not just implied.",
       "passed": true,
-      "evidence": "pytest.param(70, True, Decision.APPROVED, id=\"at the age limit with clearance\"), pytest.param(70, False, Decision.DECLINED, id=\"at the age limit without clearance\")"
+      "evidence": "pytest.param(70, True, Decision.APPROVED, id=\"at the age limit with clearance\") paired with pytest.param(70, False, Decision.DECLINED, id=\"at the age limit without clearance\")."
     },
     {
       "id": "compiles",
@@ -83,11 +83,11 @@
   "assertions_total": 13,
   "pass_rate": 0.8461538461538461,
   "grading_usage": {
-    "input_tokens": 3318,
-    "output_tokens": 2948,
-    "total_tokens": 6266,
+    "input_tokens": 4056,
+    "output_tokens": 4231,
+    "total_tokens": 8287,
     "calls": 1,
-    "cost_usd": 0.054174,
+    "cost_usd": 0.075633,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

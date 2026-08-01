@@ -22,25 +22,25 @@
       "id": "full-tier-enumeration",
       "text": "Every fee tier is represented (included, 75-euro heavy, 150-euro oversize) and every boundary is tested from both sides: 23 kg (included) vs 24 kg (heavy), 32 kg (heavy) vs 33 kg (oversize), 45 kg (oversize) vs 46 kg (not accepted). Middle-tier boundaries (23/24 and 32/33) must not be skipped in favour of only the outer edges.",
       "passed": true,
-      "evidence": "pytest.param(23, 0, ...), pytest.param(24, 75, ...), pytest.param(32, 75, ...), pytest.param(33, 150, ...), pytest.param(45, 150, ...), pytest.param(46, id=\"just over oversize limit\")"
+      "evidence": "pytest.param(23, 0, ...), pytest.param(24, 75, ...), pytest.param(32, 75, ...), pytest.param(33, 150, ...), pytest.param(45, 150, ...), pytest.param(46, ...)"
     },
     {
       "id": "scenario-names-describe-conditions",
-      "text": "Scenario ids describe conditions ('at included limit', 'just over heavy limit') — not outcomes ('no fee', 'seventy-five euros').",
+      "text": "Scenario ids name the variation the case exercises, not the result it produces. The decidable test: FAILS when a scenario id states or paraphrases a value that appears in an expectation column of that same case — 'User cannot delete' beside an Allowed? cell of false, 'No discount applies' beside a Discount? cell of 0.00, 'Contractor gets no bonus' beside a Bonus? cell of 0. Also FAILS on generic labels ('Test 1', 'Test case 2'), which name no variation at all. PASSES otherwise. Naming the rule or the situation is correct even when it makes the outcome inferable — 'Delivery and pickup items always split', 'At the standard threshold, not above it', 'EU express, light package', 'Renewal with no claims', 'Missing name' all PASS. The failure this catches is an id echoing its own expectation cell, not an id that describes what the case is about, and not an id from which a reader who knows the rule could predict the outcome. A single offending id fails the assertion. Judge every parametrized test in the file.",
       "passed": true,
-      "evidence": "id=\"at ticket weight limit\", id=\"just over heavy-bag fee limit\", id=\"at oversize fee limit\""
+      "evidence": "id=\"at ticket weight limit\", id=\"just over heavy-bag fee limit\", id=\"just over oversize limit\" — describe conditions, not outcome values"
     },
     {
       "id": "exception-case-separated",
       "text": "The over-45-kg not-accepted case is expressed as its own test (or clearly separated parametrized cases) using pytest.raises(BagNotAccepted) — not mixed into the fee table via sentinel values, None expectations, or branching inside the test body.",
       "passed": true,
-      "evidence": "def test_fee_for_checked_bag_rejects_over_oversize_limit(weight_kg): with pytest.raises(BagNotAccepted):"
+      "evidence": "def test_fee_for_checked_bag_rejects_over_oversize_limit(weight_kg): with pytest.raises(BagNotAccepted): fee_for_checked_bag(weight_kg)"
     },
     {
       "id": "concrete-domain-values",
       "text": "Case values are concrete domain values (weights like 24, fees like 75) — not abstract placeholders or symbolic constants that hide the actual numbers from the reader.",
       "passed": true,
-      "evidence": "pytest.param(24, 75, id=\"just over ticket weight limit\")"
+      "evidence": "pytest.param(10, 0, id=\"within ticket allowance\"), pytest.param(24, 75, ...), pytest.param(33, 150, ...)"
     },
     {
       "id": "compiles",
@@ -53,11 +53,11 @@
   "assertions_total": 8,
   "pass_rate": 1,
   "grading_usage": {
-    "input_tokens": 2233,
-    "output_tokens": 535,
-    "total_tokens": 2768,
+    "input_tokens": 2527,
+    "output_tokens": 742,
+    "total_tokens": 3269,
     "calls": 1,
-    "cost_usd": 0.014724,
+    "cost_usd": 0.018711,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

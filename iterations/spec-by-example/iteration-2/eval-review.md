@@ -4,22 +4,37 @@
 
 ## Summary
 
-110/130 (84.6%) · 755855 tokens · 793.3s · $2.3654
+105/130 (80.8%) · 755855 tokens · 793.3s · $2.3654
 
 _Cost figures are Claude Code list-price estimates; actual billing may differ (e.g. promotional pricing). Timed-out evals score 0 with unrecorded token usage._
 
-> ⚠️ **10 assertion verdicts moved** vs iteration 1. These are deltas, not attributions: read each eval's `outputs/` and `narration.md` before explaining any of them, and do not start the next iteration until every entry in `analysis-todo.md` has a cause.
+> ⚠️ **25 assertion verdicts moved** vs iteration 1. These are deltas, not attributions: read each eval's `outputs/` and `narration.md` before explaining any of them, and do not start the next iteration until every entry in `analysis-todo.md` has a cause.
 
 ## Delta vs Iteration 1
 
-**Regressions (2):**
+**Regressions (12):**
+- ❌ eval-4-loan-approval: `scenario-names-describe-conditions`
+- ❌ eval-5-order-transitions: `no-duplicate-rows-within-a-table`
+- ❌ eval-6-discount-interaction: `extreme-discount-row`
+- ❌ eval-10-subscription-billing: `no-duplicate-rows-within-a-table`
 - ❌ eval-13-shipping-partial-applicability: `standard-destination-value-set-or-blank`
+- ❌ eval-13-shipping-partial-applicability: `no-duplicate-rows-within-a-table`
+- ❌ eval-16-order-splitting: `3.2-depth-fulfillment-scenarios`
+- ❌ eval-16-order-splitting: `3.3-depth-delivery-address-scenarios`
+- ❌ eval-16-order-splitting: `3.4-depth-availability-scenarios`
 - ❌ eval-16-order-splitting: `3.5-depth-warehouse-scenarios`
+- ❌ eval-21-event-registration-sbe: `scenario-names-describe-conditions`
+- ❌ eval-24-weekly-pay-sbe: `no-duplicate-rows-within-a-table`
 
-**Improvements (8):**
+**Improvements (13):**
+- ✅ eval-4-loan-approval: `minimal-rows-per-concern`
+- ✅ eval-10-subscription-billing: `refund-table-shows-proportion`
 - ✅ eval-12-subscription-loyalty-trial: `open-question-surfaced`
 - ✅ eval-12-subscription-loyalty-trial: `question-mark-only-on-outputs`
+- ✅ eval-13-shipping-partial-applicability: `minimal-rows-per-concern`
 - ✅ eval-16-order-splitting: `3.8-readability-item-property-mapping`
+- ✅ eval-16-order-splitting: `concerns-decomposed`
+- ✅ eval-16-order-splitting: `minimal-rows-per-concern`
 - ✅ eval-17-shopping-cart: `4.6-depth-cart-total-scenarios`
 - ✅ eval-17-shopping-cart: `minimal-rows-per-concern`
 - ✅ eval-21-event-registration-sbe: `minimal-rows-per-concern`
@@ -31,15 +46,15 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 | Eval | Pass Rate | Prev | Tokens | Prev | Time(s) | Prev |
 |------|-----------|------|--------|------|---------|------|
 | eval-4-loan-approval | 10/13 | 10/13 | 66599 | 41419 | 43.0 | 29.2 |
-| eval-5-order-transitions | 10/10 | 10/10 | 67003 | 42138 | 39.0 | 38.8 |
-| eval-6-discount-interaction | 7/7 | 7/7 | 106994 | 41313 | 58.6 | 29.7 |
+| eval-5-order-transitions | 9/10 | 10/10 | 67003 | 42138 | 39.0 | 38.8 |
+| eval-6-discount-interaction | 6/7 | 7/7 | 106994 | 41313 | 58.6 | 29.7 |
 | eval-10-subscription-billing | 15/16 | 15/16 | 74488 | 49077 | 114.2 | 119.1 |
 | eval-12-subscription-loyalty-trial | 12/13 | 10/13 | 75075 | 47311 | 93.8 | 119.4 |
 | eval-13-shipping-partial-applicability | 8/12 | 9/12 | 69806 | 44430 | 67.8 | 63.8 |
-| eval-16-order-splitting | 12/19 | 12/19 | 74397 | 49408 | 95.2 | 151.4 |
+| eval-16-order-splitting | 11/19 | 12/19 | 74397 | 49408 | 95.2 | 151.4 |
 | eval-17-shopping-cart | 17/18 | 15/18 | 75612 | 44224 | 79.2 | 60.1 |
-| eval-21-event-registration-sbe | 11/13 | 10/13 | 74974 | 43926 | 121.5 | 68.2 |
-| eval-24-weekly-pay-sbe | 8/9 | 6/9 | 70907 | 43153 | 80.8 | 46.1 |
+| eval-21-event-registration-sbe | 10/13 | 10/13 | 74974 | 43926 | 121.5 | 68.2 |
+| eval-24-weekly-pay-sbe | 7/9 | 6/9 | 70907 | 43153 | 80.8 | 46.1 |
 
 ## Per-Eval Results
 
@@ -64,9 +79,9 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 - ❌ **separates-age-credit-income**: Age boundary policy, credit score categorisation, and income status are separated into distinct tables, with a final table combining these for the expected verdict
   > No separate tables for age boundary, credit score, income; all combined into one 'Loan Approval Decision' table
 
-### ✅ Eval eval-5-order-transitions
+### ⚠️ Eval eval-5-order-transitions
 
-**10/10** · 67003 tokens · 39050ms
+**9/10** · 67003 tokens · 39050ms
 
 - ✅ **produces-markdown-table**: Output contains at least one markdown table
 - ✅ **cancellation-coverage**: Table covers cancellation rules — includes rows for states where cancellation is allowed and where it is not
@@ -79,9 +94,9 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 - ✅ **minimal-rows-per-concern**: Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.
 - ✅ **separates-transitions-and-returns**: Status transition rules and return eligibility rules are in separate tables
 
-### ✅ Eval eval-6-discount-interaction
+### ⚠️ Eval eval-6-discount-interaction
 
-**7/7** · 106994 tokens · 58588ms
+**6/7** · 106994 tokens · 58588ms
 
 - ✅ **produces-markdown-table**: Output contains a markdown table
 - ✅ **does-not-invent-resolution**: The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved
@@ -155,7 +170,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-16-order-splitting
 
-**12/19** · 74397 tokens · 95160ms
+**11/19** · 74397 tokens · 95160ms
 
 - ❌ **3.1a-concern-fulfillment-method**: Fulfillment method splitting is represented as its own table — items with different fulfillment types (store pickup vs home delivery) cannot share a shipment.
   > Fulfillment is merged into 'Table 1: Shipment Grouping Decision' alongside destination and availability, not its own table.
@@ -210,7 +225,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-21-event-registration-sbe
 
-**11/13** · 74974 tokens · 121537ms
+**10/13** · 74974 tokens · 121537ms
 
 - ✅ **produces-markdown-table**: Output contains at least one markdown table (using | column | syntax)
 - ✅ **validation-rules-covered**: Email validation and name-required scenarios are present — at least one row for invalid email and one for missing name.
@@ -230,7 +245,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-24-weekly-pay-sbe
 
-**8/9** · 70907 tokens · 80826ms
+**7/9** · 70907 tokens · 80826ms
 
 - ✅ **produces-markdown-table**: Output contains at least one markdown table (using | column | syntax)
 - ✅ **output-column-has-question-mark**: At least one output column name ends with '?' (e.g. 'Pay?', 'Rate?')

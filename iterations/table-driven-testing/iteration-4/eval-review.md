@@ -8,16 +8,16 @@
 
 _Cost figures are Claude Code list-price estimates; actual billing may differ (e.g. promotional pricing). Timed-out evals score 0 with unrecorded token usage._
 
-> ⚠️ **3 assertion verdicts moved** vs iteration 3. These are deltas, not attributions: read each eval's `outputs/` and `narration.md` before explaining any of them, and do not start the next iteration until every entry in `analysis-todo.md` has a cause.
+> ⚠️ **1 assertion verdict moved** vs iteration 3 (over 3 of 5 evals — the rest were not comparable). These are deltas, not attributions: read each eval's `outputs/` and `narration.md` before explaining any of them, and do not start the next iteration until every entry in `analysis-todo.md` has a cause.
 
 ## Delta vs Iteration 3
 
-**Regressions (2):**
-- ❌ eval-31-travel-insurance-py: `threshold-as-column`
-- ❌ eval-31-travel-insurance-py: `minimal-rows-per-concern`
-
 **Improvements (1):**
 - ✅ eval-34-hotel-cancellation-swift: `concrete-domain-values`
+
+**Not comparable (2) — excluded from the deltas above:**
+- ⚠️ eval-31-travel-insurance-py: fingerprint differs from iteration 3; re-baseline to compare
+- ⚠️ eval-32-baggage-fees-py: fingerprint differs from iteration 3; re-baseline to compare
 
 ## Resource Comparison vs Iteration 3
 

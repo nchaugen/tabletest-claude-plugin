@@ -4,25 +4,25 @@
       "id": "produces-multiple-tables",
       "text": "Output contains at least 2 separate markdown tables",
       "passed": true,
-      "evidence": "## 1. Free Trial Eligibility ... ## 2. Subscription Price ... ## 3. Plan Switching ... ## 4a. Refund Eligibility ... ## 4b. Prorated Refund Amount"
+      "evidence": "5 markdown table(s): \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\""
     },
     {
       "id": "annual-no-trial-rule-represented",
       "text": "A table or note explicitly captures that the free trial is not available on annual plans (not just implied)",
       "passed": true,
-      "evidence": "New subscriber picks annual | New | Annual | {yes, no} | no |"
+      "evidence": "New subscriber picks annual | ... | Trial Granted? no"
     },
     {
       "id": "loyalty-discount-row-present",
       "text": "At least one table row demonstrates the loyalty programme discount scenario for annual plan subscribers",
       "passed": true,
-      "evidence": "Annual plan, loyalty member | Annual | yes | 10% | £86.29"
+      "evidence": "Annual plan, loyalty member | yes | 10% | £86.29"
     },
     {
       "id": "surfaces-genuine-open-questions",
       "text": "The response identifies at least one genuinely underspecified interaction — such as: what happens when a trial subscriber upgrades to annual mid-trial, when a subscriber joins the loyalty programme mid-billing-cycle, or whether a cancellation refund is based on the discounted or full price. These are NOT stated in the rules and require a product decision.",
       "passed": true,
-      "evidence": "If a loyalty membership lapses mid-annual-cycle, does the discount hold for the rest of the paid term or only for future renewals?"
+      "evidence": "What happens on an annual → monthly mid-cycle switch — refund, forfeiture, or credit?"
     },
     {
       "id": "open-question-surfaced",
@@ -58,7 +58,7 @@
       "id": "question-mark-only-on-outputs",
       "text": "The '?' suffix is only used on output or derived columns (e.g. 'Refund?', 'Price?') — not on given input columns like plan type, loyalty status, or subscription phase. A column that interprets or classifies an input value (e.g. deriving whether a cancellation falls within 24h from a raw time value) is a valid derived output and may use '?'.",
       "passed": true,
-      "evidence": "Trial Granted? Trial Length? Price? Charged Immediately? Refund Given? Refund Amount?"
+      "evidence": "Trial Granted? | Trial Length? ... Refund Amount?"
     },
     {
       "id": "concerns-decomposed",
@@ -67,27 +67,27 @@
       "evidence": "Four tables emerged as separate concerns: trial eligibility, pricing, plan switching..., and cancellation refunds."
     },
     {
-      "id": "minimal-rows-per-concern",
-      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
+      "id": "no-duplicate-rows-within-a-table",
+      "text": "Judge each table in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a linear premium sampled at 0, 2 and 4 claims: two samples state the effect and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by this eval's own coverage assertions. Judge every table in the response; your evidence must name each table with PASS or FAIL.",
       "passed": true,
-      "evidence": "Each table (e.g. '1. Free Trial Eligibility' with 4 rows, '2. Subscription Price' with 3 rows) contains only rows needed for its own rule set."
+      "evidence": "Table 1 (4 rows: new/monthly, new/annual, returning/monthly, returning/annual) - PASS, each distinct status/plan combo. Table 2 (3 rows: monthly with value set, annual no-loyalty, annual loyalty) - PASS, each distinct price scenario. Table 3 (6 rows covering trial->annual, trial expiry, active monthly->annual with/without loyalty, annual->monthly) - PASS, each a distinct branch. Table 4a (4 rows: well after, just inside window, exactly at boundary as value set, during trial) - PASS, each a boundary/branch. Table 4b (3 rows: monthly, annual no-loyalty, annual loyalty, each with different price/cycle numbers) - PASS, each demonstrates distinct arithmetic input combination, not a monotonic walk."
     },
     {
       "id": "separates-pricing-trial-loyalty-refund",
       "text": "Pricing/plans, trial eligibility, loyalty discount applicability, and cancellation/refund are in separate tables",
       "passed": false,
-      "evidence": "Table '2. Subscription Price' merges pricing and loyalty discount applicability into one table rather than giving loyalty its own separate table."
+      "evidence": "Table 2 'Subscription Price' includes both 'Loyalty Member' and 'Loyalty Discount (Policy)' columns merged with pricing, e.g. row 'Annual plan, loyalty member | Annual | yes | 10% | £86.29' — loyalty discount applicability is not in its own separate table."
     }
   ],
   "assertions_passed": 12,
   "assertions_total": 13,
   "pass_rate": 0.9230769230769231,
   "grading_usage": {
-    "input_tokens": 7385,
-    "output_tokens": 3591,
-    "total_tokens": 10976,
+    "input_tokens": 7788,
+    "output_tokens": 4017,
+    "total_tokens": 11805,
     "calls": 2,
-    "cost_usd": 0.07602,
+    "cost_usd": 0.083619,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

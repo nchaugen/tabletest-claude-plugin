@@ -10,19 +10,19 @@
       "id": "assumptions-stated",
       "text": "The ambiguity in the rules (how the 20-euro cap interacts with the children's half rate) is resolved to an explicit, stated interpretation — in the response text, a comment, or scenario ids — not silently embedded in expected values.",
       "passed": true,
-      "evidence": "The 20-euro cap is a single fixed ceiling that applies the same way regardless of section; the children's discount is not applied to the cap itself, only to the per-day rate."
+      "evidence": "The 20-euro cap is a single fixed ceiling that applies the same way regardless of section; the children's discount is not applied to the cap itself"
     },
     {
       "id": "cap-interaction-covered",
       "text": "Cases cover the interaction between the cap and the children's half rate: a children's-section book late enough to reach the cap appears with a concrete expected fee — not just each rule tested in isolation.",
       "passed": true,
-      "evidence": "pytest.param(80, True, 2000, 2000, id=\"at the cap, children's rate\"),"
+      "evidence": "pytest.param(80, True, 2000, 2000, id=\"at the cap, children's rate\")"
     },
     {
       "id": "boundary-cases-covered",
       "text": "Cases include zero days late (no fee), an ordinary per-day fee, and a return late enough to hit the cap for a regular book — the rule set's boundaries, not just one happy-path row.",
       "passed": true,
-      "evidence": "pytest.param(0, False, id=\"returned on the due date, standard section\"), ... pytest.param(41, False, 2000, 2000, id=\"just over the cap, standard rate\"),"
+      "evidence": "pytest.param(0, False, id=\"returned on the due date, standard section\"); pytest.param(1, False, 50, ...); pytest.param(40, False, 2000, 2000, id=\"at the cap, standard rate\")"
     },
     {
       "id": "uses-parametrize",
@@ -46,7 +46,7 @@
       "id": "concrete-domain-values",
       "text": "Expected fees are concrete cent values (e.g. 150, 2000) readable directly from the cases — not computed inside the test body from the rate and days.",
       "passed": true,
-      "evidence": "pytest.param(39, False, 2000, 1950, id=\"just under the cap, standard rate\"),"
+      "evidence": "pytest.param(3, False, 150, id=\"three days late, standard section\")"
     },
     {
       "id": "compiles",
@@ -60,10 +60,10 @@
   "pass_rate": 1,
   "grading_usage": {
     "input_tokens": 2727,
-    "output_tokens": 673,
-    "total_tokens": 3400,
+    "output_tokens": 641,
+    "total_tokens": 3368,
     "calls": 1,
-    "cost_usd": 0.018276,
+    "cost_usd": 0.017796,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

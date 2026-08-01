@@ -4,19 +4,19 @@
       "id": "3.1a-concern-fulfillment-method",
       "text": "Fulfillment method splitting is represented as its own table — items with different fulfillment types (store pickup vs home delivery) cannot share a shipment.",
       "passed": false,
-      "evidence": "Fulfillment is merged into 'Table 1: Shipment Grouping Decision' alongside destination and availability, not its own table."
+      "evidence": "Fulfillment is merged into 'Table 1: Shipment Grouping Decision' along with address and availability, not its own table."
     },
     {
       "id": "3.1b-concern-delivery-address",
       "text": "Delivery address splitting is represented as its own table — items going to different addresses must be in separate shipments.",
       "passed": false,
-      "evidence": "Delivery address columns appear only inside the combined 'Table 1: Shipment Grouping Decision', not a separate table."
+      "evidence": "Delivery address is a column within 'Table 1: Shipment Grouping Decision', combined with fulfillment and availability."
     },
     {
       "id": "3.1c-concern-availability",
       "text": "Availability splitting is represented as its own table — in-stock items ship immediately, backordered/pre-ordered items ship when available.",
       "passed": false,
-      "evidence": "Availability columns are part of the same merged 'Table 1: Shipment Grouping Decision', not isolated in their own table."
+      "evidence": "Availability is combined into 'Table 1: Shipment Grouping Decision' rather than being its own dedicated table."
     },
     {
       "id": "3.1d-concern-warehouse-allocation",
@@ -33,97 +33,97 @@
     {
       "id": "3.2-depth-fulfillment-scenarios",
       "text": "Fulfillment table covers at least: all items for home delivery, all items for store pickup, and a mix of delivery and pickup items.",
-      "passed": true,
-      "evidence": "Rows: 'Both pickup, same store' (Home Delivery both), 'Both pickup, same store' (Pickup both), 'Pickup and delivery mixed' (mix)."
+      "passed": false,
+      "evidence": "No standalone fulfillment table exists; fulfillment rows are embedded in the combined 'Table 1'."
     },
     {
       "id": "3.3-depth-delivery-address-scenarios",
       "text": "Delivery address table covers at least: all items to the same address, and items to different addresses.",
-      "passed": true,
-      "evidence": "'Both delivered to the same address...' and 'Gift order, two delivery addresses' rows in Table 1."
+      "passed": false,
+      "evidence": "No standalone delivery-address table; address scenarios only appear inside combined 'Table 1'."
     },
     {
       "id": "3.4-depth-availability-scenarios",
       "text": "Availability table covers at least: all items in stock, a mix of in-stock and pre-order/backorder, and two backordered/pre-ordered items with different dates. Pre-order and backorder are recognised as equivalent for splitting semantics — either by comment, note, or by including both with the same rules.",
-      "passed": true,
-      "evidence": "Rows: 'Both in stock', 'One item in stock, one on backorder', 'Two backorder items, different expected dates', plus open question 1 on pre-order/backorder equivalence."
+      "passed": false,
+      "evidence": "Availability scenarios are only in the merged 'Table 1', and pre-order/backorder equivalence is left as an open question rather than resolved: 'Pre-order vs. backorder — are these the same...category...?'"
     },
     {
       "id": "3.5-depth-warehouse-scenarios",
       "text": "Warehouse allocation table covers at least: single warehouse has full quantity, multi-warehouse split needed, fewer-warehouse split preferred over more warehouses, and cannot fulfill (insufficient total stock).",
       "passed": false,
-      "evidence": "No scenario explicitly compares a feasible fewer-warehouse split against a more-warehouse alternative to show preference for fewer warehouses."
+      "evidence": "Table 2 lacks a clear scenario demonstrating a fewer-warehouse split being preferred over an available more-warehouse alternative."
     },
     {
       "id": "3.6-depth-companion-scenarios",
       "text": "Companion table covers at least: single warehouse has both companions, unavoidable split (no warehouse has both but both are available), and fulfillment not possible (one companion not available anywhere).",
       "passed": false,
-      "evidence": "Table 3 has only 'shared warehouse', 'different single warehouses', and 'multiple shared warehouses (tie)' rows; no 'companion not available anywhere' scenario."
+      "evidence": "Table 3 has only three rows (shared warehouse, split, tie) and no case where one companion is unavailable anywhere."
     },
     {
       "id": "3.7-readability-scenario-names",
       "text": "Scenario names describe the business situation (e.g. 'Consolidate: two beats three', 'Everything at one warehouse') — not 'Test case 2'.",
       "passed": true,
-      "evidence": "'Both delivered to the same address, both in stock', 'Pickup and delivery mixed, regardless of availability'"
+      "evidence": "'Both delivered to the same address, both in stock', 'Two warehouses cover the order exactly'"
     },
     {
       "id": "3.8-readability-item-property-mapping",
       "text": "Trigger tables represent multi-item orders where each item has its own fulfillment type, address, and availability. The notation makes the item-to-property mapping unambiguous — not value sets like {delivery, pickup} which lose which item has which property.",
       "passed": true,
-      "evidence": "Columns 'Item A Fulfillment | Item A Destination | Item A Availability | Item B Fulfillment | Item B Destination | Item B Availability' keep per-item properties distinct"
+      "evidence": "Item A Fulfillment | Item A Destination | Item A Availability | Item B Fulfillment ... columns keep mapping unambiguous"
     },
     {
       "id": "3.9-readability-scalar-column",
       "text": "Warehouse allocation table uses a scalar count column (e.g. 'Qty ordered') not item lists, when product identity doesn't matter for the logic.",
       "passed": true,
-      "evidence": "Table 2 uses 'Order Quantity' column: '| Order Quantity | Stock by Warehouse | Ships From? | Shipment Count? |'"
+      "evidence": "| Scenario | Order Quantity | Stock by Warehouse | Ships From? | Shipment Count? |"
     },
     {
       "id": "3.10-readability-business-language",
       "text": "Column names use business/domain language (e.g. 'Shipments?' not 'Result?', 'Warehouse stock' not 'inventory_map'). The tables read as a specification a product person could review.",
       "passed": true,
-      "evidence": "Columns like 'Stock by Warehouse', 'Ships From?', 'Shipment Count?' use business language"
+      "evidence": "'Same Shipment?', 'Ships From?', 'Shipment Count?', 'Ship Together?' are business terms"
     },
     {
       "id": "3.11-readability-output-column-question-mark",
       "text": "Output/expected columns end with '?' (e.g. 'Shipments?', 'Groups?') to distinguish them from input columns.",
       "passed": true,
-      "evidence": "'Same Shipment? | Reason?' and 'Ships From? | Shipment Count?' and 'Ship Together?'"
+      "evidence": "'Same Shipment? | Reason?' and 'Ships From? | Shipment Count?' end with '?'"
     },
     {
       "id": "3.12-correctness-valid-assignments",
       "text": "Inventory assignments are physically valid: items are only assigned to locations that have them. Shipment counts match the assignments shown.",
       "passed": true,
-      "evidence": "'Philadelphia: 3, Washington: 3, Chicago: 0 | Philadelphia: 3, Washington: 3 | 2' matches stock exactly"
+      "evidence": "Philadelphia: 3, Washington: 3 sums to Order Quantity 6, matching Ships From column"
     },
     {
       "id": "3.13-depth-open-questions",
       "text": "Multiple open questions are surfaced across the tables — ambiguities, edge cases, or product decisions that the requirements don't fully specify.",
       "passed": true,
-      "evidence": "'1. **Pre-order vs. backorder**...' through '4. **Partial backorder remainder**...'"
+      "evidence": "'1. Pre-order vs. backorder', '2. Warehouse tie-breaking', '3. Companion vs. minimum-shipment precedence', '4. Partial backorder remainder'"
     },
     {
       "id": "concerns-decomposed",
       "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
-      "passed": false,
-      "evidence": "Table 1 merges fulfillment, destination, and availability splitting into one 'Shipment Grouping Decision' table instead of three separate concern tables as expected"
+      "passed": true,
+      "evidence": "Table 1: Shipment Grouping Decision, Table 2: Warehouse Allocation..., Table 3: Companion Product Co-location"
     },
     {
-      "id": "minimal-rows-per-concern",
-      "text": "Each table has only the rows needed to express its concern's rules — no unnecessary permutations from combining concerns. Fewer rows per table is expected when concerns are properly separated.",
-      "passed": false,
-      "evidence": "Table 1 needs 9 rows varying fulfillment/destination/availability together since concerns weren't separated, e.g. rows for pickup vs delivery mixed with availability sets"
+      "id": "no-duplicate-rows-within-a-table",
+      "text": "Judge each table in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a linear premium sampled at 0, 2 and 4 claims: two samples state the effect and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by this eval's own coverage assertions. Judge every table in the response; your evidence must name each table with PASS or FAIL.",
+      "passed": true,
+      "evidence": "Table 1 PASS (9 distinct fulfillment/address/availability combos); Table 2 PASS (7 distinct allocation scenarios incl. ties/shortfall); Table 3 PASS (3 distinct co-location scenarios, no repeats)"
     }
   ],
-  "assertions_passed": 12,
+  "assertions_passed": 11,
   "assertions_total": 19,
-  "pass_rate": 0.631578947368421,
+  "pass_rate": 0.5789473684210527,
   "grading_usage": {
-    "input_tokens": 7638,
-    "output_tokens": 9205,
-    "total_tokens": 16843,
+    "input_tokens": 8070,
+    "output_tokens": 7033,
+    "total_tokens": 15103,
     "calls": 2,
-    "cost_usd": 0.160989,
+    "cost_usd": 0.129705,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15
