@@ -1,0 +1,66 @@
+{
+  "assertions": [
+    {
+      "id": "uses-parametrize",
+      "text": "Tests use @pytest.mark.parametrize (or pytest.param rows) — not one test function per case, and not a loop over cases inside a single test body.",
+      "passed": true,
+      "evidence": "Found @pytest.mark.parametrize"
+    },
+    {
+      "id": "parametrize-has-ids",
+      "text": "Parametrized cases carry scenario identifiers — an ids= argument or pytest.param(..., id=...) — so each case has a readable name in test output.",
+      "passed": true,
+      "evidence": "Parametrized cases carry ids (ids= or pytest.param id=)"
+    },
+    {
+      "id": "no-if-in-python-test",
+      "text": "Test function bodies contain no if/elif statements — expected outcomes come from the parametrized data, not branching logic.",
+      "passed": true,
+      "evidence": "No if/elif statements in test function bodies"
+    },
+    {
+      "id": "full-tier-enumeration",
+      "text": "Every fee tier is represented (included, 75-euro heavy, 150-euro oversize) and every boundary is tested from both sides: 23 kg (included) vs 24 kg (heavy), 32 kg (heavy) vs 33 kg (oversize), 45 kg (oversize) vs 46 kg (not accepted). Middle-tier boundaries (23/24 and 32/33) must not be skipped in favour of only the outer edges.",
+      "passed": true,
+      "evidence": "pytest.param(23, 0, ...), pytest.param(24, 75, ...), pytest.param(32, 75, ...), pytest.param(33, 150, ...), pytest.param(45, 150, ...), pytest.param(46, id=\"just over oversize limit\")"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario ids describe conditions ('at included limit', 'just over heavy limit') — not outcomes ('no fee', 'seventy-five euros').",
+      "passed": true,
+      "evidence": "id=\"at ticket weight limit\", id=\"just over heavy-bag fee limit\", id=\"at oversize fee limit\""
+    },
+    {
+      "id": "exception-case-separated",
+      "text": "The over-45-kg not-accepted case is expressed as its own test (or clearly separated parametrized cases) using pytest.raises(BagNotAccepted) — not mixed into the fee table via sentinel values, None expectations, or branching inside the test body.",
+      "passed": true,
+      "evidence": "def test_fee_for_checked_bag_rejects_over_oversize_limit(weight_kg): with pytest.raises(BagNotAccepted):"
+    },
+    {
+      "id": "concrete-domain-values",
+      "text": "Case values are concrete domain values (weights like 24, fees like 75) — not abstract placeholders or symbolic constants that hide the actual numbers from the reader.",
+      "passed": true,
+      "evidence": "pytest.param(24, 75, id=\"just over ticket weight limit\")"
+    },
+    {
+      "id": "compiles",
+      "text": "pytest can import and collect the test modules against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 8,
+  "assertions_total": 8,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 2233,
+    "output_tokens": 535,
+    "total_tokens": 2768,
+    "calls": 1,
+    "cost_usd": 0.014724,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}

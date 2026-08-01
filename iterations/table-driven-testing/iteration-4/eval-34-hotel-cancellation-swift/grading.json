@@ -1,0 +1,66 @@
+{
+  "assertions": [
+    {
+      "id": "uses-test-arguments",
+      "text": "Tests use @Test(arguments:) parameterised cases — not one test function per case, and not a loop over cases inside a single test body.",
+      "passed": true,
+      "evidence": "Found @Test(arguments:)"
+    },
+    {
+      "id": "no-loop-in-swift-test",
+      "text": "Test function bodies contain no for/while loops or forEach — cases are supplied via @Test(arguments:), not iterated manually.",
+      "passed": true,
+      "evidence": "No loops in @Test function bodies"
+    },
+    {
+      "id": "no-if-in-swift-test",
+      "text": "Test function bodies contain no if/switch/guard branching — expected outcomes come from the argument rows, not branching logic.",
+      "passed": true,
+      "evidence": "No if/switch/guard statements in @Test function bodies"
+    },
+    {
+      "id": "cases-are-paired-rows",
+      "text": "Each case reads as a coherent row pairing input with expected outcome — labelled tuple elements, a row struct, or zip of collections — not multiple independent collections passed to arguments: (which Swift Testing combines as a cartesian product) and not parallel arrays indexed manually.",
+      "passed": true,
+      "evidence": "(daysBeforeCheckIn: 30, expectedFee: 0), (daysBeforeCheckIn: 29, expectedFee: 500), ... as labelled tuples in one arguments array"
+    },
+    {
+      "id": "full-tier-enumeration",
+      "text": "Every fee tier is represented (free, 50%, 80%, full value) and every boundary is tested from both sides: 30 days (free) vs 29 days (50%), 7 days (50%) vs 6 days (80%), 1 day (80%) vs 0 days (full value). Middle-tier boundaries (7/6 and 1/0) must not be skipped in favour of only the outer edges.",
+      "passed": true,
+      "evidence": "(daysBeforeCheckIn: 30, expectedFee: 0), (daysBeforeCheckIn: 29, expectedFee: 500), (daysBeforeCheckIn: 7, expectedFee: 500), (daysBeforeCheckIn: 6, expectedFee: 800), (daysBeforeCheckIn: 1, expectedFee: 800), (daysBeforeCheckIn: 0, expectedFee: 1000)"
+    },
+    {
+      "id": "exception-case-separated",
+      "text": "The started-stay case is expressed as its own test using #expect(throws:) — not mixed into the fee table via sentinel values, optional expectations, or branching inside the test body.",
+      "passed": true,
+      "evidence": "@Test(\"Cancellation after the stay has started\", arguments: [-1, -2, -10])\\n... #expect(throws: CancellationError.stayAlreadyStarted)"
+    },
+    {
+      "id": "concrete-domain-values",
+      "text": "Case values are concrete domain values (days like 29, fees like 100 for a 200-euro booking) — not abstract placeholders, computed expressions like bookingValue / 2, or symbolic constants that hide the actual numbers from the reader.",
+      "passed": true,
+      "evidence": "(daysBeforeCheckIn: 15, bookingValue: 100, expectedFee: 50), (daysBeforeCheckIn: 3, bookingValue: 250, expectedFee: 200)"
+    },
+    {
+      "id": "compiles",
+      "text": "swift build --build-tests succeeds against the package scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 8,
+  "assertions_total": 8,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 3001,
+    "output_tokens": 793,
+    "total_tokens": 3794,
+    "calls": 1,
+    "cost_usd": 0.020898,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}

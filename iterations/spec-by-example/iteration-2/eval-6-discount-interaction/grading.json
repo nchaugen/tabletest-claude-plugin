@@ -1,0 +1,60 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "| Scenario | Order Quantity | Bulk Threshold (Policy) | Loyalty Status | ... |"
+    },
+    {
+      "id": "does-not-invent-resolution",
+      "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved",
+      "passed": true,
+      "evidence": "Table 2 — Combining Discounts When Both Apply (OPEN — needs team decision)"
+    },
+    {
+      "id": "covers-both-discounts-applying",
+      "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)",
+      "passed": true,
+      "evidence": "| Bulk order, loyalty member | 25 units | 20 units | Member | yes | yes |"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note",
+      "passed": true,
+      "evidence": "### Open Questions for the Team"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "| Scenario | Base Price | Bulk Discount (Policy) | Loyalty Discount (Policy) | Final Discount? | Final Price? |"
+    },
+    {
+      "id": "extreme-discount-row",
+      "text": "Table includes at least one row with a high combined discount (e.g. large order + top loyalty tier) that would force a decision about whether a cap applies — making the cap question concrete, not theoretical.",
+      "passed": true,
+      "evidence": "| Stacked — additive | 100 | 15% | 10% | 25% | 75.00 |"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "| Scenario | Order Quantity | Bulk Threshold (Policy) | Loyalty Status |"
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 7,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 2891,
+    "output_tokens": 1087,
+    "total_tokens": 3978,
+    "calls": 1,
+    "cost_usd": 0.024978,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}
