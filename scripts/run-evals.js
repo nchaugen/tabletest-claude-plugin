@@ -1413,26 +1413,49 @@ async function generateOne(evalDef, worktreePath, iterationDir, args) {
         "utf-8"
       );
     }
-    fs.writeFileSync(
-      path.join(evalDir, "outputs", "response.md"),
-      `ERROR: ${err.message}`,
-      "utf-8"
-    );
-
-    // Salvage whatever the agent had written before it ran out of budget. The eval stays excluded
-    // from the totals; this is so the work is inspectable rather than silently deleted below.
+    // Salvage whatever the agent had written before it ran out of budget, so the work is
+    // inspectable rather than silently deleted in `finally` below.
     let harvested = 0;
     try {
       harvestGeneratedFiles(agentCwd, evalDir, evalDef);
       harvested = collectTestFiles(agentCwd, languageProfile(evalDef)).length;
     } catch { /* harvesting is best-effort — never mask the original failure */ }
-    if (harvested > 0) {
-      logError(`    salvaged ${harvested} generated file(s) written before the failure`);
+
+    const failure = classifyGenerationFailure(err, evalDir, evalDef);
+
+    // A truncated run that delivered test code is graded on what it delivered. A transient failure
+    // or an empty one is not — it produced no answer, and scoring it would attribute network
+    // weather to the skill.
+    fs.writeFileSync(
+      path.join(evalDir, "outputs", "response.md"),
+      failure.countable ? lastAssistantText(err.stdout) : `ERROR: ${err.message}`,
+      "utf-8"
+    );
+
+    if (failure.countable && hasProject) {
+      const buildResult = runBuildCheck(agentCwd);
+      if (buildResult) {
+        fs.writeFileSync(
+          path.join(evalDir, "outputs", "build-result.json"),
+          JSON.stringify(buildResult, null, 2),
+          "utf-8"
+        );
+      }
     }
+
+    logError(
+      `    ${failure.kind}${harvested ? `, salvaged ${harvested} file(s)` : ""}` +
+      `${failure.countable ? " — graded on what it delivered" : " — excluded from totals"}`
+    );
 
     fs.writeFileSync(
       path.join(evalDir, "timing.json"),
-      JSON.stringify({ error: err.message, duration_ms: Date.now() - startedAt, harvested_files: harvested }, null, 2),
+      JSON.stringify({
+        ...(failure.countable ? { truncated: err.message } : { error: err.message }),
+        failure_kind: failure.kind,
+        duration_ms: Date.now() - startedAt,
+        harvested_files: harvested,
+      }, null, 2),
       "utf-8"
     );
   } finally {
@@ -1466,6 +1489,52 @@ function harvestGeneratedFiles(agentCwd, evalDir, evalDef) {
       fs.cpSync(src, path.join(evalDir, "outputs", buildFile));
     }
   }
+}
+
+/**
+ * Why a generation produced no final answer — the distinction that decides whether it scores.
+ *
+ * **A transient failure and a budget overrun are not the same event and must not be treated alike.**
+ * A dropped connection or a rate limit says nothing about the guidance, and scoring it once took a
+ * five-eval run from 71/72 to 54/72. An agent that worked its whole budget and *delivered* test code
+ * before time ran out has partly succeeded — and every skill here tells it to work that way ("each
+ * method written is a checkpoint"), so whether it does is a property of the wording and belongs in
+ * the score.
+ *
+ * Three signals, all already available: the error is a timeout rather than a transport failure, the
+ * transcript carries no `api_retry` (which is how a dropped connection burns the budget), and the
+ * harvested files satisfy the language profile's deliverable test — the same predicate `gradeOne`
+ * uses to stop empty responses passing format assertions vacuously.
+ */
+function classifyGenerationFailure(err, evalDir, evalDef) {
+  const timedOut = /Timed out after \d+ms/.test(err.message || "");
+  const sawApiRetry = Boolean(err.stdout && /"subtype"\s*:\s*"api_retry"/.test(err.stdout));
+  const profile = languageProfile(evalDef);
+  const delivered = loadOutputFiles(evalDir).some(
+    (f) => profile.deliverablePath.test(f.path) && profile.deliverableContent.test(f.content)
+  );
+
+  if (!timedOut) return { kind: "crash", countable: false, delivered };
+  if (sawApiRetry) return { kind: "timeout-after-api-retry", countable: false, delivered };
+  if (!delivered) return { kind: "timeout-no-delivery", countable: false, delivered };
+  return { kind: "timeout-after-delivery", countable: true, delivered };
+}
+
+/** The agent's last piece of visible prose, for a run that never returned a final result. */
+function lastAssistantText(stdout) {
+  if (!stdout) return "";
+  let text = "";
+  for (const line of stdout.split("\n")) {
+    if (!line.trim()) continue;
+    let event;
+    try { event = JSON.parse(line); } catch { continue; }
+    const content = event?.message?.role === "assistant" && event.message.content;
+    if (!Array.isArray(content)) continue;
+    for (const block of content) {
+      if (block.type === "text" && block.text?.trim()) text = block.text.trim();
+    }
+  }
+  return text;
 }
 
 function buildGradingPrompt(evalDef, response, generatedFiles, { noDeliverable = false } = {}) {
@@ -2045,6 +2114,9 @@ function aggregateResults(evals, iterationDir, args, worktreePath, repoRoot) {
         // Generation cost above is inherited from the run that produced the outputs; grading
         // cost is this pass's own, and a --grade-only run spends only the latter.
         ...(grading.grading_usage ? { grading_usage: grading.grading_usage } : {}),
+        // A truncated run IS scored — it delivered test code before its budget ran out — but the
+        // score came from a partial answer, and nothing else in the entry would say so.
+        ...(timing.truncated ? { truncated: timing.truncated, failure_kind: timing.failure_kind } : {}),
       };
     } else {
       // No grading exists. If generation errored (timeout, crash), score the
@@ -2227,6 +2299,9 @@ function summariseEvals(evalEntries) {
     assertions_total: total,
     pass_rate: total > 0 ? passed / total : 0,
     errored_evals: evalEntries.filter(generationFailed).map((e) => e.id),
+    // Scored, unlike errored_evals — but scored on a partial answer, so a reader comparing two
+    // runs knows one of these numbers came from an agent that ran out of budget mid-task.
+    truncated_evals: evalEntries.filter((e) => unwrapResults(e)?.truncated).map((e) => e.id),
     total_tokens: all.reduce((sum, r) => sum + (r.total_tokens || 0), 0),
     total_duration_ms: all.reduce((sum, r) => sum + (r.duration_ms || 0), 0),
     total_cost_usd: all.reduce((sum, r) => sum + (r.cost_usd || 0), 0),
@@ -3042,6 +3117,8 @@ if (require.main === module) {
 // Exported for scripts/run-evals.test.js. Everything here is either pure or takes its
 // collaborators as arguments, so the suite needs no network and no eval fixtures.
 module.exports = {
+  classifyGenerationFailure,
+  lastAssistantText,
   harvestGeneratedFiles,
   computeEvalFingerprint,
   fingerprintsDiffer,

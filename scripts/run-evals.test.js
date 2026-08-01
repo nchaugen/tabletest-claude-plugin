@@ -1811,3 +1811,62 @@ describe("harvesting a failed generation", () => {
     fs.rmSync(root, { recursive: true });
   });
 });
+
+describe("classifying a generation failure", () => {
+  const { classifyGenerationFailure, lastAssistantText } = require("./run-evals.js");
+
+  const withOutputs = (files) => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "classify-"));
+    for (const [rel, body] of Object.entries(files)) {
+      const dest = path.join(root, "outputs", rel);
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.writeFileSync(dest, body);
+    }
+    fs.mkdirSync(path.join(root, "outputs"), { recursive: true });
+    return root;
+  };
+  const evalDef = { id: 1, slug: "x", skill: "tabletest", assertions: [] };
+  const delivered = { "src/test/java/T.java": "class T { @TableTest(\"\"\"a|b\"\"\") void t() {} }" };
+
+  test("a timeout that delivered test code is countable — that is the whole point", () => {
+    const dir = withOutputs(delivered);
+    const r = classifyGenerationFailure({ message: "Timed out after 900000ms", stdout: "" }, dir, evalDef);
+    assert.equal(r.kind, "timeout-after-delivery");
+    assert.equal(r.countable, true);
+    fs.rmSync(dir, { recursive: true });
+  });
+
+  test("a timeout that delivered nothing is not countable", () => {
+    const dir = withOutputs({});
+    const r = classifyGenerationFailure({ message: "Timed out after 900000ms", stdout: "" }, dir, evalDef);
+    assert.equal(r.kind, "timeout-no-delivery");
+    assert.equal(r.countable, false);
+    fs.rmSync(dir, { recursive: true });
+  });
+
+  test("a dropped connection is never countable, however much it delivered", () => {
+    const dir = withOutputs(delivered);
+    const stdout = JSON.stringify({ type: "system", subtype: "api_retry", attempt: 1 });
+    const r = classifyGenerationFailure({ message: "Timed out after 900000ms", stdout }, dir, evalDef);
+    assert.equal(r.kind, "timeout-after-api-retry");
+    assert.equal(r.countable, false, "network weather must never be attributed to the skill");
+    fs.rmSync(dir, { recursive: true });
+  });
+
+  test("a crash is not a timeout", () => {
+    const dir = withOutputs(delivered);
+    const r = classifyGenerationFailure({ message: "spawn ENOENT", stdout: "" }, dir, evalDef);
+    assert.equal(r.kind, "crash");
+    assert.equal(r.countable, false);
+    fs.rmSync(dir, { recursive: true });
+  });
+
+  test("recovers the agent's last visible prose from a run that never returned a result", () => {
+    const lines = [
+      JSON.stringify({ message: { role: "assistant", content: [{ type: "text", text: "first" }] } }),
+      JSON.stringify({ message: { role: "assistant", content: [{ type: "text", text: "last" }] } }),
+    ].join("\n");
+    assert.equal(lastAssistantText(lines), "last");
+    assert.equal(lastAssistantText(""), "");
+  });
+});

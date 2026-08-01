@@ -103,32 +103,35 @@ formats one). Point a checker at prose you control and it audits itself.
 Regression detection compares against the previous iteration's `benchmark.json` (same
 variant); `--compare-official` also compares a variant against the latest official baseline.
 
-**A failed generation is excluded, not scored zero.** When an eval times out or crashes it produced
-no answer, so it is left out of the summary totals, named in `summary.errored_evals`, and excluded
-from the comparison the way a changed definition is (`generation-failed`). Its tokens and cost still
-count — the attempt was paid for. **Re-run it before reading anything into the gap**; a partial
-comparison is honest but it is still partial.
+**A generation that produced no answer is excluded, not scored zero — but "no answer" is now
+decided, not assumed.** Four outcomes, classified in `run-evals.js` from signals it already had:
 
-**Its files are salvaged, though.** Whatever the agent wrote before it ran out of budget is copied
-into `outputs/` on the failure path too, and `timing.json` records `harvested_files`. The eval still
-stays out of the totals — a partial answer is not a score — but you can see how far it got and decide
-whether a re-run is worth buying. Before this the working directory was deleted in `finally` and the
-checkpoints went with it, which quietly contradicted the skills: they promise the agent that each
-test written "can't be lost to a timeout".
+| `failure_kind` | Scored? |
+|---|---|
+| `timeout-after-delivery` — ran its budget out but **delivered test code** | **Yes**, on what it delivered |
+| `timeout-no-delivery` — thought for the whole budget, shipped nothing | No |
+| `timeout-after-api-retry` — a dropped connection burned the budget | No |
+| `crash` | No |
 
-**Exclusion is provisional, and here is the trigger to revisit it.** Every skill tells the agent to
-deliver incrementally so a timeout does not cost everything — *"each method written is a
-checkpoint"*. **That is a claim about behaviour, and this suite exists to measure those.** An agent
-that ships three of five tables before the budget ends has partly succeeded; one that thinks for
-fifteen minutes and ships nothing has not — and today both read as `excluded`. The two are already
-separable in code: each language profile declares `deliverablePath`/`deliverableContent`, and
-`gradeOne` computes `hasDeliverable` from them.
+**The distinction is the point.** A transient failure says nothing about the guidance, and scoring
+one once took a five-eval run from 71/72 to 54/72 with 17 phantom moved verdicts. But an agent that
+worked its whole budget and shipped three of five tables **has partly succeeded** — and every skill
+here tells it to work that way ("each method written is a checkpoint that can't be lost to a
+timeout"). Whether it does is a property of the wording, so it belongs in the score. Excluding both
+alike made the only guidance of that kind unmeasurable.
 
-**Gather evidence before changing anything, which the harvest now makes free:** grade a timed-out
-eval's salvaged files, annotate the number on its ledger row, and leave the totals alone. If the rule
-does change, change it narrowly — score a timeout **only when it delivered**, and keep excluding the
-ones that produced nothing. Blanket inclusion re-introduces the phantom-regression failure exclusion
-was built to prevent. Full reasoning:
+The predicate is the language profile's `deliverablePath`/`deliverableContent` — the same one
+`gradeOne` uses to stop an empty response passing format assertions vacuously. A countable truncation
+gets its build check run, its files harvested into `outputs/`, and `response.md` carrying the agent's
+last visible prose rather than `ERROR:`; the grading prompt already instructs the grader to judge the
+files rather than the response. **It is scored but flagged**: `timing.json` records `truncated` and
+`failure_kind`, the benchmark entry carries both, and `summary.truncated_evals` names them beside
+`errored_evals`.
+
+**Read `truncated_evals` before comparing two runs.** A score drawn from a partial answer is a real
+score, but it is not the same event as a complete one, and a suite whose slowest eval starts
+truncating is telling you the skill got longer. Cost and duration count for every outcome — the
+attempt was paid for either way. Full reasoning:
 `products/claude-plugin/decisions/timed-out-evals-are-excluded-for-now.md` (private docs repo). Before this, a single transient timeout took a
 five-eval run from 71/72 to 54/72 and produced 17 phantom moved verdicts, one per assertion the eval
 owns.
