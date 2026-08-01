@@ -165,3 +165,7 @@ The correction lives only in the forward-looking baseline copy.
 | 2026-08-01 | `iteration-51 [vp1]` | regrade | 2 | `3f72990a10` | claude-sonnet-5/default | `5e15d6df` | 54/58 | — | $0.60 | — | vs iteration 50: 0/2 comparable, 0 moved. |
 | 2026-08-01 | `iteration-50 [vp2]` | regrade | 12 | `c3248d8659` | claude-sonnet-5/default | `267960f0` | 233/254 | — | $1.25 | — | vs iteration 49: 0/12 comparable, 0 moved. |
 | 2026-08-01 | `iteration-51 [vp2]` | regrade | 2 | `3f72990a10` | claude-sonnet-5/default | `5e15d6df` | 53/58 | — | $0.69 | — | vs iteration 50: 0/2 comparable, 0 moved. |
+| 2026-08-01 | `iteration-51 [vp3]` | regrade | 1 | `3f72990a10` | claude-sonnet-5/default | `35f04f34` | 30/32 | — | $0.39 | — | vs iteration 50: 0/1 comparable, 0 moved. |
+| 2026-08-01 | `iteration-50 [vp3]` | regrade | 1 | `c3248d8659` | claude-sonnet-5/default | `4a857373` | 22/30 | — | $0.40 | — | vs iteration 49: 0/1 comparable, 0 moved. |
+| 2026-08-01 | `iteration-50 [vp3]` | rebuild | 12 | `c3248d8659` | claude-sonnet-5/default | `267960f0` | 233/254 | — | — | — | vs iteration 49: 0/12 comparable, 0 moved. |
+| 2026-08-01 | `iteration-51 [vp3]` | rebuild | 2 | `3f72990a10` | claude-sonnet-5/default | `5e15d6df` | 55/58 | — | — | — | vs iteration 50: 0/2 comparable, 0 moved. |

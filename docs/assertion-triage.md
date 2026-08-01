@@ -1025,3 +1025,79 @@ to 4.9%.
 the output needs a scoping fix (name the surface). One whose reasonings cite the same evidence and
 reach opposite conclusions needs a decidability fix (or a deterministic checker). That distinction is
 what the captured reasoning is for, and it is the first time it has been available.
+
+### Variance probe RESULT — 2026-08-01 (`vp1`/`vp2`/`vp3`, cut suite)
+
+Three re-grades of one generation, `claude-sonnet-5/default`, same instrument across all three.
+`iteration-50` 231/233/233 of 254 · `iteration-51` 54/53/55 of 58.
+
+**9 of 312 slots flip = 2.9%**, against **18 of 365 = 4.9%** on the pre-cut instrument. **21 fail in
+all three.**
+
+| Eval | Assertion | vp1 vp2 vp3 |
+|---|---|---|
+| 14 | `no-table-reproves-another` | F p p |
+| 15 | `quantifier-covered-by-rows` | F p F |
+| 18 | `no-duplicate-rows-within-a-table` | F F p |
+| 18 | `premium-claim-boundary` | p F F |
+| 23 | `description-no-redundant-field-values` | F p p |
+| 29 | `business-language-columns` | p F p |
+| 29 | `rule-falsifiable-by-a-row` | F F p |
+| 29 | `uses-standard-map-syntax` | F F p |
+| 30 | `native-collection-output` | p p F |
+
+**Caveat on eval-18.** Its `vp3` was graded with `--capture-thinking` off while `vp1`/`vp2` had it on
+(the retry straddled the code change), so eval-18's third pass is a different regime. Its two flips
+are established by the `vp1`/`vp2` disagreement alone; excluding eval-18 entirely gives 7 of 282 =
+**2.5%**, so the headline conclusion does not depend on it.
+
+#### Predictions scored (registered `621c2df`, before results): 4 of 6 correct
+
+| # | Prediction | Outcome |
+|---|---|---|
+| 1 | `rule-statable-from-table` stays top flipper | **WRONG — it flipped zero times, on any host** |
+| 2 | converted eval-20 assertions contribute zero flips | correct (eval-20 17/17 in all three) |
+| 3 | `premium-claim-boundary` flips | correct |
+| 4 | `1.7-readability-scenario-names` flips | **WRONG — stable within-regime** |
+| 5 | rate ≤ 4.9% | correct (2.9%) |
+| 6 | ≥1 flip on a slot from no prior list | correct (`uses-standard-map-syntax`, `native-collection-output`) |
+
+**Prediction 1 failing is the most useful result here.** `rule-statable-from-table` was the worst slot
+in the suite — 4 flips in the v1/v2/v3 probe, 3 more between the anchor's two gradings — and it is now
+**completely stable across five hosts and three passes**. The intervening change was the per-method
+enumeration clause: *"your evidence must list each method name with PASS or FAIL beside it; a verdict
+reported from a subset of the methods is not a verdict."* **Requiring exhaustive enumeration is a
+demonstrated repair**, not a hypothesis.
+
+**Prediction 4 failing sharpens what a flip means.** `1.7-readability-scenario-names` moved between the
+*sweep* and the probe but never within the probe — that is a cross-regime difference, not grader noise.
+Do not add a slot to the flip list on the strength of two runs from different regimes.
+
+#### The diagnosis, which counting alone could not give
+
+Each flip carries the grader's own reasoning (`grading-vp*-thinking.json`). Read across the
+disagreeing passes, **7 of 9 are the grader looking at a different part of the output — not judging
+the same evidence differently:**
+
+| Slot | vp_x cites | vp_y cites | Fix |
+|---|---|---|---|
+| 14 `no-table-reproves-another` | an end-to-end method duplicating a row | that the method is a plain `@Test`, out of scope | scope: say plain `@Test` is excluded |
+| 15 `quantifier-covered-by-rows` | an **uncovered** claim (zone/category) | a **covered** one (CHILD value set) | enumerate every quantifying claim |
+| 18 `premium-claim-boundary` | the legitimate cross-table pair | a "same applicant type" rule not in the text | state the pair may span tables |
+| 23 `description-no-redundant-field-values` | **scenario names** | the **`@Description`** | name the surface |
+| 29 `business-language-columns` | `Product Id` a "minor nit" | `Product Id` a code-ism | decidability: is `Product Id` in or out |
+| 29 `rule-falsifiable-by-a-row` | `appliesCoupon`'s constant column | `calculatesCartTotal`'s varying one | judge every table, not one |
+| 29 `uses-standard-map-syntax` | the **converter body** special-casing a key | the **cell syntax** being standard | name the surface |
+| 30 `native-collection-output` | native map-of-set output | hand-rolled `"a:b:c"` strings | both true of different columns — enumerate |
+
+**Only `business-language-columns` is a genuine judgement split** — both passes saw `Product Id` and
+disagreed on whether it counts. Everything else is a *scoping* defect: the assertion does not say
+which surface or how many places to look, so two passes sample different evidence and both reason
+correctly about what they happened to see.
+
+**What to do, in order.** Apply the enumeration clause that fixed `rule-statable-from-table` to
+`quantifier-covered-by-rows`, `rule-falsifiable-by-a-row` and `native-collection-output`; name the
+surface on `description-no-redundant-field-values` and `uses-standard-map-syntax`; add the scope
+sentence to `no-table-reproves-another` and `premium-claim-boundary`; decide `Product Id` explicitly
+for `business-language-columns`. **All eight are wording fixes with a diagnosed cause** — none needs a
+better grader, and none is a candidate for voting, which was already measured not to help.
