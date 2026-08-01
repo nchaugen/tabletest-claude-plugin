@@ -1,0 +1,156 @@
+{
+  "assertions": [
+    {
+      "id": "1.2-error-has-expected-column",
+      "text": "The error/rejection table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row — rather than hardcoding the exception type in @Description or the method name.",
+      "passed": true,
+      "evidence": "Scenario | Hourly Rate | Throws? ... Negative rate | -0.01 | java.lang.IllegalArgumentException"
+    },
+    {
+      "id": "1.3-depth-overtime-boundary",
+      "text": "Overtime threshold boundary is covered: at least a value at the threshold (40) and just above (41 or similar). Not just values well below and well above.",
+      "passed": false,
+      "evidence": "At the overtime threshold | 40 ... Just past the overtime threshold | 45 (no 41 or near-threshold value)"
+    },
+    {
+      "id": "1.4-depth-combined-scenario",
+      "text": "A combined scenario is present: a row with weekday + Sunday + holiday hours, testing the composition of all hour types.",
+      "passed": true,
+      "evidence": "All hour types combined | 40 | 5 | 8 | 8 | 20 | 1590"
+    },
+    {
+      "id": "1.5-depth-error-edge-cases",
+      "text": "Error/edge cases covered with explicit rows: negative hours in some slot are handled by a visible example row stating the chosen semantics (rejected, floored at zero, or offsetting a positive slot) rather than being decided silently in the method body; and a negative or missing rate is rejected.",
+      "passed": true,
+      "evidence": "Correction drives pay below zero  | -10 ... | 20 | 0 ... Negative rate | -0.01 | java.lang.IllegalArgumentException"
+    },
+    {
+      "id": "1.6-readability-empty-cells",
+      "text": "Sunday and Holiday hour columns use empty cells (not 0) when those inputs are not relevant to a scenario — making it easier to spot which rows involve weekend/holiday hours. This is a readability preference; parameter types should be Integer (not int) to support null from blank cells.",
+      "passed": false,
+      "evidence": "Regular hours paid at base rate   | 40 | 0 | 0 | 0 | 20 | 800 (uses 0s, not blanks)"
+    },
+    {
+      "id": "1.7-readability-scenario-names",
+      "text": "Scenario names describe work patterns (e.g. 'Part-time', 'Five hours overtime', 'Full Sunday shift') — not 'Test case 1' or expected outcomes.",
+      "passed": false,
+      "evidence": "Regular hours paid at base rate; Sunday hours paid at 2x; Overtime hours paid at 1.5x (outcome-based names, not work patterns)"
+    },
+    {
+      "id": "1.8-correctness-expected-values",
+      "text": "Expected values in intermediate and total columns are arithmetically correct for every row, consistent with the rate rules the rows state (regular 1x, overtime 1.5x, Sunday 2x, holiday 2x).",
+      "passed": true,
+      "evidence": "All hour types combined | 40 | 5 | 8 | 8 | 20 | 1590 (40*20+5*30+8*40+8*40=1590)"
+    },
+    {
+      "id": "1.9-correctness-value-set-semantics",
+      "text": "Value sets are only used where all values in the set produce the same expected result (e.g. any rate × 0 = 0). Not used where results would differ. This assertion polices misuse only. An output that uses no value sets at all PASSES vacuously; the absence of a value set where one would have been possible is not a failure here.",
+      "passed": true,
+      "evidence": "No value set syntax ({a,b}) used anywhere in the tables, so passes vacuously."
+    },
+    {
+      "id": "1.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "@DisplayName annotation present"
+    },
+    {
+      "id": "1.11-format-description",
+      "text": "If @Description is present, it provides context beyond what the table rows already express — such as what constitutes a pay week, the currency, rounding, or other fixed assumptions not visible in the rows. It does NOT restate the rate multipliers or the overtime threshold that the example rows already demonstrate, nor merely echo the column names. It is acceptable to omit @Description when the rows carry all the context.",
+      "passed": true,
+      "evidence": "Fixed for all rows: 40 regular hours, 0 overtime, 0 Sunday, 0 holiday hours - rate validation does not depend on the hours worked."
+    },
+    {
+      "id": "1.12-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order (@DisplayName, @Description, @TableTest) across 3 annotated method(s)"
+    },
+    {
+      "id": "1.13-format-description-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "1.14-depth-zero-rate",
+      "text": "A row where the hourly rate is zero, showing that pay is zero regardless of hours worked. This is a distinct edge case from negative rate (which is rejected).",
+      "passed": false,
+      "evidence": "Zero rate     | 0            | (only tests Throws?, no Total Pay assertion showing zero regardless of hours)"
+    },
+    {
+      "id": "1.15-format-clean-method",
+      "text": "The test method body contains no if/ternary null-handling or parsing logic. Null-to-default conversion (e.g. blank Sunday hours → 0) is handled via a @TypeConverter method or a private helper, keeping the test method limited to arrange/act/assert.",
+      "passed": true,
+      "evidence": "Method bodies are pure arrange/act/assert, e.g. 'BigDecimal actual = PayCalculator.calculatePay(...); assertEquals(0, totalPay.compareTo(actual));' with no if/ternary."
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language (e.g. 'Weekday hours', 'Sunday hours', 'Hourly rate', 'Weekly pay?') — not implementation terms like 'weekdayHrs', 'int', 'param1'.",
+      "passed": true,
+      "evidence": "Columns like 'Weekday Hours', 'Regular Hours?', 'Sunday Hours', 'Hourly Rate', 'Total Pay?', 'Throws?'."
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": true,
+      "evidence": "Three @TableTest methods: splitsWeekdayHoursIntoRegularAndOvertime, computesWeeklyPayFromClassifiedHours, rejectsNegativeHourlyRate."
+    },
+    {
+      "id": "no-duplicate-rows-within-a-table",
+      "text": "Judge each @TableTest in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a linear premium sampled at 0, 2 and 4 claims: two samples state the effect and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by 2.19-covers-every-tier and quantifier-covered-by-rows. Judge every @TableTest method in the class; your evidence must name each method with PASS or FAIL.",
+      "passed": true,
+      "evidence": "splitsWeekdayHoursIntoRegularAndOvertime PASS (below/at/just-past boundary rows); computesWeeklyPayFromClassifiedHours PASS (each row shows a distinct multiplier or combination); rejectsNegativeHourlyRate PASS (zero, positive, negative are distinct rate boundaries)."
+    },
+    {
+      "id": "no-table-reproves-another",
+      "text": "Judge the class as a whole, and only its @TableTest methods: a plain @Test method is not a table and can never fail this assertion, however much of an earlier table it re-proves. The assertion FAILS if a whole @TableTest re-proves rules that earlier tables already established — an integration or end-to-end table whose rows re-prove established rules is the common case, and it fails however clean the other tables are. Sibling tables that each isolate one rule are NOT duplication merely because they share a baseline row: four surcharge tables that each show 'no surcharge' then 'surcharge applied' are four legitimate tables, not one duplicated four times. Collapsing several same-fixture tables into one, as concern-not-over-split requires, is likewise not a failure here. Rows you think are missing are never a failure here. Your evidence must name the re-proving table and the table it duplicates, or state that no @TableTest re-proves another.",
+      "passed": true,
+      "evidence": "The only end-to-end duplication is in 'combinesSplitAndPayCalculationEndToEnd', which is a plain @Test not a @TableTest, so no @TableTest re-proves another."
+    },
+    {
+      "id": "separates-classification-and-calculation",
+      "text": "Payable hours categorisation (1x regular, 1.5x overtime, 2x Sunday/holiday) and pay calculation (hours × rate) are in separate @TableTest methods",
+      "passed": true,
+      "evidence": "'Splits weekday hours into regular and overtime hours' is separate from 'Computes weekly pay from classified hours and hourly rate'."
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "held-constants-declared",
+      "text": "A value the rule's outcome depends on, and which the table holds constant for every row, must be visible as a column or named in the @DisplayName/@Description as deliberately held fixed. It must not sit silently in the test method body or a field. Readers generalise from what varies, so an unstated constant is read as part of the rule: a table whose every row happens to use one traveller category states, to its reader, a rule about that category. FAILS when the method body, a field, or a @TypeConverter fixes a value that (1) the outcome depends on, and (2) appears in no column and is not named in the title or description as held fixed. A value declared only in a source-code comment (// or /* */) FAILS: the published surface is the title, the description and the table, and a comment reaches none of them. A method with no @DisplayName publishes its own name as its title, with camelCase split into words, so a constant named in the method name is declared. PASSES when every such constant is either a column or declared. Values that cannot affect the outcome are not failures — a fixed clock used only to construct inputs, object identity, or fixture values the rule is indifferent to. Declaring a held constant in @Description is NOT redundancy and does not conflict with the description-* assertions: those forbid restating what the rows already show, whereas a held constant is precisely what the rows cannot show.",
+      "passed": true,
+      "evidence": "'Fixed for all rows: 40 regular hours, 0 overtime, 0 Sunday, 0 holiday hours - rate validation does not depend on the hours worked.'"
+    },
+    {
+      "id": "concern-not-over-split",
+      "text": "Do not fragment a single concern across multiple @TableTest methods that share the same fixture and assertion and differ only in which one sub-rule they exercise. Two or more tables that fix the same setup (e.g. same zone and base cost) and each vary a single option or surcharge, with the same output column, should instead be one table with a column for the varying input. FAILS when two or more such same-fixture, single-sub-rule tables exist for one concern (e.g. a separate table per surcharge). PASSES when each @TableTest addresses a genuinely distinct concern with its own inputs. This is the complement of concerns-decomposed: that forbids cramming unrelated concerns into one table; this forbids scattering one concern across many. Apply two guards when judging whether tables should be collapsed. Collapsing is right when the combined table's total row count stays small — a handful, never a cross-product — and each row still makes clear which sub-rule it demonstrates, normally through its scenario name and the varying column. Where collapsing would multiply into a cross-product, or would leave rows whose purpose is no longer legible, the tables are genuinely distinct and separate methods PASS.",
+      "passed": true,
+      "evidence": "Each table addresses a distinct concern (split, calculate, reject) rather than fragmenting one concern across multiple same-fixture tables."
+    }
+  ],
+  "assertions_passed": 19,
+  "assertions_total": 23,
+  "pass_rate": 0.8260869565217391,
+  "grading_usage": {
+    "input_tokens": 13456,
+    "output_tokens": 4675,
+    "total_tokens": 18131,
+    "calls": 2,
+    "cost_usd": 0.110493,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}
