@@ -751,67 +751,12 @@ const checkers = {
     };
   },
 
-  "no-kotest-syntax": ({ fileContent, allFiles }) => {
-    const content = getTestSourceContent(fileContent, allFiles);
-    const patterns = [
-      { regex: /\bshould\s*\{/, label: "should {" },
-      { regex: /\bshouldBe\b/, label: "shouldBe" },
-      { regex: /\bforAll\s*\(/, label: "forAll(" },
-      { regex: /\bwithData\s*\(/, label: "withData(" },
-      // describe/it must open a string argument — bare "it (" appears in
-      // English prose inside @Description text blocks.
-      { regex: /\bdescribe\s*\(\s*["']/, label: "describe(" },
-      { regex: /\bit\s*\(\s*["']/, label: "it(" },
-      { regex: /io\.kotest/, label: "io.kotest import" },
-    ];
 
-    const found = [];
-    for (const p of patterns) {
-      if (p.regex.test(content)) found.push(p.label);
-    }
 
-    return {
-      passed: found.length === 0,
-      evidence: found.length === 0
-        ? "No Kotest syntax found"
-        : `Found: ${found.join(", ")}`,
-    };
-  },
 
-  "no-testng-artifacts": ({ fileContent, allFiles }) => {
-    const content = getTestSourceContent(fileContent, allFiles);
-    const patterns = [
-      { regex: /@DataProvider/, label: "@DataProvider" },
-      { regex: /org\.testng/, label: "org.testng import" },
-    ];
-
-    const found = [];
-    for (const p of patterns) {
-      if (p.regex.test(content)) found.push(p.label);
-    }
-
-    return {
-      passed: found.length === 0,
-      evidence: found.length === 0
-        ? "No TestNG artifacts found"
-        : `Found: ${found.join(", ")}`,
-    };
-  },
-
-  "no-methodsource-artifacts": ({ fileContent, allFiles }) => {
-    const content = getTestSourceContent(fileContent, allFiles);
-    const found = /@MethodSource/.test(content);
-    return {
-      passed: !found,
-      evidence: found ? "Found @MethodSource" : "No @MethodSource found",
-    };
-  },
-
-  "kotest-dependency-removed": dependencyRemovedChecker("Kotest", /io\.kotest/),
 
   "spock-dependency-removed": dependencyRemovedChecker("Spock/Groovy", /org\.spockframework|spock-core|org\.codehaus\.groovy|apache\.groovy|groovy-all/),
 
-  "testng-dependency-removed": dependencyRemovedChecker("TestNG", /org\.testng|\btestng\b/),
 
   "has-descriptive-title": ({ fileContent, allFiles }) => {
     const content = getCheckContent(fileContent, allFiles);

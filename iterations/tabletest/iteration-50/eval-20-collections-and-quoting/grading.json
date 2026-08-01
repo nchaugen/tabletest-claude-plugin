@@ -10,37 +10,37 @@
       "id": "list-syntax-correct",
       "text": "List values in the table use bracket syntax like [tech:java, biz:sales, dev:ci] — not comma-separated strings without brackets.",
       "passed": true,
-      "evidence": "[\"tech:java\", \"dev:backend\", \"biz:sales\"]"
+      "evidence": "All 28 List-typed cell(s) use bracket syntax."
     },
     {
       "id": "empty-list-explicit",
       "text": "Empty list input uses [] (not a blank cell, which represents null). The distinction between empty list and null is preserved.",
       "passed": true,
-      "evidence": "Empty list input returns empty list | [] | tech | []"
+      "evidence": "returnsEmptyListForDegenerateInput row 1 writes the empty list as [] in column \"Tags\"."
     },
     {
       "id": "special-chars-quoted",
       "text": "Values containing pipes (|), brackets, or colons (:) are properly quoted (e.g. \"tech:java\") so they don't conflict with table syntax. Colons without quoting would be mis-interpreted as map key:value entries.",
       "passed": true,
-      "evidence": "[\"tech:java\", \"dev:backend\", \"biz:sales\"]"
+      "evidence": "Every collection element containing a colon, pipe or bracket is quoted."
     },
     {
       "id": "set-syntax-correct",
       "text": "Set<String> values in the table use curly brace syntax like {tech, dev} — not bracket syntax [tech, dev] which is for lists. The distinction between Set and List types is preserved in the table notation.",
       "passed": true,
-      "evidence": "{biz}\" and \"{biz, urgent}\" for Set<String> optional parameter"
+      "evidence": "All 4 Set-typed cell(s) use brace syntax."
     },
     {
       "id": "newline-in-cell",
       "text": "A cell value containing a newline does not break the table row structure: the newline is either escaped as \\n inside the cell, or the value is expressed as a list of lines joined in the test body. A literal line break inside a table row fails. Both representations are acceptable — escaping suits a newline inside a single value, a list of lines suits input that is inherently multi-line.",
       "passed": true,
-      "evidence": "\"tech:java\\\\nEnterprise Edition\" with withRealNewlines helper"
+      "evidence": "Every data row has the same cell count as its header; no row is broken by a literal newline."
     },
     {
       "id": "pipe-quoted",
       "text": "Values containing pipe characters (|) are quoted so they don't conflict with the markdown table column separator. For example, a tag like 'biz:hr|recruiting' must be quoted.",
       "passed": true,
-      "evidence": "\"tech:milestone|v2\""
+      "evidence": "All 2 pipe-containing value(s) are quoted."
     },
     {
       "id": "scenario-column-present",
@@ -64,7 +64,7 @@
       "id": "annotation-order",
       "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
       "passed": true,
-      "evidence": "Annotations in correct order: @DisplayName, @Description, @TableTest"
+      "evidence": "Annotations in correct order (@DisplayName, @Description, @TableTest) across 2 annotated method(s)"
     },
     {
       "id": "has-descriptive-title",
@@ -88,13 +88,13 @@
       "id": "no-blank-collection-elements",
       "text": "No collection value in any table contains a blank element. `[a, , c]`, `[a, b, ]` and `[, a, b]` are parse errors, not collections holding a null element — a collection value cannot express a null element at all.",
       "passed": true,
-      "evidence": "['', \"tech:java\", random] uses quoted empty string, no blank element found"
+      "evidence": "No collection value contains a blank element."
     },
     {
       "id": "empty-string-element-quoted",
       "text": "An empty tag inside a tag list is written as a quoted empty string (\"\" or ''), not as a blank element. Passes if the tables express the empty tag some other legitimate way (e.g. a dedicated String column); fails if a blank element inside a collection is used to mean an empty or absent tag.",
       "passed": true,
-      "evidence": "[''] and ['', \"tech:java\", random]"
+      "evidence": "[''], \"tech:java\", random] ... uses quoted '' for empty tag, not blank element"
     },
     {
       "id": "compiles",
@@ -107,11 +107,11 @@
   "assertions_total": 17,
   "pass_rate": 1,
   "grading_usage": {
-    "input_tokens": 6634,
-    "output_tokens": 1207,
-    "total_tokens": 7841,
+    "input_tokens": 6089,
+    "output_tokens": 180,
+    "total_tokens": 6269,
     "calls": 1,
-    "cost_usd": 0.038007,
+    "cost_usd": 0.020967,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

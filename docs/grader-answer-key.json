@@ -556,6 +556,13 @@
       "expected": true,
       "confidence": "firm",
       "basis": "Four tables, no end-to-end table. keepsCompanionProductsTogetherWhenPossible shares a fixture shape with choosesWarehouseCombinationMinimizingShipmentCount but establishes the companion tie-break, a rule the warehouse table does not reach. The remaining overlap is the shared baseline the assertion permits."
+    },
+    {
+      "eval": 25,
+      "assertion": "rule-falsifiable-by-a-row",
+      "expected": true,
+      "confidence": "firm",
+      "basis": "Read against the iteration-40 artefact 2026-08-01, replacing the eval-27 entry lost when that eval was cut. Six of the seven tables vary their expectation column (5.00/7.50/12.50/20.00, 7.50/12.50, 7.50/17.50, 7.50/15.50, 7.50/8.625, 7.50/10.50/11.625) and no expectation cell copies an input cell, so conditions (1)-(3) are unmet there. The seventh, carrierDoesNotAffectCost, holds a constant 12.00 across its single row — condition (1) on its face — but is the INVARIANCE EXEMPTION case exactly: one row varying the quantified input over a value set {DHL, UPS, FEDEX}, with the invariance stated in both the method name and the description ('Carrier is not a pricing input'). This entry exists to keep that exemption measured; it is the clause the retired eval-27 entry was recorded for, and the assertion text uses this very table as its worked example."
     }
   ]
 }
