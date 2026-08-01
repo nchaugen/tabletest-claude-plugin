@@ -1101,3 +1101,53 @@ surface on `description-no-redundant-field-values` and `uses-standard-map-syntax
 sentence to `no-table-reproves-another` and `premium-claim-boundary`; decide `Product Id` explicitly
 for `business-language-columns`. **All eight are wording fixes with a diagnosed cause** — none needs a
 better grader, and none is a candidate for voting, which was already measured not to help.
+
+### The repair, and what one pass of it measured — 2026-08-01 (`fx`, commit `b59dea7`)
+
+All nine flippers repaired by wording. **Eight could be re-graded; all eight landed on the verdict
+the eval's own `expected_output.md` supports.** One pass, so this measures *level* — that the slot
+now reads correctly — and not yet stability.
+
+| Eval | Slot | Probe | Repaired to | Fix applied |
+|---|---|---|---|---|
+| 14 | `no-table-reproves-another` | F p p | **p** | scope: @TableTest only, a plain @Test cannot fail it |
+| 15 | `quantifier-covered-by-rows` | F p F | **F** | enumerate every quantifying claim |
+| 18 | `no-duplicate-rows-within-a-table` | F F p | **F** | decidability: the third-sample-of-one-effect case |
+| 18 | `premium-claim-boundary` | p F F | **p** | enumerate the risk-derived rows before pairing |
+| 23 | `description-no-redundant-field-values` | F p p | *ungraded* | report both surfaces; threshold exemption covers clause (1) |
+| 29 | `business-language-columns` | p F p | **p** | decidability: judge header *form*; `Product Id` PASSES |
+| 29 | `rule-falsifiable-by-a-row` | F F p | **F** | enumerate every method **and every expectation column** |
+| 29 | `uses-standard-map-syntax` | F F p | **p** | surface: cell text, not the converter body |
+| 30 | `native-collection-output` | p p F | **p** | surface: expectation columns, not the input shorthand |
+
+**Two of the nine were defects in the ground truth, not the assertion.** `expected_output.md` is in
+the grading prompt, and two of its lines contradicted the assertion the grader was being asked to
+apply: eval-29 called `Product Id` "the kind of small polish `business-language-columns` exists to
+catch" while also saying not to weight it — which is exactly the split — and eval-30 said a
+string-encoded output "passes today because no assertion rewards native collections", which
+`native-collection-output` does. **Read the expected output before rewriting an assertion**; a slot
+can flip because the two halves of the grading prompt disagree.
+
+**The enumeration clause now has three demonstrations, and one refinement.** On
+`rule-falsifiable-by-a-row` the per-method form was not enough: the passing pass had named every
+method and still missed that one method's `Cart After?` column was constant across all four rows.
+Requiring *each method and each of its expectation columns* is what fixed it. **Enumerate at the
+granularity the condition applies to, not at the method.**
+
+**One slot moved that was never edited**, and it is the useful control: eval-14
+`1.3-depth-overtime-boundary`, PASS in all three probe passes, FAIL here. It sits in a grading batch
+containing none of the edited assertions, so its prompt is **byte-identical** to the probe's, and all
+four gradings quote the same evidence — rows at 40 and 45 against an assertion asking for "41 or
+similar". That is a fourth draw catching a flip three passes missed. Two things follow: **a
+three-pass probe under-counts the flip list** (it found 9; a fourth pass immediately found a tenth),
+and this slot needs the same decidability fix — say what "just above" means as a number.
+
+**Not yet measured:** whether the repairs removed the *instability*. That needs a fresh multi-pass
+probe on the new texts and is a separate window. Also note `docs/grader-answer-key.json` is bound to
+`iteration-40` and to the pre-repair assertion texts, so `score-grader.js` **cannot** score these
+nine — the check above is a read against each eval's expected output, not an accuracy score.
+
+**Incomplete.** The `iteration-50 [fx]` sweep stopped at 9 of 12 evals when the Anthropic credit
+balance ran out; evals 22, 23 and 25 are ungraded and that directory has **no `benchmark-fx.json`**.
+The baseline is therefore still the pre-repair one and `check-baseline.js` correctly exits 2. Finish
+with the two commands in `ed1a9bf`'s message — grade the three, then `--rebuild` — before promoting.
