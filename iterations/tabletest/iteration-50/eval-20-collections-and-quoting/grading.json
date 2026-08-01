@@ -94,7 +94,7 @@
       "id": "empty-tag-case-covered",
       "text": "The prompt's rule \"an empty tag string is never kept, whatever the category\" is exercised by a row. FAILS when no row anywhere feeds an empty tag into the input — the rule is then stated by the prompt and tested by nothing. The empty tag must appear as a quoted empty string ('' or \"\") inside a tag list, or as an equivalent explicit representation such as a dedicated column; a blank element inside a collection does NOT count, because a collection cannot express one at all. Judge COVERAGE, not syntax: whether such a row exists, not how many do and not how the rest of the table is punctuated. The syntax question — whether any collection holds a blank element — belongs to no-blank-collection-elements and must not be re-judged here.",
       "passed": true,
-      "evidence": "Drops an empty tag string even when category is null | ['', \"tech:java\", random]"
+      "evidence": "Drops an empty tag string even when category is null | ['', \"tech:java\", random] | [\"tech:java\", random]"
     },
     {
       "id": "compiles",
@@ -108,10 +108,10 @@
   "pass_rate": 1,
   "grading_usage": {
     "input_tokens": 6232,
-    "output_tokens": 154,
-    "total_tokens": 6386,
+    "output_tokens": 173,
+    "total_tokens": 6405,
     "calls": 1,
-    "cost_usd": 0.021006,
+    "cost_usd": 0.021291,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

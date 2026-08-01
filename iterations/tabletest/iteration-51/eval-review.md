@@ -4,7 +4,7 @@
 
 ## Summary
 
-54/58 (93.1%) · 2951966 tokens · 952.1s · $3.1921
+53/58 (91.4%) · 2951966 tokens · 952.1s · $3.1921
 
 _Cost figures are Claude Code list-price estimates; actual billing may differ (e.g. promotional pricing). Timed-out evals score 0 with unrecorded token usage._
 
@@ -20,14 +20,14 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 | Eval | Pass Rate | Prev | Tokens | Prev | Time(s) | Prev |
 |------|-----------|------|--------|------|---------|------|
-| eval-29-shopping-cart-tt | 28/32 | 0/30 | 1026101 | 0 | 341.9 | 545.7 |
+| eval-29-shopping-cart-tt | 27/32 | 0/30 | 1026101 | 0 | 341.9 | 545.7 |
 | eval-30-order-splitting-tt | 26/26 | 0/25 | 1925865 | 0 | 610.2 | 1500.0 |
 
 ## Per-Eval Results
 
 ### ⚠️ Eval eval-29-shopping-cart-tt
 
-**28/32** · 1026101 tokens · 341857ms
+**27/32** · 1026101 tokens · 341857ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ✅ **concerns-decomposed**: Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing item operations, coupon logic, total calculation, and checkout.

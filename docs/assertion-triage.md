@@ -1104,9 +1104,11 @@ better grader, and none is a candidate for voting, which was already measured no
 
 ### The repair, and what one pass of it measured — 2026-08-01 (`fx`, commit `b59dea7`)
 
-All nine flippers repaired by wording. **Eight could be re-graded; all eight landed on the verdict
-the eval's own `expected_output.md` supports.** One pass, so this measures *level* — that the slot
-now reads correctly — and not yet stability.
+All nine flippers repaired by wording. **All nine landed on the verdict the eval's own
+`expected_output.md` supports.** One pass, so this measures *level* — that the slot now reads
+correctly — and not yet stability. Live suite after the re-baseline: **285/312** (`iteration-50`
+232/254, `iteration-51` 53/58); not comparable to the 285/312 before it, because the definitions
+moved underneath.
 
 | Eval | Slot | Probe | Repaired to | Fix applied |
 |---|---|---|---|---|
@@ -1114,7 +1116,7 @@ now reads correctly — and not yet stability.
 | 15 | `quantifier-covered-by-rows` | F p F | **F** | enumerate every quantifying claim |
 | 18 | `no-duplicate-rows-within-a-table` | F F p | **F** | decidability: the third-sample-of-one-effect case |
 | 18 | `premium-claim-boundary` | p F F | **p** | enumerate the risk-derived rows before pairing |
-| 23 | `description-no-redundant-field-values` | F p p | *ungraded* | report both surfaces; threshold exemption covers clause (1) |
+| 23 | `description-no-redundant-field-values` | F p p | **p** | report both surfaces; threshold exemption covers clause (1) |
 | 29 | `business-language-columns` | p F p | **p** | decidability: judge header *form*; `Product Id` PASSES |
 | 29 | `rule-falsifiable-by-a-row` | F F p | **F** | enumerate every method **and every expectation column** |
 | 29 | `uses-standard-map-syntax` | F F p | **p** | surface: cell text, not the converter body |
@@ -1147,7 +1149,24 @@ probe on the new texts and is a separate window. Also note `docs/grader-answer-k
 `iteration-40` and to the pre-repair assertion texts, so `score-grader.js` **cannot** score these
 nine — the check above is a read against each eval's expected output, not an accuracy score.
 
-**Incomplete.** The `iteration-50 [fx]` sweep stopped at 9 of 12 evals when the Anthropic credit
-balance ran out; evals 22, 23 and 25 are ungraded and that directory has **no `benchmark-fx.json`**.
-The baseline is therefore still the pre-repair one and `check-baseline.js` correctly exits 2. Finish
-with the two commands in `ed1a9bf`'s message — grade the three, then `--rebuild` — before promoting.
+**One repair needed a second cut, and the correction is the reusable part.** On eval-22 the new
+enumeration clause found a quantifying claim all three probe passes had denied existed ("No
+quantifying language ... appears") — then failed it by demanding a "one present, one absent" row,
+which is cross-multiplying two domains. The text already said it "never requires" that, but as an
+aside at the end of a sentence. **A rule the grader must apply at the moment of decision has to sit
+with the decision, not in a trailing clause** — moved to a decidable test in `ef5bef6` and eval-22
+returned to 29/29 with eval-15 still correctly FAIL. Same lesson as the front-loaded
+`description-if-present` clause.
+
+**Naming a surface moves a defect to the assertion that owns it — check the neighbour.** Scoping
+`uses-standard-map-syntax` to cell text turned it PASS on eval-29, and `coupon-before-after-columns`
+went PASS → FAIL on the same output: the coupon state buried in the Cart map is a *column-design*
+defect, which is what that assertion is for. `consistent-quantity-naming` also went PASS → FAIL, on
+`Cart Before` in three tables against `Cart` in two — the assertion's own worked example. eval-29
+reads 27/32 rather than 29/32 and **both new failures are correct**, so this is accuracy gained, not
+a regression. When a scoping fix stops one assertion punishing something, verify the right assertion
+picks it up.
+
+**Promoted.** `iteration-50` and `iteration-51` both rebuilt from stored gradings and renamed to the
+plain name in one commit; `check-baseline.js` exits 0 with all 14 evals live. Total grading spend for
+the repair cycle: **$1.84** across both iterations, no generation.
