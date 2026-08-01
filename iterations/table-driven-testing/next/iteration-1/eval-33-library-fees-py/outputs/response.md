@@ -1,0 +1,3 @@
+All 10 cases collect cleanly and fail on the unimplemented stub as expected, none error out.
+
+Wrote `tests/test_library_fees.py` with one parametrized table of 10 cases covering: on-time (no fee, regardless of children's section), the 50¢/day rate, the children's half rate, and the 20€ cap boundary tested separately for standard and children's rates (since the discount shifts where the cap kicks in). Assumptions (non-negative `days_late`, cap applies after the discount) are stated in the module docstring. Verified with `pytest` — all 10 collect and fail with `NotImplementedError` against the stub, none error.

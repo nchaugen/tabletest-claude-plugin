@@ -1,0 +1,179 @@
+{
+  "skill_name": "table-driven-testing (next)",
+  "iteration": 1,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "7911a326a41532b9f6863c1dc0d058ef4572d8c1",
+  "skill_digest": "8a5d087421c43cab",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-01T18:31:54.027Z",
+  "evals": [
+    {
+      "id": "eval-31-travel-insurance-py",
+      "name": "travel insurance py",
+      "skill": "table-driven-testing",
+      "fingerprint": "ca13c9454aa7",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 12,
+        "assertions_total": 13,
+        "pass_rate": 0.9230769230769231,
+        "failed_assertions": [
+          "no-duplicate-rows-within-a-table"
+        ],
+        "total_tokens": 502485,
+        "duration_ms": 144854,
+        "cost_usd": 0.5841259999999999,
+        "grading_usage": {
+          "input_tokens": 3884,
+          "output_tokens": 4684,
+          "total_tokens": 8568,
+          "calls": 1,
+          "cost_usd": 0.081912,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-32-baggage-fees-py",
+      "name": "baggage fees py",
+      "skill": "table-driven-testing",
+      "fingerprint": "42a0e8e66a02",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 7,
+        "assertions_total": 8,
+        "pass_rate": 0.875,
+        "failed_assertions": [
+          "exception-case-separated"
+        ],
+        "total_tokens": 522480,
+        "duration_ms": 83851,
+        "cost_usd": 0.47135479999999996,
+        "grading_usage": {
+          "input_tokens": 2685,
+          "output_tokens": 753,
+          "total_tokens": 3438,
+          "calls": 1,
+          "cost_usd": 0.01935,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-33-library-fees-py",
+      "name": "library fees py",
+      "skill": "table-driven-testing",
+      "fingerprint": "8b8a37920a00",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 9,
+        "assertions_total": 9,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 460707,
+        "duration_ms": 77091,
+        "cost_usd": 0.4369169,
+        "grading_usage": {
+          "input_tokens": 2223,
+          "output_tokens": 610,
+          "total_tokens": 2833,
+          "calls": 1,
+          "cost_usd": 0.015819,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-34-hotel-cancellation-swift",
+      "name": "hotel cancellation swift",
+      "skill": "table-driven-testing",
+      "fingerprint": "2416ba6180ff",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 7,
+        "assertions_total": 8,
+        "pass_rate": 0.875,
+        "failed_assertions": [
+          "exception-case-separated"
+        ],
+        "total_tokens": 570170,
+        "duration_ms": 164828,
+        "cost_usd": 0.639882,
+        "grading_usage": {
+          "input_tokens": 3092,
+          "output_tokens": 882,
+          "total_tokens": 3974,
+          "calls": 1,
+          "cost_usd": 0.022506,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-35-cinema-tickets-routing",
+      "name": "cinema tickets routing",
+      "skill": "table-driven-testing",
+      "fingerprint": "9cd36132b361",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 6,
+        "assertions_total": 6,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 675365,
+        "duration_ms": 115063,
+        "cost_usd": 0.5973785999999999,
+        "grading_usage": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "total_tokens": 0,
+          "calls": 0,
+          "cost_usd": 0,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 41,
+    "assertions_total": 44,
+    "pass_rate": 0.9318181818181818,
+    "errored_evals": [],
+    "total_tokens": 2731207,
+    "total_duration_ms": 585687,
+    "total_cost_usd": 2.7296582999999996,
+    "grading": {
+      "input_tokens": 11884,
+      "output_tokens": 6929,
+      "total_tokens": 18813,
+      "calls": 4,
+      "cost_usd": 0.139587,
+      "evals_measured": 5,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}

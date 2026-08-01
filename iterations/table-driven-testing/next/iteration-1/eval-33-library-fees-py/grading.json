@@ -1,0 +1,72 @@
+{
+  "assertions": [
+    {
+      "id": "delivers-without-asking",
+      "text": "The response delivers a complete test file. Open questions may be noted as assumptions alongside the delivered tests, but the response must not stop at clarifying questions instead of delivering.",
+      "passed": true,
+      "evidence": "Wrote `tests/test_library_fees.py` with one parametrized table of 10 cases..."
+    },
+    {
+      "id": "assumptions-stated",
+      "text": "The ambiguity in the rules (how the 20-euro cap interacts with the children's half rate) is resolved to an explicit, stated interpretation — in the response text, a comment, or scenario ids — not silently embedded in expected values.",
+      "passed": true,
+      "evidence": "The 20 euro (2000 cent) cap applies to the final per-book fee, i.e. after the children's-section half rate has been applied"
+    },
+    {
+      "id": "cap-interaction-covered",
+      "text": "Cases cover the interaction between the cap and the children's half rate: a children's-section book late enough to reach the cap appears with a concrete expected fee — not just each rule tested in isolation.",
+      "passed": true,
+      "evidence": "pytest.param(80, True, 2000, id=\"fee reaches the cap exactly, children's section\")"
+    },
+    {
+      "id": "boundary-cases-covered",
+      "text": "Cases include zero days late (no fee), an ordinary per-day fee, and a return late enough to hit the cap for a regular book — the rule set's boundaries, not just one happy-path row.",
+      "passed": true,
+      "evidence": "pytest.param(0, False, 0, ...), pytest.param(1, False, 50, ...), pytest.param(40, False, 2000, ...)"
+    },
+    {
+      "id": "uses-parametrize",
+      "text": "Tests use @pytest.mark.parametrize (or pytest.param rows) — not one test function per case, and not a loop over cases inside a single test body.",
+      "passed": true,
+      "evidence": "Found @pytest.mark.parametrize"
+    },
+    {
+      "id": "parametrize-has-ids",
+      "text": "Parametrized cases carry scenario identifiers — an ids= argument or pytest.param(..., id=...) — so each case has a readable name in test output.",
+      "passed": true,
+      "evidence": "Parametrized cases carry ids (ids= or pytest.param id=)"
+    },
+    {
+      "id": "no-if-in-python-test",
+      "text": "Test function bodies contain no if/elif statements — expected outcomes come from the parametrized data, not branching logic.",
+      "passed": true,
+      "evidence": "No if/elif statements in test function bodies"
+    },
+    {
+      "id": "concrete-domain-values",
+      "text": "Expected fees are concrete cent values (e.g. 150, 2000) readable directly from the cases — not computed inside the test body from the rate and days.",
+      "passed": true,
+      "evidence": "pytest.param(10, False, 500, id=\"several days late, standard rate\")"
+    },
+    {
+      "id": "compiles",
+      "text": "pytest can import and collect the test modules against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 9,
+  "assertions_total": 9,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 2223,
+    "output_tokens": 610,
+    "total_tokens": 2833,
+    "calls": 1,
+    "cost_usd": 0.015819,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}

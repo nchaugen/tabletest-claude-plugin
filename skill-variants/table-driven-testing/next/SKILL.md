@@ -567,7 +567,15 @@ When a table covers cases the system rejects, the rejection is an **expectation 
 type, or the reason — never a decision taken in the test body. Each case then states its own
 outcome where the reader can see it.
 
-**Whether accepted and rejected cases share a table is decided by what the table is about.**
+**Whether accepted and rejected cases share a table is decided by what the table is about, and
+there is a decidable test for it: remove the rejected cases.** If what remains still states a rule,
+the rejection was a separate concern — split it out. If what remains says nothing on its own, the
+table is about acceptance and stays whole.
+
+A tier ladder with one rejection case at the end **fails that test**: strike the rejection and the
+ladder still states the tiers. It is two concerns, however tempting the last-accepted-beside-
+first-rejected pair looks. A validation boundary passes it: strike the rejected case and a single
+accepted value is left, which states nothing by itself.
 
 - **The table's whole expectation is whether the call is rejected** — a boundary straddling a
   validation limit, the last accepted value beside the first rejected one. That is *one rule*, and
@@ -824,7 +832,7 @@ When tests come before the implementation:
 - [ ] **Titles form an index**: read the titles as a sorted list — each states an action the code performs (not a label for a topic), one grammatical shape runs across them, and no three share an uninformative opener
 - [ ] **No scenario id restates its own case's answer**: read each scenario id beside the expectation cells of that case — none states or paraphrases one of them, and none is a generic label
 - [ ] **Expectation columns marked**: at least one column uses the `?` suffix (never a prefix), no input column does, and a compound result stays a native collection rather than a flattened string
-- [ ] **Rejection expressed as data**: rejected cases carry the error type or reason in an expectation column, never a hardcoded outcome in the body; accepted and rejected cases share a table only where the whole expectation is acceptance, and no case branches the assertion
+- [ ] **Rejection expressed as data**: rejected cases carry the error type or reason in an expectation column, never a hardcoded outcome in the body; accepted and rejected cases share a table only where striking the rejected cases would leave a table stating nothing, and no case branches the assertion
 - [ ] **Concrete values**: expectation values are literal domain values traceable to the input columns of their own case — not abstract codes, and not hidden behind named constants
 - [ ] **Domain language**: column names use the business vocabulary, not parameter names, field names or internal API terms
 - [ ] **Thresholds visible**: a rule that depends on a threshold or limit shows it as a column, with boundary cases at and just past it
