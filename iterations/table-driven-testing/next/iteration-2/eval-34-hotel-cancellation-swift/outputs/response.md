@@ -1,0 +1,6 @@
+Summary of what I wrote at `Tests/HotelBookingTests/CancellationFeeTests.swift`:
+
+- **`cancellationFeeByDaysBeforeCheckIn`** — a table-driven test over the fee-tier ladder (free / 50% / 80% / full value), with 6 cases covering both sides of every tier boundary (30/29, 7/6, 1/0). `bookingValue` is held at 1000 for readability except at the 7-day and 1-day rows, which use 200 to confirm the fee scales with booking value rather than being a fixed amount (documented in the leading comment).
+- **`rejectsCancellationOnceStayHasStarted`** — a separate `#expect(throws:)` test for the `-1` day case, kept out of the tier table since removing it would still leave a complete, self-standing tier ladder (i.e., it's a distinct concern, not part of the same rule).
+
+I verified `swift build` succeeds and `swift test` compiles and runs cleanly, failing red on every case (7/7) because the stub still throws `NotImplemented()` — exactly the expected pre-implementation state. The `cancellationFee` stub was left untouched.

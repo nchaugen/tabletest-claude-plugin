@@ -1,0 +1,92 @@
+{
+  "skill_name": "table-driven-testing (next)",
+  "iteration": 2,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "a8031579a6a10573eeab958bd1847ea722a34d6d",
+  "skill_digest": "57343014205c2535",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-01T18:49:18.165Z",
+  "evals": [
+    {
+      "id": "eval-32-baggage-fees-py",
+      "name": "baggage fees py",
+      "skill": "table-driven-testing",
+      "fingerprint": "42a0e8e66a02",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 8,
+        "assertions_total": 8,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 469742,
+        "duration_ms": 78133,
+        "cost_usd": 0.43833619999999995,
+        "grading_usage": {
+          "input_tokens": 2469,
+          "output_tokens": 718,
+          "total_tokens": 3187,
+          "calls": 1,
+          "cost_usd": 0.018177,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-34-hotel-cancellation-swift",
+      "name": "hotel cancellation swift",
+      "skill": "table-driven-testing",
+      "fingerprint": "2416ba6180ff",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 8,
+        "assertions_total": 8,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 495481,
+        "duration_ms": 136332,
+        "cost_usd": 0.5531541000000001,
+        "grading_usage": {
+          "input_tokens": 2503,
+          "output_tokens": 639,
+          "total_tokens": 3142,
+          "calls": 1,
+          "cost_usd": 0.017094,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 16,
+    "assertions_total": 16,
+    "pass_rate": 1,
+    "errored_evals": [],
+    "total_tokens": 965223,
+    "total_duration_ms": 214465,
+    "total_cost_usd": 0.9914903,
+    "grading": {
+      "input_tokens": 4972,
+      "output_tokens": 1357,
+      "total_tokens": 6329,
+      "calls": 2,
+      "cost_usd": 0.035271,
+      "evals_measured": 2,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}
