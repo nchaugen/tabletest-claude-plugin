@@ -1,0 +1,14 @@
+## Name Scenarios by Condition, Not Outcome
+
+Good {{names}} answer "under what circumstances?" — not "what happens?". The outcome is already in the
+expectation columns; naming it twice adds nothing, and when the expectation changes the {{name_noun}}
+silently lies.
+
+Appending the outcome to a condition is still naming the outcome. The {{name_noun}} only needs to say
+*when*; the {{row}}'s expectation values say *what*.
+
+Naming the rule or the situation is correct even when it makes the outcome inferable. The failure to
+avoid is a {{name_noun}} echoing its own expectation cell, and a generic label that names no variation
+at all.
+
+{{example}}

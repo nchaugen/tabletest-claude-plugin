@@ -7,6 +7,10 @@ const {
   findAssertionDrift,
   loadSharedAssertions,
   loadVocabulary,
+  loadTableDesignRules,
+  loadExample,
+  renderTableDesign,
+  FRAMEWORK_NOUNS,
 } = require("./build-skills.js");
 
 const vocabulary = {
@@ -83,6 +87,83 @@ describe("the shared sources and the copies generated from them", () => {
       for (const [suite, words] of Object.entries(vocabularies)) {
         assert.doesNotThrow(() => render(template, words, `shared/assertions/${id}.md`), `${id} in ${suite}`);
       }
+    }
+  });
+});
+
+describe("the shared table-design core", () => {
+  const vocabularies = loadVocabulary();
+  const skills = Object.keys(vocabularies);
+  const rules = loadTableDesignRules();
+
+  test("renders for every skill, so every rule has an illustration in each", () => {
+    for (const skill of skills) {
+      assert.doesNotThrow(() => renderTableDesign(skill, vocabularies[skill]), skill);
+    }
+  });
+
+  test("states every rule without a framework noun", () => {
+    const offenders = [];
+    for (const { slug, template } of rules) {
+      for (const noun of FRAMEWORK_NOUNS) {
+        const found = template.match(noun);
+        if (found) offenders.push(`${slug}: "${found[0]}"`);
+      }
+    }
+    assert.deepEqual(offenders, [], "a rule needing a framework noun is mechanics — move it to the skill, or into the example");
+  });
+
+  test("leaves no unresolved placeholder in the rendered core", () => {
+    for (const skill of skills) {
+      const rendered = renderTableDesign(skill, vocabularies[skill]);
+      const leftover = rendered.match(/\{\{\w+\}\}/g);
+      assert.equal(leftover, null, `${skill}: ${leftover && leftover.join(", ")}`);
+    }
+  });
+
+  test("gives every rule a heading, so the rendered core reads as sections", () => {
+    for (const { slug, template } of rules) {
+      assert.match(template, /^## \S/m, slug);
+    }
+  });
+
+  test("reports a missing example rather than rendering the rule bare", () => {
+    assert.equal(loadExample("tabletest", "no-such-rule"), null);
+    for (const { slug } of rules) {
+      for (const skill of skills) {
+        assert.notEqual(loadExample(skill, slug), null, `${skill} has no example for ${slug}`);
+      }
+    }
+  });
+
+  test("illustrates every rule with a table or code, never with more prose", () => {
+    for (const { slug } of rules) {
+      for (const skill of skills) {
+        const example = loadExample(skill, slug);
+        assert.ok(/\|/.test(example) || /```/.test(example), `${skill}/${slug} shows nothing concrete`);
+      }
+    }
+  });
+
+  test("never writes one skill's example in another skill's notation", () => {
+    // The point of per-skill examples is that the notation matches the artefact the reader is
+    // producing. A pytest snippet in the tabletest core, or a @TableTest in the pytest core, is the
+    // copy-paste error this catches — and it would otherwise ship looking plausible.
+    const foreign = {
+      tabletest: /\bpytest\b|test\.each|\[Theory\]|#expect\(/,
+      "spec-by-example": /@TableTest|\bpytest\b|test\.each|\[Theory\]/,
+      "table-driven-testing": /@TableTest|@TypeConverter/,
+    };
+    for (const { slug } of rules) {
+      for (const skill of skills) {
+        assert.doesNotMatch(loadExample(skill, slug), foreign[skill], `${skill}/${slug}`);
+      }
+    }
+  });
+
+  test("gives spec-by-example a plain table, since its readers write no code", () => {
+    for (const { slug } of rules) {
+      assert.match(loadExample("spec-by-example", slug), /\|/, slug);
     }
   });
 });

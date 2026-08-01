@@ -1,6 +1,5 @@
 {
   "_comment": "Per-suite nouns for the placeholders in shared/assertions/*.md. One judgement rule, three artefacts: a @TableTest method in a Java class, a markdown table in a facilitation response, a parametrized test in a Python or Swift file. Only the noun changes; the rule must not. Keys are lowercase and case is derived at render time — {{rows}} renders as written, {{Rows}} capitalises, {{ROWS}} upper-cases — so one entry serves every position in a sentence. Add a key here before using it in a text: build-skills.js fails on an unknown placeholder rather than shipping a literal {{brace}} to a grader.",
-
   "tabletest": {
     "names": "scenario names",
     "name": "scenario name",
@@ -11,9 +10,9 @@
     "table_noun": "method",
     "each_table": "each @TableTest",
     "every_table": "every @TableTest method in the class",
-    "coverage_assertions": "2.19-covers-every-tier and quantifier-covered-by-rows"
+    "coverage_assertions": "2.19-covers-every-tier and quantifier-covered-by-rows",
+    "empty_value_notation": "`''` for a string, `[]` `{}` `[:]` for a collection"
   },
-
   "spec-by-example": {
     "names": "scenario names",
     "name": "scenario name",
@@ -24,9 +23,9 @@
     "table_noun": "table",
     "each_table": "each table",
     "every_table": "every table in the response",
-    "coverage_assertions": "this eval's own coverage assertions"
+    "coverage_assertions": "this eval's own coverage assertions",
+    "empty_value_notation": "`''` for a string, `[]` `{}` `[:]` for a collection"
   },
-
   "table-driven-testing": {
     "names": "scenario ids",
     "name": "scenario id",
@@ -37,6 +36,7 @@
     "table_noun": "parametrized test",
     "each_table": "each parametrized test",
     "every_table": "every parametrized test in the file",
-    "coverage_assertions": "this eval's own coverage assertions"
+    "coverage_assertions": "this eval's own coverage assertions",
+    "empty_value_notation": "the language's own empty literal — `''`, `[]`, `{}`"
   }
 }
