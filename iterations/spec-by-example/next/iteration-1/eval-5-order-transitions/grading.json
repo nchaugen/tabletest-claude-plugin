@@ -1,0 +1,78 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains at least one markdown table",
+      "passed": true,
+      "evidence": "2 markdown table(s); first header: Scenario | Status Before | Action | Status After? | Rejected Reason?"
+    },
+    {
+      "id": "cancellation-coverage",
+      "text": "Table covers cancellation rules — includes rows for states where cancellation is allowed and where it is not",
+      "passed": true,
+      "evidence": "Cancels a pending order... Cancels a confirmed order... Rejects cancelling a shipped order... Rejects cancelling an already-cancelled order"
+    },
+    {
+      "id": "return-window-addressed",
+      "text": "The 30-day return window rule is addressed — either as a threshold column, a separate table, or flagged as an open question",
+      "passed": true,
+      "evidence": "Return Window (Policy, days) column with rows for day 30 ('last eligible day') and day 31 ('just past the window')"
+    },
+    {
+      "id": "value-set-or-multiple-states",
+      "text": "Uses value sets {PENDING, CONFIRMED} or equivalent to express 'regardless of which starting state' for cases where a rule holds across states",
+      "passed": true,
+      "evidence": "Rejects flagging an order that hasn't been delivered | {SHIPPED, CANCELLED} | | 30 | no"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Question-mark columns: Status After?, Rejected Reason?, Eligible For Return Flag?, Rejected Reason?"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "row-independence",
+      "text": "Each row is independently verifiable — no row references a prior row's outcome. Each row specifies its own starting state and expected result.",
+      "passed": true,
+      "evidence": "Each row lists its own Status Before/Status and Action/Days, e.g. 'Ships a confirmed order | CONFIRMED | SHIP | SHIPPED'"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": true,
+      "evidence": "I split this into two tables — the state machine's transition rule is one concern, and the return-flag eligibility rule is a different concern"
+    },
+    {
+      "id": "no-duplicate-rows-within-a-table",
+      "text": "Judge each table in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a linear premium sampled at 0, 2 and 4 claims: two samples state the effect and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by this eval's own coverage assertions. Judge every table in the response; your evidence must name each table with PASS or FAIL.",
+      "passed": true,
+      "evidence": "Table 1 PASS: each row is a distinct transition/rejection branch, and a redundant row was explicitly dropped ('I dropped a redundant \"rejects cancelling a delivered order\" row'). Table 2 PASS: days-since-delivery rows (5, 30, 31) are boundary cases (within/last day/just past), not a linear walk, plus a value-set row for non-delivered statuses — no duplicates in either table."
+    },
+    {
+      "id": "separates-transitions-and-returns",
+      "text": "Status transition rules and return eligibility rules are in separate tables",
+      "passed": true,
+      "evidence": "Table 1 — Transitions an Order Between Statuses ... Table 2 — Flags a Delivered Order for Return"
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 10,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 3174,
+    "output_tokens": 1176,
+    "total_tokens": 4350,
+    "calls": 1,
+    "cost_usd": 0.027162,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}
