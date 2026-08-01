@@ -42,7 +42,7 @@ Always name cases — `pytest.param(..., id="...")` or an `ids=` argument. Auto-
 
 **"Regardless of" inputs**: stacking a second `@pytest.mark.parametrize` multiplies the decorators into a cartesian product — use it when one input must not affect the outcome.
 
-**Expected exceptions**: a case list mixing `pytest.raises` cases with return-value cases needs branching in the body — forbidden. Give rejection cases their own parametrized test built around `pytest.raises`.
+**Expected exceptions**: a case list mixing `pytest.raises` cases with return-value cases needs branching in the body — forbidden. Give rejection cases their own parametrized test built around `pytest.raises`. Exception: an accept/reject boundary is one rule and stays in one table — see *Separate Expected-Error Cases*.
 
 ### Swift Testing (Swift)
 
@@ -62,7 +62,7 @@ func standingByCreditHours(creditHours: Int, standing: Standing) {
 
 **Cartesian footgun**: passing two collections — `arguments: inputs, expectations` — produces every combination, not paired rows. Pair with labelled tuples in one collection, a row struct, or `zip`. Use the two-collection cartesian form deliberately for "regardless of" inputs.
 
-**Expected exceptions**: a separate `@Test` with `#expect(throws:)` — never sentinel values or branching in a parameterised body.
+**Expected exceptions**: a separate `@Test` with `#expect(throws:)` — never sentinel values or branching in a parameterised body. Exception: an accept/reject boundary is one rule and stays in one table — see *Separate Expected-Error Cases*.
 
 ### Jest / Vitest (JavaScript / TypeScript)
 
@@ -79,7 +79,7 @@ test.each`
 });
 ```
 
-The test title interpolates row values — write it so each generated name reads as a condition. Expected rejections use `expect(() => ...).toThrow(...)` in their own `test.each` block.
+The test title interpolates row values — write it so each generated name reads as a condition. Expected rejections use `expect(() => ...).toThrow(...)` in their own `test.each` block. Exception: an accept/reject boundary is one rule and stays in one table — see *Separate Expected-Error Cases*.
 
 ### Go
 
@@ -103,11 +103,11 @@ for _, tt := range tests {
 }
 ```
 
-The loop over the case slice is the framework mechanic here — the rule against loops applies inside the subtest body. Error-returning cases go in a separate table whose rows expect a specific error, not a mixed table with `wantErr bool` alongside unrelated expected values.
+The loop over the case slice is the framework mechanic here — the rule against loops applies inside the subtest body. Error-returning cases go in a separate table whose rows expect a specific error, not a mixed table with `wantErr bool` alongside unrelated expected values. A `wantErr error` field on an accept/reject boundary table is the sanctioned exception, and is idiomatic Go — see *Separate Expected-Error Cases*.
 
 ### xUnit (C#)
 
-`[Theory]` with `[InlineData]` rows, or `TheoryData<...>` when rows need real types. `[InlineData]` has no per-row name — put the condition in a leading string argument or use `MemberData` with self-describing row objects. Expected exceptions use `Assert.Throws<T>` in their own theory.
+`[Theory]` with `[InlineData]` rows, or `TheoryData<...>` when rows need real types. `[InlineData]` has no per-row name — put the condition in a leading string argument or use `MemberData` with self-describing row objects. Expected exceptions use `Assert.Throws<T>` in their own theory. Exception: an accept/reject boundary is one rule and stays in one table — see *Separate Expected-Error Cases*.
 
 ## Table Design
 
@@ -166,6 +166,28 @@ When inputs map to tiers (rate bands, size categories, standings), every tier ap
 
 Cases that expect an exception/error get their own test using the framework's throw assertion (`pytest.raises`, `#expect(throws:)`, `.toThrow`, `Assert.Throws`, expected-error table in Go). Mixing them into a value-expectation table forces sentinel values (`None`, `-1`) or branching in the body — both hide the contract. The split also mirrors the API: callers handle the error path separately too.
 
+**One exception, and only this one: a table whose whole expectation is *whether the call is rejected*.** An accept/reject boundary — the last accepted value beside the first rejected one — is one rule, and splitting it puts the two halves of a single boundary in two tests where no reader sees them together. Keep one table with an expected-error column, leave it blank where nothing is thrown, and compare the raised type as a value rather than branching:
+
+```python
+def thrown_by(action):
+    try:
+        action()
+    except Exception as error:
+        return type(error)
+    return None
+
+@pytest.mark.parametrize("dose_mg, expected_error", [
+    pytest.param(0,     None,       id="at the minimum dose"),
+    pytest.param(-0.01, ValueError, id="just below the minimum dose"),
+])
+def test_rejects_dose_below_minimum(dose_mg, expected_error):
+    assert thrown_by(lambda: validate_dose(dose_mg)) == expected_error
+```
+
+Go's `wantErr` field is this same shape and is already idiomatic there. Swift, Jest and xUnit need the equivalent helper — one that returns the thrown type or nothing.
+
+**The test that decides which form to use: is the error the *expectation*, or one outcome among several?** A validation limit is the expectation, so one table. A parsing function that returns values for good input and raises for malformed input has two concerns, so two tests. Branching in the body to choose between a throw assertion and a value assertion is what both forms exist to avoid — it puts the rule back in the body, where no table can show it.
+
 ### Include All Outputs of a Concern in One Test
 
 When an operation produces multiple observable outputs, expect them all in the same rows. Splitting outputs of one behavioural concern across tests forces the reader to cross-reference several tables to understand one behaviour. Separate tests are for separate concerns, not separate outputs of the same concern.
@@ -218,7 +240,7 @@ After writing, verify:
 - [ ] **Minimal rows per concern**: each test has only the cases its rule needs; inputs owned by other rules held at a fixed valid value, and an input this rule claims not to affect the outcome varied across the values it ignores instead
 - [ ] **Thresholds visible**: rules that compare against a limit show the limit in the row, with boundary cases at and just past it
 - [ ] **Tiers fully enumerated**: every tier represented; every boundary tested from both sides, including middle tiers
-- [ ] **Errors separated**: expected-exception cases in their own test using the framework's throw assertion — no sentinel expectations
+- [ ] **Errors separated**: expected-exception cases in their own test using the framework's throw assertion — no sentinel expectations. The one exception: an accept/reject boundary keeps both sides in one table with an expected-error column, blank where nothing is thrown
 - [ ] **Concrete values**: expected values are literal domain values traceable to the inputs — not computed in the row or the body, and not hidden behind named constants
 - [ ] **Domain language**: parameter/field names come from the domain, not generic placeholders
 - [ ] **Complete outputs**: all observable outputs of the concern asserted in the same rows

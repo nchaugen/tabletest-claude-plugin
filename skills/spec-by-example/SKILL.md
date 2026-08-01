@@ -202,8 +202,18 @@ where rows run independently.
 **Sequential paths** ("Step 1: add song, Step 2: add another, Step 3: shuffle") create
 row dependencies and belong in `@Test` methods with `@DisplayName`, not in tables.
 
-The distinction: tables define **what the rules are**; `@Test` methods verify **that
-the rules compose correctly in a real scenario**.
+**That is the whole of what a `@Test` method is for here — a path, not a combination.**
+Once every rule has a table, the pull is to add one more scenario that runs the whole
+feature end to end. Resist it: re-proving rules the single-rule tables already
+established is redundant however clean those tables are, and a single `@Test` doing it
+is only the same combining table with fewer rows.
+
+**Combining earns a table of its own where the combination behaves in a way neither
+rule shows alone** — a precedence, an ordering, an interaction whose result appears in
+no other table — and then it carries only the rows that show it. A table proving that a
+weight-based dose is computed *before* the daily maximum caps it is a real table: the
+question is which rule applies first. A table re-running each dose band through the
+front door is not.
 
 ### 8. Review the Table
 
@@ -391,9 +401,8 @@ reason — the value is genuinely absent, not merely irrelevant.
 `Promo Code` is blank when the customer provides none — the field is optional and
 genuinely not present.
 
-**Blank input cells for optional or defaulting inputs** — when an input exists but
-defaults to zero (or another baseline) and is not relevant to a particular scenario,
-use a blank cell to signal "not part of this scenario":
+**Blank input cells for components that do not apply** — when a scenario simply has no
+value for an input, leave it blank to signal "not part of this scenario":
 
 | Scenario              | Base fare | Peak surcharge | Airport fee | Total fare? |
 |-----------------------|-----------|---------------|-------------|-------------|
@@ -404,8 +413,20 @@ use a blank cell to signal "not part of this scenario":
 
 The blank cells for Peak surcharge and Airport fee make it immediately clear which
 cost components apply to each scenario. Filling them with `0` obscures this — the
-reader must scan every cell to understand the scenario. In a `@TableTest`, blank
-cells translate to `null`; the test method handles null-to-default conversion.
+reader must scan every cell to understand the scenario.
+
+**Blank means absent, and absent is not the same as "defaults to zero".** The
+distinction decides where the default lives. Blank says the value is missing and the
+system under test decides what missing means — that decision is part of the behaviour
+being specified, and the row exists to pin it down. Writing `0` says the value is
+present and is zero, which is a different scenario. If a scenario needs a baseline
+value rather than an absence, put the baseline in the cell; if it needs an empty
+collection or an empty string, write the empty value (`''`, `[]`, `[:]`).
+
+**Never convert a blank to a default on the way in.** In a `@TableTest` a blank cell
+becomes `null`, and a test method that quietly turns that `null` into a zero has
+deleted the case the row was written to show — the table still reads as a
+specification of absent-value behaviour while testing nothing of the kind.
 
 **Use value sets, not blanks, for "regardless of" relationships.** When an input
 exists but simply does not affect the outcome of a particular row, show that

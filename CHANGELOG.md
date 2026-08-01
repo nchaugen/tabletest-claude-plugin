@@ -2,7 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.8.0] - 2026-07-31
+## [Unreleased]
+
+### Fixed
+- **spec-by-example**: A blank cell no longer means two different things in one skill. One section said a blank marks a value that is genuinely absent; another said to use one for an input that "defaults to zero" and is not relevant to the row. Those are different scenarios and they belong in different cells — blank says the value is missing and the system under test decides what missing means, `0` says the value is present and is zero. The follow-on error is corrected too: a test method must never convert a blank to a default on the way in, because that deletes the case the row was written to show
+- **spec-by-example**: A `@Test` method is for a sequential path, not for re-running the rules end to end. The skill previously said tables define what the rules are while `@Test` methods verify that the rules compose — which licenses exactly the redundant end-to-end scenario the tabletest skill deletes. A combination that behaves in a way neither rule shows alone (a precedence, an ordering) earns a table of its own, carrying only the rows that show it
+- **table-driven-testing**: An accept/reject boundary is one rule and no longer gets split across two tests. The skill required every error-expecting case into its own test, in six separate places, which put the last accepted value and the first rejected one where no reader sees them together. One table with an expected-error column, blank where nothing is thrown, comparing the raised type as a value — the form Go's `wantErr` field already uses. Splitting still applies everywhere else, and branching in the body to choose an assertion is still forbidden
+
+### Changed
+- **spec-by-example**: Worked examples no longer illustrate with loan approval, discounts, order-status transitions, shipping zones, or subscription trial and loyalty columns
 
 ### Fixed
 - **tabletest**: Corrected the rule for multiple type converters. The skill claimed two `@TypeConverter` methods returning the same wrapper type are selected by matching the parameter name — they are not, and the published example fails every row with `TableTestException: Multiple type converters found`. Selection is by return type alone, and the match is on the *erased* type, so `Optional<String>` and `Optional<Boolean>` collide with each other. Several parameters of one wrapper type share a single converter
