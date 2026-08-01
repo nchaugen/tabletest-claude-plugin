@@ -11,6 +11,11 @@ const {
   loadExample,
   renderTableDesign,
   FRAMEWORK_NOUNS,
+  findRegion,
+  replaceRegion,
+  findRegionDrift,
+  REGION_BEGIN,
+  REGION_END,
 } = require("./build-skills.js");
 
 const vocabulary = {
@@ -165,5 +170,60 @@ describe("the shared table-design core", () => {
     for (const { slug } of rules) {
       assert.match(loadExample("spec-by-example", slug), /\|/, slug);
     }
+  });
+});
+
+describe("the generated SKILL.md region", () => {
+  const wrap = (body) => `# Skill\n\nIntro prose.\n\n${REGION_BEGIN}\n\n${body}\n\n${REGION_END}\n\n## Mechanics\n\nTail prose.\n`;
+
+  test("reports no region when a skill has not been migrated", () => {
+    assert.equal(findRegion("# Skill\n\nAll hand-written.\n"), null);
+  });
+
+  test("extracts the body between the markers", () => {
+    assert.equal(findRegion(wrap("## One Rule\n\nBody.")).body, "## One Rule\n\nBody.");
+  });
+
+  test("refuses an opening marker with no closing one, rather than eating the rest of the file", () => {
+    assert.throws(
+      () => findRegion(`# Skill\n${REGION_BEGIN}\n\n## Mechanics\n\nTail that must not be swallowed.\n`),
+      /opening table-design marker with no closing one/
+    );
+  });
+
+  test("refuses a closing marker with no opening one", () => {
+    assert.throws(() => findRegion(`# Skill\n\n${REGION_END}\n`), /closing table-design marker with no opening one/);
+  });
+
+  test("replaces only what is between the markers", () => {
+    const updated = replaceRegion(wrap("stale"), "fresh");
+    assert.match(updated, /Intro prose\./);
+    assert.match(updated, /## Mechanics/);
+    assert.match(updated, /Tail prose\./);
+    assert.doesNotMatch(updated, /stale/);
+    assert.equal(findRegion(updated).body, "fresh");
+  });
+
+  test("is idempotent, so a second build changes nothing", () => {
+    const once = replaceRegion(wrap("stale"), "fresh");
+    assert.equal(replaceRegion(once, "fresh"), once);
+  });
+
+  test("refuses to fill a file with no region", () => {
+    assert.throws(() => replaceRegion("# Skill\n", "body"), /carries no table-design region/);
+  });
+
+  test("detects a hand-edited region, which is what the drift guard exists for", () => {
+    // findRegionDrift is vacuous until step 7 migrates a skill, so the comparison it makes is
+    // exercised here directly: a region whose body is not what the source renders to is drift.
+    const vocabularies = loadVocabulary();
+    const rendered = renderTableDesign("tabletest", vocabularies.tabletest).trim();
+    assert.equal(findRegion(wrap(rendered)).body, rendered, "a freshly built region is not drift");
+    const tampered = wrap(rendered.replace("One Rule, One Axis", "One Rule, One Axis (edited by hand)"));
+    assert.notEqual(findRegion(tampered).body, rendered, "a hand edit must register as drift");
+  });
+
+  test("keeps every migrated skill's region in step with the shared source", () => {
+    assert.deepEqual(findRegionDrift().map(d => d.file), [], "run: node scripts/build-skills.js");
   });
 });

@@ -459,6 +459,18 @@ than cost is the constraint, generation parallelism is the lever, and it does no
 The suite is the instrument, the skill the subject — a score delta means something only when
 exactly one of them changed between the compared iterations.
 
+- **Table-design guidance shared across skills has one source, and `SKILL.md` is not where you edit
+  it.** A `SKILL.md` region between `<!-- BEGIN GENERATED table-design … -->` and
+  `<!-- END GENERATED table-design -->` is written by `node scripts/build-skills.js` from
+  `shared/table-design/` — one framework-neutral rule per file in `rules/`, interleaved with that
+  skill's own illustration from `examples/<skill>/`. Edit the source, run the build, commit both.
+  **A variant may edit inside the region and the run is valid** — the runner swaps the whole skill
+  directory, so the agent gets the edited `SKILL.md` — but **the promotion writes back to
+  `shared/table-design/` and regenerates.** Promoting into the region alone is reverted by the next
+  build; `node --test` fails on the divergence, but only after the fact.
+  The rule text must survive with no framework noun in it — that is a unit test, not a convention:
+  `@TableTest`, `pytest`, `Swift`, `xUnit` and friends in a rule fail the build, because a rule
+  needing one is mechanics and belongs in the skill. The framework noun goes in the example.
 - **An assertion id shared across suites has one text, and `eval.json` is not where you edit it.**
   Its source is `shared/assertions/<id>.md`; `node scripts/build-skills.js` renders it through each
   suite's vocabulary (`shared/assertions/vocabulary.json`) and writes it into every `eval.json` that
