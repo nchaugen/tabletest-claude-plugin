@@ -183,6 +183,15 @@ outputs?"* If the fingerprints still match, the answer is yes and it stays. Dele
 `conversation.jsonl` permanently — it is gitignored, so it is not in history. The committed
 `narration.md` distillate is what survives, which is why it exists.
 
+**`git rm` skips an untracked file, and `xargs -a` is not portable.** Two ways a sweep or a promotion
+silently does nothing on macOS. A freshly written `grading-S.json` is not in the index yet, so
+`git mv`/`git rm` on it fails while the surrounding `set -e` script carries on — a promotion that
+appears to run and leaves the stale file in place, with the same score and verdict and only the
+evidence string differing. And BSD `xargs` has no `-a`: `xargs -a list git rm …` prints a usage error
+per invocation and deletes nothing, so a following `echo "swept $(wc -l < list)"` reports a sweep that
+never happened. **Count the files before and after and print both**, rather than trusting the command
+to have run.
+
 **`git rm -r` does not empty an iteration directory.** `conversation.jsonl` and `run.log` are
 gitignored, so they survive on disk along with the directory tree holding them — leaving what looks
 like a live iteration (3.9 MB of it, in the 2026-07-26 sweep) that every directory listing still

@@ -179,3 +179,4 @@ The correction lives only in the forward-looking baseline copy.
 | 2026-08-01 | `iteration-50 [fx2]` | regrade | 1 | `c3248d8659` | claude-sonnet-5/default | `db3b3918` | 19/23 | — | $0.11 | — | vs iteration 49: 0/1 comparable, 0 moved. |
 | 2026-08-01 | `iteration-50` | rebuild | 12 | `c3248d8659` | claude-sonnet-5/default | `569ef2d4` | 232/254 | — | — | — | vs iteration 49: 0/12 comparable, 0 moved. |
 | 2026-08-01 | `iteration-50` | rebuild | 12 | `c3248d8659` | claude-sonnet-5/default | `569ef2d4` | 232/254 | — | — | — | vs iteration 49: 0/12 comparable, 0 moved. |
+| 2026-08-01 | `iteration-50` | rebuild | 12 | `c3248d8659` | claude-sonnet-5/default | `569ef2d4` | 232/254 | — | — | — | vs iteration 49: 0/12 comparable, 0 moved. |
