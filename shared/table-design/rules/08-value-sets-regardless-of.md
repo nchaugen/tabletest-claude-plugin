@@ -6,6 +6,14 @@ put every value the rule ignores in the cell.
 A blank would wrongly suggest the field is absent. The value set makes the claim explicit — *this rule
 holds for all these values* — and one {{row}} states it more precisely than two near-identical ones.
 
+**The clearest sign you want one: a column that could carry every one of its values on every
+{{row}} without changing anything.** That is the rule saying, in data, that it does not read the
+column.
+
+**A value set cannot vary an expectation.** It expands the {{row}} into one case per value, and every
+expanded case keeps the same expectation cells. Where the answer differs per value, those are
+ordinary distinct {{rows}}.
+
 **Every value in the set must produce the same result.** If the results differ, the input does matter
 and belongs as ordinary distinct {{rows}}. Never use a value set as shorthand for "test several
 values".

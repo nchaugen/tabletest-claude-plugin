@@ -381,6 +381,14 @@ put every value the rule ignores in the cell.
 A blank would wrongly suggest the field is absent. The value set makes the claim explicit — *this rule
 holds for all these values* — and one case states it more precisely than two near-identical ones.
 
+**The clearest sign you want one: a column that could carry every one of its values on every
+case without changing anything.** That is the rule saying, in data, that it does not read the
+column.
+
+**A value set cannot vary an expectation.** It expands the case into one case per value, and every
+expanded case keeps the same expectation cells. Where the answer differs per value, those are
+ordinary distinct cases.
+
 **Every value in the set must produce the same result.** If the results differ, the input does matter
 and belongs as ordinary distinct cases. Never use a value set as shorthand for "test several
 values".
@@ -616,6 +624,13 @@ test, not a value the table states.** The reader then cannot understand the tabl
 code, which is the one thing the table exists to prevent.
 
 When a value is derived from an input, include the source column so the derivation is visible.
+
+**Prefer the value the system really produces.** Where a sentinel, enum constant or error string is
+part of the observable contract, put that in the cell rather than a tidier test-only label — the
+case then states what a reader would actually see. Shorten a value only when it is too long to
+scan, and shorten the **value**, never the vocabulary: `acme:search:v2` scans as well as a
+placeholder and still says what each part is. Single letters cost more than they save, because the
+legend that decodes them lives outside the table.
 
 Write literal values even when they repeat across cases. Extracting them into named constants
 forces the reader to look up every number, which is exactly the indirection the cases exist to
