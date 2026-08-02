@@ -13,7 +13,10 @@ three surfaces reach that reader, and they divide the work:
 what varies, so a value that never varies is read as part of the rule: a duty-limit table whose every
 {{row}} assumes a two-pilot crew states, to its reader, a rule about two-pilot crews.
 
-So a constant the outcome depends on is either a column, or declared in the title or the description.
+So a constant the outcome depends on is a **column** wherever it can be one — and a value the rule
+turns on, such as a threshold or a limit, always can be. The {{title_surface}} and
+{{description_surface}} carry what a column cannot: where the data came from, what the fixture
+fixes, an assumption the {{rows}} cannot state.
 It is **not** declared when it sits in the test body, in a field, in a conversion helper, or in a
 comment — a comment reaches no published surface at all. The helper is the easiest hiding place
 because it looks like plumbing: one that builds every entry with the same zone has pinned zone for
@@ -36,4 +39,4 @@ constructing the objects the columns name.
 
 {{example}}
 
-**Check:** **Held constants declared**: every value the outcome depends on that the table fixes for all {{rows}} is a column, or is named in the title or description as held fixed — never left only in the test body, a field, a conversion helper, or a comment
+**Check:** **Held constants declared**: every value the outcome depends on that the table fixes for all {{rows}} is a column where it can be one — always so for a threshold or limit the rule turns on — and otherwise named in the title or description as held fixed; never left only in the test body, a field, a conversion helper, or a comment

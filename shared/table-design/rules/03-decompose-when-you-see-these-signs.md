@@ -11,6 +11,11 @@ concerns. These are the signs that show up later, once the table exists:
 edge cases and needs boundary {{rows}} of its own. The rule's table then takes the *derived value* as
 a direct input column, not the raw data. Two tables, not one.
 
+**A column {{unused_cell}} for most of its {{rows}} is a column decision before it is a table
+decision.** Ask what the sparse columns feed. Several feeding the *same* expectation column are one
+family: collapse them into one column keyed by member, and the table stays whole. Feeding
+*different* expectation columns, they are different concerns and split into separate tables.
+
 **Do not over-split either.** Several tables that fix the same setup, each vary one sub-rule, and all
 report the same expectation column are one concern scattered — one table per adjustment, per option,
 per flag. That shape is the symptom; the cause is a family you did not name.

@@ -383,6 +383,12 @@ question asked again — *what is this table's axis, and does every column and r
 **If you cannot name a behaviour without using "and", it is two concerns.** Split them, and give each
 its own table.
 
+**The naming test passes on a conjunction, and a conjunction is still several rules.** A rule of the
+form *"X holds only if C1 and C2 and C3"*, where the conditions do not mention one another, names
+cleanly in one breath — "sorts waste into bins" — while being three independent claims. Give
+each condition its own table, holding the others satisfied. Crossing them instead multiplies rows
+without adding a claim, and no row then isolates the condition it was meant to show.
+
 Hold the inputs belonging to *other* concerns at one obviously-valid value. An input **this** rule
 claims not to affect the outcome is the opposite situation and has to vary — see *Value Sets for
 "Regardless Of" Relationships*.
@@ -443,6 +449,11 @@ concerns. These are the signs that show up later, once the table exists:
 **Missing concern:** an input to one rule is itself derived from raw data. The derivation has its own
 edge cases and needs boundary rows of its own. The rule's table then takes the *derived value* as
 a direct input column, not the raw data. Two tables, not one.
+
+**A column blank throughout for most of its rows is a column decision before it is a table
+decision.** Ask what the sparse columns feed. Several feeding the *same* expectation column are one
+family: collapse them into one column keyed by member, and the table stays whole. Feeding
+*different* expectation columns, they are different concerns and split into separate tables.
 
 **Do not over-split either.** Several tables that fix the same setup, each vary one sub-rule, and all
 report the same expectation column are one concern scattered — one table per adjustment, per option,
@@ -699,7 +710,10 @@ three surfaces reach that reader, and they divide the work:
 what varies, so a value that never varies is read as part of the rule: a duty-limit table whose every
 row assumes a two-pilot crew states, to its reader, a rule about two-pilot crews.
 
-So a constant the outcome depends on is either a column, or declared in the title or the description.
+So a constant the outcome depends on is a **column** wherever it can be one — and a value the rule
+turns on, such as a threshold or a limit, always can be. The `@DisplayName`, or the method name when there is none and
+`@Description` carry what a column cannot: where the data came from, what the fixture
+fixes, an assumption the rows cannot state.
 It is **not** declared when it sits in the test body, in a field, in a conversion helper, or in a
 comment — a comment reaches no published surface at all. The helper is the easiest hiding place
 because it looks like plumbing: one that builds every entry with the same zone has pinned zone for
@@ -1301,7 +1315,7 @@ unsure about. It answers in under a second what a `gradle test` round answers in
 
 <!-- BEGIN GENERATED table-design-checks — do not edit here; source is shared/table-design/ -->
 
-- [ ] **One rule per table**: every row and column serves this table's one axis; a behaviour you cannot name without "and" has been split
+- [ ] **One rule per table**: every row and column serves this table's one axis; a behaviour you cannot name without "and" has been split, and a rule that is a conjunction of independent conditions has one table per condition rather than their cross-product
 - [ ] **Complete outputs**: all observable outputs of the same rule sit in one table, and every expectation column there is exercised by the rows that table varies — one constant down all rows, or moving only as a side effect of another, belongs to a different rule's table
 - [ ] **Decomposed, not over-split**: no table mixes concerns (blank-throughout columns, qualified scenario names, two groups of expectation columns), and no set of same-fixture tables reports one expectation column that a family column would collapse
 - [ ] **Combining tables prove an interaction**: any table exercising several rules together shows behaviour the single-rule tables cannot (a precedence, an ordering), not the earlier rules re-run end to end
@@ -1310,7 +1324,7 @@ unsure about. It answers in under a second what a `gradle test` round answers in
 - [ ] **Every tier once**: a tier ladder has one row per tier — all of them, none twice — and every boundary is exercised from both sides, middle tiers included
 - [ ] **Value set semantics**: value sets appear only where every value produces the same result, never as shorthand for "test several values"; an input this rule claims not to affect the outcome varies across the values it ignores, while an input another rule owns is held at one valid value
 - [ ] **Stateful rows independent**: transition rows carry their own before-state and after-state; no row depends on another having run
-- [ ] **Held constants declared**: every value the outcome depends on that the table fixes for all rows is a column, or is named in the title or description as held fixed — never left only in the test body, a field, a conversion helper, or a comment
+- [ ] **Held constants declared**: every value the outcome depends on that the table fixes for all rows is a column where it can be one — always so for a threshold or limit the rule turns on — and otherwise named in the title or description as held fixed; never left only in the test body, a field, a conversion helper, or a comment
 - [ ] **Titles form an index**: read the titles as a sorted list — each states an action the code performs (not a label for a topic), one grammatical shape runs across them, and no three share an uninformative opener
 - [ ] **No scenario name restates its own row's answer**: read each scenario name beside the expectation cells of that row — none states or paraphrases one of them, and none is a generic label
 - [ ] **Expectation columns marked**: at least one column uses the `?` suffix (never a prefix), no input column does, and a compound result stays a native collection rather than a flattened string

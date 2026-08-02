@@ -190,6 +190,10 @@ const EVAL_DOMAIN_TERMS = [
   "loyalty", "coupon", "baggage", "cinema", "hotel cancellation", "travel insurance",
   "loan approval", "weekly pay", "overtime", "shopping cart", "order splitting", "shipping cost",
   "subscription billing", "event registration", "tag filter", "money parser",
+  // Paraphrases that slipped past the nouns above. "groups items into shipments" reached a shared
+  // rule on 2026-08-02 without matching "order splitting" — the checker catches vocabulary, not
+  // meaning, so add the words a paraphrase actually uses.
+  "shipment", "warehouse", "insurance", "ticket",
 ];
 
 /**
