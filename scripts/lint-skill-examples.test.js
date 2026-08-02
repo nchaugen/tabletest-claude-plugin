@@ -156,6 +156,44 @@ void resolvesInput(String scenario, String input, String resolved) { ... }`);
   });
 });
 
+describe("exception-column-fully-qualified", () => {
+  const violationsIn = (body) => findViolations({ startLine: 1, code: body }).map((v) => v.check);
+
+  test("flags a bare class name, which fails at run time with ClassNotFoundException", () => {
+    const checks = violationsIn(`@TableTest("""
+    Scenario   | Dose | Throws?
+    At minimum | 0    |
+    Below      | -1   | IllegalArgumentException
+    """)
+void rejectsDoseBelowMinimum(int dose, Class<? extends Throwable> thrown) {
+    assertEquals(thrown, thrownBy(() -> validate(dose)));
+}`);
+    assert.ok(checks.includes("exception-column-fully-qualified"), checks.join(","));
+  });
+
+  test("accepts the fully-qualified name JUnit can actually convert", () => {
+    const checks = violationsIn(`@TableTest("""
+    Scenario   | Dose | Throws?
+    At minimum | 0    |
+    Below      | -1   | java.lang.IllegalArgumentException
+    """)
+void rejectsDoseBelowMinimum(int dose, Class<? extends Throwable> thrown) {
+    assertEquals(thrown, thrownBy(() -> validate(dose)));
+}`);
+    assert.ok(!checks.includes("exception-column-fully-qualified"), checks.join(","));
+  });
+
+  test("leaves an ordinary expectation column alone, however capitalised its values", () => {
+    const checks = violationsIn(`@TableTest("""
+    Scenario | Item      | Bin?
+    Dry      | newspaper | PAPER
+    Soiled   | pizza box | RESIDUAL
+    """)
+void sortsItemIntoBin(String item, Bin bin) { assertEquals(bin, sorter.sort(item)); }`);
+    assert.ok(!checks.includes("exception-column-fully-qualified"), checks.join(","));
+  });
+});
+
 describe("lintMarkdown", () => {
   test("anchors each violation to the line the example starts on", () => {
     const markdown = "# Heading\n\n" + fence('@TableTest("""\n    Input | Squared?\n    2     | 4\n    3     | 9\n    """)\nvoid testSquares(int input, int squared) { }');

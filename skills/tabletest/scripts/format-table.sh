@@ -14,10 +14,10 @@
 
 set -euo pipefail
 
-ARTIFACT="org.tabletest:tabletest-formatter-cli:1.0.1:jar:shaded"
+ARTIFACT="org.tabletest:tabletest-formatter-cli:1.1.2:jar:shaded"
 GROUP_PATH="org/tabletest"
 ARTIFACT_ID="tabletest-formatter-cli"
-VERSION="1.0.1"
+VERSION="1.1.2"
 
 find_formatter_jar() {
     # 1. Check Maven local repository (most common)

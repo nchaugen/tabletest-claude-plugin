@@ -137,7 +137,33 @@ const exampleChecks = {
       .map((name) => `${name}() opens with an opener that carries no information`),
 
   "constant-expectation-column": (code) => parseTables(code).flatMap(constantExpectationColumns),
+
+  // A bare class name in a Throws?/Exception? column fails at run time with
+  // ClassNotFoundException: JUnit converts a String to Class<?> only from a fully-qualified
+  // name. The skill said so in one place and broke it in its own worked example, which eval-8
+  // then copied (2026-08-02, slice 8 A1).
+  "exception-column-fully-qualified": (code) =>
+    parseTables(code).flatMap(exceptionColumnBareNames),
 };
+
+const THROWS_COLUMN = /^(throws|exception)\?$/i;
+
+/**
+ * Values in a Throws?/Exception? column that name a class without qualifying it.
+ *
+ * A blank cell is the "nothing thrown" row and is fine. Anything already carrying a dot is
+ * qualified. What is left — `IllegalArgumentException` — is the defect.
+ */
+function exceptionColumnBareNames({ headers, dataRows }) {
+  return headers.flatMap((header, column) => {
+    if (!THROWS_COLUMN.test(header)) return [];
+    return dataRows
+      .filter((row) => row.length === headers.length)
+      .map((row) => row[column])
+      .filter((value) => value && !value.includes(".") && /^[A-Z]\w*$/.test(value))
+      .map((value) => `${header} holds bare \`${value}\` — Class<?> conversion needs the fully-qualified name`);
+  });
+}
 
 function findViolations(example) {
   return Object.entries(exampleChecks).flatMap(([check, run]) =>

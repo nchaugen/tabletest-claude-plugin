@@ -57,8 +57,8 @@ A caller catching the exception should **always** see both failures when fallbac
 1. **Red:** Write failing test expecting suppressed exception
    ```java
    @TableTest("""
-       Scenario          | Response?
-       Both fail         | ERROR+1    // Expects 1 suppressed exception
+       Scenario   | Response? | Suppressed?
+       Both fail  | ERROR     | 1
        """)
    ```
    Test fails: expected 1 suppressed, got 0

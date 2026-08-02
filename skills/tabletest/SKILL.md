@@ -81,13 +81,14 @@ Rules:
 
 Use blank cells for `null` (reference types). Use `''` for empty strings. Use `'   '` for blank strings.
 
-| Value contains or starts with | Action                           |
-|-------------------------------|----------------------------------|
-| `\|` (pipe)                   | Quote with `"..."`               |
-| `"` or `'`                    | Quote with the other quote style |
-| `:` (colon)                   | Quote to avoid map key:value syntax |
-| Starts with `[`               | Quote to avoid list syntax       |
-| Starts with `{`               | Quote to avoid set syntax        |
+| Where the value sits | Quote it when it contains |
+|---|---|
+| A whole cell | `\|`, `"` or `'` — or it starts with `[` or `{` |
+| Inside `[…]` or `{…}` | `,` `:` `\|` `]` `}` `"` `'` — anywhere in the element |
+
+**The parser does not know your parameter type.** Parsing happens first and conversion after, so
+`[a: b]` is a map even when the parameter is `List<String>`. That is why a colon inside brackets
+forces quotes and a colon in a whole cell does not: `Invalid code: BOGUS` needs none.
 
 ```java
 @TableTest("""
@@ -98,13 +99,22 @@ Use blank cells for `null` (reference types). Use `''` for empty strings. Use `'
                       | Blank cell = null
     "[1,2,3]"         | Quote to avoid list syntax
     "{a,b}"           | Quote to avoid set syntax
+    Invalid code: X   | A colon in a whole cell needs no quotes
     """)
 void quotesSpecialCharacters(String value, String description) { ... }
 ```
 
-**Strategy**: Apply minimal quoting. Start without quotes; if a test fails with a parsing error, add quotes only around the problematic value. Over-quoting obscures the data.
+**Quote from the table above, not by trial and error.** Every case is decidable before you run
+anything, and over-quoting obscures the data as much as under-quoting costs a build round.
 
-**Quote inside collection values, not the whole collection.** For a collection element containing a special character, quote only that element: `[path: 'C:\\Users']`, not `'[path: C:\\Users]'`. The quotes wrap the problematic element, not the entire collection.
+**Quote inside collection values, not the whole collection.** For a collection element containing a
+special character, quote only that element: `[path: 'C:\\Users']`, not `'[path: C:\\Users]'`. The quotes
+wrap the problematic element, not the entire collection.
+
+**A colon inside brackets is the case that catches people.** `[tech:java, biz:sales]` is a *map* with
+keys `tech` and `biz`, whatever the parameter says — and `[tech:java, tech:python]` fails outright
+with `Duplicate key 'tech'`. For a list of such values, quote every element:
+`["tech:java", "biz:sales"]`.
 
 **Newlines in values**: To include a newline character inside a table value, write `\\n` in the table (keeps the row on one line), then process it manually in the test method: `value.replace("\\n", "\n")`. Do not use a literal newline — it would split the row across lines. Note: Java text blocks process `\n` into a real newline before TableTest sees it, so use double-backslash `\\n` to preserve it as text for manual processing.
 
@@ -151,7 +161,11 @@ void findsHighestScore(Map<String, Integer> scores, int highest) { ... }
 
 JUnit converts many standard types automatically: primitives, `String`, `Path`, `File`, `URI`, `URL`, `UUID`, `LocalDate`, `LocalTime`, `LocalDateTime`, enums, and more. Prefer direct parameter types that JUnit can convert.
 
-Built-in conversion also applies to collection elements: `[com/example]` → `List<Path>`, `[Bob: 1980-03-04]` → `Map<String, LocalDate>`, `{https://claude.ai}` → `Set<URL>`.
+Conversion also applies to collection elements, at any depth, and **a custom `@TypeConverter` is
+reached the same way a built-in converter is**: `[com/example]` → `List<Path>`, `[Bob: 1980-03-04]`
+→ `Map<String, LocalDate>`, `{https://claude.ai}` → `Set<URL>`, and `[[type: SINGLE], [type:
+WEEKLY]]` → `List<Purchase>` through a converter taking a `Map`. Nested collections work for the
+same reason — `List<Set<String>>` converts element by element.
 
 **Date format limitation**: Built-in `LocalDate`/`LocalDateTime` conversion only handles ISO 8601 (`yyyy-MM-dd`). Anything else — a dotted European date (`04.03.1980`), a written month (`4 March 1980`), a locale-specific pattern — fails at runtime, and the failure is a conversion error rather than a wrong value. A column carrying non-ISO dates needs a `@TypeConverter` (see Custom Type Converters below).
 
@@ -833,7 +847,7 @@ One rule — the whole table asks whether the dose is accepted:
 ```
 Scenario                | Dose (mg) | Throws?
 At the minimum dose     | 0         |
-Just below the minimum  | -0.01     | IllegalArgumentException
+Just below the minimum  | -0.01     | java.lang.IllegalArgumentException
 ```
 
 Two concerns — parsing returns values, rejection is its own table:
@@ -1015,7 +1029,7 @@ In TableTest the column holds the exception type, and the comparison is a value 
 @TableTest("""
     Scenario                | Dose (mg) | Throws?
     At the minimum dose     | 0         |
-    Just below the minimum  | -0.01     | IllegalArgumentException
+    Just below the minimum  | -0.01     | java.lang.IllegalArgumentException
     """)
 void rejectsDoseBelowMinimum(BigDecimal dose, Class<? extends Throwable> throws_) {
     assertEquals(throws_, thrownBy(() -> validateDose(dose)));
@@ -1167,6 +1181,10 @@ The map keeps the table compact, each row states only what differs from the defa
 
 **Write incrementally.** For multi-concern features, write one `@TableTest` method at a time using the Write tool. Don't attempt to generate the entire test class in a single response — each method written is a checkpoint that can't be lost to a timeout.
 
+**Align the table before you finish.** `scripts/format-table.sh <file>` pads the columns and lines
+up the pipes; it ships with this skill. It also tells you whether a table parses at all — see
+*Checking a Table Parses* below.
+
 ### Converting Existing Tests
 
 1. Identify tests with identical structure but different data.
@@ -1197,9 +1215,22 @@ When there is no existing code (empty `src/main/java`), write the tests first �
 3. **Confirm**: Show mockup with 2-3 rows, get agreement
 4. **Implement**: Create full table with all scenarios
 5. **Run immediately**: Get fast feedback on structure and conversions
-6. **Refine**: Improve names after tests pass — names emerge from understanding, so don't expect perfect column or scenario names on the first implementation. Replace implementation terms with domain language once the table is working.
+6. **Refine**: Re-read the table once it passes and fix anything the rules above catch. **Do not defer naming to this step** — write domain names into the first draft, because a table you hand over is the draft someone reads.
 
 ---
+
+### Checking a Table Parses Without Running the Build
+
+`scripts/format-table.sh` returns a table unchanged when it cannot parse it — silently, by design, so
+formatting never breaks a build. That makes it a parse check if you give it something to change:
+
+1. Knock one column out of alignment (add or drop a space before a `|`).
+2. Run `scripts/format-table.sh --check <file>`.
+3. **Exit 1 — it parsed** and wants to realign. **Exit 0 — it did not parse**, so the table is
+   malformed and the row it choked on is the one to look at.
+
+Use it whenever you have invented a cell format, nested a collection, or quoted something you were
+unsure about. It answers in under a second what a `gradle test` round answers in minutes.
 
 ## Quality Checks
 
@@ -1232,7 +1263,7 @@ When there is no existing code (empty `src/main/java`), write the tests first �
 
 **TableTest mechanics** — what a `@TableTest` needs beyond a well-designed table:
 
-- [ ] **Multiple rows**: table has 2+ rows; use `@Test` only for a genuinely standalone single case — a lone error, null, or empty-input case related to an existing table belongs in that table as a row (with a `Throws?` column if it throws), not in a separate `@Test`
+- [ ] **Multiple rows**: table has 2+ rows; use `@Test` only for a genuinely standalone single case — a lone error, null, or empty-input case related to an existing table belongs in that table as a row (with a `Throws?` column if it throws), not in a separate `@Test`. **This is about `@Test` methods, not tables:** it never overrides *Model Rejection as an Expected Column*, so where the strike test says two tables, it is two tables
 - [ ] **Uniform assertions**: all rows use the same assertion logic; split into separate TableTests if logic differs per row
 - [ ] **Straightforward method**: no `if`/`switch`/ternary — not even null-guards or defaulting, which belong in a `@TypeConverter` or helper; the method only arranges, acts, and asserts
 - [ ] **Parameter alignment**: parameters match data columns left-to-right (excluding scenario column)
