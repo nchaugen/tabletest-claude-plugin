@@ -1,6 +1,0 @@
-{
-  "compiles": true,
-  "tests_pass": false,
-  "compile_output": "",
-  "test_output": "\n18 tests completed, 18 failed\n\nFAILURE: Build failed with an exception.\n\n* What went wrong:\nExecution failed for task ':test'.\n> There were failing tests. See the report at: file:///private/var/folders/fz/zxx_qbvj49gbql83cc5l47pr0000gn/T/eval-next-1784672762700/eval-23-work/build/reports/tests/test/index.html\n\n* Try:\n> Run with --scan to get full insights from a Build Scan (powered by Develocity).\n\nBUILD FAILED in 563ms\n"
-}
