@@ -14,23 +14,26 @@
 
 set -euo pipefail
 
-ARTIFACT="org.tabletest:tabletest-formatter-cli:1.1.2:jar:shaded"
+# No classifier: Maven Central publishes only the plain JAR. Asking for `:jar:shaded`
+# resolved to nothing, so the download always failed and the script silently no-opped.
+ARTIFACT="org.tabletest:tabletest-formatter-cli:1.1.2"
 GROUP_PATH="org/tabletest"
 ARTIFACT_ID="tabletest-formatter-cli"
 VERSION="1.1.2"
 
 find_formatter_jar() {
-    # 1. Check Maven local repository (most common)
-    local m2_jar="$HOME/.m2/repository/$GROUP_PATH/$ARTIFACT_ID/$VERSION/$ARTIFACT_ID-$VERSION-shaded.jar"
-    if [[ -f "$m2_jar" ]]; then
-        echo "$m2_jar"
-        return 0
-    fi
-
-    # 2. Check non-shaded JAR in Maven local repository
+    # 1. The published artifact, in the Maven local repository
     local m2_plain="$HOME/.m2/repository/$GROUP_PATH/$ARTIFACT_ID/$VERSION/$ARTIFACT_ID-$VERSION.jar"
     if [[ -f "$m2_plain" ]]; then
         echo "$m2_plain"
+        return 0
+    fi
+
+    # 2. A locally built shaded JAR, if someone has one. Maven Central has never
+    #    published this classifier — see the comment on ARTIFACT.
+    local m2_shaded="$HOME/.m2/repository/$GROUP_PATH/$ARTIFACT_ID/$VERSION/$ARTIFACT_ID-$VERSION-shaded.jar"
+    if [[ -f "$m2_shaded" ]]; then
+        echo "$m2_shaded"
         return 0
     fi
 
@@ -46,8 +49,8 @@ download_formatter() {
 
     if command -v curl &>/dev/null; then
         local target_dir="$HOME/.m2/repository/$GROUP_PATH/$ARTIFACT_ID/$VERSION"
-        local target_jar="$target_dir/$ARTIFACT_ID-$VERSION-shaded.jar"
-        local url="https://repo1.maven.org/maven2/$GROUP_PATH/$ARTIFACT_ID/$VERSION/$ARTIFACT_ID-$VERSION-shaded.jar"
+        local target_jar="$target_dir/$ARTIFACT_ID-$VERSION.jar"
+        local url="https://repo1.maven.org/maven2/$GROUP_PATH/$ARTIFACT_ID/$VERSION/$ARTIFACT_ID-$VERSION.jar"
         mkdir -p "$target_dir"
         curl -fsSL -o "$target_jar" "$url" 2>/dev/null && return 0
     fi
