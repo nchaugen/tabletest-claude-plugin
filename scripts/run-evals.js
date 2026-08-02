@@ -1439,6 +1439,13 @@ async function generateOne(evalDef, worktreePath, iterationDir, args, repoRoot) 
     if (fs.existsSync(pluginDir)) {
       fs.cpSync(pluginDir, path.join(agentCwd, ".claude-plugin"), { recursive: true });
     }
+    // Copy hooks, so the agent runs against the same plugin a user installs.
+    // Without this the bundled PostToolUse auto-format hook never fires, and the
+    // formatting the skill promises is absent from every eval output.
+    const hooksDir = path.join(worktreePath, "hooks");
+    if (fs.existsSync(hooksDir)) {
+      fs.cpSync(hooksDir, path.join(agentCwd, "hooks"), { recursive: true });
+    }
     // Copy project scaffolding
     fs.cpSync(projectDir, agentCwd, { recursive: true });
   }
