@@ -19,6 +19,8 @@ All notable changes to this project will be documented in this file.
 - **spec-by-example**: The boundary-row example no longer uses an overtime threshold at 40 and 41 hours — a domain and a boundary the eval suite owns
 
 ### Added
+- **tabletest**: A shape for composite cell values, so there is no reason to invent a delimiter. One value in a domain convention stays plain text; one object with optional fields is a map; **several objects are a list of maps** — `[[component: plasma, days: 20], …]` against a `List<Donation>` parameter, with the converter taking one element's map. Hand-rolled formats like `a@b@c` or `20d plasma` cost a parser and a legend the reader does not have
+- **tabletest**: A short list of what the notation cannot express, so the limits are read rather than discovered by a failing build — a value set cannot vary an expectation, its members split on commas, one converter serves a target type per class (matched on the erased type), and a collection cell cannot hold a null element
 - **tabletest**: The bundled `scripts/format-table.sh` is now part of the workflow — run it to align columns before finishing. It doubles as a parse check: knock a column out of alignment and run `--check`, and exit 1 means the table parses while exit 0 means it does not. That answers in under a second what a build round answers in minutes. Updated to formatter 1.1.2
 
 ### Fixed

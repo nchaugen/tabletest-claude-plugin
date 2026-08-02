@@ -1129,6 +1129,54 @@ Annotations on a `@TableTest` method must appear in this order:
 void defersDonorInsideTheInterval(String donationType, int daysSinceLast, int intervalDays, boolean deferred) { ... }
 ```
 
+### Putting a Composite Value in a Cell
+
+**Never invent a delimiter.** If you are choosing between `@`, `;`, `/` or a regex to pack several
+fields into one cell, the notation already has a shape for it, and a hand-rolled format costs you a
+parser, a legend the reader does not have, and the rule that a cell holds one value.
+
+| The cell holds | Write it | Parameter |
+|---|---|---|
+| One value in a domain convention (`<50`, `90d`) | plain text | the domain type, with a `@TypeConverter` |
+| One object with several optional fields | a map, `[k: v]` | the domain type, converter takes `Map` |
+| **Several objects** | **a list of maps, `[[k: v], [k: v]]`** | **`List<DomainType>`, converter takes `Map`** |
+
+```java
+@TableTest("""
+    Scenario                 | Donations So Far                                | Deferred?
+    First-time donor         | []                                              | no
+    Inside the plasma window | [[component: plasma, days: 20]]                 | yes
+    Past every window        | [[component: plasma, days: 400]]                | no
+    """)
+void defersDonorInsideAnyWindow(List<Donation> donationsSoFar, boolean deferred) {
+    assertEquals(deferred, deferralPolicy.isDeferred(donationsSoFar));
+}
+
+@TypeConverter
+public static Donation toDonation(Map<String, String> fields) {
+    return new Donation(Component.valueOf(fields.get("component").toUpperCase()),
+                        Integer.parseInt(fields.get("days")));
+}
+```
+
+The converter takes **one element's map**, not the whole list — conversion recurses into the
+collection and calls it per element (see *Built-in Value Conversion*).
+
+### What the Notation Cannot Express
+
+Four limits worth knowing before you design around them, because each is otherwise found by a failing
+build or by a table that will not come out right:
+
+- **A value set cannot vary an expectation.** `{a, b}` expands the row into one case per value, and
+  every expanded row keeps the *same* expectation cells. If the answer differs per value, those are
+  ordinary distinct rows, not a set.
+- **Value-set members are separated by commas**, so a member containing one has to be quoted:
+  `{"a,b", c}`.
+- **One converter per target type, per class**, matched on the *erased* type — `Optional<String>`
+  and `Optional<Boolean>` collide. Several tables in one class taking the same domain type must
+  therefore agree on one cell format for it. Settle that before the first table, not the third.
+- **A collection cell cannot hold a null element.** Blank the whole cell to get a null collection.
+
 ### Collapse Sparse Columns into a Map
 
 **Decide this from the signature, before drafting columns.** When one parameter of the method under

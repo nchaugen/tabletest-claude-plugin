@@ -305,6 +305,9 @@ The repair is a column, not a simpler converter: `Status | ms`. **Converter comp
 about the cell — never a reason to move construction back into the test body**, which is where it
 costs the reader most.
 
+Where the cell genuinely holds a composite *value* rather than two, the notation already has a shape
+for it and you should not invent one — main skill file, *Putting a Composite Value in a Cell*.
+
 ## Red Flags
 
 These indicate you should split into separate columns:
