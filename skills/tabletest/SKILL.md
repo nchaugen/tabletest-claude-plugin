@@ -356,48 +356,173 @@ Other examples: `5m`/`30s` → milliseconds, `$100` → numeric, `50%` → 0.5, 
 **Calendar dates**: Prefer descriptive values like `before cutoff`, `on cutoff`, `after cutoff` with a `@TypeConverter` over raw ISO dates. The reader doesn't need to mentally compare `2025-02-28` against `2025-03-01`. If raw dates are used, include the policy/cutoff date as a separate column so the reader can verify the comparison.
 
 ---
-
 ## Table Design
 
-Three questions decide almost every table, and the sections below are grouped under them: **what is
-this table's axis**, **what does a reader see**, and **what is left in the method body**. When a
-design question feels unfamiliar, it is usually one of these three wearing a different hat.
+<!-- BEGIN GENERATED table-design — do not edit here; source is shared/table-design/ -->
 
 ### One Rule, One Axis
 
 A table is one rule varying along one axis. The axis is what the rows change; everything else is
 either held constant or collapsed into a value set. Most decomposition questions are that one
-question asked again — *what is this table's axis, and does every column and row serve it?* The
-sections that follow work outward from it: which outputs belong together, when one table is really
-two, and how many rows the axis needs.
+question asked again — *what is this table's axis, and does every column and row serve it?*
+
+**If you cannot name a behaviour without using "and", it is two concerns.** Split them, and give each
+its own table.
+
+Hold the inputs belonging to *other* concerns at one obviously-valid value. An input **this** rule
+claims not to affect the outcome is the opposite situation and has to vary — see *Value Sets for
+"Regardless Of" Relationships*.
+
+Separate tables reduce rows by avoiding unnecessary permutations, and the table count guides the
+implementation: five concern tables suggest five functions.
+
+```java
+// Two concerns, two tables. "Duty eligibility AND rest credit" fails the "and" test.
+@TableTest("""
+    Scenario              | Hours Since Rest | Max Duty Hours (Policy) | Fit To Fly?
+    Well inside the limit | 6                | 13                      | yes
+    At the limit          | 13               | 13                      | yes
+    Past the limit        | 14               | 13                      | no
+    """)
+void decidesFitnessToFly(int hoursSinceRest, int maxDutyHours, boolean fitToFly) { ... }
+```
 
 ### Include All Outputs of a Concern
 
-When an operation produces multiple observable outputs, include them all as expectation columns in one table. Each row should give the complete picture of what happens for a given scenario. Don't split outputs of the same behavioral concern across separate test methods.
+When an operation produces several observable outputs, include them all as expectation columns in one
+table. Each row then gives the complete picture of what happens for that scenario. Splitting the
+outputs of one concern forces the reader to cross-reference several tables to understand one
+behaviour.
+
+Separate tables are for separate **concerns**, never for separate outputs of the same concern.
+
+**Every expectation column must be exercised by the rows the table varies.** A column that is
+constant down every row, or that changes only as a side effect of another column, is not being
+tested. Two repairs, and which is right depends on the rule:
+
+- **Give it rows that vary it**, when the column does belong to this table's axis and the rows
+  were missing.
+- **Move it to the table whose axis varies it**, and drop it here rather than keeping it "for
+  completeness".
 
 ```java
-// Good — all outputs of priority resolution in one table
+// Good — every output of one climate decision in one table
 @TableTest("""
-    Scenario                  | Input Dir | JUnit Dir    | Resolved Path?       | Source?        | Searched Locations?
-    Both sources set          | my-config | report/junit | my-config            | CONFIGURED     | [my-config]
-    Input dir absent          |           | report/junit | report/junit         | JUNIT_PROPERTY | [report/junit, build/junit-jupiter]
-    Neither source set        |           |              | build/junit-jupiter  | FALLBACK       | [build/junit-jupiter]
+    Scenario             | Humidity % | Temp (C) | Vent Position? | Heater? | Alert?
+    Warm and damp        | 80         | 28       | OPEN           | off     |
+    Cold and damp        | 80         | 8        | CLOSED         | on      | Condensation risk
+    Within target range  | 55         | 21       | CLOSED         | off     |
     """)
-void resolvesWithPriority(String inputDir, String junitDir,
-                          String resolvedPath, ResolutionSource source, List<String> searchLocations) { ... }
+void resolvesClimateResponse(int humidity, int temp,
+                             VentPosition vent, String heater, String alert) { ... }
 ```
 
-Splitting forces the reader to cross-reference multiple tables to understand one behavior. If the outputs all come from the same operation and concern, they belong together.
+### Decompose When You See These Signs
 
-Separate tests are appropriate when testing a **different concern** of the same operation (e.g., path normalization vs. priority resolution) or a different method entirely. Even when testing a single API method, decompose concerns into separate `@TableTest` methods, holding the inputs that belong to the *other* concerns at one obviously-valid value. An input **this** rule claims not to depend on is the opposite case and has to vary — see *Use Value Sets for "Regardless Of" Relationships*. Separate tables reduce rows by avoiding unnecessary permutations — and the table count guides implementation: five concern tables suggest five functions.
+*One Rule, One Axis* gives the first test — a behaviour you cannot name without "and" is two
+concerns. These are the signs that show up later, once the table exists:
+
+- Some rows need columns that other rows leave blank throughout.
+- Scenario names need qualifiers — "…for eligibility" against "…for pricing".
+- The table has two groups of expectation columns that never both apply in the same row.
+
+**Missing concern:** an input to one rule is itself derived from raw data. The derivation has its own
+edge cases and needs boundary rows of its own. The rule's table then takes the *derived value* as
+a direct input column, not the raw data. Two tables, not one.
+
+**Do not over-split either.** Several tables that fix the same setup, each vary one sub-rule, and all
+report the same expectation column are one concern scattered — one table per adjustment, per option,
+per flag. That shape is the symptom; the cause is a family you did not name.
+
+**If you can name what several tables have in common in one term, they are one concern — that term is
+the table, and its members are a column.** This is the mirror of the "and" test. Renal impairment,
+low body weight and an interacting drug all *adjust the standard dose*: three rules, one family, one
+table with an adjustment column. Naming the members instead commits to the split before a single
+row exists, which is why this is decided when you name the table.
+
+**Members of a family compute differently, and that is not a reason to split.** One adjustment is a
+flat reduction, another a percentage, another a recalculation. The differing computation is what the
+rows show; it is not what makes them separate tables.
+
+**Collapse on a family, never on a bag.** A family is a domain category, not "everything that affects
+the answer". The check: the family name works as a column header with the members as its values.
+Where no such name exists the tables are genuinely distinct and belong apart — and so they do where
+collapsing would cross-multiply, or leave rows whose purpose is no longer legible.
+
+One family, one table with an adjustment column — not three tables each fixing the same setup:
+```
+Scenario                   | Adjustments                        | Daily Dose?
+No adjustment              | [:]                                | 500
+Renal impairment           | [renal: severe]                    | 250
+Low body weight            | [weightKg: 20]                     | 200
+Interacting drug           | [interaction: true]                | 400
+Renal and interacting drug | [renal: severe, interaction: true] | 200
+```
+
+### A Combining Table Needs Its Own Rule
+
+Once every rule has a table, the pull is to add one more that runs the whole feature end to end. It
+re-proves what the single-rule tables already established, and it reads as redundant however clean
+those tables are.
+
+**A table that combines concerns earns its place only where the combination behaves in a way neither
+concern shows alone** — a precedence, an ordering, an interaction whose result neither parent table
+produces — and then it carries only the rows that show it. A table proving that a weight-based
+dose is computed *before* the daily maximum caps it is a real table: the question is which rule
+applies first, and its expected values appear in no other table. A table whose rows re-run each
+dose band through the public entry point is not.
+
+**Collapsing several same-fixture tables into one is not a combining table**, and *Decompose When You
+See These Signs* requires it. The difference is what the merged table states: a family table states
+one rule with its members as a column, while a combining table re-runs rules other tables have
+already established. The first has a rule of its own; the second is a second pass over the ladder.
+
+Two symptoms:
+
+- **The description gives it away.** If the description you would write is "end-to-end scenarios
+  combining the rules from the tables above", the table has no rule of its own. Delete it.
+- **Wiring is not a rule.** Reaching a rule through the public API rather than the unit under test
+  does not make it a new rule. If the wiring genuinely needs showing, that is one row, not a
+  second pass over the ladder.
+
+**Salvage its rows before you delete it — and then delete it.** One or two rows of an
+end-to-end table often reach a case no single-rule table does. Deleting the table takes those with it
+and nothing reports the loss, so list the obligations only its rows discharge and move each into
+the table that owns its rule.
+
+**This is a salvage step, not a reprieve — no outcome of it keeps the table.** A row worth
+keeping is worth keeping *somewhere else*. Nor does shrinking the table save it: a single test that
+runs the whole feature to re-prove one already-proven total is the same combining table with fewer
+rows.
+
+Earns its place — the answer appears in no other table:
+```
+Scenario                        | Body Weight (kg) | Daily Max (mg) | Daily Dose?
+Weight-based below the cap      | 40               | 400            | 200
+Weight-based above the cap      | 120              | 400            | 400
+```
+
+Does not — re-runs each band through the front door:
+```
+Scenario                | Body Weight (kg) | Daily Dose?
+Low weight end to end   | 20               | 100
+Adult end to end        | 70               | 350
+```
 
 ### Separate Rules from Arithmetic
 
-Tables should specify the interesting decisions — classifications, eligibility rules, tier lookups, state transitions — not test that multiplication works.
+Tables specify the interesting decisions — classifications, eligibility rules, tier lookups, state
+transitions — not that multiplication works.
 
 **The symptom is an expectation cell you cannot predict in one step.** If reading a row means
-classifying first and then computing, the table has fused two rules and states neither. Give the
-classification its own table, whose expectation columns *are* the classification:
+classifying first and then computing, the table has fused two rules and states neither.
+
+Give the classification its own table, whose expectation columns *are* the classification. Give the
+arithmetic its own, taking the classification as an input. Each table then states one rule, and every
+cell is predictable from its row.
+
+This usually needs a narrower function to call. A table that can only reach the fused result means
+the seam is missing, not that the table must fuse.
 
 Table 1 — the classification (how do these duty hours divide?):
 ```
@@ -414,221 +539,460 @@ Ordinary duty       | 13           | 0              | 13.0
 Duty ran long       | 13           | 1              | 15.0
 ```
 
-Each table now states one rule, and every cell is predictable from its row. This usually needs a
-narrower function to call — see **Let tables drive the API decomposition**; a table that can only
-reach the fused result means the seam is missing, not that the table must fuse.
-
-**Every expectation column must be exercised by the rows the table varies.** *Include All Outputs of
-a Concern* asks for every output of the same rule, and a response carrying two fields usually keeps
-both columns. The question is not the shape of the response — it is whether each column moves for its
-own reason along the axis this table varies.
-
-**A column that is constant down every row, or that changes only as a side effect of another column,
-is not being tested.** Two repairs, and which one is right depends on the rule:
-
-- Give it rows that vary it, when the column does belong to this table's axis and the rows were
-  missing.
-- Move it to the table whose axis varies it, and drop the column here rather than keeping it "for
-  completeness".
-
-A fit-to-fly table varying rest hours that also asserts a required-rest figure identical in every row
-is displaying the second rule, not testing it. A table where the decision and the rest requirement
-both change as rest hours change is one rule with two outputs — keep both columns.
-
-### Decompose When You See These Signs
-
-**If you cannot name a behaviour without using "and", it is two concerns** — split them. Each concern becomes its own `@TableTest` method.
-
-Other signs that concerns are mixed:
-- Some rows need columns that other rows leave blank throughout
-- Scenario names require qualifiers like "...for eligibility" vs "...for pricing"
-- The table has two groups of output columns that never both apply in the same row
-
-**Missing concern:** An input to one rule is itself derived from raw data. The derivation has its own edge cases and needs boundary testing in a separate table. The rule table then takes the derived value as a direct input column, not the raw data. Two tables, not one.
-
-**Do not over-split either.** Several tables that fix the same setup and each vary one sub-rule, all
-reporting the same output column, are one concern scattered across methods — one table per
-adjustment, per option, per flag. That shape is the symptom. The cause is a family you did not name.
-
-**If you can name what several tables have in common in one term, they are one concern — that term is
-the table, and its members are a column.** This is the mirror of the "and" test above. Renal
-impairment, low body weight and an interacting drug all *adjust the standard dose*: three rules, one
-family, one table with an adjustment column. Naming the members instead —
-`reducesForRenalImpairment`, `adjustsForBodyWeight`, `reducesForInteractingDrug` — commits to the
-split before a single row exists, which is why this is decided at the method name.
-
-**Members of a family compute differently, and that is not a reason to split.** One adjustment is a
-flat reduction, another a percentage, another a weight-based recalculation. The differing computation
-is what the rows show; it is not what makes them separate tables.
-
-```
-Scenario                   | Adjustments                        | Daily Dose?
-No adjustment              | [:]                                | 500
-Renal impairment           | [renal: severe]                    | 250
-Low body weight            | [weightKg: 20]                     | 200
-Interacting drug           | [interaction: true]                | 400
-Renal and interacting drug | [renal: severe, interaction: true] | 200
-```
-
-**Collapse on a family, never on a bag.** A family is a domain category, not "everything that affects
-the answer". The check: the family name works as a column header with the members as its values —
-`Adjustment: renal | weight | interaction` does, `Dose factor: …` does not. Where no such name exists
-the tables are genuinely distinct and belong apart, and so they do where collapsing would
-cross-multiply or leave rows whose purpose is no longer legible.
-
-### Match Table Structure to the Logic Being Tested
-
-The type of logic under test determines what each row should represent:
-
-- **Decision/priority logic**: Each row is a distinct decision point. Name which inputs are present, not which one won — a priority table almost always publishes the winner as an expectation column, so "Configured wins" beside `Source?` `CONFIGURED` restates its own answer. "Both sources set", "Input dir absent" say which case the row is.
-- **Parsing/validation logic**: Each row is a distinct input variation. Scenario names describe the input condition (e.g., "Empty input", "With special characters").
-- **Transformation logic**: Each row is an input/output pair. Scenario names describe the transformation case.
-
-If rows feel out of place — parsing variations in a decision table, or decision branches in a parsing table — this signals the code under test may be mixing responsibilities. Consider whether the method should be split before adding more test rows.
-
-### A Combining Table Needs Its Own Rule
-
-Once every rule has a table, the pull is to add one more that runs the whole feature end to end. It
-re-proves what the single-rule tables already established, and it reads as redundant however clean
-those tables are.
-
-**A table that combines concerns earns its place only where the combination behaves in a way neither
-concern shows alone** — a precedence, an ordering, an interaction whose result neither parent table
-produces — and then it carries only the rows that show it. A table proving that a weight-based dose
-is computed *before* the daily maximum caps it is a real table: the question is which rule applies
-first, and its expected values appear in no other table. A table whose rows re-run each dose band
-through the public entry point is not.
-
-Two symptoms:
-
-- **The description gives it away.** If the `@Description` you would write is "end-to-end scenarios
-  combining the rules from the tables above", the table has no rule of its own. Delete it.
-- **Wiring is not a rule.** Reaching a rule through the public API rather than the unit under test
-  does not make it a new rule. If the wiring genuinely needs showing, that is one row, not a second
-  pass over the ladder.
-
-**Salvage its rows before you delete it — and then delete it.** One or two rows of an end-to-end
-table often reach a case no single-rule table does: a zero concentration against a nonzero body
-weight, an empty roster against a fully configured schedule. Deleting the table takes those with it
-and nothing reports the loss, so list the obligations only its rows discharge and move each into the
-table that owns its rule.
-
-**This is a salvage step, not a reprieve — no outcome of it keeps the table.** A row worth keeping is
-worth keeping *somewhere else*. Nor does shrinking the table save it: a single `@Test` that runs the
-whole feature to re-prove one already-proven total is the same combining table with fewer rows.
-
-### Frame Stateful Features as Rules
-
-When a feature involves state (queues, workflows, inventories), frame each row as a state transition rule:
-
-```
-Scenario              | Board Before             | Action              | Board After?                  | Message?
-Assign first task     | [TODO: Deploy v2]        | assign Deploy v2    | [IN_PROGRESS: Deploy v2]      | Assigned
-Complete task         | [IN_PROGRESS: Deploy v2] | complete Deploy v2  | [DONE: Deploy v2]             | Completed
-Complete unknown task | [TODO: Deploy v2]        | complete Hotfix     | [TODO: Deploy v2]             | Not found
-```
-
-Each row is independent: given this state, when this action happens, expect this result. **Include before and after columns** — even when the prompt describes the operation procedurally.
-
 ### Give Each Obligation Exactly One Row
 
 The right number of rows is a covering problem. List the concern's **obligations** — the distinct
-behaviours the rule must demonstrate — then write the smallest set of rows that covers all of them.
-Both errors are real, and they are not symmetrical in how they read: a missing obligation lets a
-wrong implementation pass, while a repeated one costs the reader time and suggests a distinction
-that is not there.
+behaviours the rule must demonstrate — then write the smallest set of rows that covers all of
+them. Both errors are real and they do not read alike: a missing obligation lets a wrong
+implementation pass, while a repeated one costs the reader time and suggests a distinction that is
+not there.
 
-**The test for a redundant row: if two rows share an expectation, the difference between them must
-be the thing the rule is about.** If it is not, they are one row — and a value set is how you say so.
+**The test for a redundant row: if two rows share an expectation, the difference between them
+must be the thing the rule is about.** If it is not, they are one row — and a value set is how you
+say so.
 
 Three shapes account for nearly every redundant row:
 
 - **Further past the same boundary.** A pair that *straddles* a boundary earns both its rows: the
-  outcomes differ, and that is the rule. A second row on the same side does not.
+  outcomes differ, and that is the rule. A second row on the same side does not. This holds for
+  rejections too — one row just past a limit rejects, and a row further past it rejects for no
+  new reason.
+- **A larger n in the same direction.** If two incompatible items force a batch into separate streams,
+  three incompatible items force it for the same reason. One obligation, one row.
+- **A value the rule ignores.** Two rows differing only in it are one row. Merge them with a
+  value set: same outcome either way means the difference between the rows is not the rule.
 
-  ```
-  Scenario                  | Duty Hours | Extra Rest Required?
-  At the duty limit         | 13         | false
-  Just past the duty limit  | 13.5       | true
-  Well past the duty limit  | 20         | true      ← redundant: 13.5 already proved it
-  ```
-
-  Keep the straddling pair; drop the row further out. This holds for rejections too — one row just
-  past a limit rejects, and a row further past it rejects for no new reason.
-- **A larger n in the same direction.** If two incompatible items in a batch force it into separate
-  collection streams, three incompatible items force it for the same reason. One obligation, one row.
-- **A value the rule ignores.** Two rows that differ only in it are one row. Merge them:
-  `{whole blood, plasma}` in a single cell. Same outcome either way means the difference between the
-  rows isn't the rule.
-
-A second row on the same side of a boundary earns its place in one case: when the point *is* that two
-inputs collapse to one behaviour. Then say so — a value set says it in one row, and if you keep two
-rows the scenario names have to carry why.
-
-This is the same rule that makes a tier ladder one row per tier (see Value Sets for Tier Grouping):
-a value set spanning the tier's range carries its own boundaries, so a separate "tier begins" row
-discharges nothing the "tier holds" row has not.
+A second row on the same side of a boundary earns its place in one case: when the point *is* that
+two inputs collapse to one behaviour. Then say so — a value set says it in one row, and if you
+keep two the scenario names have to carry why.
 
 **One value can carry two obligations, in two different tables.** A value that is a boundary for one
 rule is often the subject of another. A zero duty period is both the accepted end of "duty hours
 cannot be negative" *and* the input that should produce no rest requirement whatever the crew size —
 two rules, two questions, two rows in two tables. Showing the value once, in whichever table you
-reached first, feels like coverage and is not: the accepted-boundary row says nothing about what the
-other rule then computes. **Count obligations per rule, never per value.**
+reached first, feels like coverage and is not. **Count obligations per rule, never per value.**
+
+```
+Scenario                  | Duty Hours | Extra Rest Required?
+At the duty limit         | 13         | false
+Just past the duty limit  | 13.5       | true
+Well past the duty limit  | 20         | true      <- redundant: 13.5 already proved it
+```
+
+Keep the straddling pair; drop the row further out.
+
+### Cover Every Tier and Both Sides of Every Boundary
+
+When inputs map to tiers — rate bands, size categories, standings — every tier appears in the
+rows, and every boundary is exercised from both sides: the last value inside a tier and the first
+value of the next.
+
+**Middle-tier boundaries are the ones most often skipped.** Outer edges alone do not pin down where
+the middle tiers change.
+
+This is the coverage half of *Give Each Obligation Exactly One Row*, and the two meet at a
+boundary: the straddling pair is required here and earns both its rows there. A third row
+further past the same boundary is what the other rule removes.
+
+Where a tier is a range rather than a single value, a value set spanning it carries its own
+boundaries — a separate "tier begins" row then discharges nothing the "tier holds" row has
+not.
+
+```
+Scenario                       | Haemoglobin | Donation Band?
+Below the minimum              | 124         | DEFER
+At the minimum                 | 125         | STANDARD
+Top of the standard band       | 159         | STANDARD
+First value of the high band   | 160         | REVIEW
+```
+
+Both middle boundaries appear from both sides; outer edges alone would not locate them.
 
 ### Use Value Sets for "Regardless Of" Relationships
 
-**First decide which kind of "irrelevant" you have — the two take opposite treatments.** Ask what
-this table's rule says about the input:
+When an input exists but does not affect the outcome of a row, say so with data rather than prose:
+put every value the rule ignores in the cell.
 
-- **Never mentions it.** Another table owns it. Hold it at one obviously-valid value here; repeating
-  its variations only cross-multiplies rows.
-- **Says it does not matter.** That claim is part of the rule, so a row has to be able to contradict
-  it. Vary it, as under **Assume the Table Is Published**.
+A blank would wrongly suggest the field is absent. The value set makes the claim explicit — *this rule
+holds for all these values* — and one row states it more precisely than two near-identical ones.
 
-"Irrelevant to this table" and "irrelevant to the outcome" read alike and mean opposites.
+**Every value in the set must produce the same result.** If the results differ, the input does matter
+and belongs as ordinary distinct rows. Never use a value set as shorthand for "test several
+values".
 
-When one input takes precedence regardless of other inputs, use value sets to express this declaratively instead of listing every combination. Each `{...}` column generates a test per value.
+**Two different situations, two different treatments.** An input that *another* rule owns is held at
+one obviously-valid value. An input that *this* rule claims not to affect has to vary across the
+values it ignores — otherwise no row could ever contradict the claim.
+
+**Value sets work on two axes — check both.** *Within* a row, group input values that produce the
+same outcome. *Across* rows, collapse duplicates: when two input kinds follow identical rules
+everywhere, one row with both values replaces two identical ones. It is easy to apply one axis
+and miss the other.
 
 ```java
 @TableTest("""
-    Scenario                    | Priority | Fallback State         | Resolved?
-    Priority set, any fallback  | main     | {yaml, empty, missing} | main
+    Scenario                          | Donor Age | Haemoglobin | Recent Travel | Eligible?
+    Below the minimum age             | 16        | {125, 140}  | {yes, no}     | no
+    Eligible adult donor              | 35        | 140         | no            | yes
+    Travelled recently, otherwise fine| 35        | 140         | yes           | no
+    """)
+void decidesDonorEligibility(int age, int haemoglobin, boolean recentTravel, boolean eligible) { ... }
+```
+
+The first row claims age alone decides it, and varies the two inputs it ignores so a row could
+contradict the claim.
+
+### Frame Stateful Features as Transition Rules
+
+When a feature involves state — queues, workflows, inventories — frame each row as a state
+transition rule: the state before, the action, the state after, and any message or result.
+
+Each row is independent: given this state, when this action happens, expect this result. No row
+depends on a previous one having run.
+
+**Include the before and after columns** even when the description states the operation procedurally.
+
+A sequential path — step 1, then step 2, then step 3 — creates row dependencies and is not a table
+at all.
+
+```
+Scenario                  | Bin Before                | Action              | Bin After?                | Message?
+Accept a labelled item    | [EMPTY]                   | deposit cardboard   | [CARDBOARD: 1]            | Accepted
+Fill to the bulk limit    | [CARDBOARD: 1]            | deposit cardboard   | [CARDBOARD: 2]            | Accepted
+Reject a mismatched item  | [CARDBOARD: 1]            | deposit solvent     | [CARDBOARD: 1]            | Wrong stream
+```
+
+### Assume the Table Is Published
+
+Write every table as if a reader will meet it in a published report, never having seen the code. Only
+three surfaces reach that reader, and they divide the work:
+
+| Surface | Carries |
+|---|---|
+| `@DisplayName`, or the method name when there is none | the rule, as an action the code performs |
+| `@Description` | the apparatus that cannot be a column — what is held constant, where the data came from |
+| the table | the variations the rule ranges over |
+
+**Whatever the table holds constant is silently promoted into the rule.** Readers generalise from
+what varies, so a value that never varies is read as part of the rule: a duty-limit table whose every
+row assumes a two-pilot crew states, to its reader, a rule about two-pilot crews.
+
+So a constant the outcome depends on is either a column, or declared in the title or the description.
+It is **not** declared when it sits in the test body, in a field, in a conversion helper, or in a
+comment — a comment reaches no published surface at all. The helper is the easiest hiding place
+because it looks like plumbing: one that builds every entry with the same zone has pinned zone for
+the whole table, and no column says so.
+
+**What the assertion tolerates is part of the rule too.** A comparison that sorts either side before
+comparing, accepts a subset, matches "contains" rather than equals, or normalises case or whitespace
+is *enforcing a rule*: it changes which behaviours the test would accept, and none of it reaches the
+reader. Ordering is the usual one, and a shared helper is where it hides — written once, then
+invisible at every call site, so a reader cannot tell whether order is part of the behaviour or an
+artefact of the comparison. Two repairs, and the second is better where it fits:
+
+- **Name it** — one sentence in the description, or a column that makes it evident.
+- **Remove the need for it** — an unordered collection as the expectation says order does not matter
+  *in the table itself*, which beats saying so in prose; an ordered one with a canonical sort says it
+  does.
+
+Numeric tolerance is not a criterion: a conventional epsilon on a decimal column is exempt. Nor is
+constructing the objects the columns name.
+
+Crew size never varies, so a reader takes the rule to be about two-pilot crews. Make it a column:
+```
+Scenario                 | Duty Hours | Crew Size | Max Duty Hours (Policy) | Fit To Fly?
+Two-pilot crew, inside   | 12         | 2         | 13                      | yes
+Two-pilot crew, past     | 14         | 2         | 13                      | no
+Augmented crew, past 13  | 14         | 3         | 17                      | yes
+```
+
+### Write Titles That Form an Index
+
+`@DisplayName`, or the method name when there is none is the line a reader scans in the report index. **Judge titles as a set, never one
+at a time:** a title that reads well on its own page can still be an unscannable entry in the list.
+
+**Open each title with something that distinguishes it, and keep one grammatical shape across the
+family.** When every title starts with the same word the index becomes a column of identical openers,
+and the distinguishing part arrives last, where scanning cannot reach it. Three titles sharing an
+uninformative opener is enough to make the list unscannable.
+
+**Write an action the code performs, not a label for a topic.** This is the half that is easy to
+miss: a noun phrase can front the varying subject and still say nothing about what the code *does*
+with it. "Deferral interval by donation type" names a topic; "Sets the deferral interval from the
+donation type" names behaviour. The label form is the more tempting mistake, because it looks tidy in
+a list.
+
+One outlier does not break a family — a negative or invariant claim often reads best subject-first.
+
+**A title states what your system does, not an external fact it depends on.** Strike the system under
+test from the sentence: if it still reads as true, the title is restating a regulation, a format or a
+domain fact instead of naming behaviour.
+
+**This action voice is the title's alone.** Scenario names stay condition phrases naming the row's
+variation — see *Name Scenarios by Condition, Not Outcome*. A title says what the rule does; a
+scenario name says which case this row is. Writing rows as little sentences is how outcome-echoing
+scenario names get in.
+
+| Scans as an index                                    | Does not                           |
+|------------------------------------------------------|------------------------------------|
+| `Sets the deferral interval from donation type`      | `shouldApplyDeferralInterval`      |
+| `Rejects a reading below the haemoglobin minimum`    | `Haemoglobin minimum by donor sex` |
+| `Defers a donor returning from a listed destination` | `shouldDeferForTravelDestination`  |
+
+Three distinct verbs, each carrying information, and the subject arrives immediately after.
+
+### Name Scenarios by Condition, Not Outcome
+
+Good scenario names answer "under what circumstances?" — not "what happens?". The outcome is already in the
+expectation columns; naming it twice adds nothing, and when the expectation changes the name
+silently lies.
+
+Appending the outcome to a condition is still naming the outcome. The name only needs to say
+*when*; the row's expectation values say *what*.
+
+Naming the rule or the situation is correct even when it makes the outcome inferable. The failure to
+avoid is a name echoing its own expectation cell, and a generic label that names no variation
+at all.
+
+**A priority or decision table is where this goes wrong most often**, because such a table almost
+always publishes the winner as an expectation column. "Configured wins" beside a `Source?` of
+`CONFIGURED` restates its own answer; "Both sources set" and "Input dir absent" say which case the
+row is.
+
+| Good (condition)             | Bad (outcome)      |
+|------------------------------|--------------------|
+| `Unlabelled item`            | `Rejected`         |
+| `Solvent in a sealed drum`   | `Goes to hazardous`|
+| `Cardboard over the bulk limit` | `Bulky handling` |
+
+`Solvent in a sealed drum` PASSES even though a reader who knows the rule can predict the outcome —
+naming the situation is not naming the answer.
+
+### Name Expectation Columns Clearly
+
+End every expectation column with a `?` **suffix**, so a reader can tell at a glance which columns are
+outputs being verified and which are inputs being provided. Input columns never take `?` — including
+yes/no columns that describe the state a scenario starts in.
+
+**Prefer the rule's direct output.** `Fee?` beats `Total?`: the fee is what the rule decides, while
+verifying the total also requires knowing the base amount. If you do expect a derived value, include
+its inputs as columns so a reader can trace it.
+
+**A compound result stays a collection.** When the value under test is several items — or items
+grouped under a key — the expectation is a native list, set or map, nested where needed, compared
+against what the system returns. Do not flatten it into a string assembled by a formatting helper:
+that tests the formatter rather than the rule, hides the structure from the reader, and puts
+formatting logic back into the test body. Use a set where order is not part of the rule, and a list
+with a canonical sort where it is.
+
+```
+Scenario                  | Items                     | Streams?
+Mixed recyclables         | [paper, card]             | [recycling: [paper, card]]
+Recyclable and residual   | [paper, foil]             | [recycling: [paper], landfill: [foil]]
+```
+
+`Streams?` stays a native map. Flattening it to `"recycling:[paper]"` would test the formatter.
+
+The `?` marks outputs only — never an input, however yes/no it looks:
+
+| Good (input)         | Bad (input)           | Why bad                       |
+|----------------------|-----------------------|-------------------------------|
+| `Repeat Donor`       | `Repeat Donor?`       | `?` implies this is an output |
+| `Within Rest Period` | `Within Rest Period?` | This is a given condition     |
+| `Vent Open`          | `Vent?`               | This is an input state        |
+
+### Model Rejection as an Expected Column
+
+When a table covers cases the system rejects, the rejection is an **expectation column** — the error
+type, or the reason — never a decision taken in the test body. Each row then states its own
+outcome where the reader can see it.
+
+**Whether accepted and rejected rows share a table is decided by what the table is about, and
+there is a decidable test for it: remove the rejected rows.** If what remains still states a rule,
+the rejection was a separate concern — split it out. If what remains says nothing on its own, the
+table is about acceptance and stays whole.
+
+A tier ladder with one rejection row at the end **fails that test**: strike the rejection and the
+ladder still states the tiers. It is two concerns, however tempting the last-accepted-beside-
+first-rejected pair looks. A validation boundary passes it: strike the rejected row and a single
+accepted value is left, which states nothing by itself.
+
+- **The table's whole expectation is whether the call is rejected** — a boundary straddling a
+  validation limit, the last accepted value beside the first rejected one. That is *one rule*, and
+  splitting it puts the two halves of a single boundary where no reader sees them together. Keep one
+  table, leave the rejection column blank where nothing is rejected, and compare the outcome as a
+  value.
+- **Rejection is one outcome among several** — a parser returning values for good input and rejecting
+  malformed input. Those are two concerns and belong in two tables.
+
+**Never branch in the body to choose how to assert.** Picking between a rejection assertion and a
+value assertion per row puts the rule back where the table cannot show it, and it is the failure
+both shapes above exist to avoid.
+
+One rule — the whole table asks whether the dose is accepted:
+```
+Scenario                | Dose (mg) | Throws?
+At the minimum dose     | 0         |
+Just below the minimum  | -0.01     | IllegalArgumentException
+```
+
+Two concerns — parsing returns values, rejection is its own table:
+```
+Scenario          | Input      | Parsed?
+ISO date          | 2026-07-30 | 2026-07-30
+Short year        | 30/07/26   | 2026-07-30
+```
+
+### Use Concrete Domain Values
+
+Cell values are concrete, meaningful domain data — not abstract flags, codes, or placeholders. An
+expectation value is traceable to the input values in its own row.
+
+**An expectation naming something that appears nowhere in the row is a value hardcoded in the
+test, not a value the table states.** The reader then cannot understand the table without reading the
+code, which is the one thing the table exists to prevent.
+
+When a value is derived from an input, include the source column so the derivation is visible.
+
+Write literal values even when they repeat across rows. Extracting them into named constants
+forces the reader to look up every number, which is exactly the indirection the rows exist to
+remove.
+
+**Good** — every expectation traceable to the row's own inputs:
+```
+Scenario                    | Body Weight (kg) | Dose Per Kg (mg) | Daily Dose (mg)?
+Standard adult              | 70               | 5                | 350
+Paediatric                  | 20               | 5                | 100
+```
+
+**Bad** — `standard` and `reduced` appear nowhere in the row:
+```
+Scenario                    | Heavy | Impaired | Dose?
+Normal function             | true  | false    | standard
+Impaired function           | true  | true     | reduced
+```
+
+### Use Domain Terminology
+
+Column names use domain or feature terminology that readers understand without knowing the
+implementation. Avoid parameter names, variable names, and internal API terms.
+
+The table should read as a specification a domain expert could review.
+
+| Good (domain)        | Bad (implementation)   |
+|----------------------|------------------------|
+| `Body Weight (kg)`   | `weightKg`             |
+| `Renal Function`     | `renalFlag`            |
+| `Dose Band?`         | `result`               |
+
+### Make Thresholds Visible
+
+When a rule depends on a threshold or limit, include it as a column — even when the value is constant
+across every row.
+
+Without the threshold column the number is buried in the code: the reader cannot tell from the table
+where the boundary is, or whether the rule is strictly greater than. Boundary rows — at the limit,
+just over it — become natural to add once the threshold is visible.
+
+**A constant column often signals configuration.** Ask under what circumstances the value would
+differ. The answer may reveal a second axis that belongs as new rows or as a separate table.
+
+```
+Scenario              | Days Since Last Donation | Min Interval (Policy) | Eligible?
+Long-standing donor   | 120                      | 90                    | yes
+Exactly at the interval| 90                      | 90                    | yes
+One day short         | 89                       | 90                    | no
+```
+
+### Include Traceability Columns
+
+When a table exercises a pipeline — input, then an intermediate result, then a final result — include
+the intermediate as an expectation column. A reader can then trace the logic step by step, and when a
+row fails the intermediate column shows where in the pipeline it broke.
+
+The intermediate is usually not strictly necessary: the test could verify only the final value. It
+earns its place by making the derivation legible in the row.
+
+**Guard: only for values the system exposes, or that are observable domain concepts.** If populating
+the column would mean reimplementing an internal calculation in the test, it does not belong — the
+intermediate is pointing at a separate concern that needs its own table. Decompose instead, and the
+intermediate becomes an expectation in one table and an input in the next.
+
+```java
+@TableTest("""
+    Scenario                     | Body Weight (kg) | Renal Function | Dose Band? | Daily Dose (mg)?
+    Adult, normal function       | 70               | Normal         | Standard   | 500
+    Adult, impaired function     | 70               | Impaired       | Reduced    | 250
+    Low weight, normal function  | 40               | Normal         | Low        | 300
     """)
 ```
 
-This single row generates 3 tests, all asserting `main` wins regardless of fallback state.
+`Dose Band?` is not strictly necessary, but it lets a reader trace weight + renal function -> band ->
+daily dose, and a failure shows which step broke.
 
-**A value set asserts that the result is identical for every value in it.** So the question is always
-the rule's own granularity — not how different the inputs look to you.
+### Blank Means Absent
 
-- **The rule tells them apart: separate rows.** A sorter answering `WRONG_MATERIAL`, `CONTAMINATED`
-  and `OVERSIZE` is making three decisions; a value set would collapse three outcomes into one cell
-  and lose the *why*.
-- **The rule does not: one row.** A sorter answering `REJECTED` however the item fails is making one
-  decision. Pick a representative input or two and let a value set carry the rest.
+Use a blank cell when a value is genuinely absent. Blank means **absent** — not zero, not a default,
+and not irrelevant.
+
+Three meanings the notation has to keep apart:
+
+| Meaning | Notation |
+|---|---|
+| The value is missing | blank cell |
+| The value exists but does not affect this row | value set |
+| The value is present and empty | `''` for a string, `[]` `{}` `[:]` for a collection |
+
+**The system under test decides what an absent value means — never the test.** That decision is part
+of the behaviour being specified, and the row exists to pin it down. Writing a baseline value into
+the cell is a different scenario; converting a blank to a default on the way in deletes the case the
+row was written to show.
+
+Do not fill a genuinely blank cell with filler like `N/A` or `none`.
 
 ```java
-// WRONG — 20 kg at 5 mg/kg is 100, but at 8 mg/kg is 160; results differ
-Standard course   | 20 | {5, 8} | *
-
-// CORRECT — separate rows when results differ
-Standard strength | 20 | 5      | 100
-Double strength   | 20 | 8      | 160
-
-// CORRECT — a value set where the result is genuinely identical
-No doses due      | 0  | {5, 8} | 0
+@TableTest("""
+    Scenario                   | Humidity % | Override Setpoint | Vent Position?
+    No override configured     | 80         |                   | OPEN
+    Override supplied          | 80         | 90                | CLOSED
+    Override cleared to empty  | 80         | ''                | OPEN
+    """)
+void resolvesVentPosition(int humidity, Integer overrideSetpoint, VentPosition vent) { ... }
 ```
 
-Two things follow. **An input the rule ignores** is this same case from the other side: two rows
-differing only in that input are one row with a value set over it. And **enumerating every way an
-input can be malformed is coverage of the format, not of the rule** — ten inputs producing one
-undifferentiated rejection are one obligation, however different the ten look on the page (see Give
-Each Obligation Exactly One Row).
+The blank row specifies what the controller does with *no* override. Writing `0` there would specify
+something else, and defaulting it in the method body would specify nothing at all.
 
-#### Cartesian Product
+### Design Black-Box Tables
 
-Multiple sets in the same row create a cartesian product:
+Model observable inputs and outputs. Avoid internal flags and setup-only columns unless they are part
+of the public contract.
+
+Anything the test does beyond arranging, acting and asserting is a rule the table cannot show.
+Construction belongs in a conversion helper, the expected error in a column, defaulting and
+normalisation outside the body entirely. When you find yourself writing logic in the test, ask which
+column or helper it should have been.
+
+```
+Scenario                | Humidity % | Temp (C) | Vent Position?
+Warm and damp           | 80         | 28       | OPEN
+Within target range     | 55         | 21       | CLOSED
+```
+
+Observable readings in, observable position out. A `sensorPollCount` or `controllerInitialised`
+column would be internal state, not the contract.
+
+<!-- END GENERATED table-design -->
+
+---
+
+## Expressing These Rules in TableTest
+
+The rules above are notation-independent. These are the TableTest mechanics they need.
+
+### Cartesian Product
+
+Multiple value sets in the same row create a cartesian product:
 
 ```java
 @TableTest("""
@@ -642,180 +1006,57 @@ void combinesTwoValueSets(int a, int b, int maxSum) {
 
 This generates 4 test cases: (1,3), (1,4), (2,3), (2,4).
 
-#### Value Sets for Tier Grouping
+### Expressing a Rejection
 
-When multiple input values produce the same output (a tier), group them into a value set:
-
-```
-Scenario         | Credit Hours    | Standing?
-Under 30 hours   | {0, 10, 20, 29} | Freshman
-30 to 59 hours   | {30, 45, 59}    | Sophomore
-60 to 89 hours   | {60, 75, 89}    | Junior
-90 hours and up  | {90, 100, 120}  | Senior
-```
-
-This makes the tier structure a first-class concept — each row IS a tier.
-
-**Every tier gets a row, and every tier gets only one.** Two failures follow from breaking this, and
-a ladder usually shows both at once:
-
-- **Do not sample the ladder.** However many tiers the rule defines, that many rows. Showing the
-  first tiers, the last, and trusting the reader to interpolate leaves the middle ones unproven — an
-  implementation that mis-maps them passes. "The pattern is obvious" is not coverage.
-- **Do not split a tier in two.** A "tier begins" row beside a "tier holds" row is one tier over two
-  rows:
-
-  ```
-  At the 30-hour boundary | 30       | Sophomore
-  Mid-band hours          | {45, 59} | Sophomore    ← same tier, second row
-  ```
-
-  The value set already spans the tier, so it already carries the boundary. Write
-  `{30, 45, 59} | Sophomore` and the first row has nothing left to prove. Put both of the tier's
-  boundary values *inside* the set.
-
-**Value sets work on two axes — check both.** Within a row, group input values that produce the same outcome (`{30, 45, 59}` → one tier). Across rows, collapse duplicates: when two input kinds follow identical rules everywhere (two categories treated alike by every rule), one row with `{A, B}` replaces two identical rows. It is easy to apply one axis and miss the other.
-
-### Assume the Table Is Published
-
-Write every table as if a reader will meet it in a published report, never having seen the test body.
-Only three surfaces reach that reader, and they divide the work:
-
-| Element        | Carries                                                                     |
-|----------------|-----------------------------------------------------------------------------|
-| `@DisplayName` | the rule, as an action the code performs                                    |
-| `@Description` | the apparatus that cannot be a column — what is held constant, which fixtures or converters are in play, where the data came from |
-| the table      | the variations the rule ranges over                                         |
-
-**Whatever the table holds constant is silently promoted into the rule.** Readers generalise from what
-varies, so a value that never varies is read as part of the rule: a duty-limit table whose every row
-assumes a two-pilot crew states, to its reader, a rule about two-pilot crews.
-
-So a constant the outcome depends on is either a column or declared in the title or description. It is
-**not** declared when it sits in the test method body, in a field, in a `@TypeConverter`, or in a `//`
-comment — a comment reaches no published surface at all. The converter is the easiest hiding place
-because it looks like plumbing: a converter that builds every history entry with the same zone has
-pinned zone for the whole table, and no column says so.
-
-Declaring a held constant in `@Description` is not redundancy. The other description rules forbid
-restating what the rows already show; a held constant is exactly what the rows cannot show.
-
-**What the assertion tolerates is part of the rule too.** A comparison that sorts either side before
-comparing, accepts a subset, matches "contains" rather than equals, or normalises case or whitespace
-is enforcing a rule: it changes which behaviours the test would accept. None of it reaches the
-reader. Ordering is the usual one, and a helper is where it hides — written once, then invisible at
-every call site, so a reader cannot tell whether order is part of the behaviour or an artefact of the
-comparison.
-
-Two repairs, and the second is better where it fits:
-
-- **Name it** — one sentence in the `@Description` ("bins are compared without regard to order"), or
-  a column that makes it evident.
-- **Remove the need for it** — a `Set` expectation column says order does not matter *in the table
-  itself*, which beats saying so in prose; a list with a canonical sort says it does. See **A
-  compound result stays a collection**.
-
-Numeric hygiene is not a criterion: a conventional epsilon on a decimal column, or
-`BigDecimal.compareTo`, is exempt. Neither is constructing the objects the columns name — that is the
-converter's job.
-
-**If a title or description says an input doesn't affect the result, vary that input in the rows.**
-Write a value set in the cell: `{whole blood, plasma}`.
-
-Do not fix the value instead — not in a `@TypeConverter`, not in a field, not in the test body. A
-claim no row can contradict is not tested. Mechanics under **Use Value Sets for "Regardless Of"
-Relationships**.
-
-### Design Black-Box Tables
-
-Model observable inputs and outputs. Avoid internal flags or setup-only columns unless they are part of the public contract.
+*Model Rejection as an Expected Column* decides **whether** accepted and rejected rows share a table.
+In TableTest the column holds the exception type, and the comparison is a value comparison:
 
 ```java
 @TableTest("""
-    Scenario                    | Build Dir | JUnit Property | Configured Dir | Resolved Dir?
-    All three set               | build     | report/junit   | tabletest      | tabletest
-    Configured dir absent       | target    | report/junit   |                | report/junit
-    Neither property nor config | build     |                |                | build/junit-jupiter
+    Scenario                | Dose (mg) | Throws?
+    At the minimum dose     | 0         |
+    Just below the minimum  | -0.01     | IllegalArgumentException
     """)
-void resolvesInputDirectory(String buildDir, String junitProperty, String configuredDir, String resolvedDir) {
-    // setup derived from inputs, assert resolvedDir
+void rejectsDoseBelowMinimum(BigDecimal dose, Class<? extends Throwable> throws_) {
+    assertEquals(throws_, thrownBy(() -> validateDose(dose)));
+}
+
+// with the other helpers, at the bottom of the class
+private static Class<? extends Throwable> thrownBy(Executable action) {
+    try {
+        action.execute();
+        return null;
+    } catch (Throwable thrown) {
+        return thrown.getClass();
+    }
 }
 ```
 
-### Name Expectation Columns Clearly
+Branching on the row to pick between `assertThrows` and `assertDoesNotThrow` is what this avoids: it
+puts the rule back in the method body, where the table cannot show it.
 
-End expectation columns with `?` **suffix** to signal which columns are outputs being verified versus inputs being provided.
+### Writing Absent, Empty and Blank Values
 
-Examples: `Valid?`, `Formatted?`, `Result?`, `Throws?`, `Expected?`
+*Blank Means Absent* decides **which** of these a cell should be. This is how each is written:
 
-**Prefer the rule's direct output.** Use `Fee?` over `Total?` — the fee is what the rule decides; verifying the total requires knowing the base amount. If you use a derived value like total, include the base as a column so readers can trace it. Input columns never have `?` suffixes — including yes/no flag columns that describe scenario state.
-
-**A compound result stays a collection.** When the value under test is several items — or items grouped under a key — the expectation column is a native list, set, or map, nesting where needed: `[paper, card]`, `{glass, metal}`, `[recycling: [paper, card], landfill: [foil]]`. Compare it against the collection the system returns. Do not flatten it into a quoted string like `"recycling:[paper,card]"` assembled by a stringifying helper: that tests your formatter rather than the rule, hides the structure from the reader, and puts formatting code back in the method body. Use a set where order is not part of the rule, and a list with a canonical sort where it is.
-
-**Common mistake** — `?` as prefix instead of suffix:
+```java
+@TableTest("""
+    Scenario        | Input | Resolved?
+    Normal input    | hello | HELLO
+    Null input      |       |
+    Empty input     | ''    |
+    Blank input     | '   ' |
+    """)
+void resolves_values(String input, String resolved) {
+    assertThat(transform(input)).isEqualTo(resolved);
+}
 ```
-?Source        ← WRONG
-Source?        ← CORRECT
-```
 
-### Name Scenarios Descriptively
-
-**Read each scenario name beside its own expectation cells. If the name says what any of them say,
-cut that part.**
-
-| Written                                        | Says the same as                    | Write instead               |
-|------------------------------------------------|-------------------------------------|-----------------------------|
-| `Low haemoglobin defers the donor`             | `Deferred?` `true`                  | `Haemoglobin below minimum` |
-| `Short rest means the pilot cannot fly`        | `Fit to Fly?` `false`               | `Rest below minimum`        |
-| `Three waste types force three bins`           | the `Bins?` map                     | `Three waste types`         |
-| `No deferral applies`                          | `Deferred?` `false`                 | `Donation 90 days ago`      |
-| `Deferred: donation 30 days ago`               | `Deferred?` `true`                  | `Donation 30 days ago`      |
-| `Unlisted destination keeps the donor eligible`| `Eligible After?` = `Eligible Before?` | `Unlisted destination`   |
-
-Name the condition the row varies — "under what circumstances?", never "what happens?".
-
-Naming the rule is still fine when it makes the outcome guessable: `At the minimum rest period, not
-below it`, `Night duty, two-pilot crew`, `Missing haemoglobin reading` are all good names. The test is
-whether the name repeats a cell, not whether a reader who knows the rule could predict the answer.
-
-Scenario names appear in test failure messages, so clarity helps diagnose failures quickly.
-
-### Write Titles That Form an Index
-
-`@DisplayName` — or the method name when there is none — is the line a reader scans in the report
-index. Judge titles as a set, never one at a time: a title that reads well on its own page can still
-be an unscannable entry in the list.
-
-**Open each title with something that distinguishes it, and keep one grammatical shape across the
-family.** When every title starts with the same word, the index becomes a column of `should…` and the
-distinguishing part arrives last, where scanning cannot reach it. Three titles sharing an
-uninformative opener is enough to make the list unscannable.
-
-**Write an action the code performs, not a label for a topic.** This is the half that is easy to
-miss: a noun phrase can front the varying subject and still say nothing about what the code *does*
-with it. `Deferral interval by donation type` names a topic; `Sets the deferral interval from the
-donation type` names behaviour. The label form is the more tempting mistake, because it looks tidy
-in a list.
-
-| Scans as an index                                    | Does not                           |
-|------------------------------------------------------|------------------------------------|
-| `Sets the deferral interval from donation type`      | `shouldApplyDeferralInterval`      |
-| `Rejects a reading below the haemoglobin minimum`    | `Haemoglobin minimum by donor sex`  |
-| `Defers a donor returning from a listed destination` | `shouldDeferForTravelDestination`  |
-
-Three distinct verbs, each carrying information, and the subject arrives immediately after. One
-outlier does not break a family — a negative or invariant claim (`Donation type does not affect the
-haemoglobin minimum`) often reads best subject-first.
-
-**A title states what your system does, not an external fact it depends on.** Strike the system under
-test from the sentence: if it still reads as true, the title is restating a regulation, a format or a
-domain fact instead of naming behaviour. This is why the action form is safer than the topic form —
-`Donation type sets the deferral interval` survives the strike and reads as policy, while `Sets the
-deferral interval from the donation type` does not stand alone without the system that does it.
-
-**This action voice is the title's alone.** Scenario names stay condition phrases naming the row's
-variation — see **Name Scenarios Descriptively**. A title says what the rule does; a scenario name
-says which case this row is. Writing rows as little sentences is how outcome-echoing names get in.
+Use **boxed types** (`Integer`, `Long`) rather than primitives, so a blank cell converts to `null`.
+**A default for an absent value cannot come from a `@TypeConverter`** — a blank cell never reaches
+one (see Handling Null Values). Write the empty value instead — `[:]`, `[]`, `{}`, `''` — where you
+want the converter to supply defaults, and otherwise let the system under test decide what `null`
+means.
 
 ### Use @Description When It Adds Information
 
@@ -874,90 +1115,6 @@ Annotations on a `@TableTest` method must appear in this order:
 void defersDonorInsideTheInterval(String donationType, int daysSinceLast, int intervalDays, boolean deferred) { ... }
 ```
 
-### Use Concrete Domain Values
-
-Column values should be concrete, meaningful data — not abstract flags or codes. Expectation column values should be traceable to input column values.
-
-**Good** — directory names as inputs, resolved dir traceable to an input column:
-```java
-@TableTest("""
-    Scenario             | Configured Dir | JUnit Dir    | Fallback State | Resolved Dir? | Source?
-    All three set        | my-config      | report/junit | yaml           | my-config     | CONFIGURED
-    Configured dir absent|                | report/junit | yaml           | report/junit  | JUNIT_PROPERTY
-    Only fallback set    |                |              | yaml           | target/junit  | FALLBACK
-    """)
-```
-
-**Bad** — abstract flags, expectation values not traceable to inputs:
-```java
-@TableTest("""
-    Scenario                | Has Config | Override State | Fallback State | Resolved?
-    Config present          | true       | yaml           | yaml           | configured
-    No config, override set | false      | yaml           | yaml           | override
-    No config, no override  | false      |                | yaml           | fallback
-    """)
-```
-In the bad example, `configured`, `override`, and `fallback` in Resolved? are names hardcoded in the test body, not visible in the table. The reader cannot understand the table without reading the test code.
-
-When a value is derived from an input column (e.g., fallback path = Build Dir + "/junit-jupiter"), include the source column so readers can trace the derivation:
-```java
-@TableTest("""
-    Scenario        | Build Dir | Build State | Resolved Dir?
-    Maven fallback  | target    | yaml        | target/junit-jupiter
-    Gradle fallback | build     | yaml        | build/junit-jupiter
-    """)
-```
-Here `target/junit-jupiter` is visibly derived from `Build Dir = target`.
-
-### Use Domain Terminology
-
-Column names should use domain or feature terminology that readers understand without knowing the implementation. Avoid parameter names, variable names, or internal API terms.
-
-| Good (Domain)          | Bad (Implementation)      |
-|------------------------|---------------------------|
-| `JUnit Dir`            | `Override`                |
-| `Build Output`         | `junitOutputDirOverride`  |
-| `Search Locations?`    | `Candidates?`             |
-
-### Make Thresholds Visible
-
-When a rule depends on a threshold or limit, include it as a column — even when the value is constant across every row:
-
-```
-Scenario            | Customer Age | Max Age (Policy) | Eligible?
-Standard customer   | 30           | 75               | yes
-At the limit        | 75           | 75               | yes
-Just over the limit | 76           | 75               | no
-```
-
-Without the threshold column, the number 75 is buried in the code — the reader cannot tell from the table where the boundary is, or whether the rule is strictly greater than. Boundary rows (at the limit, just over) also become natural to add once the threshold is visible.
-
-A constant column often signals configuration. Ask: "Under what circumstances would this value differ?" The answer may reveal a second axis (e.g., the limit varies by category) that belongs as new rows or a separate table.
-
-### Include Traceability Columns
-
-When a table tests a pipeline (input → intermediate result → final result), include the intermediate result as an expectation column. This lets readers trace the logic step by step:
-
-```java
-@TableTest("""
-    Scenario                     | Body Weight (kg) | Renal Function | Dose Band? | Daily Dose (mg)?
-    Adult, normal function       | 70               | Normal         | Standard   | 500
-    Adult, impaired function     | 70               | Impaired       | Reduced    | 250
-    Low weight, normal function  | 40               | Normal         | Low        | 300
-    """)
-```
-
-The `Dose Band?` column is not strictly necessary (the test could verify only `Daily Dose (mg)?`), but it lets the reader trace: weight + renal function → dose band → daily dose. When a row fails, the intermediate column shows where in the pipeline the error occurred.
-
-**Guard:** Only use traceability columns for values the system under test exposes or that represent observable domain concepts. If you would need to reimplement an internal calculation in the test body to populate the column, it doesn't belong — the intermediate likely points to a separate concern that needs its own `@TableTest` method. Decompose into multiple tables instead; the intermediate becomes an output in one table and an input in the next.
-
-### Keep the Method Body Arrange–Act–Assert
-
-Whatever the method body does beyond arranging, acting and asserting is a rule the table cannot show.
-Construction belongs in a `@TypeConverter`, the expected exception in a column, defaulting and
-normalisation outside the body entirely. When you find yourself writing logic in the method, ask
-which column or converter it should have been.
-
 ### Collapse Sparse Columns into a Map
 
 **Decide this from the signature, before drafting columns.** When one parameter of the method under
@@ -1004,90 +1161,6 @@ over-split described under Decompose When You See These Signs.
 
 The map keeps the table compact, each row states only what differs from the defaults, and all construction and defaulting logic lives in the converter — never in the test method body. This applies however the object is normally built (constructor, setters, or builder), and even when a table exercises only one or two of the optional fields: if a method body news up a parameter object and mutates it, that construction belongs in a `@TypeConverter` behind a map column.
 
-### Model Exceptions as Expected Columns
-
-When a table covers error/rejection cases, include the exception type as an expected column (`Throws?` or `Exception?`) — don't hardcode the exception class in the method body. This makes each row's expected outcome visible in the table.
-
-```java
-@TableTest("""
-    Scenario         | Item    | Throws?
-    Unlabelled item  | ''      | IllegalArgumentException
-    Unknown material | ceramic | UnsupportedMaterialException
-    """)
-void rejectsUnsortableItems(String item, Class<? extends Throwable> throws_) {
-    assertThrows(throws_, () -> sorter.classify(item));
-}
-```
-
-**When some rows throw and some do not, keep one assertion.** Use this only where the table's *whole*
-expectation is whether the call is rejected — a boundary straddling a validation limit, the accepted
-value beside the first rejected one. Leave `Throws?` blank where nothing is thrown, and compare the
-thrown type rather than branching:
-
-```java
-@TableTest("""
-    Scenario                | Dose (mg) | Throws?
-    At the minimum dose     | 0         |
-    Just below the minimum  | -0.01     | IllegalArgumentException
-    """)
-void rejectsDoseBelowMinimum(BigDecimal dose, Class<? extends Throwable> throws_) {
-    assertEquals(throws_, thrownBy(() -> validateDose(dose)));
-}
-
-// with the other helpers, at the bottom of the class
-private static Class<? extends Throwable> thrownBy(Executable action) {
-    try {
-        action.execute();
-        return null;
-    } catch (Throwable thrown) {
-        return thrown.getClass();
-    }
-}
-```
-
-Branching on the row to pick between `assertThrows` and `assertDoesNotThrow` is what this avoids: it
-puts the rule back in the method body, where the table cannot show it.
-
-**Do not reach for this when the table also has a value expectation.** A `Result?` column beside a
-`Throws?` column is two concerns — what the operation returns, and what it rejects — and they belong
-in separate tables. Forcing them together produces the broken shape below, where the value assertion
-is swallowed by the exception helper and a wrong result is reported as a thrown
-`AssertionFailedError` instead of a wrong value:
-
-```java
-// WRONG — the value check now only runs when nothing throws, and its failure is
-// caught and compared against the Throws? column
-assertEquals(throws_, thrownBy(() -> assertEquals(bin, sorter.classify(item))));
-```
-
-What a classifier accepts and what it rejects are two tables. A single rule's accept/reject boundary
-is one.
-
-### Null, Empty, and Blank Values
-
-Use blank cells for null, `''` for empty strings, and `'   '` for blank strings.
-
-```java
-@TableTest("""
-    Scenario        | Input | Resolved?
-    Normal input    | hello | HELLO
-    Null input      |       |
-    Empty input     | ''    |
-    Blank input     | '   ' |
-    """)
-void resolves_values(String input, String resolved) {
-    assertThat(transform(input)).isEqualTo(resolved);
-}
-```
-
-**Blank cells mean absent, not irrelevant**: when an input is genuinely *absent* for a scenario, use a blank cell — not `0` or a default value — and use boxed types (`Integer`, `Long`) instead of primitives so the cell converts to `null`. **A default for an absent value cannot come from a `@TypeConverter`**: a blank cell never reaches one (see Handling Null Values). Write the empty value instead — `[:]`, `[]`, `{}`, `''` — where you want the converter to supply defaults, and otherwise let the system under test decide what `null` means. Never default in the test method body.
-
-**Blank vs value set**: Blank cells mean the input is genuinely absent (null). When the input exists but is irrelevant to the outcome, use a value set instead: `{UK, Ireland, Other}` for destination means "destination exists but doesn't affect this result". Don't use blanks for "doesn't matter" — blanks mean null.
-
-**Note**: These are syntax examples, not test design patterns. Null/empty/blank variants of an input belong as rows in the table that covers the feature, not in a separate test method — but **one row per distinct outcome, not one per representation.** Where null, `''` and `'   '` all produce the same rejection, that is one obligation: a single row, or `{'', '   '}` as a value set with a blank-cell row only where the null case must be visible on its own. Three rows are right only when the three actually behave differently.
-
----
-
 ## Workflow
 
 **Budget your reasoning.** If concerns are already listed in the prompt, use them directly — don't re-derive what's already stated. If you find yourself re-analyzing the same concern, stop and write code. Working code you can revise beats perfect analysis that times out.
@@ -1130,42 +1203,52 @@ When there is no existing code (empty `src/main/java`), write the tests first �
 
 ## Quality Checks
 
-After writing, verify:
-- [ ] **Multiple rows**: table has 2+ rows; use `@Test` only for a genuinely standalone single case — a lone error, null, or empty-input case related to an existing table belongs in that table as a row (with a `Throws?` column if it throws), not in a separate `@Test`
+**Table design** — the shared rules above, in checklist form:
+
+<!-- BEGIN GENERATED table-design-checks — do not edit here; source is shared/table-design/ -->
+
+- [ ] **One rule per table**: every row and column serves this table's one axis; a behaviour you cannot name without "and" has been split
+- [ ] **Complete outputs**: all observable outputs of the same rule sit in one table, and every expectation column there is exercised by the rows that table varies — one constant down all rows, or moving only as a side effect of another, belongs to a different rule's table
+- [ ] **Decomposed, not over-split**: no table mixes concerns (blank-throughout columns, qualified scenario names, two groups of expectation columns), and no set of same-fixture tables reports one expectation column that a family column would collapse
+- [ ] **Combining tables prove an interaction**: any table exercising several rules together shows behaviour the single-rule tables cannot (a precedence, an ordering), not the earlier rules re-run end to end
+- [ ] **Rules separated from arithmetic**: every expectation cell is predictable from its row in one step; a classification and the calculation that follows it are two tables
+- [ ] **One row per obligation**: every row discharges a behaviour no other row in that table reaches; where two rows share an expectation, what differs between them is what the rule is about — not a value further past the same boundary, a larger n in the same direction, or an input the rule ignores
+- [ ] **Every tier once**: a tier ladder has one row per tier — all of them, none twice — and every boundary is exercised from both sides, middle tiers included
+- [ ] **Value set semantics**: value sets appear only where every value produces the same result, never as shorthand for "test several values"; an input this rule claims not to affect the outcome varies across the values it ignores, while an input another rule owns is held at one valid value
+- [ ] **Stateful rows independent**: transition rows carry their own before-state and after-state; no row depends on another having run
+- [ ] **Held constants declared**: every value the outcome depends on that the table fixes for all rows is a column, or is named in the title or description as held fixed — never left only in the test body, a field, a conversion helper, or a comment
+- [ ] **Titles form an index**: read the titles as a sorted list — each states an action the code performs (not a label for a topic), one grammatical shape runs across them, and no three share an uninformative opener
+- [ ] **No scenario name restates its own row's answer**: read each scenario name beside the expectation cells of that row — none states or paraphrases one of them, and none is a generic label
+- [ ] **Expectation columns marked**: at least one column uses the `?` suffix (never a prefix), no input column does, and a compound result stays a native collection rather than a flattened string
+- [ ] **Rejection expressed as data**: rejected rows carry the error type or reason in an expectation column, never a hardcoded outcome in the body; accepted and rejected rows share a table only where striking the rejected rows would leave a table stating nothing, and no row branches the assertion
+- [ ] **Concrete values**: expectation values are literal domain values traceable to the input columns of their own row — not abstract codes, and not hidden behind named constants
+- [ ] **Domain language**: column names use the business vocabulary, not parameter names, field names or internal API terms
+- [ ] **Thresholds visible**: a rule that depends on a threshold or limit shows it as a column, with boundary rows at and just past it
+- [ ] **Traceability columns**: an intermediate expectation appears only where the value is observable from the public API — never reimplemented from internal logic; if a formula would have to be reimplemented to fill it, decompose instead
+- [ ] **Blank means absent**: a column whose input is genuinely absent for a row uses a blank cell, not 0 or a default; an input that is present but irrelevant is a value set instead, and nothing converts a blank to a default on the way in
 - [ ] **Black-box design**: columns represent observable inputs and outputs, not internal flags or implementation details
-- [ ] **Domain language**: column names use the business vocabulary, not parameter or field names
-- [ ] **No name restates its own row's answer**: read each scenario name beside the expectation cells of that row — no name states or paraphrases one of them, and none carries a verdict-led prefix
+
+<!-- END GENERATED table-design-checks -->
+
+**TableTest mechanics** — what a `@TableTest` needs beyond a well-designed table:
+
+- [ ] **Multiple rows**: table has 2+ rows; use `@Test` only for a genuinely standalone single case — a lone error, null, or empty-input case related to an existing table belongs in that table as a row (with a `Throws?` column if it throws), not in a separate `@Test`
 - [ ] **Uniform assertions**: all rows use the same assertion logic; split into separate TableTests if logic differs per row
 - [ ] **Straightforward method**: no `if`/`switch`/ternary — not even null-guards or defaulting, which belong in a `@TypeConverter` or helper; the method only arranges, acts, and asserts
 - [ ] **Parameter alignment**: parameters match data columns left-to-right (excluding scenario column)
 - [ ] **Parameter conversion**: custom type converter methods (annotated `@TypeConverter`) or JUnit converters handle type conversion, keeping the test method free of parsing code
 - [ ] **Valid syntax**: values requiring quotes are quoted, collections use correct bracket syntax, empty collections are explicit (`[]`, `{}`, `[:]`)
-- [ ] **Expectation columns present**: at least one column uses `?` suffix (not prefix)
-- [ ] **Concrete values**: expectation values are traceable to input column values where applicable
-- [ ] **Thresholds visible**: rules that depend on a threshold or limit show it as a column, with boundary rows at and just past the threshold; for date cutoffs, prefer descriptive relative values (`before cutoff`, `on cutoff`) via a `@TypeConverter` — or include the cutoff date as a column if literal dates are used
+- [ ] **Boxed types for absent inputs**: a column that can be blank uses `Integer`/`Long`/`Boolean`, not a primitive
 - [ ] **Correct expected values**: arithmetic in expected columns verified independently; every row's output matches the stated rules
-- [ ] **Value set semantics**: value sets only used where every value produces the same result; not used as shorthand for "test multiple values"
-- [ ] **An input the rule claims to ignore varies**: where the rule says an input does not affect the outcome, a value set spans the values it ignores — never a fixed placeholder pinned in a converter, a field or the method body, and never merely asserted in `@Description`. An input this rule never mentions is the other case: hold it at one valid value and let its own table vary it
-- [ ] **One row per obligation**: every row discharges a behaviour no other row in that table reaches; where two rows share an expectation, what differs between them is what the rule is about — not a value further past the same boundary, a larger n in the same direction, or an input the rule ignores
-- [ ] **Every tier once**: a tier ladder has one row per tier — all of them, none twice, no "tier begins" row beside a "tier holds" row; each row's value set spans its tier, both boundaries included
-- [ ] **Combining tables prove an interaction**: any table exercising several rules together shows behaviour the single-rule tables cannot (a precedence, an ordering), not the earlier rules re-run end to end
-- [ ] **Blank means absent**: a column whose input is genuinely absent for a row uses a blank cell (not 0 or a default), with a parameter type that accepts null — an input that is present but irrelevant is a value set instead
-- [ ] **Traceability columns**: intermediate expected values included only when the value is observable from the public API — never reimplemented from internal logic; if you need to reimplement a formula to populate the column, decompose into separate tables instead
-- [ ] **Held constants declared**: every value the outcome depends on that the table fixes for all rows is a column, or is named in the `@DisplayName`/`@Description` as held fixed — never left in the method body, a field, a `@TypeConverter`, or a `//` comment
-- [ ] **Titles form an index**: read the class's titles as a sorted list — each states an action the code performs (not a label for a topic), one grammatical shape runs across them, and no three share an uninformative opener (`should…`, `test…`, `verify…`)
+- [ ] **Exception column**: error/rejection tables have a `Throws?` or `Exception?` column, not hardcoded exception classes in the method body
 - [ ] **@Description free of internals**: no internal formula or algorithm; a reader must not be able to recompute the expectation cells from the description alone
-- [ ] **One rule per table**: all observable outputs of the same rule sit in one table, and every expectation column there is exercised by the rows that table varies — one constant down all rows, or moving only as a side effect of another, belongs to a different rule's table
 - [ ] **@Description adds information**: if present, `@Description` provides context beyond what the table shows (fixed values, domain context, open questions) — not a restatement of columns or rows. Omit `@Description` if there is nothing to add.
 - [ ] **@Description uses text block**: `@Description` uses `"""` text blocks, not string concatenation with `+`
 - [ ] **Annotation order**: `@DisplayName` → `@Description` → `@TableTest` (no other order)
-- [ ] **Exception column**: error/rejection tables have a `Throws?` or `Exception?` column, not hardcoded exception classes in the method body
-- [ ] **Row coherence**: rows match the type of logic being tested (decision points for priority logic, input variations for parsing logic); out-of-place rows may signal mixed responsibilities in the code under test
 - [ ] **Column consolidation**: if multiple columns are mutually exclusive (both identity and status vary together), consider consolidating into single column with composite values (e.g., `Primary OK`, `Secondary ERROR`)
 - [ ] **Cross-table consistency**: if multiple TableTests exist in the same class, use consistent notation for similar concerns (timing, errors, special values); share parsers and helper methods
 - [ ] **Test helpers organized**: helper classes placed at bottom of test file with clear names (`QueryCounter`, not `Helper`); only extract to separate file when reused across test classes
 - [ ] **Old framework removed** (conversions only): no imports, matcher/assertion calls, or build-file dependencies from the framework being replaced
-
----
 
 ## Advanced References
 
