@@ -1035,9 +1035,9 @@ function setupWorktree(repoRoot, mode = "skill", args = {}) {
     removals.push(`skills/${args.skill}/ (no-skill baseline)`);
   }
 
-  // An empty config directory, so the agent cannot reach this project's auto-memory.
-  fs.mkdirSync(agentConfigDir(worktreePath), { recursive: true });
-  removals.push("agent memory (isolated CLAUDE_CONFIG_DIR)");
+  // Last, so every git-dependent step above has already run.
+  severWorktreeFromRepo(worktreePath);
+  removals.push("the .git link (agent memory follows project identity, which follows git)");
 
   log(`  Removed for isolation: ${removals.join(", ")}`);
   return worktreePath;
@@ -1067,11 +1067,13 @@ function applyVariant(worktreePath, skillName, variantSourceDir) {
 
 function cleanupWorktree(worktreePath) {
   log("Cleaning up worktree...");
-  try { fs.rmSync(agentConfigDir(worktreePath), { recursive: true, force: true }); } catch {}
   try {
     const repoRoot = execSync("git rev-parse --show-toplevel", { encoding: "utf-8" }).trim();
     const branch = path.basename(worktreePath);
-    execSync(`git worktree remove "${worktreePath}" --force`, { cwd: repoRoot, stdio: "pipe" });
+    // The .git link is removed for isolation, so `git worktree remove` no longer recognises the
+    // directory; delete it and let prune clear the administrative files.
+    fs.rmSync(worktreePath, { recursive: true, force: true });
+    execSync("git worktree prune", { cwd: repoRoot, stdio: "pipe" });
     // Clean up the temporary branch
     try { execSync(`git branch -D "${branch}"`, { cwd: repoRoot, stdio: "pipe" }); } catch {}
   } catch {
@@ -1092,32 +1094,32 @@ function cleanupWorktree(worktreePath) {
  *
  * Grading is unaffected: it posts to the API directly and still needs the key.
  */
-function generationEnv(baseEnv, { apiGeneration = false, provider = "anthropic", configDir = null } = {}) {
+function generationEnv(baseEnv, { apiGeneration = false, provider = "anthropic" } = {}) {
   const env = { ...baseEnv };
   if (!apiGeneration) delete env.ANTHROPIC_API_KEY;
   if (provider === "ollama") {
     env.ANTHROPIC_BASE_URL = "http://localhost:11434";
     env.ANTHROPIC_AUTH_TOKEN = "ollama";
   }
-  if (configDir) env.CLAUDE_CONFIG_DIR = configDir;
   return env;
 }
 
 /**
- * The agent's config directory for a run, kept beside the worktree and deleted with it.
+ * Severs the eval workspace from this repository, so the agent cannot inherit its identity.
  *
- * Without this the agent inherits the *plugin repo's* project identity, and with it that
- * project's auto-memory. The path is not derived from the agent's cwd: the eval workspace is a
- * git worktree of this repo, so the CLI resolves the project through git and lands on
- * `~/.claude/projects/-Users-…-tabletest-claude-plugin/memory/` — development notes about the
- * evals themselves, one of which contradicts a graded rule. Observed 2026-08-02: eval-24 read a
- * file out of it mid-run.
+ * `git worktree add` leaves a `.git` file pointing back here, and the CLI resolves a session's
+ * project through git — which is why the agent's auto-memory was this project's, holding
+ * development notes about the evals, one of them contradicting a graded rule. eval-24 read from it
+ * mid-run on 2026-08-01. Without the link the project resolves to the throwaway workspace path,
+ * whose memory directory does not exist.
  *
- * Relocating the whole config directory is safe for auth — OAuth comes from the keychain, not
- * from here — and gives the run an empty `projects/`, so there is no memory to find.
+ * Relocating `CLAUDE_CONFIG_DIR` was tried first and reverted: OAuth is bound to the config
+ * directory, so a relocated run is "Not logged in" unless it carries an `ANTHROPIC_API_KEY`, which
+ * subscription generation deliberately strips.
  */
-function agentConfigDir(worktreePath) {
-  return `${worktreePath}-config`;
+function severWorktreeFromRepo(worktreePath) {
+  const gitLink = path.join(worktreePath, ".git");
+  if (fs.existsSync(gitLink)) fs.rmSync(gitLink, { recursive: true, force: true });
 }
 
 /**
@@ -1131,11 +1133,13 @@ function agentConfigDir(worktreePath) {
  *
  * Returns one entry per distinct kind of reach, each with the text that proves it.
  */
-function contaminationHits(conversationJsonl, { repoRoot, configDir = null }) {
+function contaminationHits(conversationJsonl, { repoRoot }) {
   const probes = [
     { kind: "answer-key", pattern: "expected_output" },
     { kind: "host-checkout", pattern: repoRoot },
-    { kind: "agent-memory", pattern: configDir ? null : "/.claude/projects/" },
+    // Stays armed: severing the .git link is what should keep the agent out of this project's
+    // memory, and this probe is the check that it did.
+    { kind: "agent-memory", pattern: "/.claude/projects/" },
   ];
   const hits = [];
   for (const { kind, pattern } of probes) {
@@ -1211,7 +1215,7 @@ const THINKING_DISPLAY_REQUEST = {
   },
 };
 
-function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, configDir = null, apiGeneration = false, timeoutMs = 600000 }) {
+function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, apiGeneration = false, timeoutMs = 600000 }) {
   return new Promise((resolve, reject) => {
     let settled = false;
     const settle = (fn, value) => {
@@ -1238,7 +1242,7 @@ function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, conf
     let stdout = "";
     let stderr = "";
 
-    const env = generationEnv(process.env, { apiGeneration, provider, configDir });
+    const env = generationEnv(process.env, { apiGeneration, provider });
 
     const proc = spawn("claude", args, {
       cwd,
@@ -1396,7 +1400,6 @@ async function generateOne(evalDef, worktreePath, iterationDir, args) {
       provider,
       cwd: agentCwd,
       pluginDir: agentCwd,
-      configDir: worktreePath ? agentConfigDir(worktreePath) : null,
       apiGeneration: args.apiGeneration,
       timeoutMs: generationTimeoutFor(evalDef, args),
     });
@@ -1441,10 +1444,7 @@ async function generateOne(evalDef, worktreePath, iterationDir, args) {
         "utf-8"
       );
 
-      const reached = contaminationHits(result._conversationJsonl, {
-        repoRoot,
-        configDir: worktreePath ? agentConfigDir(worktreePath) : null,
-      });
+      const reached = contaminationHits(result._conversationJsonl, { repoRoot });
       if (reached.length > 0) {
         fs.writeFileSync(
           path.join(evalDir, "contamination.json"),
