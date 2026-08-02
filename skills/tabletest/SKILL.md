@@ -1258,9 +1258,15 @@ The map keeps the table compact, each row states only what differs from the defa
 
 **Write incrementally.** For multi-concern features, write one `@TableTest` method at a time using the Write tool. Don't attempt to generate the entire test class in a single response — each method written is a checkpoint that can't be lost to a timeout.
 
-**Align the table before you finish.** `scripts/format-table.sh <file>` pads the columns and lines
-up the pipes; it ships with this skill. It also tells you whether a table parses at all — see
-*Checking a Table Parses* below.
+**Align the table before you finish.** Run
+
+```
+${CLAUDE_PLUGIN_ROOT}/skills/tabletest/scripts/format-table.sh <file>
+```
+
+It pads the columns and lines up the pipes; it ships with this skill, and that variable is the only
+reliable way to reach it — the path is not relative to your working directory. It also tells you
+whether a table parses at all — see *Checking a Table Parses* below.
 
 ### Converting Existing Tests
 
@@ -1298,13 +1304,17 @@ When there is no existing code (empty `src/main/java`), write the tests first �
 
 ### Checking a Table Parses Without Running the Build
 
-`scripts/format-table.sh` returns a table unchanged when it cannot parse it — silently, by design, so
-formatting never breaks a build. That makes it a parse check if you give it something to change:
+The formatter returns a table unchanged when it cannot parse it — silently, by design, so formatting
+never breaks a build. That makes it a parse check if you give it something to change:
 
 1. Knock one column out of alignment (add or drop a space before a `|`).
-2. Run `scripts/format-table.sh --check <file>`.
+2. Run `${CLAUDE_PLUGIN_ROOT}/skills/tabletest/scripts/format-table.sh --check <file>`.
 3. **Exit 1 — it parsed** and wants to realign. **Exit 0 — it did not parse**, so the table is
    malformed and the row it choked on is the one to look at.
+
+**Read stderr before you trust an exit 0.** A missing formatter also exits 0, after printing
+`WARNING: tabletest-formatter not found`. That warning means the check did not run — it is not a
+verdict on your table.
 
 Use it whenever you have invented a cell format, nested a collection, or quoted something you were
 unsure about. It answers in under a second what a `gradle test` round answers in minutes.
