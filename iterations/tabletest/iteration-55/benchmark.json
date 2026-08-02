@@ -1,0 +1,66 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 55,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "33151d672f572d3e246adf68e708b2375f063c9e",
+  "skill_digest": "2762a8f41bd9b28b",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-02T22:07:13.602Z",
+  "evals": [
+    {
+      "id": "eval-30-order-splitting-tt",
+      "name": "order splitting tt",
+      "skill": "tabletest",
+      "fingerprint": "a38b95cf8502",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 26,
+        "assertions_total": 26,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 1320492,
+        "duration_ms": 433586,
+        "cost_usd": 1.5151176000000004,
+        "grading_usage": {
+          "input_tokens": 27091,
+          "output_tokens": 7712,
+          "total_tokens": 34803,
+          "calls": 2,
+          "cost_usd": 0.196953,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 26,
+    "assertions_total": 26,
+    "pass_rate": 1,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 1320492,
+    "total_duration_ms": 433586,
+    "total_cost_usd": 1.5151176000000004,
+    "grading": {
+      "input_tokens": 27091,
+      "output_tokens": 7712,
+      "total_tokens": 34803,
+      "calls": 2,
+      "cost_usd": 0.196953,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}

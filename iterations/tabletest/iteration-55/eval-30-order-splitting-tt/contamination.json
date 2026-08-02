@@ -1,0 +1,7 @@
+[
+  {
+    "kind": "host-checkout",
+    "tool": "Bash",
+    "evidence": "{\"command\":\"bash /Users/nch/tabletest/tabletest-claude-plugin/skills/tabletest/scripts/format-table.sh src/test/java/com/example/orders/OrderSplitterTest.java > /tmp/formatted.java 2>&1; diff src/test/java/com/example/orders/OrderSplitterTest.java /tmp/formatted.java | head -100\",\"description\":\"Run "
+  }
+]
