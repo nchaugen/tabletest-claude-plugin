@@ -1,0 +1,60 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "1 markdown table(s); first header: Scenario | Bulk Discount % | Loyalty Discount % | Combined % — Stack (Uncapped)? | Combined % — Highest Only? | Combined % — Stack, Capped at 25%?"
+    },
+    {
+      "id": "does-not-invent-resolution",
+      "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved",
+      "passed": true,
+      "evidence": "computed three ways side by side, so the team can look at concrete numbers and pick one"
+    },
+    {
+      "id": "covers-both-discounts-applying",
+      "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)",
+      "passed": true,
+      "evidence": "Both earned, well under any reasonable cap | 10 | 5 | 15 | 10 | 15"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note",
+      "passed": true,
+      "evidence": "What this table shows, worth raising explicitly with the team ... Worth asking: should the cap be higher..."
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Question-mark columns: Combined % — Stack (Uncapped)?, Combined % — Highest Only?, Combined % — Stack, Capped at 25%?"
+    },
+    {
+      "id": "extreme-discount-row",
+      "text": "Table includes at least one row with a high combined discount (e.g. large order + top loyalty tier) that would force a decision about whether a cap applies — making the cap question concrete, not theoretical.",
+      "passed": true,
+      "evidence": "Both at maximum tier, combined far exceeds the proposed cap | 20 | 25 | 45 | 25 | 25"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\""
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 7,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 2429,
+    "output_tokens": 657,
+    "total_tokens": 3086,
+    "calls": 1,
+    "cost_usd": 0.017142,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}

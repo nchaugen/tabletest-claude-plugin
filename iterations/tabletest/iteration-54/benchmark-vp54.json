@@ -1,0 +1,71 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 54,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "d7ef2f6614245fd8af5f83a7e014ba1568b207d4",
+  "skill_digest": "2762a8f41bd9b28b",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-02T21:50:38.736Z",
+  "evals": [
+    {
+      "id": "eval-29-shopping-cart-tt",
+      "name": "shopping cart tt",
+      "skill": "tabletest",
+      "fingerprint": "9209ab13def7",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 28,
+        "assertions_total": 32,
+        "pass_rate": 0.875,
+        "failed_assertions": [
+          "scenario-names-describe-conditions",
+          "type-converters-for-complex-objects",
+          "rule-falsifiable-by-a-row",
+          "quantifier-covered-by-rows"
+        ],
+        "total_tokens": 1192403,
+        "duration_ms": 326727,
+        "cost_usd": 1.4499255999999998,
+        "grading_usage": {
+          "input_tokens": 34256,
+          "output_tokens": 18114,
+          "total_tokens": 52370,
+          "calls": 3,
+          "cost_usd": 0.374478,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 28,
+    "assertions_total": 32,
+    "pass_rate": 0.875,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 1192403,
+    "total_duration_ms": 326727,
+    "total_cost_usd": 1.4499255999999998,
+    "grading": {
+      "input_tokens": 34256,
+      "output_tokens": 18114,
+      "total_tokens": 52370,
+      "calls": 3,
+      "cost_usd": 0.374478,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}
