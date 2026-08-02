@@ -15,6 +15,7 @@ const os = require("node:os");
 const path = require("node:path");
 
 const {
+  contaminationHits,
   parseLlmGrading,
   repairGradingJson,
   extractJson,
@@ -1868,5 +1869,59 @@ describe("classifying a generation failure", () => {
     ].join("\n");
     assert.equal(lastAssistantText(lines), "last");
     assert.equal(lastAssistantText(""), "");
+  });
+});
+
+describe("contaminationHits", () => {
+  const toolCall = (name, input) => JSON.stringify({
+    type: "assistant",
+    message: { content: [{ type: "tool_use", name, input }] },
+  });
+
+  test("reports an agent that reached the host checkout the worktree was copied from", () => {
+    const jsonl = toolCall("Bash", { command: 'grep -rl "x" /repo/evals/tabletest' });
+    const hits = contaminationHits(jsonl, { repoRoot: "/repo", configDir: "/tmp/cfg" });
+    assert.deepEqual(hits.map((h) => h.kind), ["host-checkout"]);
+    assert.equal(hits[0].tool, "Bash");
+  });
+
+  test("reports a read of an answer key", () => {
+    const jsonl = toolCall("Read", { file_path: "/elsewhere/eval-1/expected_output.md" });
+    const hits = contaminationHits(jsonl, { repoRoot: "/repo", configDir: "/tmp/cfg" });
+    assert.deepEqual(hits.map((h) => h.kind), ["answer-key"]);
+  });
+
+  test("stays silent on a run that only touched its own workspace", () => {
+    const jsonl = [
+      toolCall("Read", { file_path: "/tmp/wt/eval-1-work/src/Main.java" }),
+      toolCall("Bash", { command: "gradle test" }),
+    ].join("\n");
+    assert.deepEqual(contaminationHits(jsonl, { repoRoot: "/repo", configDir: "/tmp/cfg" }), []);
+  });
+
+  test("watches the memory directory only when the run was not given an isolated config dir", () => {
+    const jsonl = toolCall("Bash", { command: "cat /Users/x/.claude/projects/p/memory/m.md" });
+    assert.equal(contaminationHits(jsonl, { repoRoot: "/repo", configDir: null }).length, 1);
+    assert.equal(contaminationHits(jsonl, { repoRoot: "/repo", configDir: "/tmp/cfg" }).length, 0);
+  });
+
+  test("ignores the pattern outside a tool call, so a prompt mentioning it is not a breach", () => {
+    const jsonl = JSON.stringify({
+      type: "assistant",
+      message: { content: [{ type: "text", text: "I will not read expected_output.md" }] },
+    });
+    assert.deepEqual(contaminationHits(jsonl, { repoRoot: "/repo", configDir: "/tmp/cfg" }), []);
+  });
+});
+
+describe("generationEnv config isolation", () => {
+  test("points the agent at the run's own config dir, so it cannot reach this project's memory", () => {
+    const env = generationEnv({ PATH: "/bin" }, { configDir: "/tmp/eval-x-config" });
+    assert.equal(env.CLAUDE_CONFIG_DIR, "/tmp/eval-x-config");
+  });
+
+  test("leaves the variable alone when no config dir is given, as in a grade-only run", () => {
+    const env = generationEnv({ PATH: "/bin" }, {});
+    assert.equal("CLAUDE_CONFIG_DIR" in env, false);
   });
 });

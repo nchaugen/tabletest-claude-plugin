@@ -906,7 +906,7 @@ async function main() {
 
   try {
     if (!args.gradeOnly) {
-      await generateResponses(evals, worktreePath, iterationDir, args);
+      await generateResponses(evals, worktreePath, iterationDir, args, repoRoot);
     }
     if (args.rebuild) {
       const suffix = args.gradingSuffix ? `-${args.gradingSuffix}` : "";
@@ -1035,6 +1035,10 @@ function setupWorktree(repoRoot, mode = "skill", args = {}) {
     removals.push(`skills/${args.skill}/ (no-skill baseline)`);
   }
 
+  // An empty config directory, so the agent cannot reach this project's auto-memory.
+  fs.mkdirSync(agentConfigDir(worktreePath), { recursive: true });
+  removals.push("agent memory (isolated CLAUDE_CONFIG_DIR)");
+
   log(`  Removed for isolation: ${removals.join(", ")}`);
   return worktreePath;
 }
@@ -1063,6 +1067,7 @@ function applyVariant(worktreePath, skillName, variantSourceDir) {
 
 function cleanupWorktree(worktreePath) {
   log("Cleaning up worktree...");
+  try { fs.rmSync(agentConfigDir(worktreePath), { recursive: true, force: true }); } catch {}
   try {
     const repoRoot = execSync("git rev-parse --show-toplevel", { encoding: "utf-8" }).trim();
     const branch = path.basename(worktreePath);
@@ -1087,14 +1092,71 @@ function cleanupWorktree(worktreePath) {
  *
  * Grading is unaffected: it posts to the API directly and still needs the key.
  */
-function generationEnv(baseEnv, { apiGeneration = false, provider = "anthropic" } = {}) {
+function generationEnv(baseEnv, { apiGeneration = false, provider = "anthropic", configDir = null } = {}) {
   const env = { ...baseEnv };
   if (!apiGeneration) delete env.ANTHROPIC_API_KEY;
   if (provider === "ollama") {
     env.ANTHROPIC_BASE_URL = "http://localhost:11434";
     env.ANTHROPIC_AUTH_TOKEN = "ollama";
   }
+  if (configDir) env.CLAUDE_CONFIG_DIR = configDir;
   return env;
+}
+
+/**
+ * The agent's config directory for a run, kept beside the worktree and deleted with it.
+ *
+ * Without this the agent inherits the *plugin repo's* project identity, and with it that
+ * project's auto-memory. The path is not derived from the agent's cwd: the eval workspace is a
+ * git worktree of this repo, so the CLI resolves the project through git and lands on
+ * `~/.claude/projects/-Users-…-tabletest-claude-plugin/memory/` — development notes about the
+ * evals themselves, one of which contradicts a graded rule. Observed 2026-08-02: eval-24 read a
+ * file out of it mid-run.
+ *
+ * Relocating the whole config directory is safe for auth — OAuth comes from the keychain, not
+ * from here — and gives the run an empty `projects/`, so there is no memory to find.
+ */
+function agentConfigDir(worktreePath) {
+  return `${worktreePath}-config`;
+}
+
+/**
+ * Answer keys the agent could have reached, found by reading what it actually did.
+ *
+ * The worktree strip removes `expected_output.md` from the *copy*; it cannot remove it from the
+ * checkout the copy was made from, and generation runs with permissions bypassed, so a deny rule
+ * would not hold. Detection is the honest control: a run that reaches outside its workspace is
+ * visible instead of silent. eval-15 addressed the host checkout directly on 2026-08-01 — it
+ * searched only `*.java` and found nothing, but the answer keys were one glob away.
+ *
+ * Returns one entry per distinct kind of reach, each with the text that proves it.
+ */
+function contaminationHits(conversationJsonl, { repoRoot, configDir = null }) {
+  const probes = [
+    { kind: "answer-key", pattern: "expected_output" },
+    { kind: "host-checkout", pattern: repoRoot },
+    { kind: "agent-memory", pattern: configDir ? null : "/.claude/projects/" },
+  ];
+  const hits = [];
+  for (const { kind, pattern } of probes) {
+    if (!pattern) continue;
+    for (const line of conversationJsonl.split("\n")) {
+      if (!line.includes(pattern)) continue;
+      // Only the agent's own actions count. The prompt and the harness's own frames mention
+      // neither, so any occurrence in a tool call is the agent reaching.
+      let frame;
+      try { frame = JSON.parse(line); } catch { continue; }
+      const content = frame?.message?.content;
+      if (!Array.isArray(content)) continue;
+      const use = content.find(
+        (b) => b.type === "tool_use" && JSON.stringify(b.input || {}).includes(pattern)
+      );
+      if (!use) continue;
+      hits.push({ kind, tool: use.name, evidence: JSON.stringify(use.input).slice(0, 300) });
+      break;
+    }
+  }
+  return hits;
 }
 
 /**
@@ -1149,7 +1211,7 @@ const THINKING_DISPLAY_REQUEST = {
   },
 };
 
-function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, apiGeneration = false, timeoutMs = 600000 }) {
+function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, configDir = null, apiGeneration = false, timeoutMs = 600000 }) {
   return new Promise((resolve, reject) => {
     let settled = false;
     const settle = (fn, value) => {
@@ -1176,7 +1238,7 @@ function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, apiG
     let stdout = "";
     let stderr = "";
 
-    const env = generationEnv(process.env, { apiGeneration, provider });
+    const env = generationEnv(process.env, { apiGeneration, provider, configDir });
 
     const proc = spawn("claude", args, {
       cwd,
@@ -1238,7 +1300,7 @@ function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, apiG
   });
 }
 
-async function generateResponses(evals, worktreePath, iterationDir, args) {
+async function generateResponses(evals, worktreePath, iterationDir, args, repoRoot) {
   log(
     `\nGenerating responses (parallel=${args.parallel})...`
   );
@@ -1334,6 +1396,7 @@ async function generateOne(evalDef, worktreePath, iterationDir, args) {
       provider,
       cwd: agentCwd,
       pluginDir: agentCwd,
+      configDir: worktreePath ? agentConfigDir(worktreePath) : null,
       apiGeneration: args.apiGeneration,
       timeoutMs: generationTimeoutFor(evalDef, args),
     });
@@ -1377,6 +1440,20 @@ async function generateOne(evalDef, worktreePath, iterationDir, args) {
         narrationMarkdown(result._conversationJsonl, evalDef.id),
         "utf-8"
       );
+
+      const reached = contaminationHits(result._conversationJsonl, {
+        repoRoot,
+        configDir: worktreePath ? agentConfigDir(worktreePath) : null,
+      });
+      if (reached.length > 0) {
+        fs.writeFileSync(
+          path.join(evalDir, "contamination.json"),
+          JSON.stringify(reached, null, 2),
+          "utf-8"
+        );
+        log(`  ⚠️  ISOLATION BREACH in ${evalDef.id} — this run's result is not trustworthy:`);
+        for (const hit of reached) log(`      ${hit.kind} via ${hit.tool}: ${hit.evidence}`);
+      }
     }
 
     harvestGeneratedFiles(agentCwd, evalDir, evalDef);
@@ -3118,6 +3195,7 @@ if (require.main === module) {
 // collaborators as arguments, so the suite needs no network and no eval fixtures.
 module.exports = {
   classifyGenerationFailure,
+  contaminationHits,
   lastAssistantText,
   harvestGeneratedFiles,
   computeEvalFingerprint,

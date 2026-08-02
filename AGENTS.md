@@ -452,6 +452,21 @@ versions on things that were never published, and buys nothing — `run-evals.js
 the instrument is the git commit (official runs build their worktree from HEAD) and the
 `skill_commit`/`skill_digest` provenance stamped into each `benchmark.json`.
 
+**What isolates a generation run, and what only detects a breach.** `setupWorktree` strips the
+answer keys (`eval.json`, `expected_output.md`), `docs/`, `iterations/`, `skill-variants/` and the
+root markdown from the worktree copy, and hands the agent an **empty `CLAUDE_CONFIG_DIR`** beside
+it. That last one is not optional and is easy to lose: the eval workspace is a git worktree of this
+repo, so without it the CLI resolves the project through git and the agent inherits *this project's*
+auto-memory — development notes about the evals, one of which contradicts a graded rule. Relocating
+the config directory is safe for auth; OAuth comes from the keychain.
+
+**The host checkout cannot be fenced off**, because generation runs with permissions bypassed and
+the originals of the stripped files live there. `contaminationHits` therefore reads each transcript
+after the run and writes `contamination.json` into the eval directory if the agent addressed the
+repo root or any `expected_output`. **A run with that file is not evidence** — regenerate it before
+using the number. Both holes were found on 2026-08-02 by reading transcripts; the detector
+reproduces those two historical hits and flags nothing else in 31 runs.
+
 **When the batch run shows a regression, bisect — don't re-run the suite.** Re-run *only the
 regressed evals* against each promotion commit in the batch. That is per-eval money (~$1 each),
 so attributing a two-eval regression across four promotions costs a few dollars, not $60. The
