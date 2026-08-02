@@ -88,7 +88,7 @@ Use blank cells for `null` (reference types). Use `''` for empty strings. Use `'
 
 **The parser does not know your parameter type.** Parsing happens first and conversion after, so
 `[a: b]` is a map even when the parameter is `List<String>`. That is why a colon inside brackets
-forces quotes and a colon in a whole cell does not: `Invalid code: BOGUS` needs none.
+forces quotes and a colon in a whole cell does not: `Alert: condensation risk` needs none.
 
 ```java
 @TableTest("""
@@ -99,7 +99,7 @@ forces quotes and a colon in a whole cell does not: `Invalid code: BOGUS` needs 
                       | Blank cell = null
     "[1,2,3]"         | Quote to avoid list syntax
     "{a,b}"           | Quote to avoid set syntax
-    Invalid code: X   | A colon in a whole cell needs no quotes
+    Alert: humid     | A colon in a whole cell needs no quotes
     """)
 void quotesSpecialCharacters(String value, String description) { ... }
 ```
@@ -111,10 +111,10 @@ anything, and over-quoting obscures the data as much as under-quoting costs a bu
 special character, quote only that element: `[path: 'C:\\Users']`, not `'[path: C:\\Users]'`. The quotes
 wrap the problematic element, not the entire collection.
 
-**A colon inside brackets is the case that catches people.** `[tech:java, biz:sales]` is a *map* with
-keys `tech` and `biz`, whatever the parameter says — and `[tech:java, tech:python]` fails outright
-with `Duplicate key 'tech'`. For a list of such values, quote every element:
-`["tech:java", "biz:sales"]`.
+**A colon inside brackets is the case that catches people.** `[glass: rinsed, paper: dry]` is a
+*map* with keys `glass` and `paper`, whatever the parameter says — and `[glass: rinsed, glass:
+soiled]` fails outright with `Duplicate key 'glass'`. For a *list* of such values, quote every
+element: `["glass:rinsed", "glass:soiled"]`.
 
 **Newlines in values**: To include a newline character inside a table value, write `\\n` in the table (keeps the row on one line), then process it manually in the test method: `value.replace("\\n", "\n")`. Do not use a literal newline — it would split the row across lines. Note: Java text blocks process `\n` into a real newline before TableTest sees it, so use double-backslash `\\n` to preserve it as text for manual processing.
 
@@ -163,8 +163,8 @@ JUnit converts many standard types automatically: primitives, `String`, `Path`, 
 
 Conversion also applies to collection elements, at any depth, and **a custom `@TypeConverter` is
 reached the same way a built-in converter is**: `[com/example]` → `List<Path>`, `[Bob: 1980-03-04]`
-→ `Map<String, LocalDate>`, `{https://claude.ai}` → `Set<URL>`, and `[[type: SINGLE], [type:
-WEEKLY]]` → `List<Purchase>` through a converter taking a `Map`. Nested collections work for the
+→ `Map<String, LocalDate>`, `{https://claude.ai}` → `Set<URL>`, and `[[component: plasma, days: 30],
+[component: whole blood, days: 90]]` → `List<Donation>` through a converter taking a `Map`. Nested collections work for the
 same reason — `List<Set<String>>` converts element by element.
 
 **Date format limitation**: Built-in `LocalDate`/`LocalDateTime` conversion only handles ISO 8601 (`yyyy-MM-dd`). Anything else — a dotted European date (`04.03.1980`), a written month (`4 March 1980`), a locale-specific pattern — fails at runtime, and the failure is a conversion error rather than a wrong value. A column carrying non-ISO dates needs a `@TypeConverter` (see Custom Type Converters below).

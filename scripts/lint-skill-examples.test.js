@@ -194,6 +194,23 @@ void sortsItemIntoBin(String item, Bin bin) { assertEquals(bin, sorter.sort(item
   });
 });
 
+describe("eval-domain-in-skill", () => {
+  test("flags a domain the eval suite owns, wherever in the file it appears", () => {
+    const hits = lintMarkdown("SKILL.md", "Include rows at the boundary (40 hours for an overtime threshold).");
+    assert.deepEqual(hits.map((h) => h.check), ["eval-domain-in-skill"]);
+  });
+
+  test("passes a reserved domain, which is what illustrations are supposed to use", () => {
+    const hits = lintMarkdown("SKILL.md", "Include rows at the boundary (13 hours for a duty-time limit).");
+    assert.deepEqual(hits, []);
+  });
+
+  test("catches the term in prose, not only inside a fenced example", () => {
+    const hits = lintMarkdown("SKILL.md", "A shopping cart is a familiar case.");
+    assert.equal(hits.length, 1);
+  });
+});
+
 describe("lintMarkdown", () => {
   test("anchors each violation to the line the example starts on", () => {
     const markdown = "# Heading\n\n" + fence('@TableTest("""\n    Input | Squared?\n    2     | 4\n    3     | 9\n    """)\nvoid testSquares(int input, int squared) { }');

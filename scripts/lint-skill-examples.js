@@ -171,9 +171,48 @@ function findViolations(example) {
   );
 }
 
+/**
+ * Business domains the eval suite owns, which a skill illustration must never borrow.
+ *
+ * Source of truth is `products/claude-plugin/decisions/skill-examples-avoid-eval-domains.md`
+ * in the private docs repo. Reserved *for* skill illustrations, and therefore off-limits to new
+ * evals: blood-donation deferral, flight-crew duty limits, greenhouse climate control,
+ * medication dosing, waste-sorting classification.
+ *
+ * Why this is worth a checker: a skill that teaches "make the threshold a column" using loan
+ * approval, graded by an eval that asks for loan approval, scores well without anything portable
+ * being learned — and nothing fails, so the number just quietly stops meaning what it reports.
+ * The rule survived a year on prose alone and was broken within a day of being re-read
+ * (2026-08-02, slice 8 cluster 1: tag filtering, ticket types and a coupon message all landed in
+ * one commit).
+ */
+const EVAL_DOMAIN_TERMS = [
+  "loyalty", "coupon", "baggage", "cinema", "hotel cancellation", "travel insurance",
+  "loan approval", "weekly pay", "overtime", "shopping cart", "order splitting", "shipping cost",
+  "subscription billing", "event registration", "tag filter", "money parser",
+];
+
+/**
+ * Eval-domain vocabulary appearing anywhere in a skill file, examples or prose.
+ *
+ * Deliberately not limited to fenced examples: a domain noun in a sentence anchors just as well
+ * as one in a table.
+ */
+function evalDomainTerms(markdown) {
+  const lower = markdown.toLowerCase();
+  return EVAL_DOMAIN_TERMS.filter((term) => lower.includes(term)).map(
+    (term) => `"${term}" is a domain the eval suite owns — illustrate with a reserved domain instead`
+  );
+}
+
 function lintMarkdown(file, markdown) {
-  return extractTableTestExamples(markdown).flatMap((example) =>
-    findViolations(example).map(({ check, evidence, line }) => ({ file, line, check, evidence }))
+  const domainHits = evalDomainTerms(markdown).map((evidence) => ({
+    file, line: 1, check: "eval-domain-in-skill", evidence,
+  }));
+  return domainHits.concat(
+    extractTableTestExamples(markdown).flatMap((example) =>
+      findViolations(example).map(({ check, evidence, line }) => ({ file, line, check, evidence }))
+    )
   );
 }
 
@@ -237,8 +276,13 @@ function readBaseline() {
 
 function main() {
   const repoRoot = path.resolve(__dirname, "..");
-  const skillDir = path.join(repoRoot, "skills", "tabletest");
-  const violations = lintSkill(skillDir, repoRoot);
+  // Every skill, not just tabletest: the eval-domain reservation binds all three, and each has
+  // its own suite to keep out-of-domain. The example checks are TableTest-specific but harmless
+  // elsewhere — extractTableTestExamples only matches fenced code containing @TableTest.
+  const skillsRoot = path.join(repoRoot, "skills");
+  const violations = fs.readdirSync(skillsRoot).sort()
+    .filter((name) => fs.statSync(path.join(skillsRoot, name)).isDirectory())
+    .flatMap((name) => lintSkill(path.join(skillsRoot, name), repoRoot));
 
   if (process.argv.includes("--write-baseline")) {
     const body = {
@@ -255,7 +299,7 @@ function main() {
   for (const { file, line, check, evidence } of violations) {
     console.log(`${file}:${line}  ${check}\n    ${evidence}`);
   }
-  console.log(`\n${violations.length} violation(s) in the tabletest skill's own examples.`);
+  console.log(`\n${violations.length} violation(s) in the skills' own examples.`);
 }
 
 if (require.main === module) main();

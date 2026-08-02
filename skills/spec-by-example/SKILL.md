@@ -109,7 +109,7 @@ Work through variations systematically:
 
 - "At what exact value does this rule kick in?"
 - "What happens just at the threshold, just above, and just below?"
-- Include rows at exact boundaries (e.g., 40 hours, 41 hours for an overtime threshold)
+- Include rows at exact boundaries (e.g., 13 hours, 14 hours for a duty-time limit)
 - Boundaries are where misunderstandings live — a table that only shows mid-range values illustrates rule *types* but does not *specify* the behaviour
 
 **Special cases** — important situations that may surprise people:
