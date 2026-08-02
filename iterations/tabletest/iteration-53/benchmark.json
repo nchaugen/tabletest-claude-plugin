@@ -1,0 +1,75 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 53,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "9bc24cfcf9119ae15f3a8e62439c5cbaedad08fd",
+  "skill_digest": "85b78decd08912fe",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-02T12:58:28.778Z",
+  "evals": [
+    {
+      "id": "eval-15-reis-discount",
+      "name": "reis discount",
+      "skill": "tabletest",
+      "fingerprint": "644b5d5fcaf2",
+      "results": {
+        "model": null,
+        "assertions_passed": 26,
+        "assertions_total": 34,
+        "pass_rate": 0.7647058823529411,
+        "failed_assertions": [
+          "three-schemes-distinguished",
+          "window-boundary-uses-purchase-time",
+          "2.15-ticket-count-uses-value-sets",
+          "2.17-zone-irrelevance-visible",
+          "2.18-adult-senior-value-set",
+          "2.19-depth-all-tiers",
+          "2.20-readability-one-row-per-tier",
+          "no-table-reproves-another"
+        ],
+        "total_tokens": 0,
+        "duration_ms": 285598,
+        "cost_usd": 0,
+        "grading_usage": {
+          "input_tokens": 29840,
+          "output_tokens": 11166,
+          "total_tokens": 41006,
+          "calls": 3,
+          "cost_usd": 0.25701,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 26,
+    "assertions_total": 34,
+    "pass_rate": 0.7647058823529411,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 0,
+    "total_duration_ms": 285598,
+    "total_cost_usd": 0,
+    "grading": {
+      "input_tokens": 29840,
+      "output_tokens": 11166,
+      "total_tokens": 41006,
+      "calls": 3,
+      "cost_usd": 0.25701,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": [],
+  "cost_basis": "cli-list-price-estimate"
+}

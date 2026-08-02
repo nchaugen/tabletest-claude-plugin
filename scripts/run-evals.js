@@ -1322,7 +1322,7 @@ async function generateResponses(evals, worktreePath, iterationDir, args, repoRo
 
     await Promise.all(
       batch.map((evalDef) =>
-        generateOne(evalDef, worktreePath, iterationDir, args)
+        generateOne(evalDef, worktreePath, iterationDir, args, repoRoot)
       )
     );
     completedJobs += batch.length;
@@ -1345,7 +1345,7 @@ const SKILL_NUDGE =
   "\n\nIMPORTANT: This project provides skills via the Skill tool (see the available skills list). " +
   "Before writing or modifying any code, invoke the skill relevant to this task and follow its instructions.";
 
-async function generateOne(evalDef, worktreePath, iterationDir, args) {
+async function generateOne(evalDef, worktreePath, iterationDir, args, repoRoot) {
   const model = args.model;
   const provider = args.provider;
   const evalDir = path.join(
