@@ -41,6 +41,20 @@ history for comparison, audit, and re-grading. Conversation and run logs are nev
 node scripts/run-evals.js --skill tabletest --iteration N [--evals 1,2] [--compare-iteration M]
 ```
 
+Three things the flags do not make obvious, each of which has cost a wasted iteration:
+
+- **`--evals` takes eval *numbers*** — `--evals 15`, `15,20,29`, or a range `14-16`. Not directory
+  names; `eval.json` carries `"id": 15` while the directory is `eval-15-reis-discount`. The runner
+  now refuses a name and refuses an empty selection rather than writing an empty iteration.
+- **`--compare-official` requires `--variant`.** An official run compares against the previous
+  iteration number, or `--compare-iteration M`.
+- **Check the first line of output before walking away.** It prints `N evals`; anything but the
+  number you expected means the selection is wrong and the run is already spending.
+
+**If a run dies, read `iterations/<skill>/iteration-N/eval-15-…/conversation.jsonl` before paying for
+another.** Generation can succeed while the runner's own post-processing throws, and everything is
+recoverable — `gotchas/generation-can-succeed-while-the-run-crashes.md` has the recipe.
+
 **Never pipe a run through `tail`, `head`, or a pager — redirect to a file or let it print.** A pipe
 to `tail` buffers until the process exits, so there is no interim progress at all, and then it
 discards everything outside its window. That window is sized for the run you expected; the lines you
@@ -59,7 +73,20 @@ something because you cannot see its output — check `run.log` and the per-eval
 
 **Who pays.** Generation runs on the **Claude subscription** — the eval agent is spawned without
 `ANTHROPIC_API_KEY` so the CLI uses the logged-in account. Grading still posts to the API and needs
-the key, so keep it exported. Two consequences:
+the key.
+
+**Do not export the key.** Store it once in the login keychain and the runner reads it when the
+variable is unset:
+
+```
+security add-generic-password -a "$USER" -s tabletest-eval-grading -w   # paste at the prompt
+```
+
+An exported key is inherited by every child process and by anything that prints the environment; one
+was disclosed that way on 2026-08-02, from a shell expression that only meant to test whether it was
+set. **Never echo it, never test it by printing it** — `[ -n "$ANTHROPIC_API_KEY" ] && echo set` is
+the whole check. An explicit `ANTHROPIC_API_KEY=… node scripts/run-evals.js …` still wins for a
+one-off, and `--api-generation` bills generation to the key too. Two consequences:
 
 - **`cost_usd` is notional for generation, billed for grading.** Each `benchmark.json` stamps
   `generation_auth` (`subscription` \| `api` \| `unknown` on a regrade of an older run) — read it

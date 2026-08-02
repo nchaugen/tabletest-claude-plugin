@@ -648,16 +648,44 @@ Rules:
 - Keep evidence short (under 80 chars). Summarise or truncate long quotes. Replace triple-quotes or special characters with ellipsis.
 - Ensure all strings in the JSON are properly escaped (especially double quotes within values).`;
 
+/**
+ * Keychain service holding the grading key, read when `ANTHROPIC_API_KEY` is unset.
+ *
+ * Grading posts to the API and is billed out of pocket; generation runs on the subscription and
+ * strips the variable deliberately (see `generationEnv`). Keeping the key out of the environment
+ * costs nothing and removes the only way it has ever escaped.
+ */
+const GRADING_KEY_SERVICE = "tabletest-eval-grading";
+
+function readGradingKeyFromKeychain() {
+  if (process.platform !== "darwin") return null;
+  try {
+    return execSync(`security find-generic-password -s ${GRADING_KEY_SERVICE} -w`, {
+      stdio: ["ignore", "pipe", "ignore"],
+    }).toString().trim() || null;
+  } catch {
+    return null; // not stored — the caller reports how to store it
+  }
+}
+
 function parseEvalIds(str) {
   const ids = [];
   for (const part of str.split(",")) {
-    const range = part.match(/^(\d+)-(\d+)$/);
+    const trimmed = part.trim();
+    const range = trimmed.match(/^(\d+)-(\d+)$/);
     if (range) {
       const start = parseInt(range[1], 10);
       const end = parseInt(range[2], 10);
       for (let i = start; i <= end; i++) ids.push(i);
+    } else if (/^\d+$/.test(trimmed)) {
+      ids.push(Number(trimmed));
     } else {
-      ids.push(Number(part));
+      // A directory name is the tempting wrong answer: eval.json carries `"id": 15` while the
+      // directory is eval-15-reis-discount. Without this it parsed to NaN, matched nothing, and
+      // the run wrote an empty iteration and a ledger row (2026-08-02).
+      throw new Error(
+        `--evals takes eval numbers, not names: "${trimmed}". Use --evals 15, or 15,20,29, or a range 14-16.`
+      );
     }
   }
   return ids;
@@ -874,16 +902,38 @@ async function main() {
 
   // --rebuild reads gradings off disk and calls nothing, so it must not require a key.
   // Grading posts to the API directly, so it needs the key even though generation no longer does.
+  // Resolve the grading key without it having to live in the shell environment. An exported key
+  // leaks into every child process and into any transcript that echoes the environment — which is
+  // how one was disclosed on 2026-08-02. The keychain entry is read only when the variable is unset,
+  // so an explicit `ANTHROPIC_API_KEY=… node scripts/run-evals.js` still wins.
+  if (!process.env.ANTHROPIC_API_KEY) {
+    const fromKeychain = readGradingKeyFromKeychain();
+    if (fromKeychain) process.env.ANTHROPIC_API_KEY = fromKeychain;
+  }
+
   if (args.provider === "anthropic" && !args.rebuild && !process.env.ANTHROPIC_API_KEY) {
     console.error("Error: ANTHROPIC_API_KEY environment variable is not set (grading needs it).");
     console.error("The eval script requires an API key to avoid consuming interactive plan usage.");
-    console.error("Set it with: ANTHROPIC_API_KEY=sk-... node scripts/run-evals.js ...");
+    console.error("Store it once, in the login keychain, so it never sits in the environment:");
+    console.error(`  security add-generic-password -a "$USER" -s ${GRADING_KEY_SERVICE} -w`);
+    console.error("(paste the key at the prompt; it is not echoed and does not reach shell history)");
+    console.error("Or, for one run: ANTHROPIC_API_KEY=sk-... node scripts/run-evals.js ...");
     process.exit(1);
   }
 
   let evals = loadEvalsFromDir(path.join(repoRoot, evalsDir(args.skill)));
   if (args.evals) {
+    const known = evals.map((e) => e.id);
+    const missing = args.evals.filter((id) => !known.includes(id));
+    if (missing.length > 0) {
+      console.error(`Error: no eval ${missing.join(", ")} in ${args.skill}. Available: ${known.join(", ")}`);
+      process.exit(1);
+    }
     evals = evals.filter((e) => args.evals.includes(e.id));
+  }
+  if (evals.length === 0) {
+    console.error(`Error: no evals selected for ${args.skill} — nothing to run.`);
+    process.exit(1);
   }
 
   const label = args.variant ? `variant=${args.variant}` : "official";
@@ -3196,6 +3246,7 @@ if (require.main === module) {
 module.exports = {
   classifyGenerationFailure,
   contaminationHits,
+  parseEvalIds,
   lastAssistantText,
   harvestGeneratedFiles,
   computeEvalFingerprint,

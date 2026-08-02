@@ -1913,3 +1913,19 @@ describe("contaminationHits", () => {
   });
 });
 
+
+describe("parseEvalIds", () => {
+  test("takes numbers and ranges", () => {
+    assert.deepEqual(parseEvalIds("15"), [15]);
+    assert.deepEqual(parseEvalIds("15,20,29"), [15, 20, 29]);
+    assert.deepEqual(parseEvalIds("14-16"), [14, 15, 16]);
+  });
+
+  test("refuses a directory name instead of silently matching nothing", () => {
+    assert.throws(() => parseEvalIds("eval-15-reis-discount"), /takes eval numbers, not names/);
+  });
+
+  test("tolerates spaces around a list, which a copied command often has", () => {
+    assert.deepEqual(parseEvalIds("15, 20"), [15, 20]);
+  });
+});
