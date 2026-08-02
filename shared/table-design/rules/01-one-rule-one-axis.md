@@ -13,6 +13,16 @@ cleanly in one breath — "sorts waste into bins" — while being three independ
 each condition its own table, holding the others satisfied. Crossing them instead multiplies {{rows}}
 without adding a claim, and no {{row}} then isolates the condition it was meant to show.
 
+**The test is whether the rule can be *stated* about each condition alone — not whether the inputs
+are separate.** Several inputs that are each a *contribution to one answer* are one rule, however
+separately they arrive: quantities that are weighted and summed, amounts that accumulate into a
+total, parts that combine into a whole. There is no claim to make about one of them by itself,
+because the answer is the combination. Splitting those gives one table per input, each holding the
+others at nothing, and **no table then shows them combining — which is the only interesting case**.
+Keep them in one table with a column each, and let some of its {{rows}} carry several contributions
+at once. Those {{rows}} belong to that table, which owns the combining rule; they are not a second
+table run end to end — see *A Combining Table Needs Its Own Rule*.
+
 Hold the inputs belonging to *other* concerns at one obviously-valid value. An input **this** rule
 claims not to affect the outcome is the opposite situation and has to vary — see *Value Sets for
 "Regardless Of" Relationships*.
@@ -22,4 +32,4 @@ implementation: five concern tables suggest five functions.
 
 {{example}}
 
-**Check:** **One rule per table**: every {{row}} and column serves this table's one axis; a behaviour you cannot name without "and" has been split, and a rule that is a conjunction of independent conditions has one table per condition rather than their cross-product
+**Check:** **One rule per table**: every {{row}} and column serves this table's one axis; a behaviour you cannot name without "and" has been split, and a rule that is a conjunction of independent conditions has one table per condition rather than their cross-product — but inputs that are contributions to one combined answer stay in one table, with {{rows}} that show them combining

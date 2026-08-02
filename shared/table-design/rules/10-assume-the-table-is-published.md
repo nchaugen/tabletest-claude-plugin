@@ -14,9 +14,20 @@ what varies, so a value that never varies is read as part of the rule: a duty-li
 {{row}} assumes a two-pilot crew states, to its reader, a rule about two-pilot crews.
 
 So a constant the outcome depends on is a **column** wherever it can be one — and a value the rule
-turns on, such as a threshold or a limit, always can be. The {{title_surface}} and
-{{description_surface}} carry what a column cannot: where the data came from, what the fixture
-fixes, an assumption the {{rows}} cannot state.
+turns on, such as a threshold or a limit, always can be. The other two surfaces carry what a column
+cannot: where the data came from, what the fixture fixes, an assumption the {{rows}} cannot state.
+
+**If the declaration says the value does not matter, declaring it is not enough.** *"Held empty
+throughout, and it makes no difference"* is not apparatus — it is a claim about the rule, and a claim
+no {{row}} can contradict is not stated in the table at all. Vary it instead, across the values it
+ignores; see *Value Sets for "Regardless Of" Relationships*. Write a fixture into the
+{{description_surface}} only for what the rule genuinely reads and the {{rows}} cannot show.
+
+**Making a value a column does not force everything measured from it into the same form.** Once a
+reference point is declared — a clock, an origin, a baseline — the columns measured *from* it read
+better as offsets against it than as restatements of it. Both are then visible, and the offsets stay
+short enough to scan.
+
 It is **not** declared when it sits in the test body, in a field, in a conversion helper, or in a
 comment — a comment reaches no published surface at all. The helper is the easiest hiding place
 because it looks like plumbing: one that builds every entry with the same zone has pinned zone for

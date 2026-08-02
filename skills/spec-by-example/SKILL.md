@@ -194,6 +194,16 @@ cleanly in one breath — "sorts waste into bins" — while being three independ
 each condition its own table, holding the others satisfied. Crossing them instead multiplies rows
 without adding a claim, and no row then isolates the condition it was meant to show.
 
+**The test is whether the rule can be *stated* about each condition alone — not whether the inputs
+are separate.** Several inputs that are each a *contribution to one answer* are one rule, however
+separately they arrive: quantities that are weighted and summed, amounts that accumulate into a
+total, parts that combine into a whole. There is no claim to make about one of them by itself,
+because the answer is the combination. Splitting those gives one table per input, each holding the
+others at nothing, and **no table then shows them combining — which is the only interesting case**.
+Keep them in one table with a column each, and let some of its rows carry several contributions
+at once. Those rows belong to that table, which owns the combining rule; they are not a second
+table run end to end — see *A Combining Table Needs Its Own Rule*.
+
 Hold the inputs belonging to *other* concerns at one obviously-valid value. An input **this** rule
 claims not to affect the outcome is the opposite situation and has to vary — see *Value Sets for
 "Regardless Of" Relationships*.
@@ -266,6 +276,16 @@ row exists, which is why this is decided when you name the table.
 **Members of a family compute differently, and that is not a reason to split.** One adjustment is a
 flat reduction, another a percentage, another a recalculation. The differing computation is what the
 rows show; it is not what makes them separate tables.
+
+**Collapsing a family means one table, not necessarily one column.** Where the members arrive as
+*separate inputs* the system reads independently, a single column keyed by member cannot feed them —
+routing one value to the right input would put a decision in the test itself, which is never the
+answer. **Give each member its own column in the one table, and leave it blank throughout on the
+rows where that member does not apply.** The family is still stated as one rule, the members
+still sit side by side, and the sparse columns are what shows which member each row exercises.
+Reach for the keyed column when the members are values one input takes; reach for a column each when
+they are inputs of their own. **Splitting into a table per member is the wrong answer in both
+cases** — and it is the tempting one, because it needs no decision.
 
 **Collapse on a family, never on a bag.** A family is a domain category, not "everything that affects
 the answer". The check: the family name works as a column header with the members as its values.
@@ -458,9 +478,16 @@ one obviously-valid value. An input that *this* rule claims not to affect has to
 values it ignores — otherwise no row could ever contradict the claim.
 
 **Value sets work on two axes — check both.** *Within* a row, group input values that produce the
-same outcome. *Across* rows, collapse duplicates: when two input kinds follow identical rules
-everywhere, one row with both values replaces two identical ones. It is easy to apply one axis
-and miss the other.
+same outcome. *Across* rows, collapse duplicates: when two input values produce the same
+expectation cells **in this table**, one row carrying both replaces two identical ones. It is
+easy to apply one axis and miss the other.
+
+**Judge that per table, not across the whole class.** Two values that this rule treats alike collapse
+here even if a neighbouring rule tells them apart — grouping them says *this* rule does not
+distinguish them, which is exactly what the neighbouring table then contradicts, on the record. Ask
+only whether the expectation cells match in the rows in front of you. A category you have named
+as a catch-all is the easy case and gets collapsed almost automatically; **the one that gets missed
+is two values you think of as distinct that this particular rule happens to treat the same.**
 
 | Scenario                           | Donor Age | Haemoglobin | Recent Travel | Eligible? |
 |------------------------------------|-----------|-------------|---------------|-----------|
@@ -508,9 +535,20 @@ what varies, so a value that never varies is read as part of the rule: a duty-li
 row assumes a two-pilot crew states, to its reader, a rule about two-pilot crews.
 
 So a constant the outcome depends on is a **column** wherever it can be one — and a value the rule
-turns on, such as a threshold or a limit, always can be. The the table's heading and
-the note beneath the table carry what a column cannot: where the data came from, what the fixture
-fixes, an assumption the rows cannot state.
+turns on, such as a threshold or a limit, always can be. The other two surfaces carry what a column
+cannot: where the data came from, what the fixture fixes, an assumption the rows cannot state.
+
+**If the declaration says the value does not matter, declaring it is not enough.** *"Held empty
+throughout, and it makes no difference"* is not apparatus — it is a claim about the rule, and a claim
+no row can contradict is not stated in the table at all. Vary it instead, across the values it
+ignores; see *Value Sets for "Regardless Of" Relationships*. Write a fixture into the
+the note beneath the table only for what the rule genuinely reads and the rows cannot show.
+
+**Making a value a column does not force everything measured from it into the same form.** Once a
+reference point is declared — a clock, an origin, a baseline — the columns measured *from* it read
+better as offsets against it than as restatements of it. Both are then visible, and the offsets stay
+short enough to scan.
+
 It is **not** declared when it sits in the test body, in a field, in a conversion helper, or in a
 comment — a comment reaches no published surface at all. The helper is the easiest hiding place
 because it looks like plumbing: one that builds every entry with the same zone has pinned zone for
@@ -845,7 +883,7 @@ Before handing off to implementation, verify the example table.
 
 <!-- BEGIN GENERATED table-design-checks — do not edit here; source is shared/table-design/ -->
 
-- [ ] **One rule per table**: every row and column serves this table's one axis; a behaviour you cannot name without "and" has been split, and a rule that is a conjunction of independent conditions has one table per condition rather than their cross-product
+- [ ] **One rule per table**: every row and column serves this table's one axis; a behaviour you cannot name without "and" has been split, and a rule that is a conjunction of independent conditions has one table per condition rather than their cross-product — but inputs that are contributions to one combined answer stay in one table, with rows that show them combining
 - [ ] **Complete outputs**: all observable outputs of the same rule sit in one table, and every expectation column there is exercised by the rows that table varies — one constant down all rows, or moving only as a side effect of another, belongs to a different rule's table
 - [ ] **Decomposed, not over-split**: no table mixes concerns (blank-throughout columns, qualified scenario names, two groups of expectation columns), and no set of same-fixture tables reports one expectation column that a family column would collapse
 - [ ] **Combining tables prove an interaction**: any table exercising several rules together shows behaviour the single-rule tables cannot (a precedence, an ordering), not the earlier rules re-run end to end

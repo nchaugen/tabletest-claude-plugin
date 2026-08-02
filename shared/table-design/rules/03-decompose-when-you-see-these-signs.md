@@ -30,6 +30,16 @@ table with an adjustment column. Naming the members instead commits to the split
 flat reduction, another a percentage, another a recalculation. The differing computation is what the
 {{rows}} show; it is not what makes them separate tables.
 
+**Collapsing a family means one table, not necessarily one column.** Where the members arrive as
+*separate inputs* the system reads independently, a single column keyed by member cannot feed them —
+routing one value to the right input would put a decision in the test itself, which is never the
+answer. **Give each member its own column in the one table, and leave it {{unused_cell}} on the
+{{rows}} where that member does not apply.** The family is still stated as one rule, the members
+still sit side by side, and the sparse columns are what shows which member each {{row}} exercises.
+Reach for the keyed column when the members are values one input takes; reach for a column each when
+they are inputs of their own. **Splitting into a table per member is the wrong answer in both
+cases** — and it is the tempting one, because it needs no decision.
+
 **Collapse on a family, never on a bag.** A family is a domain category, not "everything that affects
 the answer". The check: the family name works as a column header with the members as its values.
 Where no such name exists the tables are genuinely distinct and belong apart — and so they do where

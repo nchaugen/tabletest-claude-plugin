@@ -23,9 +23,16 @@ one obviously-valid value. An input that *this* rule claims not to affect has to
 values it ignores — otherwise no {{row}} could ever contradict the claim.
 
 **Value sets work on two axes — check both.** *Within* a {{row}}, group input values that produce the
-same outcome. *Across* {{rows}}, collapse duplicates: when two input kinds follow identical rules
-everywhere, one {{row}} with both values replaces two identical ones. It is easy to apply one axis
-and miss the other.
+same outcome. *Across* {{rows}}, collapse duplicates: when two input values produce the same
+expectation cells **in this table**, one {{row}} carrying both replaces two identical ones. It is
+easy to apply one axis and miss the other.
+
+**Judge that per table, not across the whole class.** Two values that this rule treats alike collapse
+here even if a neighbouring rule tells them apart — grouping them says *this* rule does not
+distinguish them, which is exactly what the neighbouring table then contradicts, on the record. Ask
+only whether the expectation cells match in the {{rows}} in front of you. A category you have named
+as a catch-all is the easy case and gets collapsed almost automatically; **the one that gets missed
+is two values you think of as distinct that this particular rule happens to treat the same.**
 
 {{example}}
 
