@@ -1,0 +1,193 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 58,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "7f5822d6a11cfeeed76af24be273c743e310d0ad",
+  "skill_digest": "31782c2b32438154",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-03T20:39:27.617Z",
+  "evals": [
+    {
+      "id": "eval-1-convert-repetitive-tests",
+      "name": "convert repetitive tests",
+      "skill": "tabletest",
+      "fingerprint": "653f374b717e",
+      "results": {}
+    },
+    {
+      "id": "eval-2-parse-dates",
+      "name": "parse dates",
+      "skill": "tabletest",
+      "fingerprint": "43191e76eadf",
+      "results": {}
+    },
+    {
+      "id": "eval-7-permission-check",
+      "name": "permission check",
+      "skill": "tabletest",
+      "fingerprint": "ac6c9c89e70b",
+      "results": {}
+    },
+    {
+      "id": "eval-8-money-parse",
+      "name": "money parse",
+      "skill": "tabletest",
+      "fingerprint": "884d3fafda09",
+      "results": {}
+    },
+    {
+      "id": "eval-9-bonus-contractor-structure",
+      "name": "bonus contractor structure",
+      "skill": "tabletest",
+      "fingerprint": "9c0dcdf3e398",
+      "results": {}
+    },
+    {
+      "id": "eval-14-weekly-pay",
+      "name": "weekly pay",
+      "skill": "tabletest",
+      "fingerprint": "5bd90c0519ca",
+      "results": {}
+    },
+    {
+      "id": "eval-15-reis-discount",
+      "name": "reis discount",
+      "skill": "tabletest",
+      "fingerprint": "644b5d5fcaf2",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 24,
+        "assertions_total": 34,
+        "pass_rate": 0.7058823529411765,
+        "failed_assertions": [
+          "three-schemes-distinguished",
+          "2.4-depth-rolling-window-boundary",
+          "window-boundary-uses-purchase-time",
+          "2.9-correctness-value-set-tier-semantics",
+          "2.15-ticket-count-uses-value-sets",
+          "zone-independent-counting",
+          "2.18-adult-senior-value-set",
+          "2.20-readability-one-row-per-tier",
+          "no-table-reproves-another",
+          "quantifier-covered-by-rows"
+        ],
+        "total_tokens": 2682911,
+        "duration_ms": 460593,
+        "cost_usd": 1.8980346,
+        "grading_usage": {
+          "input_tokens": 27527,
+          "output_tokens": 11400,
+          "total_tokens": 38927,
+          "calls": 3,
+          "cost_usd": 0.253581,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-18-convert-from-code",
+      "name": "convert from code",
+      "skill": "tabletest",
+      "fingerprint": "e6dc3ac194ef",
+      "results": {}
+    },
+    {
+      "id": "eval-20-collections-and-quoting",
+      "name": "collections and quoting",
+      "skill": "tabletest",
+      "fingerprint": "51e09385504d",
+      "results": {}
+    },
+    {
+      "id": "eval-22-event-registration-tt",
+      "name": "event registration tt",
+      "skill": "tabletest",
+      "fingerprint": "3756824de753",
+      "results": {}
+    },
+    {
+      "id": "eval-23-loan-approval-tt",
+      "name": "loan approval tt",
+      "skill": "tabletest",
+      "fingerprint": "ff53b33466df",
+      "results": {}
+    },
+    {
+      "id": "eval-25-convert-from-spock",
+      "name": "convert from spock",
+      "skill": "tabletest",
+      "fingerprint": "cf05d6e40ec6",
+      "results": {}
+    },
+    {
+      "id": "eval-29-shopping-cart-tt",
+      "name": "shopping cart tt",
+      "skill": "tabletest",
+      "fingerprint": "9209ab13def7",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 28,
+        "assertions_total": 32,
+        "pass_rate": 0.875,
+        "failed_assertions": [
+          "no-duplicate-rows-within-a-table",
+          "scenario-names-describe-conditions",
+          "consistent-quantity-naming",
+          "concern-not-over-split"
+        ],
+        "total_tokens": 1108939,
+        "duration_ms": 414087,
+        "cost_usd": 1.5835483,
+        "grading_usage": {
+          "input_tokens": 36095,
+          "output_tokens": 25524,
+          "total_tokens": 61619,
+          "calls": 3,
+          "cost_usd": 0.491145,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-30-order-splitting-tt",
+      "name": "order splitting tt",
+      "skill": "tabletest",
+      "fingerprint": "a38b95cf8502",
+      "results": {}
+    }
+  ],
+  "summary": {
+    "assertions_passed": 52,
+    "assertions_total": 66,
+    "pass_rate": 0.7878787878787878,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 3791850,
+    "total_duration_ms": 874680,
+    "total_cost_usd": 3.4815829,
+    "grading": {
+      "input_tokens": 63622,
+      "output_tokens": 36924,
+      "total_tokens": 100546,
+      "calls": 6,
+      "cost_usd": 0.744726,
+      "evals_measured": 2,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}

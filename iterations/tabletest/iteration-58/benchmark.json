@@ -1,0 +1,109 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 58,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "7f5822d6a11cfeeed76af24be273c743e310d0ad",
+  "skill_digest": "31782c2b32438154",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-03T20:33:04.154Z",
+  "evals": [
+    {
+      "id": "eval-15-reis-discount",
+      "name": "reis discount",
+      "skill": "tabletest",
+      "fingerprint": "644b5d5fcaf2",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 24,
+        "assertions_total": 34,
+        "pass_rate": 0.7058823529411765,
+        "failed_assertions": [
+          "three-schemes-distinguished",
+          "2.4-depth-rolling-window-boundary",
+          "window-boundary-uses-purchase-time",
+          "2.9-correctness-value-set-tier-semantics",
+          "2.15-ticket-count-uses-value-sets",
+          "zone-independent-counting",
+          "2.18-adult-senior-value-set",
+          "2.20-readability-one-row-per-tier",
+          "no-table-reproves-another",
+          "quantifier-covered-by-rows"
+        ],
+        "total_tokens": 2682911,
+        "duration_ms": 460593,
+        "cost_usd": 1.8980346,
+        "grading_usage": {
+          "input_tokens": 27527,
+          "output_tokens": 10316,
+          "total_tokens": 37843,
+          "calls": 3,
+          "cost_usd": 0.237321,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-29-shopping-cart-tt",
+      "name": "shopping cart tt",
+      "skill": "tabletest",
+      "fingerprint": "9209ab13def7",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 28,
+        "assertions_total": 32,
+        "pass_rate": 0.875,
+        "failed_assertions": [
+          "no-duplicate-rows-within-a-table",
+          "scenario-names-describe-conditions",
+          "type-converters-for-complex-objects",
+          "concern-not-over-split"
+        ],
+        "total_tokens": 1108939,
+        "duration_ms": 414087,
+        "cost_usd": 1.5835483,
+        "grading_usage": {
+          "input_tokens": 36095,
+          "output_tokens": 28119,
+          "total_tokens": 64214,
+          "calls": 3,
+          "cost_usd": 0.53007,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 52,
+    "assertions_total": 66,
+    "pass_rate": 0.7878787878787878,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 3791850,
+    "total_duration_ms": 874680,
+    "total_cost_usd": 3.4815829,
+    "grading": {
+      "input_tokens": 63622,
+      "output_tokens": 38435,
+      "total_tokens": 102057,
+      "calls": 6,
+      "cost_usd": 0.767391,
+      "evals_measured": 2,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}
