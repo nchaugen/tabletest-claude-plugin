@@ -40,7 +40,7 @@ def test_tax_bracket_by_income_and_status(income, filing_status, rate):
 
 Always name cases — `pytest.param(..., id="...")` or an `ids=` argument. Auto-generated ids like `15000-SINGLE-0.1` force the reader to decode values; a written id states the condition — only the condition: `at_the_limit`, never `at_the_limit-surcharge_applied`.
 
-**"Regardless of" inputs**: stacking a second `@pytest.mark.parametrize` multiplies the decorators into a cartesian product — use it when one input must not affect the outcome.
+**"Regardless of" inputs**: put them in the *same* case list, varying together. Stacking a second `@pytest.mark.parametrize` multiplies the decorators into a cartesian product, which is four visible cases for one claim — see *Generating "Regardless Of" Combinations*.
 
 **Expected exceptions**: a case list mixing `pytest.raises` cases with return-value cases needs branching in the body — forbidden. Give rejection cases their own parametrized test built around `pytest.raises`. Exception: an accept/reject boundary is one rule and stays in one table — see *Separate Expected-Error Cases*.
 
@@ -60,7 +60,7 @@ func standingByCreditHours(creditHours: Int, standing: Standing) {
 }
 ```
 
-**Cartesian footgun**: passing two collections — `arguments: inputs, expectations` — produces every combination, not paired rows. Pair with labelled tuples in one collection, a row struct, or `zip`. Use the two-collection cartesian form deliberately for "regardless of" inputs.
+**Cartesian footgun**: passing two collections — `arguments: inputs, expectations` — produces every combination, not paired rows. Pair with labelled tuples in one collection, a row struct, or `zip` — including for "regardless of" inputs, which vary together in one collection rather than crossed; see *Generating "Regardless Of" Combinations*.
 
 **Expected exceptions**: a separate `@Test` with `#expect(throws:)` — never sentinel values or branching in a parameterised body. Exception: an accept/reject boundary is one rule and stays in one table — see *Separate Expected-Error Cases*.
 
@@ -354,7 +354,11 @@ every obligation dropped that way:
   case looks like the ordinary case with smaller numbers, and it is the only one that reaches the
   boundary of the container.
 - **A distinct branch that shares its expectation with a neighbour.** Two cases agreeing on the
-  answer are not redundant when they reach it by different routes the rule names separately.
+  answer are not redundant when they reach it by different routes **this table's rule names**. Ask
+  which rule names the branch. If the answer is a neighbouring table's, the difference is a value
+  *this* rule ignores, and it collapses into a value set — see *Use Value Sets for "Regardless Of"
+  Relationships*. Kinds of a thing that another rule tells apart are the usual false positive: three
+  cases for three kinds, where the rule under test reads only whether the thing was valid.
 
 When you cut a case, say which surviving case discharges its obligation. If none does, keep it.
 
@@ -457,12 +461,14 @@ as a catch-all is the easy case and gets collapsed almost automatically; **the o
 is two values you think of as distinct that this particular rule happens to treat the same.**
 
 ```python
-# Stacked parametrize generates the combinations the rule ignores.
-@pytest.mark.parametrize("recent_travel", [True, False])
-@pytest.mark.parametrize("haemoglobin", [125, 140])
+# One case per ignored value, varying together — not stacked generators, which cross them.
+@pytest.mark.parametrize(("haemoglobin", "recent_travel"), [(125, True), (140, False)])
 def test_under_age_donor_is_ineligible_regardless(haemoglobin, recent_travel):
     assert not is_eligible(age=16, haemoglobin=haemoglobin, recent_travel=recent_travel)
 ```
+
+Age alone decides it, and the two inputs it ignores each take both their values, so a case could
+contradict the claim.
 
 ### Frame Stateful Features as Transition Rules
 
@@ -848,10 +854,22 @@ expectations, never pre-applied in the row data.
 
 ### Generating "Regardless Of" Combinations
 
-Every framework has its own way to produce the combinations a value set expresses: stacked
-`parametrize` in pytest, a two-collection `arguments:` in Swift Testing, `flatMap` over value lists in
-Jest, nested loops building the case slice in Go, `MemberData` generators in xUnit. Every generated
-combination must expect the same result.
+**Vary the ignored inputs together in one case list. Do not stack generators that cross them.**
+
+```python
+@pytest.mark.parametrize(("haemoglobin", "recent_travel"), [(125, True), (140, False)])
+def test_under_age_donor_is_ineligible_regardless(haemoglobin, recent_travel):
+    assert not is_eligible(age=16, haemoglobin=haemoglobin, recent_travel=recent_travel)
+```
+
+Each ignored input takes both its values, so a case could still contradict the claim — which is the
+whole job. Every case must expect the same result.
+
+A row-based notation writes several value sets on one row and the reader still sees **one** row. A
+case list has no such collapse, so the generators that produce a product — stacked `parametrize` in
+pytest, a two-collection `arguments:` in Swift Testing, `flatMap` over value lists in Jest, nested
+loops in Go, `MemberData` in xUnit — turn one claim into four visible cases, and a third input turns
+it into eight. Reach for them only when the rule under test *is* the combination.
 
 ### Asserting a Rejection
 

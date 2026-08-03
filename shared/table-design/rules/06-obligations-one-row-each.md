@@ -22,7 +22,11 @@ every obligation dropped that way:
   {{row}} looks like the ordinary case with smaller numbers, and it is the only one that reaches the
   boundary of the container.
 - **A distinct branch that shares its expectation with a neighbour.** Two {{rows}} agreeing on the
-  answer are not redundant when they reach it by different routes the rule names separately.
+  answer are not redundant when they reach it by different routes **this table's rule names**. Ask
+  which rule names the branch. If the answer is a neighbouring table's, the difference is a value
+  *this* rule ignores, and it collapses into a value set — see *Use Value Sets for "Regardless Of"
+  Relationships*. Kinds of a thing that another rule tells apart are the usual false positive: three
+  {{rows}} for three kinds, where the rule under test reads only whether the thing was valid.
 
 When you cut a {{row}}, say which surviving {{row}} discharges its obligation. If none does, keep it.
 
