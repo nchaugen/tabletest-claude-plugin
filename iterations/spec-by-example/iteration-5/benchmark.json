@@ -1,0 +1,136 @@
+{
+  "skill_name": "spec-by-example",
+  "iteration": 5,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "011c9591ac8cffcd93275efd5a79c9982d7febbb",
+  "skill_digest": "20264ef2ffaffb5e",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-03T14:22:37.840Z",
+  "evals": [
+    {
+      "id": "eval-13-shipping-partial-applicability",
+      "name": "shipping partial applicability",
+      "skill": "spec-by-example",
+      "fingerprint": "1eb119bbe7d1",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 11,
+        "assertions_total": 12,
+        "pass_rate": 0.9166666666666666,
+        "failed_assertions": [
+          "separates-availability-and-cost"
+        ],
+        "total_tokens": 76092,
+        "duration_ms": 85156,
+        "cost_usd": 0.2857815,
+        "grading_usage": {
+          "input_tokens": 3649,
+          "output_tokens": 1701,
+          "total_tokens": 5350,
+          "calls": 1,
+          "cost_usd": 0.036462,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-16-order-splitting",
+      "name": "order splitting",
+      "skill": "spec-by-example",
+      "fingerprint": "b42859747489",
+      "results": {
+        "model": null,
+        "assertions_passed": 0,
+        "assertions_total": 19,
+        "pass_rate": 0,
+        "failed_assertions": [
+          "3.1a-concern-fulfillment-method",
+          "3.1b-concern-delivery-address",
+          "3.1c-concern-availability",
+          "3.1d-concern-warehouse-allocation",
+          "3.1e-concern-companion-products",
+          "3.2-depth-fulfillment-scenarios",
+          "3.3-depth-delivery-address-scenarios",
+          "3.4-depth-availability-scenarios",
+          "3.5-depth-warehouse-scenarios",
+          "3.6-depth-companion-scenarios",
+          "3.7-readability-scenario-names",
+          "3.8-readability-item-property-mapping",
+          "3.9-readability-scalar-column",
+          "3.10-readability-business-language",
+          "3.11-readability-output-column-question-mark",
+          "3.12-correctness-valid-assignments",
+          "3.13-depth-open-questions",
+          "concerns-decomposed",
+          "no-duplicate-rows-within-a-table"
+        ],
+        "total_tokens": 0,
+        "duration_ms": 609920,
+        "cost_usd": 0,
+        "error": "Timed out after 600000ms"
+      }
+    },
+    {
+      "id": "eval-17-shopping-cart",
+      "name": "shopping cart",
+      "skill": "spec-by-example",
+      "fingerprint": "6f14b3b4de9b",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 17,
+        "assertions_total": 18,
+        "pass_rate": 0.9444444444444444,
+        "failed_assertions": [
+          "4.5-depth-coupon-application"
+        ],
+        "total_tokens": 84426,
+        "duration_ms": 167140,
+        "cost_usd": 0.40912050000000005,
+        "grading_usage": {
+          "input_tokens": 9849,
+          "output_tokens": 5287,
+          "total_tokens": 15136,
+          "calls": 2,
+          "cost_usd": 0.108852,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 28,
+    "assertions_total": 30,
+    "pass_rate": 0.9333333333333333,
+    "errored_evals": [
+      "eval-16-order-splitting"
+    ],
+    "truncated_evals": [],
+    "total_tokens": 160518,
+    "total_duration_ms": 862216,
+    "total_cost_usd": 0.6949020000000001,
+    "grading": {
+      "input_tokens": 13498,
+      "output_tokens": 6988,
+      "total_tokens": 20486,
+      "calls": 3,
+      "cost_usd": 0.145314,
+      "evals_measured": 2,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}

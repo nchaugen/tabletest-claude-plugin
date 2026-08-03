@@ -1,0 +1,171 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 57,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "011c9591ac8cffcd93275efd5a79c9982d7febbb",
+  "skill_digest": "31782c2b32438154",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-03T14:11:34.412Z",
+  "evals": [
+    {
+      "id": "eval-14-weekly-pay",
+      "name": "weekly pay",
+      "skill": "tabletest",
+      "fingerprint": "5bd90c0519ca",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 20,
+        "assertions_total": 23,
+        "pass_rate": 0.8695652173913043,
+        "failed_assertions": [
+          "1.6-readability-empty-cells",
+          "1.11-format-description",
+          "1.14-depth-zero-rate"
+        ],
+        "total_tokens": 872397,
+        "duration_ms": 195544,
+        "cost_usd": 0.8870001000000001,
+        "grading_usage": {
+          "input_tokens": 13899,
+          "output_tokens": 4204,
+          "total_tokens": 18103,
+          "calls": 2,
+          "cost_usd": 0.104757,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-15-reis-discount",
+      "name": "reis discount",
+      "skill": "tabletest",
+      "fingerprint": "644b5d5fcaf2",
+      "results": {
+        "model": null,
+        "assertions_passed": 0,
+        "assertions_total": 34,
+        "pass_rate": 0,
+        "failed_assertions": [
+          "2.1-decomposition-concern-separation",
+          "three-schemes-distinguished",
+          "scheme-derived-once",
+          "2.2-children-flat-discount",
+          "2.4-depth-rolling-window-boundary",
+          "window-boundary-uses-purchase-time",
+          "period-ticket-excluded-from-count",
+          "count-derived-from-raw-history",
+          "2.9-correctness-value-set-tier-semantics",
+          "2.15-ticket-count-uses-value-sets",
+          "2.16-no-duplicate-tier-mapping",
+          "2.17-zone-irrelevance-visible",
+          "zone-independent-counting",
+          "2.18-adult-senior-value-set",
+          "2.19-depth-all-tiers",
+          "2.20-readability-one-row-per-tier",
+          "2.21-readability-relative-time",
+          "concerns-decomposed"
+        ],
+        "total_tokens": 0,
+        "duration_ms": 1194427,
+        "cost_usd": 0,
+        "grading_usage": {
+          "input_tokens": 20126,
+          "output_tokens": 3635,
+          "total_tokens": 23761,
+          "calls": 3,
+          "cost_usd": 0.114903,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        },
+        "failure_kind": "timeout-after-silent-halt",
+        "error": "Timed out after 900000ms \u2014 silent API halt: the CLI stopped emitting stdout at 13:55:55 and produced nothing for the remaining 898s. Score voided; the 16/34 reflects an interrupted run, not the guidance."
+      }
+    },
+    {
+      "id": "eval-29-shopping-cart-tt",
+      "name": "shopping cart tt",
+      "skill": "tabletest",
+      "fingerprint": "9209ab13def7",
+      "results": {
+        "model": null,
+        "assertions_passed": 0,
+        "assertions_total": 32,
+        "pass_rate": 0,
+        "failed_assertions": [
+          "has-tabletest-annotation",
+          "concerns-decomposed",
+          "no-duplicate-rows-within-a-table",
+          "no-table-reproves-another",
+          "separates-item-coupon-total-checkout",
+          "rows-independently-executable",
+          "coupon-before-after-columns",
+          "coupon-validity-not-coupon-types",
+          "scenario-column-present",
+          "has-question-mark-column",
+          "scenario-names-describe-conditions",
+          "business-language-columns",
+          "no-if-switch-in-method",
+          "annotation-order",
+          "has-descriptive-title",
+          "description-uses-textblock",
+          "single-assertion-in-method",
+          "test-data-visible",
+          "type-converters-for-complex-objects",
+          "coupon-as-single-column",
+          "uses-standard-map-syntax",
+          "description-not-redundant-with-scenarios",
+          "has-tabletest-dependency",
+          "rule-falsifiable-by-a-row",
+          "rule-statable-from-table",
+          "title-states-system-behaviour",
+          "compiles",
+          "quantifier-covered-by-rows",
+          "assertion-criteria-declared",
+          "consistent-quantity-naming",
+          "concern-not-over-split",
+          "titles-form-a-family"
+        ],
+        "total_tokens": 0,
+        "duration_ms": 1194435,
+        "cost_usd": 0,
+        "error": "Timed out after 900000ms"
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 20,
+    "assertions_total": 23,
+    "pass_rate": 0.8695652173913043,
+    "errored_evals": [
+      "eval-15-reis-discount",
+      "eval-29-shopping-cart-tt"
+    ],
+    "truncated_evals": [],
+    "total_tokens": 872397,
+    "total_duration_ms": 2584406,
+    "total_cost_usd": 0.8870001000000001,
+    "grading": {
+      "input_tokens": 34025,
+      "output_tokens": 7839,
+      "total_tokens": 41864,
+      "calls": 5,
+      "cost_usd": 0.21966000000000002,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}

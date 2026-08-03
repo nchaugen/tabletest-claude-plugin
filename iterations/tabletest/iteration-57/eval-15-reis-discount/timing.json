@@ -1,0 +1,6 @@
+{
+  "truncated": "Timed out after 900000ms",
+  "failure_kind": "timeout-after-delivery",
+  "duration_ms": 1194427,
+  "harvested_files": 2
+}
