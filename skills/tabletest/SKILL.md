@@ -772,6 +772,17 @@ reference point is declared — a clock, an origin, a baseline — the columns m
 better as offsets against it than as restatements of it. Both are then visible, and the offsets stay
 short enough to scan.
 
+**Pick the offset's unit from the finest distinction the rule has to draw.** Where the rule separates
+29 days 23 hours from 30 days 1 hour, the column is `Hours Ago` and not `Days Ago` — whole days cannot
+state that boundary at all. Read the boundary rows first and choose the unit second; a shorter
+cell that cannot state the rule has bought nothing.
+
+**Keep a slot in the cell for every field the `@Description` makes a claim about.** A compact
+cell carries the fields the rule reads and drops the rest, and a dropped field is pinned exactly as it
+would be in a conversion helper, with nothing on any surface to say so. When the claim is that the
+outcome does not turn on that field, dropping it is what makes the claim uncontradictable — put the
+field back as a key or a column, or stop making the claim.
+
 It is **not** declared when it sits in the test body, in a field, in a conversion helper, or in a
 comment — a comment reaches no published surface at all. The helper is the easiest hiding place
 because it looks like plumbing: one that builds every entry with the same zone has pinned zone for
@@ -1248,6 +1259,11 @@ public static Donation toDonation(Map<String, String> fields) {
 
 The converter takes **one element's map**, not the whole list — conversion recurses into the
 collection and calls it per element (see *Built-in Value Conversion*).
+
+**Choose the keys from what the table has to say, not from what the converter needs.** A field the
+`@Description` makes a claim about needs a key, and so does a unit finer than the one the map
+carries — everything the converter supplies instead is pinned for every row with no column saying so.
+See *Assume the Table Is Published*.
 
 ### What the Notation Cannot Express
 
