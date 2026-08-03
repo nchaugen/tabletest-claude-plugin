@@ -211,11 +211,10 @@ claims not to affect the outcome is the opposite situation and has to vary — s
 Separate tables reduce rows by avoiding unnecessary permutations, and the table count guides the
 implementation: five concern tables suggest five functions.
 
-| Scenario              | Hours Since Rest | Max Duty Hours (Policy) | Fit To Fly? |
-|-----------------------|------------------|-------------------------|-------------|
-| Well inside the limit | 6                | 13                      | yes         |
-| At the limit          | 13               | 13                      | yes         |
-| Past the limit        | 14               | 13                      | no          |
+| Scenario       | Hours Since Rest | Max Duty Hours (Policy) | Fit To Fly? |
+|----------------|------------------|-------------------------|-------------|
+| At the limit   | 13               | 13                      | yes         |
+| Past the limit | 14               | 13                      | no          |
 
 "Duty eligibility **and** rest credit" fails the "and" test — rest credit gets its own table.
 
@@ -814,7 +813,6 @@ differ. The answer may reveal a second axis that belongs as new rows or as a sep
 
 | Scenario                | Days Since Last Donation | Min Interval (Policy) | Eligible? |
 |-------------------------|--------------------------|-----------------------|-----------|
-| Long-standing donor     | 120                      | 90                    | yes       |
 | Exactly at the interval | 90                       | 90                    | yes       |
 | One day short           | 89                       | 90                    | no        |
 

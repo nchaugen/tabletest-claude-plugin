@@ -348,7 +348,7 @@ Converter methods enable readable domain conventions in tables:
 ```java
 @TableTest("""
     Scenario            | Budget | Recorded | Within Budget?
-    Comfortably inside  | <50    | 20       | true
+    Last value inside   | <50    | 49       | true
     At the cap          | <50    | 50       | false
     """)
 void checksResponseBudget(Long budgetMs, long recordedMs, boolean withinBudget) { ... }
@@ -409,10 +409,9 @@ implementation: five concern tables suggest five functions.
 ```java
 // Two concerns, two tables. "Duty eligibility AND rest credit" fails the "and" test.
 @TableTest("""
-    Scenario              | Hours Since Rest | Max Duty Hours (Policy) | Fit To Fly?
-    Well inside the limit | 6                | 13                      | yes
-    At the limit          | 13               | 13                      | yes
-    Past the limit        | 14               | 13                      | no
+    Scenario       | Hours Since Rest | Max Duty Hours (Policy) | Fit To Fly?
+    At the limit   | 13               | 13                      | yes
+    Past the limit | 14               | 13                      | no
     """)
 void decidesFitnessToFly(int hoursSinceRest, int maxDutyHours, boolean fitToFly) { ... }
 ```
@@ -1021,10 +1020,9 @@ just over it — become natural to add once the threshold is visible.
 differ. The answer may reveal a second axis that belongs as new rows or as a separate table.
 
 ```
-Scenario              | Days Since Last Donation | Min Interval (Policy) | Eligible?
-Long-standing donor   | 120                      | 90                    | yes
-Exactly at the interval| 90                      | 90                    | yes
-One day short         | 89                       | 90                    | no
+Scenario                | Days Since Last Donation | Min Interval (Policy) | Eligible?
+Exactly at the interval | 90                       | 90                    | yes
+One day short           | 89                       | 90                    | no
 ```
 
 ### Include Traceability Columns
@@ -1294,10 +1292,11 @@ parser, a legend the reader does not have, and the rule that a cell holds one va
 
 ```java
 @TableTest("""
-    Scenario                 | Donations So Far                                | Deferred?
-    First-time donor         | []                                              | no
-    Inside the plasma window | [[component: plasma, days: 20]]                 | yes
-    Past every window        | [[component: plasma, days: 400]]                | no
+    Scenario                          | Donations So Far                     | Deferred?
+    First-time donor                  | []                                   | no
+    Last day inside the plasma window | [[component: plasma, days: 13]]      | yes
+    First day past it                 | [[component: plasma, days: 14]]      | no
+    Whole blood defers for longer     | [[component: whole blood, days: 14]] | yes
     """)
 void defersDonorInsideAnyWindow(List<Donation> donationsSoFar, boolean deferred) {
     assertEquals(deferred, deferralPolicy.isDeferred(donationsSoFar));
