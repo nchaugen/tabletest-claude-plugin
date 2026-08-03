@@ -883,6 +883,14 @@ yes/no columns that describe the state a scenario starts in.
 verifying the total also requires knowing the base amount. If you do expect a derived value, include
 its inputs as columns so a reader can trace it.
 
+**One exception, and it is narrow: identity and status varying together in the same output
+position.** Where a column answers *which* one and *how it went* at once — the winner of a pair and
+whether it succeeded — the two are one value and the cell names it as one, `Primary OK` against
+`Secondary ERROR`. Splitting that into "which?" and "did it succeed?" columns doubles them and makes
+the reader join the halves back up. This is a domain value with its own type, not an encoding: it
+holds only where **both** parts vary in the same position. Where identity is fixed for the row and
+only the status varies, the ordinary column design applies.
+
 **A compound result stays a collection.** When the value under test is several items — or items
 grouped under a key — the expectation is a native list, set or map, nested where needed, compared
 against what the system returns. Do not flatten it into a string assembled by a formatting helper:
@@ -1093,6 +1101,47 @@ Within target range     | 55         | 21       | CLOSED
 
 Observable readings in, observable position out. A `sensorPollCount` or `controllerInitialised`
 column would be internal state, not the contract.
+
+### Keep the Tables of One Concern Consistent
+
+Tables that sit together are read together. Within one method set, the same concept takes the
+same column name, the same kind of value takes the same notation, and the same failure takes the same
+spelling. `Response Time?` in one table and `Timing?` in the next reads as two different things; `<50`
+beside a bare `50` leaves the reader deciding whether the second is a maximum or an exact value.
+
+**Decide the shared notation before writing the first table, not while writing the third.** The choice
+is cheapest at the start and gets more expensive with every table that fixes it differently.
+
+Four things to hold steady across the set:
+
+- **Column names** — one name per concept, everywhere it appears.
+- **Value notation** — one way of writing a bound, a duration, an absent value.
+- **Failure vocabulary** — one spelling of an error, not `ERROR` here and `FAIL` there.
+- **The helpers behind them** — one parser or fixture shared, rather than a copy per table.
+
+Two tables in one class, one notation for the concept they share:
+
+```java
+@TableTest("""
+    Scenario         | Response Time?
+    Healthy upstream | <50
+    """)
+void answersWithinTheLatencyBudget(Latency responseTime) { ... }
+
+@TableTest("""
+    Scenario         | Report Time?
+    Healthy upstream | <50
+    """)
+void publishesTheReportWithinTheLatencyBudget(Latency reportTime) { ... }
+
+@TypeConverter
+public static Latency toLatency(String value) { ... }
+```
+
+A bare `50` in the second table would leave the reader deciding whether it means a maximum or an
+exact value. **One converter per target type, per class**, matched on the *erased* type: two
+converters returning `Latency` throw at runtime, so once two columns share a type the shared notation
+is not a matter of taste.
 
 <!-- END GENERATED table-design -->
 
@@ -1419,6 +1468,7 @@ unsure about. It answers in under a second what a `gradle test` round answers in
 - [ ] **Traceability columns**: an intermediate expectation appears only where the value is observable from the public API — never reimplemented from internal logic; if a formula would have to be reimplemented to fill it, decompose instead
 - [ ] **Blank means absent**: a column whose input is genuinely absent for a row uses a blank cell, not 0 or a default; an input that is present but irrelevant is a value set instead, and nothing converts a blank to a default on the way in
 - [ ] **Black-box design**: columns represent observable inputs and outputs, not internal flags or implementation details
+- [ ] **Consistent across tables**: within one method set, one concept has one column name, one kind of value has one notation, one failure has one spelling, and the rows are served by shared helpers rather than per-table copies
 
 <!-- END GENERATED table-design-checks -->
 
