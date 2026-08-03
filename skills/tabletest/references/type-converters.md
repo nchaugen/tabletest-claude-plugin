@@ -166,8 +166,7 @@ a branch in the body, and the blank cell already says which half applies.
 
 There is nothing to convert here because the columns *are* the result's parts, compared against the
 parts the system returns. That is a different case from an **input** built out of a cell, which
-always belongs in a converter — see *A Regex in a Converter Means the Cell Holds Two Values* in
-`column-design.md`.
+always belongs in a converter — see *Putting a Composite Value in a Cell* in the main skill file.
 
 ### Multiple Optional Parameters
 
@@ -208,3 +207,41 @@ class per wrapper type.
 When two columns of the same type genuinely need different parsing, the fix is not two converters —
 it is one converter that accepts both spellings, or two distinct parameter types (see *One Converter
 Per Target Type* in the main skill file).
+
+## An Expected Value the Table Cannot Show
+
+An expectation that is encoding-specific — an ANSI escape, Base64, raw bytes — destroys the table if
+you put it in a cell. Give the column a **type** whose constants carry the raw value. The table then
+names the constant and nothing is translated in the test body:
+
+```java
+@TableTest("""
+    Scenario      | Input     | Colour?
+    XML tag       | <root>    | CYAN
+    XML attribute | id="x"    | GREEN
+    XML value     | some text | YELLOW
+    """)
+void coloursEachXmlTokenType(String input, AnsiColour colour) {
+    assertTrue(colouriser.colourise(input).contains(colour.escape()));
+}
+
+enum AnsiColour {
+    CYAN("\u001B[36m"), GREEN("\u001B[32m"), YELLOW("\u001B[33m");
+
+    private final String escape;
+
+    AnsiColour(String escape) { this.escape = escape; }
+
+    String escape() { return escape; }
+}
+```
+
+JUnit converts an enum constant by name, so this needs no `@TypeConverter` at all.
+
+**Do not translate in the method body.** `String expected = COLOURS.get(colourName)` puts the mapping
+where no reader of the published table can follow it — the cell then names something only the test
+code can resolve, which *Use Concrete Domain Values* rules out.
+
+**A `String` column with a converter does not work either.** Converters are chosen by parameter type,
+so a `String → String` converter would rewrite the `Input` column too (main skill file,
+*Domain-Specific Formatting*). The distinct type is what confines the conversion to one column.

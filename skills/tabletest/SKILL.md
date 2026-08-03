@@ -1494,15 +1494,11 @@ unsure about. It answers in under a second what a `gradle test` round answers in
 
 ## Advanced References
 
-This skill file is complete for standard tables — do not read references speculatively. Read a reference only when its condition applies to your task.
+This skill file is complete for standard tables — do not read references speculatively. **Every condition below is something you can see in your own task before opening the file**: a type you must convert, an annotation you must use, a shape the code under test has. A reference you would have to *judge* you need is one you do not need.
 
 | Reference                                | When to use                                                                 |
 |------------------------------------------|-----------------------------------------------------------------------------|
-| `references/type-converters.md`          | Converting wrapper types (`Optional`, `Result`/`Either`); converter methods with defaults; converter not being discovered (search order) |
-| `references/column-design.md`            | Torn between maps and separate columns; encoding composite values; column naming evolution |
-| `references/common-patterns.md`          | Consolidating identity+status, relative positions, timing thresholds, test helpers, sequence recording |
-| `references/table-design-advanced.md`    | Suspected orthogonal concerns (a column that could be `{true, false}` in every row); scenario names unclear; column sets diverging |
+| `references/type-converters.md`          | Converting wrapper types (`Optional`, `Result`/`Either`); converter methods with defaults; converter not being discovered (search order); an expectation that is an escape code, Base64 or raw bytes |
+| `references/async-and-positional-apis.md`| The code hands work to another thread that the assertions depend on; output fields are positional (`master`/`other`) and which system fills which depends on configuration |
 | `references/large-tables.md`             | Table needs comments, grouping, or external table files                     |
 | `references/provided-parameters.md`      | Using `@TempDir` or other JUnit-injected parameters                         |
-| `references/testing-reveals-bugs.md`     | Test design feels wrong; suspecting implementation bug                      |
-| `references/pair-programming.md`         | Pairing with a colleague; need structured collaborative cadence             |
