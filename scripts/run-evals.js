@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-const { execSync, spawn } = require("child_process");
+const { execSync, exec, spawn } = require("child_process");
+const { promisify } = require("util");
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
@@ -105,7 +106,27 @@ function collectTestFiles(agentCwd, profile) {
   return files;
 }
 
-function runBuildCheck(worktreePath) {
+const execAsync = promisify(exec);
+
+/**
+ * Runs one build command and reports the outcome, without blocking the parent's event loop.
+ *
+ * `execSync` here froze the whole runner: build verification is called from `generateOne`, which
+ * runs inside the generation phase's `Promise.all`, so one eval's JVM build stopped every other
+ * eval's generation timer from firing. `iteration-57`'s two timeouts reported 1194435ms and
+ * 1194427ms against a 900000ms ceiling — a stopped clock, 294s late, ~5 wasted minutes per stuck
+ * eval. Everything here awaits instead, so a build only occupies its own eval.
+ */
+async function runBuildCommand(command, worktreePath, timeoutMs) {
+  try {
+    await execAsync(command, { cwd: worktreePath, timeout: timeoutMs });
+    return { ok: true, output: "" };
+  } catch (err) {
+    return { ok: false, output: (err.stderr || err.stdout || "").toString() };
+  }
+}
+
+async function runBuildCheck(worktreePath) {
   const hasPom = fs.existsSync(path.join(worktreePath, "pom.xml"));
   const hasGradle = fs.existsSync(path.join(worktreePath, "build.gradle"))
     || fs.existsSync(path.join(worktreePath, "build.gradle.kts"));
@@ -118,53 +139,43 @@ function runBuildCheck(worktreePath) {
   return null;
 }
 
-function runSwiftBuildCheck(worktreePath) {
+async function runSwiftBuildCheck(worktreePath) {
   const result = { compiles: false, tests_pass: null, compile_output: "", test_output: "" };
 
-  try {
-    execSync("swift build --build-tests", { cwd: worktreePath, stdio: "pipe", timeout: 300000 });
-    result.compiles = true;
-  } catch (err) {
-    result.compile_output = (err.stderr || err.stdout || "").toString().slice(0, 2000);
+  const compile = await runBuildCommand("swift build --build-tests", worktreePath, 300000);
+  if (!compile.ok) {
+    result.compile_output = compile.output.slice(0, 2000);
     return result;
   }
+  result.compiles = true;
 
-  try {
-    execSync("swift test", { cwd: worktreePath, stdio: "pipe", timeout: 300000 });
-    result.tests_pass = true;
-  } catch (err) {
-    result.tests_pass = false;
-    result.test_output = (err.stderr || err.stdout || "").toString().slice(0, 2000);
-  }
+  const tests = await runBuildCommand("swift test", worktreePath, 300000);
+  result.tests_pass = tests.ok;
+  if (!tests.ok) result.test_output = tests.output.slice(0, 2000);
 
   return result;
 }
 
-function runPytestBuildCheck(worktreePath) {
+async function runPytestBuildCheck(worktreePath) {
   const result = { compiles: false, tests_pass: null, compile_output: "", test_output: "" };
 
   // Python has no compile step; "compiles" means pytest can import and
   // collect the test modules (exit 5 = nothing collected, also a failure).
-  try {
-    execSync("pytest --collect-only -q", { cwd: worktreePath, stdio: "pipe", timeout: 120000 });
-    result.compiles = true;
-  } catch (err) {
-    result.compile_output = (err.stderr || err.stdout || "").toString().slice(0, 2000);
+  const collect = await runBuildCommand("pytest --collect-only -q", worktreePath, 120000);
+  if (!collect.ok) {
+    result.compile_output = collect.output.slice(0, 2000);
     return result;
   }
+  result.compiles = true;
 
-  try {
-    execSync("pytest -q", { cwd: worktreePath, stdio: "pipe", timeout: 120000 });
-    result.tests_pass = true;
-  } catch (err) {
-    result.tests_pass = false;
-    result.test_output = (err.stderr || err.stdout || "").toString().slice(0, 2000);
-  }
+  const tests = await runBuildCommand("pytest -q", worktreePath, 120000);
+  result.tests_pass = tests.ok;
+  if (!tests.ok) result.test_output = tests.output.slice(0, 2000);
 
   return result;
 }
 
-function runJvmBuildCheck(worktreePath, hasPom) {
+async function runJvmBuildCheck(worktreePath, hasPom) {
   const result = { compiles: false, tests_pass: null, compile_output: "", test_output: "" };
 
   // Detect Kotlin test files to choose the right compile task
@@ -173,36 +184,30 @@ function runJvmBuildCheck(worktreePath, hasPom) {
     /\.kt$/
   ).length > 0;
 
-  try {
-    if (hasPom) {
-      execSync("mvn compile test-compile -q", { cwd: worktreePath, stdio: "pipe", timeout: 120000 });
-    } else {
-      const compileTask = hasKotlinTests ? "compileTestKotlin" : "compileTestJava";
-      execSync(`gradle ${compileTask} -q`, { cwd: worktreePath, stdio: "pipe", timeout: 120000 });
-    }
-    result.compiles = true;
-  } catch (err) {
-    result.compile_output = (err.stderr || err.stdout || "").toString().slice(0, 2000);
+  const compileTask = hasKotlinTests ? "compileTestKotlin" : "compileTestJava";
+  const compileCmd = hasPom ? "mvn compile test-compile -q" : `gradle ${compileTask} -q`;
+  const compile = await runBuildCommand(compileCmd, worktreePath, 120000);
+  if (!compile.ok) {
+    result.compile_output = compile.output.slice(0, 2000);
     return result;
   }
+  result.compiles = true;
 
   // Infrastructure flakes (daemon crashes, lock timeouts) are not failing
   // tests — retry once before recording a failure.
   const infraFailure = /Test process encountered an unexpected problem|Gradle build daemon disappeared|Could not connect to the Gradle daemon|Timeout waiting to lock|Could not create service/i;
   const testCmd = hasPom ? "mvn test -q" : "gradle test -q";
   for (let attempt = 1; attempt <= 2; attempt++) {
-    try {
-      execSync(testCmd, { cwd: worktreePath, stdio: "pipe", timeout: 120000 });
+    const tests = await runBuildCommand(testCmd, worktreePath, 120000);
+    if (tests.ok) {
       result.tests_pass = true;
       result.test_output = "";
       break;
-    } catch (err) {
-      const output = (err.stderr || err.stdout || "").toString();
-      result.tests_pass = false;
-      result.test_output = output.slice(0, 2000);
-      if (attempt === 1 && infraFailure.test(output)) continue;
-      break;
     }
+    result.tests_pass = false;
+    result.test_output = tests.output.slice(0, 2000);
+    if (attempt === 1 && infraFailure.test(tests.output)) continue;
+    break;
   }
 
   return result;
@@ -1522,7 +1527,7 @@ async function generateOne(evalDef, worktreePath, iterationDir, args, repoRoot) 
 
     // Run build verification if project scaffolding was present
     if (hasProject) {
-      const buildResult = runBuildCheck(agentCwd);
+      const buildResult = await runBuildCheck(agentCwd);
       if (buildResult) {
         fs.writeFileSync(
           path.join(evalDir, "outputs", "build-result.json"),
@@ -1572,7 +1577,7 @@ async function generateOne(evalDef, worktreePath, iterationDir, args, repoRoot) 
     );
 
     if (failure.countable && hasProject) {
-      const buildResult = runBuildCheck(agentCwd);
+      const buildResult = await runBuildCheck(agentCwd);
       if (buildResult) {
         fs.writeFileSync(
           path.join(evalDir, "outputs", "build-result.json"),
@@ -3335,6 +3340,7 @@ module.exports = {
   generationEnv,
   // generation
   runClaude,
+  runBuildCommand,
   generationTimeoutFor,
   GENERATION_TIMEOUT_CEILING_MS,
   THINKING_DISPLAY_REQUEST,

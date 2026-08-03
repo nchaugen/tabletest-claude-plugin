@@ -50,6 +50,7 @@ const {
   inheritedProvenance,
   generationEnv,
   generationTimeoutFor,
+  runBuildCommand,
   GENERATION_TIMEOUT_CEILING_MS,
   THINKING_DISPLAY_REQUEST,
   analysisBaselineOf,
@@ -1810,6 +1811,33 @@ describe("harvesting a failed generation", () => {
       "a test file written before the timeout must survive — the skills promise it is a checkpoint");
     assert.ok(fs.existsSync(path.join(evalDir, "outputs/pom.xml")));
     fs.rmSync(root, { recursive: true });
+  });
+});
+
+// --- build verification ----------------------------------------------------
+//
+// Build verification runs inside the parallel generation phase, so a synchronous one stops every
+// other eval's timeout timer. That is not hypothetical: it made iteration-57's two timeouts fire
+// 294s late.
+
+describe("runBuildCommand", () => {
+  test("a passing command reports success and no output", async () => {
+    const result = await runBuildCommand("exit 0", process.cwd(), 5000);
+    assert.deepEqual(result, { ok: true, output: "" });
+  });
+
+  test("a failing command reports its output unsliced, so the caller can match on all of it", async () => {
+    const result = await runBuildCommand("echo 'Gradle build daemon disappeared' >&2; exit 1", process.cwd(), 5000);
+    assert.equal(result.ok, false);
+    assert.match(result.output, /Gradle build daemon disappeared/);
+  });
+
+  test("timers keep firing while a build runs", async () => {
+    let ticked = false;
+    const tick = setTimeout(() => { ticked = true; }, 20);
+    await runBuildCommand("sleep 0.5", process.cwd(), 5000);
+    clearTimeout(tick);
+    assert.equal(ticked, true, "a blocking build check freezes every other eval's generation timeout");
   });
 });
 
