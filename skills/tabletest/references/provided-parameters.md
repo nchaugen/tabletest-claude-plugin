@@ -17,7 +17,7 @@ Add a `@Scenario` parameter when `@TempDir` appears after table parameters. This
     Multiple files | [a.txt, b.txt] | [a, b]
     Subdirectory   | [dir/file.txt] | []
     """)
-void discovers_files(@Scenario String _scenario, List<String> files, List<String> expected,
+void discoversFiles(@Scenario String _scenario, List<String> files, List<String> expected,
                      @TempDir Path tempDir) throws IOException {
     for (String file : files) {
         Path path = tempDir.resolve(file);

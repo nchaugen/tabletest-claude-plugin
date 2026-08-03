@@ -48,13 +48,13 @@ Stick with standard `@Test` methods when:
 
 ```java
 @TableTest("""
-    Scenario         | a  | b  | Sum?
-    positive numbers | 1  | 2  | 3
-    with zero        | 0  | 5  | 5
-    negative number  | -3 | 7  | 4
+    Scenario         | First Term | Second Term | Sum?
+    positive numbers | 1          | 2           | 3
+    with zero        | 0          | 5           | 5
+    negative number  | -3         | 7           | 4
     """)
-void addsTwoNumbers(int a, int b, int sum) {
-    assertEquals(sum, Calculator.add(a, b));
+void addsTwoNumbers(int firstTerm, int secondTerm, int sum) {
+    assertEquals(sum, Calculator.add(firstTerm, secondTerm));
 }
 ```
 
@@ -175,7 +175,7 @@ same reason — `List<Set<String>>` converts element by element.
     With package | com.example.Foo | com/example/Foo
     Nested class | Outer$Inner     | Outer/Inner
     """)
-void converts_class_names(String className, Path expectedPath) {
+void convertsClassNames(String className, Path expectedPath) {
     assertThat(resolver.resolve(className)).isEqualTo(expectedPath);
 }
 ```
@@ -1125,16 +1125,18 @@ Two tables in one class, one notation for the concept they share:
 
 ```java
 @TableTest("""
-    Scenario         | Response Time?
-    Healthy upstream | <50
+    Scenario           | Upstream Latency | Response Time?
+    Healthy upstream   | <10              | <50
+    Upstream throttled | <400             | <500
     """)
-void answersWithinTheLatencyBudget(Latency responseTime) { ... }
+void answersWithinTheLatencyBudget(Latency upstreamLatency, Latency responseTime) { ... }
 
 @TableTest("""
-    Scenario         | Report Time?
-    Healthy upstream | <50
+    Scenario           | Upstream Latency | Report Time?
+    Healthy upstream   | <10              | <50
+    Upstream throttled | <400             | <500
     """)
-void publishesTheReportWithinTheLatencyBudget(Latency reportTime) { ... }
+void publishesTheReportWithinTheLatencyBudget(Latency upstreamLatency, Latency reportTime) { ... }
 
 @TypeConverter
 public static Latency toLatency(String value) { ... }
@@ -1210,7 +1212,7 @@ puts the rule back in the method body, where the table cannot show it.
     Empty input     | ''    |
     Blank input     | '   ' |
     """)
-void resolves_values(String input, String resolved) {
+void resolvesValues(String input, String resolved) {
     assertThat(transform(input)).isEqualTo(resolved);
 }
 ```

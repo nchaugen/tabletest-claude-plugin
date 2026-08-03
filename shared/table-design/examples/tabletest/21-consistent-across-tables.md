@@ -2,16 +2,18 @@ Two tables in one class, one notation for the concept they share:
 
 ```java
 @TableTest("""
-    Scenario         | Response Time?
-    Healthy upstream | <50
+    Scenario           | Upstream Latency | Response Time?
+    Healthy upstream   | <10              | <50
+    Upstream throttled | <400             | <500
     """)
-void answersWithinTheLatencyBudget(Latency responseTime) { ... }
+void answersWithinTheLatencyBudget(Latency upstreamLatency, Latency responseTime) { ... }
 
 @TableTest("""
-    Scenario         | Report Time?
-    Healthy upstream | <50
+    Scenario           | Upstream Latency | Report Time?
+    Healthy upstream   | <10              | <50
+    Upstream throttled | <400             | <500
     """)
-void publishesTheReportWithinTheLatencyBudget(Latency reportTime) { ... }
+void publishesTheReportWithinTheLatencyBudget(Latency upstreamLatency, Latency reportTime) { ... }
 
 @TypeConverter
 public static Latency toLatency(String value) { ... }

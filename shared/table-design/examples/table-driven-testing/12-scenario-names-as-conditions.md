@@ -1,5 +1,6 @@
 ```python
-pytest.param("solvent", "sealed drum", Route.HAZARDOUS, id="solvent in a sealed drum"),   # condition
-pytest.param("solvent", "sealed drum", Route.HAZARDOUS, id="goes to hazardous"),          # outcome — no
-pytest.param("solvent", "sealed drum", Route.HAZARDOUS, id="sealed_drum-hazardous"),      # both — still no
+# One case, three candidate ids — only the first names a condition.
+pytest.param("solvent", "sealed drum", Route.HAZARDOUS, id="solvent in a sealed drum")
+#                                                       id="goes to hazardous"     <- names the outcome
+#                                                       id="sealed_drum-hazardous" <- names both
 ```
