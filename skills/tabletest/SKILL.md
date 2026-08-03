@@ -613,6 +613,9 @@ every obligation dropped that way:
   *this* rule ignores, and it collapses into a value set — see *Use Value Sets for "Regardless Of"
   Relationships*. Kinds of a thing that another rule tells apart are the usual false positive: three
   rows for three kinds, where the rule under test reads only whether the thing was valid.
+  **Collapsing means the value set, not the delete key.** Put every kind in the surviving cell —
+  `{percentage, fixed, product-specific}` — because the description will still claim the kind makes
+  no difference, and deleting the rows leaves that claim with nothing behind it.
 
 When you cut a row, say which surviving row discharges its obligation. If none does, keep it.
 
