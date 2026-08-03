@@ -1854,6 +1854,44 @@ describe("classifying a generation failure", () => {
     fs.rmSync(dir, { recursive: true });
   });
 
+  test("an agent halted mid-run is not countable, however much it delivered", () => {
+    const dir = withOutputs(delivered);
+    const r = classifyGenerationFailure(
+      { message: "Timed out after 900000ms", stdout: "", silenceMs: 898000 }, dir, evalDef
+    );
+    assert.equal(r.kind, "timeout-after-silent-halt");
+    assert.equal(r.countable, false, "a halt says nothing about the guidance");
+    fs.rmSync(dir, { recursive: true });
+  });
+
+  test("an agent still working at the deadline is countable — quiet is not halted", () => {
+    const dir = withOutputs(delivered);
+    const r = classifyGenerationFailure(
+      { message: "Timed out after 900000ms", stdout: "", silenceMs: 90000 }, dir, evalDef
+    );
+    assert.equal(r.kind, "timeout-after-delivery");
+    assert.equal(r.countable, true, "a build running under a Bash call goes quiet legitimately");
+    fs.rmSync(dir, { recursive: true });
+  });
+
+  test("a halt outranks delivery but not a dropped connection", () => {
+    const dir = withOutputs(delivered);
+    const stdout = JSON.stringify({ type: "system", subtype: "api_retry", attempt: 1 });
+    const r = classifyGenerationFailure(
+      { message: "Timed out after 900000ms", stdout, silenceMs: 898000 }, dir, evalDef
+    );
+    assert.equal(r.kind, "timeout-after-api-retry", "the retry is the more specific diagnosis");
+    assert.equal(r.countable, false);
+    fs.rmSync(dir, { recursive: true });
+  });
+
+  test("a missing silence measurement leaves the old classification untouched", () => {
+    const dir = withOutputs(delivered);
+    const r = classifyGenerationFailure({ message: "Timed out after 900000ms", stdout: "" }, dir, evalDef);
+    assert.equal(r.kind, "timeout-after-delivery", "older runs recorded no silenceMs");
+    fs.rmSync(dir, { recursive: true });
+  });
+
   test("a crash is not a timeout", () => {
     const dir = withOutputs(delivered);
     const r = classifyGenerationFailure({ message: "spawn ENOENT", stdout: "" }, dir, evalDef);

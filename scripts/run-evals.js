@@ -1308,15 +1308,20 @@ function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, apiG
     })}\n`);
     proc.stdin.end();
 
+    // When output last arrived, so a halted run can be told from a working one. See
+    // GENERATION_SILENCE_LIMIT_MS — the timestamps inside the stream cannot answer this.
+    let lastOutputAt = Date.now();
+
     const timer = setTimeout(() => {
       proc.kill("SIGTERM");
       const err = new Error(`Timed out after ${timeoutMs}ms`);
       err.stdout = stdout;
       err.stderr = stderr;
+      err.silenceMs = Date.now() - lastOutputAt;
       settle(reject, err);
     }, timeoutMs);
 
-    proc.stdout.on("data", (data) => { stdout += data; });
+    proc.stdout.on("data", (data) => { stdout += data; lastOutputAt = Date.now(); });
     proc.stderr.on("data", (data) => { stderr += data; });
 
     proc.on("close", (code) => {
@@ -1640,6 +1645,30 @@ function harvestGeneratedFiles(agentCwd, evalDir, evalDef) {
  * harvested files satisfy the language profile's deliverable test — the same predicate `gradeOne`
  * uses to stop empty responses passing format assertions vacuously.
  */
+/**
+ * How long the child may emit nothing before the run counts as halted rather than working.
+ *
+ * An API error can stop the CLI dead mid-run — the process stays up and produces no further output
+ * until the timeout kills it. That looks identical to a budget overrun from the outside, and it was
+ * scored as one: `iteration-57`'s eval-15 delivered two files, went silent for 898s, and its 16/34
+ * reached the ledger before the trailing silence was noticed. Interactively this is the failure that
+ * needs a "Please continue" to unstick.
+ *
+ * **Silence is measured from when stdout last arrived, not from the timestamps inside it.** Thinking
+ * deltas carry no timestamp, so a long think looks like silence in the JSON while the pipe is busy.
+ *
+ * The threshold sits well above legitimate quiet: an agent running its own build under a Bash call
+ * emits nothing for as long as the build takes (`runBuildCheck` alone allows 120s), and the worst gap
+ * on a healthy run was 90s. It sits well below the 900s ceiling, so a genuine overrun — an agent
+ * working right up to the deadline — still scores.
+ */
+const GENERATION_SILENCE_LIMIT_MS = 300000;
+
+/** True when the child stopped producing output long before the timeout fired. */
+function halted(err) {
+  return Number.isFinite(err.silenceMs) && err.silenceMs >= GENERATION_SILENCE_LIMIT_MS;
+}
+
 function classifyGenerationFailure(err, evalDir, evalDef) {
   const timedOut = /Timed out after \d+ms/.test(err.message || "");
   const sawApiRetry = Boolean(err.stdout && /"subtype"\s*:\s*"api_retry"/.test(err.stdout));
@@ -1650,6 +1679,7 @@ function classifyGenerationFailure(err, evalDir, evalDef) {
 
   if (!timedOut) return { kind: "crash", countable: false, delivered };
   if (sawApiRetry) return { kind: "timeout-after-api-retry", countable: false, delivered };
+  if (halted(err)) return { kind: "timeout-after-silent-halt", countable: false, delivered };
   if (!delivered) return { kind: "timeout-no-delivery", countable: false, delivered };
   return { kind: "timeout-after-delivery", countable: true, delivered };
 }
