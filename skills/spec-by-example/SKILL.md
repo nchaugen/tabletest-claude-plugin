@@ -296,11 +296,11 @@ One family, one table with an adjustment column — not three tables each fixing
 
 | Scenario                   | Adjustments                        | Daily Dose? |
 |----------------------------|------------------------------------|-------------|
-| No adjustment              | (none)                             | 500         |
-| Renal impairment           | renal: severe                      | 250         |
-| Low body weight            | weight: 20 kg                      | 200         |
-| Interacting drug           | interaction: yes                   | 400         |
-| Renal and interacting drug | renal: severe, interaction: yes    | 200         |
+| No adjustment              | [:]                                | 500         |
+| Renal impairment           | [renal: severe]                    | 250         |
+| Low body weight            | [weightKg: 20]                     | 200         |
+| Interacting drug           | [interaction: true]                | 400         |
+| Renal and interacting drug | [renal: severe, interaction: true] | 200         |
 
 `Adjustment` works as a column header with those as its values, which is what makes it a family and
 not a bag.
@@ -536,7 +536,7 @@ at all.
 
 | Scenario                 | Bin Before     | Action            | Bin After?     | Message?     |
 |--------------------------|----------------|-------------------|----------------|--------------|
-| Accept a labelled item   | [EMPTY]        | deposit cardboard | [CARDBOARD: 1] | Accepted     |
+| Accept a labelled item   | [:]            | deposit cardboard | [CARDBOARD: 1] | Accepted     |
 | Fill to the bulk limit   | [CARDBOARD: 1] | deposit cardboard | [CARDBOARD: 2] | Accepted     |
 | Reject a mismatched item | [CARDBOARD: 1] | deposit solvent   | [CARDBOARD: 1] | Wrong stream |
 
@@ -698,10 +698,10 @@ that tests the formatter rather than the rule, hides the structure from the read
 formatting logic back into the test body. Use a set where order is not part of the rule, and a list
 with a canonical sort where it is.
 
-| Scenario                | Items         | Streams?                              |
-|-------------------------|---------------|---------------------------------------|
-| Mixed recyclables       | paper, card   | recycling: paper, card                |
-| Recyclable and residual | paper, foil   | recycling: paper / landfill: foil     |
+| Scenario                | Items         | Streams?                                |
+|-------------------------|---------------|-----------------------------------------|
+| Mixed recyclables       | [paper, card] | [recycling: [paper, card]]              |
+| Recyclable and residual | [paper, foil] | [recycling: [paper], landfill: [foil]]  |
 
 `Streams?` carries the `?`; `Items` does not. Only the column being verified takes the suffix.
 
@@ -868,7 +868,6 @@ Do not fill a genuinely blank cell with filler like `N/A` or `none`.
 |---------------------------|------------|-------------------|----------------|
 | No override configured    | 80         |                   | OPEN           |
 | Override supplied         | 80         | 90                | CLOSED         |
-| Override cleared to empty | 80         | `''`              | OPEN           |
 
 The blank row specifies what the controller does with *no* override. Writing `0` there would specify
 something else.

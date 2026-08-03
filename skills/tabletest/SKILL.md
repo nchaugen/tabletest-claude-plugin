@@ -644,7 +644,7 @@ reached first, feels like coverage and is not. **Count obligations per rule, nev
 Scenario                  | Duty Hours | Extra Rest Required?
 At the duty limit         | 13         | false
 Just past the duty limit  | 13.5       | true
-Well past the duty limit  | 20         | true      <- redundant: 13.5 already proved it
+// Well past the duty limit | 20       | true    <- redundant: 13.5 already proved it
 ```
 
 Keep the straddling pair; drop the row further out.
@@ -740,7 +740,7 @@ at all.
 
 ```
 Scenario                  | Bin Before                | Action              | Bin After?                | Message?
-Accept a labelled item    | [EMPTY]                   | deposit cardboard   | [CARDBOARD: 1]            | Accepted
+Accept a labelled item    | [:]                       | deposit cardboard   | [CARDBOARD: 1]            | Accepted
 Fill to the bulk limit    | [CARDBOARD: 1]            | deposit cardboard   | [CARDBOARD: 2]            | Accepted
 Reject a mismatched item  | [CARDBOARD: 1]            | deposit solvent     | [CARDBOARD: 1]            | Wrong stream
 ```
@@ -1078,13 +1078,14 @@ Do not fill a genuinely blank cell with filler like `N/A` or `none`.
     Scenario                   | Humidity % | Override Setpoint | Vent Position?
     No override configured     | 80         |                   | OPEN
     Override supplied          | 80         | 90                | CLOSED
-    Override cleared to empty  | 80         | ''                | OPEN
     """)
 void resolvesVentPosition(int humidity, Integer overrideSetpoint, VentPosition vent) { ... }
 ```
 
 The blank row specifies what the controller does with *no* override. Writing `0` there would specify
-something else, and defaulting it in the method body would specify nothing at all.
+something else, and defaulting it in the method body would specify nothing at all. A column whose
+type is a number has no present-but-empty value to write: `''` is an empty **string** and fails to
+convert.
 
 ### Design Black-Box Tables
 
