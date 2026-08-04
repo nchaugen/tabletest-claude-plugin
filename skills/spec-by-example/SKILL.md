@@ -76,8 +76,9 @@ Ask for the simplest, most obvious case where the behaviour works as intended:
 - "Give me one concrete example — with real values — where this works."
 - "Walk me through the default situation."
 
-Write this as the first data row. Column naming can be rough at this stage; refine
-it as more examples arrive.
+Write this as the first data row. The *set* of columns will change as more examples
+arrive — but name each one in the domain's words as you write it, never in technical
+ones you mean to fix later. There may be no later.
 
 ### 3. Identify the Columns
 
@@ -419,20 +420,18 @@ every obligation dropped that way:
 
 When you cut a row, say which surviving row discharges its obligation. If none does, keep it.
 
-Three shapes account for nearly every redundant row:
+And three shapes account for nearly every genuinely redundant row:
 
 - **Further past the same boundary.** A pair that *straddles* a boundary earns both its rows: the
-  outcomes differ, and that is the rule. A second row on the same side does not. This holds for
-  rejections too — one row just past a limit rejects, and a row further past it rejects for no
-  new reason.
+  outcomes differ, and that is the rule. A second row on the same side does not, and the same
+  holds for rejections — one row just past a limit rejects, and a row further past it rejects
+  for no new reason. It earns its place only where the point *is* that two inputs collapse to one
+  behaviour, and then a value set says that in one row; keep two and the scenario names have to carry
+  why.
 - **A larger n in the same direction.** If two incompatible items force a batch into separate streams,
   three incompatible items force it for the same reason. One obligation, one row.
-- **A value the rule ignores.** Two rows differing only in it are one row. Merge them with a
-  value set: same outcome either way means the difference between the rows is not the rule.
-
-A second row on the same side of a boundary earns its place in one case: when the point *is* that
-two inputs collapse to one behaviour. Then say so — a value set says it in one row, and if you
-keep two the scenario names have to carry why.
+- **A value the rule ignores.** The redundancy test above, applied directly: one row carrying a
+  value set.
 
 **One value can carry two obligations, in two different tables.** A value that is a boundary for one
 rule is often the subject of another. A zero duty period is both the accepted end of "duty hours
@@ -574,7 +573,7 @@ cannot: where the data came from, what the fixture fixes, an assumption the rows
 **If the declaration says the value does not matter, declaring it is not enough.** *"Held empty
 throughout, and it makes no difference"* is not apparatus — it is a claim about the rule, and a claim
 no row can contradict is not stated in the table at all. Vary it instead, across the values it
-ignores; see *Value Sets for "Regardless Of" Relationships*. Write a fixture into the
+ignores; see *Use Value Sets for "Regardless Of" Relationships*. Write a fixture into the
 the note beneath the table only for what the rule genuinely reads and the rows cannot show.
 
 **Making a value a column does not force everything measured from it into the same form.** Once a
@@ -945,10 +944,9 @@ When implementation begins, hand the table to `/tabletest` — the column struct
 | Output columns (`?` suffix)      | Parameters used in assertions           |
 | Scenario column                  | Optional `@Scenario` parameter          |
 | Multiple values in a cell        | Value set `{Economy, Premium}`          |
-| Business-language column names   | Kept as-is or refined during the refine phase |
+| Business-language column names   | Kept as-is — they are already the domain terms |
 
 A few things to keep in mind for the handoff:
-- Column names should stay close to business language; avoid reverting to technical terms during translation
 - Custom types and enums will need type converters — `/tabletest` handles this
 - Open cells marked `?` become the first decisions to resolve during implementation
 

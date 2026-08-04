@@ -20,7 +20,7 @@ cannot: where the data came from, what the fixture fixes, an assumption the {{ro
 **If the declaration says the value does not matter, declaring it is not enough.** *"Held empty
 throughout, and it makes no difference"* is not apparatus — it is a claim about the rule, and a claim
 no {{row}} can contradict is not stated in the table at all. Vary it instead, across the values it
-ignores; see *Value Sets for "Regardless Of" Relationships*. Write a fixture into the
+ignores; see *Use Value Sets for "Regardless Of" Relationships*. Write a fixture into the
 {{description_surface}} only for what the rule genuinely reads and the {{rows}} cannot show.
 
 **Making a value a column does not force everything measured from it into the same form.** Once a

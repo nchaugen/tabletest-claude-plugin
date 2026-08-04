@@ -219,7 +219,7 @@ void appliesRestCredit(Roster roster, int restHours) { ... }
 ```
 
 This is not only about objects with several optional fields — that case gets its own column shape
-under **Collapse Sparse Columns into a Map**. It applies equally to a composed object whose parts
+under **Putting a Composite Value in a Cell**. It applies equally to a composed object whose parts
 come from one cell, and to one assembled from a fixture plus a single varying value.
 
 ### Prefer Built-in Conversion First
@@ -318,7 +318,13 @@ There is no specific naming pattern required, but `parse<TypeName>` (e.g., `pars
 
 ### One Converter Per Target Type
 
-You cannot have multiple converter methods with the same return type. If two columns need different parsing for the same type, use a single converter that handles both formats, or split into columns with different types.
+One converter per target type, **per class**, matched on the *erased* type — so `Optional<String>`
+and `Optional<Boolean>` collide. If two columns need different parsing for the same type, use a
+single converter that handles both formats, or split into columns with different types.
+
+**This is what forces cross-table consistency.** Several tables in one class taking the same domain
+type must agree on one cell format for it, so settle that format before the first table rather than
+the third — see *Keep the Tables of One Concern Consistent*.
 
 ### Handling Null Values
 
@@ -618,20 +624,18 @@ every obligation dropped that way:
 
 When you cut a row, say which surviving row discharges its obligation. If none does, keep it.
 
-Three shapes account for nearly every redundant row:
+And three shapes account for nearly every genuinely redundant row:
 
 - **Further past the same boundary.** A pair that *straddles* a boundary earns both its rows: the
-  outcomes differ, and that is the rule. A second row on the same side does not. This holds for
-  rejections too — one row just past a limit rejects, and a row further past it rejects for no
-  new reason.
+  outcomes differ, and that is the rule. A second row on the same side does not, and the same
+  holds for rejections — one row just past a limit rejects, and a row further past it rejects
+  for no new reason. It earns its place only where the point *is* that two inputs collapse to one
+  behaviour, and then a value set says that in one row; keep two and the scenario names have to carry
+  why.
 - **A larger n in the same direction.** If two incompatible items force a batch into separate streams,
   three incompatible items force it for the same reason. One obligation, one row.
-- **A value the rule ignores.** Two rows differing only in it are one row. Merge them with a
-  value set: same outcome either way means the difference between the rows is not the rule.
-
-A second row on the same side of a boundary earns its place in one case: when the point *is* that
-two inputs collapse to one behaviour. Then say so — a value set says it in one row, and if you
-keep two the scenario names have to carry why.
+- **A value the rule ignores.** The redundancy test above, applied directly: one row carrying a
+  value set.
 
 **One value can carry two obligations, in two different tables.** A value that is a boundary for one
 rule is often the subject of another. A zero duty period is both the accepted end of "duty hours
@@ -777,7 +781,7 @@ cannot: where the data came from, what the fixture fixes, an assumption the rows
 **If the declaration says the value does not matter, declaring it is not enough.** *"Held empty
 throughout, and it makes no difference"* is not apparatus — it is a claim about the rule, and a claim
 no row can contradict is not stated in the table at all. Vary it instead, across the values it
-ignores; see *Value Sets for "Regardless Of" Relationships*. Write a fixture into the
+ignores; see *Use Value Sets for "Regardless Of" Relationships*. Write a fixture into the
 `@Description` only for what the rule genuinely reads and the rows cannot show.
 
 **Making a value a column does not force everything measured from it into the same form.** Once a
@@ -1238,20 +1242,19 @@ means.
 Add `@Description` when there is context the table alone cannot convey. Omit it when the table already says everything — a vacuous description adds noise.
 
 Good reasons to add `@Description`:
-- **Fixed values** shared by all rows that are not columns (e.g., "order value is always 100")
+- **Fixed values the rule reads that cannot be columns** — see *Assume the Table Is Published*, which decides that; a value that can be a column belongs in one
 - **Domain context** — where/when the rule applies, who is affected, which market
 - **Open questions** — decisions not yet resolved
 - **Relationship between tables** — how this table connects to others in the class
 
-Do not restate what the table already shows. If the description merely summarises the column names or row outcomes, delete it. Don't include irrelevant fixed values — "Fixed for all rows: donor name = 'A. Nolan'" is noise unless the name affects behaviour. Values hardcoded in the method body that affect outcomes should be columns.
+Do not restate what the table already shows. If the description merely summarises the column names or row outcomes, delete it. Don't include irrelevant fixed values — "Fixed for all rows: donor name = 'A. Nolan'" is noise unless the name affects behaviour.
 
 **A description must not publish the algorithm.** Restating the internal formula — "the dose index is
 body weight divided by ten plus four per severity grade, capped once it passes 75" — turns a
 black-box table into a white-box one and pins the test to an implementation the rows never observe.
-A **threshold the rule is about**
-is different: name it, or better, make it a column (see **Make Thresholds Visible**). The line is
-whether a reader could recompute every expectation cell from the description alone. If they could,
-the description is doing the code's job.
+A **threshold the rule is about** is different, and it goes in a column rather than here (see *Make
+Thresholds Visible*). The line is whether a reader could recompute every expectation cell from the
+description alone. If they could, the description is doing the code's job.
 
 ```java
 // GOOD — adds context not visible in the table
@@ -1302,6 +1305,11 @@ parser, a legend the reader does not have, and the rule that a cell holds one va
 | One object with several optional fields | a map, `[k: v]` | the domain type, converter takes `Map` |
 | **Several objects** | **a list of maps, `[[k: v], [k: v]]`** | **`List<DomainType>`, converter takes `Map`** |
 
+**Decide this from the signature, before drafting columns.** Where a parameter is an object with
+several optional fields, it is one map column — never one column per field. Deciding after the table
+is drafted is too late: by then every field has a column, most rows carry a blank or a `false`, and
+the sea of near-empty cells reads as deliberate.
+
 ```java
 @TableTest("""
     Scenario                          | Donations So Far                     | Deferred?
@@ -1324,37 +1332,7 @@ public static Donation toDonation(Map<String, String> fields) {
 The converter takes **one element's map**, not the whole list — conversion recurses into the
 collection and calls it per element (see *Built-in Value Conversion*).
 
-**Choose the keys from what the table has to say, not from what the converter needs.** A field the
-`@Description` makes a claim about needs a key, and so does a unit finer than the one the map
-carries — everything the converter supplies instead is pinned for every row with no column saying so.
-See *Assume the Table Is Published*.
-
-### What the Notation Cannot Express
-
-Four limits worth knowing before you design around them, because each is otherwise found by a failing
-build or by a table that will not come out right:
-
-- **A value set cannot vary an expectation.** `{a, b}` expands the row into one case per value, and
-  every expanded row keeps the *same* expectation cells. If the answer differs per value, those are
-  ordinary distinct rows, not a set.
-- **Value-set members are separated by commas**, so a member containing one has to be quoted:
-  `{"a,b", c}`.
-- **One converter per target type, per class**, matched on the *erased* type — `Optional<String>`
-  and `Optional<Boolean>` collide. Several tables in one class taking the same domain type must
-  therefore agree on one cell format for it. Settle that before the first table, not the third.
-- **A collection cell cannot hold a null element.** Blank the whole cell to get a null collection.
-
-### Collapse Sparse Columns into a Map
-
-**Decide this from the signature, before drafting columns.** When one parameter of the method under
-test is an object with several optional fields, it is *one* map column with a `@TypeConverter` that
-constructs it — never one column per field. Deciding after the table is drafted is too late: by
-then every field has a column, most rows carry a blank or a `false` in it, and the sea of near-empty
-cells reads as deliberate.
-
-The "nothing set" row is **`[:]`, not a blank cell.** A blank bypasses the converter and hands the
-method `null` (see Handling Null Values); `[:]` calls the converter with an empty map, which returns
-the defaults.
+For the one-object case the same converter takes the map directly, and supplies the defaults:
 
 ```java
 @TableTest("""
@@ -1376,9 +1354,26 @@ public static RequestConfig parseRequestConfig(Map<String, String> config) {
 }
 ```
 
-**The converter returns the domain object, not the map.** Declaring the parameter `Map<String,
-String>` and building the object with a private helper in the test class leaves construction in the
-test and defeats the point — the converter *is* the construction.
+The "nothing set" row is **`[:]`, not a blank cell** — a blank bypasses the converter entirely (see
+*Handling Null Values*). And **the converter returns the domain object, not the map**: declaring the
+parameter `Map<String, String>` and building the object with a private helper leaves construction in
+the test, which is the thing the converter exists to remove.
+
+**Choose the keys from what the table has to say, not from what the converter needs.** A field the
+`@Description` makes a claim about needs a key, and so does a unit finer than the one the map
+carries — everything the converter supplies instead is pinned for every row with no column saying so.
+See *Assume the Table Is Published*.
+
+### What the Notation Cannot Express
+
+Three limits worth knowing before you design around them, because each is otherwise found by a
+failing build or by a table that will not come out right:
+
+- **Value-set members are separated by commas**, so a member containing one has to be quoted:
+  `{"a,b", c}`.
+- **A collection cell cannot hold a null element.** Blank the whole cell to get a null collection.
+- **One converter per target type, per class** — see *One Converter Per Target Type*, which is what
+  forces several tables in one class onto one cell format for a shared domain type.
 
 **A map column is a column decision, not a table decision.** Choosing a map for one parameter says
 nothing about where the concern boundary lies, and it must not become the boundary. If another input
@@ -1409,13 +1404,12 @@ whether a table parses at all — see *Checking a Table Parses* below.
 ### Converting Existing Tests
 
 1. Identify tests with identical structure but different data.
-2. Extract the varying parts as columns (inputs and expected values). Wherever the originals build a domain object — constructor, setters, builder, static factory, `with…` chain — that construction moves into a `@TypeConverter` and the parameter becomes the domain type; it never stays in the method body. Where the object has several optional fields, the column that feeds the converter is a map (see Collapse Sparse Columns into a Map).
+2. Extract the varying parts as columns (inputs and expected values). Wherever the originals build a domain object — constructor, setters, builder, static factory, `with…` chain — that construction moves into a `@TypeConverter` and the parameter becomes the domain type; it never stays in the method body. Where the object has several optional fields, the column that feeds the converter is a map (see Putting a Composite Value in a Cell).
 3. Create table with scenario column first, inputs next, expectations last (suffix with `?`).
 4. Align method parameters to column order; do not bind the scenario column unless annotated with `@Scenario`.
 5. Verify all rows use the same assertion logic.
-6. After building table with multiple rows, check for column consolidation opportunities (see Quality Checks).
-7. Remove the original `@Test` methods the table now covers — run the tests before and after removal to confirm coverage is preserved.
-8. When converting from another framework (Spock, Kotest, TestNG, JUnit 4), finish the migration: replace the old framework's assertion/matcher style (`shouldBe`, `expect:`, TestNG asserts) with the project's JUnit-compatible style, remove its imports, and remove its dependencies from the build file. Leftover matcher calls or a leftover build dependency both mean the conversion is incomplete.
+6. Remove the original `@Test` methods the table now covers — run the tests before and after removal to confirm coverage is preserved.
+7. When converting from another framework (Spock, Kotest, TestNG, JUnit 4), finish the migration: replace the old framework's assertion/matcher style (`shouldBe`, `expect:`, TestNG asserts) with the project's JUnit-compatible style, remove its imports, and remove its dependencies from the build file. Leftover matcher calls or a leftover build dependency both mean the conversion is incomplete.
 
 ### Writing New TableTest from a Feature Description
 
@@ -1431,12 +1425,15 @@ When there is no existing code (empty `src/main/java`), write the tests first �
 
 ### Writing New TableTest from Existing Code
 
-1. **Understand phase**: Read the code, trace logic, identify variations
-2. **Design phase**: Sketch table structure, discuss with pair
-3. **Confirm**: Show mockup with 2-3 rows, get agreement
-4. **Implement**: Create full table with all scenarios
-5. **Run immediately**: Get fast feedback on structure and conversions
-6. **Refine**: Re-read the table once it passes and fix anything the rules above catch. **Do not defer naming to this step** — write domain names into the first draft, because a table you hand over is the draft someone reads.
+1. **Understand**: Read the code, trace the logic, identify what varies
+2. **Design**: Decide the concerns and each table's axis before writing a row
+3. **Implement**: Create the full table with all scenarios
+4. **Run immediately**: Get fast feedback on structure and conversions
+5. **Refine**: Re-read the table once it passes and fix anything the rules above catch. **Do not defer naming to this step** — write domain names into the first draft, because a table you hand over is the draft someone reads.
+
+**The ambiguity policy above applies here too.** Where the code leaves a question open — a boundary
+it never reaches, a branch no caller exercises — choose the reasonable reading, record it in the
+`@Description`, and deliver. Do not stop to get agreement on a mockup.
 
 ---
 
@@ -1502,8 +1499,6 @@ unsure about. It answers in under a second what a `gradle test` round answers in
 - [ ] **@Description adds information**: if present, `@Description` provides context beyond what the table shows (fixed values, domain context, open questions) — not a restatement of columns or rows. Omit `@Description` if there is nothing to add.
 - [ ] **@Description uses text block**: `@Description` uses `"""` text blocks, not string concatenation with `+`
 - [ ] **Annotation order**: `@DisplayName` → `@Description` → `@TableTest` (no other order)
-- [ ] **Column consolidation**: if multiple columns are mutually exclusive (both identity and status vary together), consider consolidating into single column with composite values (e.g., `Primary OK`, `Secondary ERROR`)
-- [ ] **Cross-table consistency**: if multiple TableTests exist in the same class, use consistent notation for similar concerns (timing, errors, special values); share parsers and helper methods
 - [ ] **Test helpers organized**: helper classes placed at bottom of test file with clear names (`QueryCounter`, not `Helper`); only extract to separate file when reused across test classes
 - [ ] **Old framework removed** (conversions only): no imports, matcher/assertion calls, or build-file dependencies from the framework being replaced
 

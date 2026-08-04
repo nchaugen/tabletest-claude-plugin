@@ -33,20 +33,18 @@ every obligation dropped that way:
 
 When you cut a {{row}}, say which surviving {{row}} discharges its obligation. If none does, keep it.
 
-Three shapes account for nearly every redundant {{row}}:
+And three shapes account for nearly every genuinely redundant {{row}}:
 
 - **Further past the same boundary.** A pair that *straddles* a boundary earns both its {{rows}}: the
-  outcomes differ, and that is the rule. A second {{row}} on the same side does not. This holds for
-  rejections too — one {{row}} just past a limit rejects, and a {{row}} further past it rejects for no
-  new reason.
+  outcomes differ, and that is the rule. A second {{row}} on the same side does not, and the same
+  holds for rejections — one {{row}} just past a limit rejects, and a {{row}} further past it rejects
+  for no new reason. It earns its place only where the point *is* that two inputs collapse to one
+  behaviour, and then a value set says that in one {{row}}; keep two and the {{names}} have to carry
+  why.
 - **A larger n in the same direction.** If two incompatible items force a batch into separate streams,
   three incompatible items force it for the same reason. One obligation, one {{row}}.
-- **A value the rule ignores.** Two {{rows}} differing only in it are one {{row}}. Merge them with a
-  value set: same outcome either way means the difference between the {{rows}} is not the rule.
-
-A second {{row}} on the same side of a boundary earns its place in one case: when the point *is* that
-two inputs collapse to one behaviour. Then say so — a value set says it in one {{row}}, and if you
-keep two the {{names}} have to carry why.
+- **A value the rule ignores.** The redundancy test above, applied directly: one {{row}} carrying a
+  value set.
 
 **One value can carry two obligations, in two different tables.** A value that is a boundary for one
 rule is often the subject of another. A zero duty period is both the accepted end of "duty hours
