@@ -1,0 +1,74 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 61,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "857c996db5457b4e249fc57faef07819282a5d14",
+  "skill_digest": "2e35600b2ced36a4",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-04T09:01:50.639Z",
+  "evals": [
+    {
+      "id": "eval-18-convert-from-code",
+      "name": "convert from code",
+      "skill": "tabletest",
+      "fingerprint": "e6dc3ac194ef",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 23,
+        "assertions_total": 30,
+        "pass_rate": 0.7666666666666667,
+        "failed_assertions": [
+          "concerns-decomposed",
+          "separates-decision-and-premium",
+          "description-no-internals",
+          "decision-claim-cliff",
+          "decision-cliff-independent-of-age",
+          "premium-claim-boundary",
+          "rule-statable-from-table"
+        ],
+        "total_tokens": 1213595,
+        "duration_ms": 210105,
+        "cost_usd": 0.9282777999999999,
+        "grading_usage": {
+          "input_tokens": 13649,
+          "output_tokens": 14822,
+          "total_tokens": 28471,
+          "calls": 2,
+          "cost_usd": 0.263277,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 23,
+    "assertions_total": 30,
+    "pass_rate": 0.7666666666666667,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 1213595,
+    "total_duration_ms": 210105,
+    "total_cost_usd": 0.9282777999999999,
+    "grading": {
+      "input_tokens": 13649,
+      "output_tokens": 14822,
+      "total_tokens": 28471,
+      "calls": 2,
+      "cost_usd": 0.263277,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}

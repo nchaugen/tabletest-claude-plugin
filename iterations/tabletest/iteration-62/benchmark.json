@@ -1,0 +1,66 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 62,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "857c996db5457b4e249fc57faef07819282a5d14",
+  "skill_digest": "2e35600b2ced36a4",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-04T09:04:35.726Z",
+  "evals": [
+    {
+      "id": "eval-20-collections-and-quoting",
+      "name": "collections and quoting",
+      "skill": "tabletest",
+      "fingerprint": "51e09385504d",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 17,
+        "assertions_total": 17,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 1999660,
+        "duration_ms": 526595,
+        "cost_usd": 1.5561995,
+        "grading_usage": {
+          "input_tokens": 6403,
+          "output_tokens": 183,
+          "total_tokens": 6586,
+          "calls": 1,
+          "cost_usd": 0.021954,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 17,
+    "assertions_total": 17,
+    "pass_rate": 1,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 1999660,
+    "total_duration_ms": 526595,
+    "total_cost_usd": 1.5561995,
+    "grading": {
+      "input_tokens": 6403,
+      "output_tokens": 183,
+      "total_tokens": 6586,
+      "calls": 1,
+      "cost_usd": 0.021954,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}
