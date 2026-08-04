@@ -38,6 +38,11 @@ would be in a conversion helper, with nothing on any surface to say so. When the
 outcome does not turn on that field, dropping it is what makes the claim uncontradictable — put the
 field back as a key or a column, or stop making the claim.
 
+**A field no surface says anything about is the opposite case, and leaving it out is what keeps the
+cell readable.** An object with twelve properties whose rule reads two belongs in the table as those
+two; a fixture supplies valid values for the rest. The rule above is the whole limit on that — what
+must be visible is what something claims about, not everything the object happens to hold.
+
 It is **not** declared when it sits in the test body, in a field, in a conversion helper, or in a
 comment — a comment reaches no published surface at all. The helper is the easiest hiding place
 because it looks like plumbing: one that builds every entry with the same zone has pinned zone for

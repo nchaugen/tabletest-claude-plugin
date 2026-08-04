@@ -13,6 +13,13 @@ cell is predictable from its {{row}}.
 This usually needs a narrower function to call. A table that can only reach the fused result means
 the seam is missing, not that the table must fuse.
 
+**Where you may not add the seam, name it.** Code you cannot change still has the boundary in its
+behaviour, and a table that fuses two rules without saying why reads as a design choice. One sentence
+on a published surface fixes that — *"the intermediate score is not observable, so the decision and
+the amount are verified together; an accessor for it would allow two tables."* Whether the gap gets
+closed in the code or bridged here is then the reader's decision to make, which it cannot be while
+the gap is invisible.
+
 {{example}}
 
 **Check:** **Rules separated from arithmetic**: every expectation cell is predictable from its {{row}} in one step; a classification and the calculation that follows it are two tables

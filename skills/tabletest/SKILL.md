@@ -222,6 +222,11 @@ This is not only about objects with several optional fields — that case gets i
 under **Putting a Composite Value in a Cell**. It applies equally to a composed object whose parts
 come from one cell, and to one assembled from a fixture plus a single varying value.
 
+**One exception, and it is a last resort:** a converter needs a type to dispatch on, so where the code
+under test has no type for the object, its parts go in separate columns and the method assembles them.
+Name that in the `@Description` rather than leaving it to look like a choice — see *Putting a
+Composite Value in a Cell*.
+
 ### Prefer Built-in Conversion First
 
 JUnit can convert strings to `Class<?>` when the value is a fully-qualified class name. Write `java.lang.RuntimeException` in the table instead of `RuntimeException` plus a custom `@TypeConverter`. Only write a converter method when built-in conversion does not cover the type.
@@ -574,6 +579,13 @@ cell is predictable from its row.
 This usually needs a narrower function to call. A table that can only reach the fused result means
 the seam is missing, not that the table must fuse.
 
+**Where you may not add the seam, name it.** Code you cannot change still has the boundary in its
+behaviour, and a table that fuses two rules without saying why reads as a design choice. One sentence
+on a published surface fixes that — *"the intermediate score is not observable, so the decision and
+the amount are verified together; an accessor for it would allow two tables."* Whether the gap gets
+closed in the code or bridged here is then the reader's decision to make, which it cannot be while
+the gap is invisible.
+
 Table 1 — the classification (how do these duty hours divide?):
 ```
 Scenario           | Duty Hours | Normal Hours? | Extended Hours?
@@ -799,6 +811,11 @@ would be in a conversion helper, with nothing on any surface to say so. When the
 outcome does not turn on that field, dropping it is what makes the claim uncontradictable — put the
 field back as a key or a column, or stop making the claim.
 
+**A field no surface says anything about is the opposite case, and leaving it out is what keeps the
+cell readable.** An object with twelve properties whose rule reads two belongs in the table as those
+two; a fixture supplies valid values for the rest. The rule above is the whole limit on that — what
+must be visible is what something claims about, not everything the object happens to hold.
+
 It is **not** declared when it sits in the test body, in a field, in a conversion helper, or in a
 comment — a comment reaches no published surface at all. The helper is the easiest hiding place
 because it looks like plumbing: one that builds every entry with the same zone has pinned zone for
@@ -989,6 +1006,12 @@ row then states what a reader would actually see. Shorten a value only when it i
 scan, and shorten the **value**, never the vocabulary: `acme:search:v2` scans as well as a
 placeholder and still says what each part is. Single letters cost more than they save, because the
 legend that decodes them lives outside the table.
+
+**Where a cell carries several parts, the test is whether a reader can name each one.** That is the
+same legend question asked of a compound value: `2 x Widget @ £5.00` explains itself, while
+`W12/DELIVERY/addr-1` needs a key that lives somewhere else. It decides how much structure the cell
+has to show — spell the parts out where the values alone do not identify them, and let them stand
+bare where they do.
 
 Write literal values even when they repeat across rows. Extracting them into named constants
 forces the reader to look up every number, which is exactly the indirection the rows exist to
@@ -1295,20 +1318,34 @@ void defersDonorInsideTheInterval(String donationType, int daysSinceLast, int in
 
 ### Putting a Composite Value in a Cell
 
-**Never invent a delimiter.** If you are choosing between `@`, `;`, `/` or a regex to pack several
-fields into one cell, the notation already has a shape for it, and a hand-rolled format costs you a
-parser, a legend the reader does not have, and the rule that a cell holds one value.
+Start from the map and simplify, one step at a time, while the cell still says everything the table
+has to say. **The test at every step is the reader's: could someone who has never seen the code name
+each part of this cell?**
 
 | The cell holds | Write it | Parameter |
 |---|---|---|
-| One value in a domain convention (`<50`, `90d`) | plain text | the domain type, with a `@TypeConverter` |
-| One object with several optional fields | a map, `[k: v]` | the domain type, converter takes `Map` |
-| **Several objects** | **a list of maps, `[[k: v], [k: v]]`** | **`List<DomainType>`, converter takes `Map`** |
+| An object — the default, and always safe | a map, `[k: v]` | the domain type, converter takes `Map` |
+| …whose values name themselves without keys | a domain notation (`2 x Widget @ £5.00`) | the domain type, converter takes `String` |
+| …reduced to one part | that value alone (`<50`, `90d`) | the domain type, converter takes `String` |
+| **Several objects** | **a list of any of those, `[[k: v], [k: v]]`** | **`List<DomainType>`** |
+
+Keys are never *wrong*; they are the shape that always works. The lower rows are what you may drop to
+when the shorter cell costs the reader nothing.
+
+**Invent a notation only when its legend is in the cell** — the *Concrete Domain Values* test, applied
+to the shape you are choosing, and the discriminator is the legend rather than the punctuation. Read
+your own cell back cold: where you cannot say what a part is, the keys were doing work, so put them
+back. **A separator between repeats of one shape is always wrong** — `30d, 10d, 15d` packed as
+`30d;10d;15d` is a list the notation already has.
 
 **Decide this from the signature, before drafting columns.** Where a parameter is an object with
-several optional fields, it is one map column — never one column per field. Deciding after the table
+several optional fields, it is one column — never one column per field. Deciding after the table
 is drafted is too late: by then every field has a column, most rows carry a blank or a `false`, and
 the sea of near-empty cells reads as deliberate.
+
+**Leave out what this table says nothing about.** An object with twelve properties whose rule reads
+two is a two-part cell, and the converter supplies valid values for the rest. The only field that may
+not leave is one some surface makes a claim about — see *Assume the Table Is Published*.
 
 ```java
 @TableTest("""
@@ -1359,10 +1396,24 @@ The "nothing set" row is **`[:]`, not a blank cell** — a blank bypasses the co
 parameter `Map<String, String>` and building the object with a private helper leaves construction in
 the test, which is the thing the converter exists to remove.
 
-**Choose the keys from what the table has to say, not from what the converter needs.** A field the
-`@Description` makes a claim about needs a key, and so does a unit finer than the one the map
-carries — everything the converter supplies instead is pinned for every row with no column saying so.
-See *Assume the Table Is Published*.
+**Choose the parts from what the table has to say, not from what the converter needs.** A field the
+`@Description` makes a claim about has to be visible, and so does a unit finer than the one the cell
+carries. See *Assume the Table Is Published*.
+
+**Every shape here needs a type of its own.** Converters dispatch on return type, one per erased type
+per class (see *One Converter Per Target Type*), so an object written as a plain value needs a domain
+type rather than `String` — and two objects both written plainly need two types. **That constraint is
+what makes the simplification available**, not merely a limit on it: the type you declare to hold
+`2 x Widget @ £5.00` is the same type that lets the cell be that short.
+
+**Last resort — several columns for one object.** Where no domain type exists to pin a converter to,
+spread the object across columns and assemble it in the method. It costs exactly what the converter
+was buying: the arrangement moves back between the reader and the rule. Take it only when the type is
+genuinely absent, and **say so in the `@Description`** — *"there is no order-line type, so the columns
+carry its parts and the method assembles them"*. A missing type is usually a gap in the code under
+test rather than in the table, and whether it gets closed there or bridged here is the reader's
+decision; it cannot be, while the gap is invisible. Same move as naming a seam you may not add — see
+*Separate Rules from Arithmetic*.
 
 ### What the Notation Cannot Express
 

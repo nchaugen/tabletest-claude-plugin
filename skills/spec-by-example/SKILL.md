@@ -370,6 +370,13 @@ cell is predictable from its row.
 This usually needs a narrower function to call. A table that can only reach the fused result means
 the seam is missing, not that the table must fuse.
 
+**Where you may not add the seam, name it.** Code you cannot change still has the boundary in its
+behaviour, and a table that fuses two rules without saying why reads as a design choice. One sentence
+on a published surface fixes that — *"the intermediate score is not observable, so the decision and
+the amount are verified together; an accessor for it would allow two tables."* Whether the gap gets
+closed in the code or bridged here is then the reader's decision to make, which it cannot be while
+the gap is invisible.
+
 Table 1 — the classification (how do these duty hours divide?):
 
 | Scenario        | Duty Hours | Normal Hours? | Extended Hours? |
@@ -591,6 +598,11 @@ would be in a conversion helper, with nothing on any surface to say so. When the
 outcome does not turn on that field, dropping it is what makes the claim uncontradictable — put the
 field back as a key or a column, or stop making the claim.
 
+**A field no surface says anything about is the opposite case, and leaving it out is what keeps the
+cell readable.** An object with twelve properties whose rule reads two belongs in the table as those
+two; a fixture supplies valid values for the rest. The rule above is the whole limit on that — what
+must be visible is what something claims about, not everything the object happens to hold.
+
 It is **not** declared when it sits in the test body, in a field, in a conversion helper, or in a
 comment — a comment reaches no published surface at all. The helper is the easiest hiding place
 because it looks like plumbing: one that builds every entry with the same zone has pinned zone for
@@ -776,6 +788,12 @@ row then states what a reader would actually see. Shorten a value only when it i
 scan, and shorten the **value**, never the vocabulary: `acme:search:v2` scans as well as a
 placeholder and still says what each part is. Single letters cost more than they save, because the
 legend that decodes them lives outside the table.
+
+**Where a cell carries several parts, the test is whether a reader can name each one.** That is the
+same legend question asked of a compound value: `2 x Widget @ £5.00` explains itself, while
+`W12/DELIVERY/addr-1` needs a key that lives somewhere else. It decides how much structure the cell
+has to show — spell the parts out where the values alone do not identify them, and let them stand
+bare where they do.
 
 Write literal values even when they repeat across rows. Extracting them into named constants
 forces the reader to look up every number, which is exactly the indirection the rows exist to
