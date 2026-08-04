@@ -194,6 +194,10 @@ const EVAL_DOMAIN_TERMS = [
   // rule on 2026-08-02 without matching "order splitting" — the checker catches vocabulary, not
   // meaning, so add the words a paraphrase actually uses.
   "shipment", "warehouse", "insurance", "ticket",
+  // Stock states are eval-30's vocabulary and matched none of the above: an illustration reading
+  // `{IN_STOCK, BACKORDERED}` passed the checker on 2026-08-04 while naming the exact enum the eval
+  // grades.
+  "in_stock", "backordered", "pre_ordered", "pre-ordered",
 ];
 
 /**
