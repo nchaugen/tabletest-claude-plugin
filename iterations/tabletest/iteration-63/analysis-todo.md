@@ -39,6 +39,54 @@ Grader said: _separatesShipmentsByFulfillmentType: PASS; separatesDeliveryShipme
 - Output: `eval-30-order-splitting-tt/outputs/`
 - Narration: `eval-30-order-splitting-tt/narration.md`
 - Raw transcript: `eval-30-order-splitting-tt/conversation.jsonl` (gitignored, trimmed each cycle — mine it now)
+- Cause (from artefact): **J1's bound was applicable and the agent did not apply it; the reason is that the only form
+  available reads worse than the duplication.** The two {{rows}} are *In-stock item does not wait for a
+  backordered item* and *…for a pre-ordered item*, differing only in `BACKORDERED` vs `PRE_ORDERED`,
+  and the agent's own `@Description` says those two are equivalent (*"Backordered and pre-ordered
+  items both ship WHEN_AVAILABLE"*). So no rule names them apart and rule 06's narrowed floor bullet
+  says collapse them into a value set.
+  **Correction to the first reading of this slot: the collapse IS expressible.** A value set may hold
+  maps — `ValueGrammarTest:93` pins `'{[a:b], [a:b]}'` — and with the parameter typed `Map`,
+  `ValueSetUtil.isToBeExpanded` expands it. So
+  `{[p1: IN_STOCK, p2: BACKORDERED], [p1: IN_STOCK, p2: PRE_ORDERED]}` is legal and does the job.
+  What it is not is *better*: the whole composite is repeated per member to vary one attribute inside
+  it, so the cell grows while the {{rows}} shrink. What is true, and is the narrower fact, is that a
+  value set expands **per column only** — `{BACKORDERED, PRE_ORDERED}` written *inside* the map value
+  parses as a `Set` and never expands.
+  **The real defect is that the skill offers no third option, and there are two.** Give the varying
+  attribute its own column (`First Item Stock | IN_STOCK`, `Second Item Stock |
+  {BACKORDERED, PRE_ORDERED}`), which puts the value set where expansion happens. Or do what
+  iteration-55 did and use a *third item*, so one {{row}} carries IN_STOCK, BACKORDERED and
+  PRE_ORDERED together and the pair never arises.
+  **Repair proposed, not landed** — and it is a corner of the larger open question about how complex
+  objects are represented in a cell; see the plan's § K.
+
+## LOST `assertion-criteria-declared` — eval-30-order-splitting-tt
+
+Grader said: _assertEquals(Set.copyOf(shipments), groupsOf(actual)); applies unordered set comparison with no description stating order is irrelevant_
+
+- Output: `eval-30-order-splitting-tt/outputs/`
+- Narration: `eval-30-order-splitting-tt/narration.md`
+- Raw transcript: `eval-30-order-splitting-tt/conversation.jsonl` (gitignored, trimmed each cycle — mine it now)
+- Cause (from artefact): **A real rule 10 miss, and the difference from iteration-55 is the expectation's type.** iteration-63
+  declares `List<Set<String>>` and then compares with `assertEquals(Set.copyOf(shipments),
+  groupsOf(actual))` — the order-insensitivity is applied in the test body, where no reader sees it.
+  iteration-55 expected a `Map<Availability, Set<String>>`, so unorderedness was visible in the
+  notation itself (`[IMMEDIATE: {camera, tripod}]`) and needed no prose. That is exactly rule 10's
+  second repair — *"an unordered collection as the expectation says order does not matter in the
+  table itself, which beats saying so in prose"* — satisfied by accident in it-55 and missed here.
+  **Attribution is weak.** Nothing in the batch tells the agent to prefer a list over a map for this
+  expectation; the shape table's *"several objects → a list of maps"* row is about *input* cells.
+  One draw, no narration evidence that any batch passage drove the type choice. Record it, do not
+  attribute it.
+
+## LOST `no-duplicate-rows-within-a-table` — eval-30-order-splitting-tt
+
+Grader said: _separatesShipmentsByFulfillmentType: PASS; separatesDeliveryShipmentsByAddress: PASS; shipsInStockItems...: FAIL ('In-stock item does not wait for a backordered item' and '...for a pre-ordered item' both re-cover obligation (b) under the stated two-state model); choosesWarehouseCombination...: PASS; keepsCompanionProducts...: PASS._
+
+- Output: `eval-30-order-splitting-tt/outputs/`
+- Narration: `eval-30-order-splitting-tt/narration.md`
+- Raw transcript: `eval-30-order-splitting-tt/conversation.jsonl` (gitignored, trimmed each cycle — mine it now)
 - Cause (from artefact): **J1's bound could not be applied — the collapse it mandates is not expressible here, and that is a
   real finding rather than a salience miss.** The two rows are *In-stock item does not wait for a
   backordered item* and *…for a pre-ordered item*, differing only in `BACKORDERED` vs `PRE_ORDERED`,
