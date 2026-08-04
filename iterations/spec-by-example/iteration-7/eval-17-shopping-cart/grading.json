@@ -1,0 +1,126 @@
+{
+  "assertions": [
+    {
+      "id": "4.1a-concern-item-operations",
+      "text": "Item operations (add/remove) are represented as their own table or tables — separate from coupon and cart total logic.",
+      "passed": true,
+      "evidence": "Table 1 'Adds an Item to the Cart' and Table 2 'Removes an Item from the Cart' are separate from coupon/coupon total tables."
+    },
+    {
+      "id": "4.1b-concern-coupon-application",
+      "text": "Coupon application (entering, replacing, rejecting codes) is represented as its own table — separate from item operations and cart total calculation.",
+      "passed": true,
+      "evidence": "Table 3 'Applies a Coupon Code to the Cart' is its own table separate from item ops and total."
+    },
+    {
+      "id": "4.1c-concern-cart-total",
+      "text": "Cart total calculation (how different coupon types affect the price) is represented as its own table — separate from coupon application and item operations.",
+      "passed": true,
+      "evidence": "Table 4 'Calculates the Cart Total' is separate, taking 'the resolved coupon as input'."
+    },
+    {
+      "id": "4.1d-concern-checkout",
+      "text": "Checkout (stock verification) is represented as its own table — separate from the other concerns.",
+      "passed": true,
+      "evidence": "Tables 5 and 6 ('Blocks Checkout When the Cart Is Empty', 'Verifies Stock Levels at Checkout') are checkout-only, separate from other concerns."
+    },
+    {
+      "id": "4.3-rows-independently-executable",
+      "text": "Each table row is independently executable — no row depends on a prior row's result. The table expresses rules, not a sequential test script.",
+      "passed": true,
+      "evidence": "Each row specifies its own 'Cart Before'/'Cart Items' inputs, e.g. 'Product already in cart | [Widget: 1] | Widget | 2...' independent of other rows."
+    },
+    {
+      "id": "4.4-depth-item-operations",
+      "text": "Item operations cover at least: add to empty cart, add to non-empty cart, add more of an item already in cart, remove item from cart, remove last item in cart, remove item not in cart.",
+      "passed": true,
+      "evidence": "Rows include 'Empty cart, first item', 'Second distinct product' (non-empty add), 'Product already in cart', and Table 2 rows 'Partial removal', 'Removes exactly what's present', 'Product not in cart'."
+    },
+    {
+      "id": "4.5-depth-coupon-application",
+      "text": "Coupon application table covers validity and replacement — not coupon types. Scenarios include at least: add valid coupon (none active), add valid coupon (another active), add expired coupon (none active), add expired coupon (another active), add nonexistent code (none active), add nonexistent code (another active).",
+      "passed": false,
+      "evidence": "Table 3 lacks 'add expired coupon (none active)' and 'add nonexistent code (another active)' scenarios; only 'Expired code, existing coupon kept' and 'Unknown code, none active' are present."
+    },
+    {
+      "id": "4.6-depth-cart-total-scenarios",
+      "text": "Cart total table covers how different coupon types affect the price. Scenarios include at least: no coupon, percentage off whole cart, fixed amount off, fixed amount exceeding cart total (floors at zero), product-specific discount (product in cart), product-specific discount (product not in cart).",
+      "passed": true,
+      "evidence": "Rows cover 'No coupon', 'Percentage off cart', 'Fixed amount exceeds subtotal (floored)', 'Product discount, product in cart', 'Product discount, product not in cart'."
+    },
+    {
+      "id": "4.7-depth-checkout-scenarios",
+      "text": "Checkout table covers at least: empty cart, all items in stock, and not all items in stock (insufficient inventory).",
+      "passed": true,
+      "evidence": "Table 5 'Empty cart' row and Table 6 rows 'Ample stock', 'One item short', 'Multiple items short' cover required cases."
+    },
+    {
+      "id": "4.8-readability-business-language",
+      "text": "Column names use business/user-perspective language (e.g. 'Message?' not 'Result?', 'Coupon code' not 'input'). The tables read as a specification a product person could review.",
+      "passed": true,
+      "evidence": "Columns like 'Message?', 'Coupon code', 'Active Coupon After?', 'Cart After?' use business language."
+    },
+    {
+      "id": "4.9-readability-test-data-visible",
+      "text": "Test data that affects the outcome — product prices, coupon rules (type, amount, expiry) — is visible in the table via columns, notes, or explicit setup, not silently hardcoded. The reader can trace how inputs lead to outputs.",
+      "passed": true,
+      "evidence": "Columns like 'Catalogue Price' ($5.00) and 'Coupon Record' ('10% off cart', '$5 off cart') show data driving outcomes."
+    },
+    {
+      "id": "4.10-depth-open-questions",
+      "text": "Multiple open questions are surfaced — ambiguities or product decisions the requirements don't specify (e.g. what happens to a product-specific coupon when that product is removed, or how percentage and product-specific discounts interact).",
+      "passed": true,
+      "evidence": "Multiple flagged assumptions/open questions: 'Assumption: adding a product already in the cart accumulates...', 'Assumption: removing more than the held quantity is rejected...', 'Open question: last row assumes a product-specific coupon simply has no effect...', 'Assumption: shortfall messages name the product...'"
+    },
+    {
+      "id": "4.11-correctness-cart-totals",
+      "text": "Cart totals are arithmetically correct: sum(quantity × price) − coupon = total, for every row in the total calculation table.",
+      "passed": true,
+      "evidence": "All rows in Table 4 compute correctly, e.g. '[Widget: 2 @ $5.00, Gadget: 1 @ $3.00] | 20% off Widget | $11.00' (13 - 2 = 11) and '$6 off cart | $0.00' (floored)."
+    },
+    {
+      "id": "4.12-coupon-expiry-column",
+      "text": "Coupon application table uses a column to signal expiry status — either an 'Expired?' yes/no column, a 'Status' column, or equivalent. Expiry is visible per row, not just implied by the scenario name.",
+      "passed": true,
+      "evidence": "Table 3 uses 'Coupon Record' column with value 'Expired' for the expiry row, e.g. 'OLD2024 | Expired | 10% off cart | Coupon has expired'."
+    },
+    {
+      "id": "4.14-coupon-before-after-columns",
+      "text": "Coupon application table uses before/after columns (e.g. 'Active coupon' / 'Active coupon after?') to specify the state change when entering, replacing, or entering invalid coupon codes.",
+      "passed": true,
+      "evidence": "Table 3 headers: 'Active Coupon Before | Code Entered | Coupon Record | Active Coupon After? | Message?'"
+    },
+    {
+      "id": "4.15-readability-scenario-names",
+      "text": "Scenario names describe the business situation (e.g. 'Add more of same product', 'Replace active coupon') — not 'Test case 1' or generic labels.",
+      "passed": true,
+      "evidence": "Scenario names like 'Replaces with a fixed-amount code' and 'Second distinct product' describe business situations, not generic labels."
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": true,
+      "evidence": "Six tables each address a distinct concern: 'Adds an Item to the Cart', 'Removes an Item from the Cart', 'Applies a Coupon Code to the Cart', 'Calculates the Cart Total', 'Blocks Checkout When the Cart Is Empty', 'Verifies Stock Levels at Checkout'."
+    },
+    {
+      "id": "no-duplicate-rows-within-a-table",
+      "text": "Judge each table in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a linear premium sampled at 0, 2 and 4 claims: two samples state the effect and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by this eval's own coverage assertions. Judge every table in the response; your evidence must name each table with PASS or FAIL.",
+      "passed": false,
+      "evidence": "Table 1 (Add Item): PASS - distinct rows. Table 2 (Remove Item): PASS - distinct rows. Table 3 (Coupon Application): FAIL - row 'Replaces with a product-specific code' repeats the same replace-mechanic already shown by 'Replaces with a fixed-amount code', varying only coupon kind, which the model itself states is 'not a separate table per type' i.e. not a distinguishing factor for this concern. Table 4 (Cart Total): PASS - fixed-amount rows are boundary cases (under/at/over) and product-discount rows are distinct branches. Table 5 (Blocks Checkout): PASS - minimal two rows. Table 6 (Stock Verification): PASS - each row is a distinct success/failure branch."
+    }
+  ],
+  "assertions_passed": 16,
+  "assertions_total": 18,
+  "pass_rate": 0.8888888888888888,
+  "grading_usage": {
+    "input_tokens": 8025,
+    "output_tokens": 8125,
+    "total_tokens": 16150,
+    "calls": 2,
+    "cost_usd": 0.14595,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}

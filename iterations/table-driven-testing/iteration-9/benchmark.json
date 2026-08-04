@@ -1,0 +1,66 @@
+{
+  "skill_name": "table-driven-testing",
+  "iteration": 9,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "b2921012cd53918dfceb88fd0954c2675e81f616",
+  "skill_digest": "2a730f570000e85e",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-04T07:10:17.932Z",
+  "evals": [
+    {
+      "id": "eval-31-travel-insurance-py",
+      "name": "travel insurance py",
+      "skill": "table-driven-testing",
+      "fingerprint": "ca13c9454aa7",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 576354,
+        "duration_ms": 157009,
+        "cost_usd": 0.6179621,
+        "grading_usage": {
+          "input_tokens": 3967,
+          "output_tokens": 2652,
+          "total_tokens": 6619,
+          "calls": 1,
+          "cost_usd": 0.051681,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 13,
+    "assertions_total": 13,
+    "pass_rate": 1,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 576354,
+    "total_duration_ms": 157009,
+    "total_cost_usd": 0.6179621,
+    "grading": {
+      "input_tokens": 3967,
+      "output_tokens": 2652,
+      "total_tokens": 6619,
+      "calls": 1,
+      "cost_usd": 0.051681,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}

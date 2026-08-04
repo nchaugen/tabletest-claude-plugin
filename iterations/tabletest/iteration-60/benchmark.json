@@ -1,0 +1,73 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 60,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "b2921012cd53918dfceb88fd0954c2675e81f616",
+  "skill_digest": "964a8dba7aca1046",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-04T07:18:08.321Z",
+  "evals": [
+    {
+      "id": "eval-15-reis-discount",
+      "name": "reis discount",
+      "skill": "tabletest",
+      "fingerprint": "644b5d5fcaf2",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 28,
+        "assertions_total": 34,
+        "pass_rate": 0.8235294117647058,
+        "failed_assertions": [
+          "three-schemes-distinguished",
+          "scheme-derived-once",
+          "window-boundary-uses-purchase-time",
+          "2.17-zone-irrelevance-visible",
+          "2.19-depth-all-tiers",
+          "concerns-decomposed"
+        ],
+        "total_tokens": 1471140,
+        "duration_ms": 481576,
+        "cost_usd": 1.4428541000000006,
+        "grading_usage": {
+          "input_tokens": 25454,
+          "output_tokens": 16723,
+          "total_tokens": 42177,
+          "calls": 3,
+          "cost_usd": 0.327207,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 28,
+    "assertions_total": 34,
+    "pass_rate": 0.8235294117647058,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 1471140,
+    "total_duration_ms": 481576,
+    "total_cost_usd": 1.4428541000000006,
+    "grading": {
+      "input_tokens": 25454,
+      "output_tokens": 16723,
+      "total_tokens": 42177,
+      "calls": 3,
+      "cost_usd": 0.327207,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}
