@@ -1,0 +1,210 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple @TableTest methods are used, each addressing a distinct concern — not one monolithic table mixing item operations, coupon logic, total calculation, and checkout.",
+      "passed": true,
+      "evidence": "9 separate @TableTest methods (add, remove, coupon, checkout, total) instead of one monolithic table."
+    },
+    {
+      "id": "no-duplicate-rows-within-a-table",
+      "text": "Judge each @TableTest in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a linear premium sampled at 0, 2 and 4 claims: two samples state the effect and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by 2.19-covers-every-tier and quantifier-covered-by-rows. Judge every @TableTest method in the class; your evidence must name each method with PASS or FAIL.",
+      "passed": false,
+      "evidence": "addsAnItemFoundInTheCatalogueOrRejectsAnUnknownProduct: PASS (2 distinct branches). accumulatesQuantityWhenAddingItems: PASS (3 distinct branches: new, accumulate, alongside). removesAnItemPresentInTheCart: PASS. rejectsRemovingAProductNotInTheCart: PASS. activatesACouponReplacingAnyPreviouslyActiveCoupon: FAIL — 'Replaces an active coupon with a fixed-amount coupon' and 'Replaces an active coupon with a product-specific coupon' both just re-show the 'replace' branch with a different coupon type, which is irrelevant to this validity/replacement concern (type effects belong to the total table); the third row adds no new obligation. rejectsAnInvalidCouponCodeAndKeepsTheExistingCouponActive: PASS. verifiesStockLevelsBeforeCompletingCheckout: PASS. rejectsCheckoutOfAnEmptyCartRegardlessOfInventory: PASS (value set). calculatesCartTotalAsSumMinusCouponDiscountFlooredAtZero: PASS (each row a distinct arithmetic branch)."
+    },
+    {
+      "id": "no-table-reproves-another",
+      "text": "Judge the class as a whole, and only its @TableTest methods: a plain @Test method is not a table and can never fail this assertion, however much of an earlier table it re-proves. The assertion FAILS if a whole @TableTest re-proves rules that earlier tables already established — an integration or end-to-end table whose rows re-prove established rules is the common case, and it fails however clean the other tables are. Sibling tables that each isolate one rule are NOT duplication merely because they share a baseline row: four surcharge tables that each show 'no surcharge' then 'surcharge applied' are four legitimate tables, not one duplicated four times. Collapsing several same-fixture tables into one, as concern-not-over-split requires, is likewise not a failure here. Rows you think are missing are never a failure here. Your evidence must name the re-proving table and the table it duplicates, or state that no @TableTest re-proves another.",
+      "passed": true,
+      "evidence": "No integration/end-to-end table exists; each of the 9 @TableTest methods isolates a distinct rule (add, remove, coupon, checkout, total) without re-proving another table's rules."
+    },
+    {
+      "id": "separates-item-coupon-total-checkout",
+      "text": "Item operations (add/remove), coupon application (validity and replacement), cart total calculation (coupon type effects on price), and checkout (stock verification) are in separate @TableTest methods.",
+      "passed": true,
+      "evidence": "Distinct methods: addsAnItemFoundInTheCatalogueOrRejectsAnUnknownProduct/accumulatesQuantityWhenAddingItems (item), activatesACouponReplacingAnyPreviouslyActiveCoupon/rejectsAnInvalidCouponCodeAndKeepsTheExistingCouponActive (coupon), calculatesCartTotalAsSumMinusCouponDiscountFlooredAtZero (total), verifiesStockLevelsBeforeCompletingCheckout/rejectsCheckoutOfAnEmptyCartRegardlessOfInventory (checkout)."
+    },
+    {
+      "id": "rows-independently-executable",
+      "text": "Each table row is independently executable — no row depends on a prior row's result. The table expresses rules, not a sequential test script. Each row specifies its own preconditions (e.g. 'Cart with items' as an input column, not implied from a previous row).",
+      "passed": true,
+      "evidence": "Each row supplies its own 'Cart Before', 'Active Coupon Before', 'Cart Items'/'Inventory', or 'Items'/'Catalogue'/'Coupon' columns rather than relying on a prior row's state."
+    },
+    {
+      "id": "coupon-before-after-columns",
+      "text": "Coupon application table uses before/after columns (e.g. 'Active coupon' / 'Active coupon after?') to specify the state change when entering, replacing, or entering invalid coupon codes.",
+      "passed": true,
+      "evidence": "Columns 'Active Coupon Before | ... | Active Coupon After?' appear in both activatesACouponReplacingAnyPreviouslyActiveCoupon and rejectsAnInvalidCouponCodeAndKeepsTheExistingCouponActive."
+    },
+    {
+      "id": "coupon-validity-not-coupon-types",
+      "text": "Coupon application table tests validity and replacement (valid code, expired code, nonexistent code, replacing active coupon) — not coupon type effects on price. Coupon type effects belong in the cart total table.",
+      "passed": true,
+      "evidence": "Coupon tables only assert 'Active Coupon After?' and 'Message?', never compute a discount amount; price effects are tested separately in calculatesCartTotalAsSumMinusCouponDiscountFlooredAtZero."
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Message?', 'Total?', 'Active coupon after?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Cart After?, Message?, Cart After?, Message?, Cart After?, Message?, Cart After?, Message?, Active Coupon After?, Message?, Active Coupon After?, Message?, Checkout Succeeds?, Message?, Checkout Succeeds?, Message?, Total?"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names name the variation the row exercises, not the result it produces. The decidable test: FAILS when a scenario name states or paraphrases a value that appears in an expectation column of that same row — 'User cannot delete' beside an Allowed? cell of false, 'No discount applies' beside a Discount? cell of 0.00, 'Contractor gets no bonus' beside a Bonus? cell of 0. Also FAILS on generic labels ('Test 1', 'Test case 2'), which name no variation at all. PASSES otherwise. Naming the rule or the situation is correct even when it makes the outcome inferable — 'Delivery and pickup items always split', 'At the standard threshold, not above it', 'EU express, light package', 'Renewal with no claims', 'Missing name' all PASS. The failure this catches is a name echoing its own expectation cell, not a name that describes what the row is about, and not a name from which a reader who knows the rule could predict the outcome. A single offending name fails the assertion. Judge every @TableTest method in the class.",
+      "passed": true,
+      "evidence": "Names like 'Stock is short for multiple items', 'Product-specific coupon has no effect when its product is absent' describe the condition, none paraphrase a specific expectation cell value or use generic labels."
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Judge the form of the column headers only — not the cell values, and not whether the quantity a header names is a technical one. A header PASSES when it reads as English words in Title Case or sentence case, with or without a trailing '?' (e.g. 'Product', 'Quantity', 'Product Id', 'Cart Before', 'Message?', 'Cart total?'). A header FAILS only when it is a code identifier — camelCase, snake_case, or lowercase run together ('productId', 'cart_total', 'qty') — or a generic placeholder naming no domain quantity ('result', 'output', 'value', 'expected', 'param1'). 'Product Id' PASSES: the expected output records its 'Id' as a minor legibility nit, not a violation. Your evidence must list every column header in the class with PASS or FAIL beside it.",
+      "passed": true,
+      "evidence": "Headers: Scenario PASS, Product Id PASS, Quantity PASS, Catalogue PASS, Cart After? PASS, Message? PASS, Cart Before PASS, Active Coupon Before PASS, Coupon Code PASS, Active Coupon After? PASS, Cart Items PASS, Inventory PASS, Checkout Succeeds? PASS, Items PASS, Coupon PASS, Total? PASS — all Title Case English words, no camelCase/snake_case found."
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "9 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order (@DisplayName, @Description, @TableTest) across 5 annotated method(s)"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "9 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "single-assertion-in-method",
+      "text": "Each @TableTest method applies one uniform assertion pattern to every row — not different assertions per scenario. Several unconditional assertions checking distinct observable outputs of one result (e.g. success, message, resulting cart) count as one uniform pattern; the anti-pattern is branching on the row (if/switch/ternary/try-catch) to choose what is asserted.",
+      "passed": true,
+      "evidence": "9 method(s) apply one uniform assertion pattern to all rows"
+    },
+    {
+      "id": "test-data-visible",
+      "text": "Product prices and coupon rules (type, amount, expiry status) are visible in the table via columns, @Description, or explicit setup — not silently hardcoded. The reader can trace how inputs lead to outputs.",
+      "passed": true,
+      "evidence": "@Description states 'Catalogue is fixed: Widget = 5.00, Gadget = 3.00' and 'Coupon store fixture: SAVE10 = 10% off, FLAT5 = 5.00 off, WIDGET2 = 2.00 off Widget, OLD10 = expired.' plus Catalogue/Coupon columns in the total table."
+    },
+    {
+      "id": "type-converters-for-complex-objects",
+      "text": "TypeConverter methods are used to convert map/string table values into domain objects (e.g. Map → Cart, Map → InventoryService, map → Coupon). Test method bodies contain only arrange-act-assert — no object construction from raw table values.",
+      "passed": false,
+      "evidence": "`Cart cart = Cart.empty().withActiveCouponCode(activeCouponBefore);` builds a domain object from a raw String table value inside the method body instead of via a @TypeConverter."
+    },
+    {
+      "id": "coupon-as-single-column",
+      "text": "Coupon data is expressed in a single column with a @TypeConverter — not spread across separate sparse columns for coupon type, value, and target product. The column format may be map syntax (e.g. [type: PERCENTAGE, value: 10]) or readable shorthand (e.g. '20% cart', '$5 off', '50% off widget').",
+      "passed": true,
+      "evidence": "Coupon column uses shorthand like `$3 off`, `$2 off Widget`, `10% off` converted by `toCoupon`; no type/value/target spread across columns anywhere."
+    },
+    {
+      "id": "uses-standard-map-syntax",
+      "text": "Judge the cell text of the map-valued columns only — cart contents, product catalogue, inventory levels. The @TypeConverter body is NOT the surface this assertion judges: what the converter does with the map once parsed, including branching on a particular key or lifting one entry into a separate field, is out of scope here and never fails this assertion. FAILS when a map-valued cell uses a bespoke bracket grammar in place of TableTest's own — anything other than [k: v, k2: v2] for entries and [:] for the empty map. PASSES when every such cell is written in standard TableTest map syntax. The coupon column is not a map-valued column and is out of scope, because a coupon does not map naturally onto Map<String, X>. Your evidence must name each map-valued column and quote one of its cells.",
+      "passed": true,
+      "evidence": "Catalogue cell `[Widget: 5.00]`, Cart cell `[Widget: 2, Gadget: 1]`, Inventory cell `[Widget: 3]` and `[:]` for empty all use standard map syntax."
+    },
+    {
+      "id": "description-not-redundant-with-scenarios",
+      "text": "@Description annotations do not merely repeat information that the scenario names already convey — e.g. coupon type behaviour (what PERCENT/FIXED/PRODUCT mean) belongs in descriptive scenario names, not duplicated in the description. It PASSES when the @Description adds what scenario names cannot: naming an interpretation as a deliberate assumption (an underspecified rule resolved a particular way), stating why a choice applies, or fixed constants. Noting an assumption is legitimate even when a row also demonstrates it — that is rationale, not redundancy.",
+      "passed": true,
+      "evidence": "\"Assumption: a product-specific coupon subtracts its amount once from the cart total when the product is present, not once per unit\" states a resolved assumption, not scenario restatement."
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES. Do not fail a table merely because its values are simple or round — only these three conditions matter. One exemption applies to conditions (1) and (3): a table whose claim IS an invariance — that some input does not affect the outcome — correctly holds one expectation value across every row, because that constant is the rule's subject rather than evidence of a weak table. A single row varying that input over a value set (e.g. '{DHL, UPS, FEDEX} | 12.00') is the correct compact form and PASSES, provided the title or description states the invariance. Condition (2) is not exempted. Enumerate before you decide: your evidence must name every @TableTest method in the class and, under each, every one of its expectation columns with PASS or FAIL beside it. A table with several expectation columns fails on condition (1) as soon as ONE of them is constant across all rows without a stated invariance. A verdict reported from a subset of the methods, or from a subset of one method's expectation columns, is not a verdict.",
+      "passed": false,
+      "evidence": "removesAnItemPresentInTheCart Message?: both rows = 'Removed Widget' (constant, no stated invariance) - FAIL; rejectsRemovingAProductNotInTheCart Message?: both rows = 'Widget is not in the cart' (constant) - FAIL; other methods' columns vary appropriately (PASS) but one failing table is sufficient."
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone. Otherwise the assertion PASSES. Setup that merely constructs the objects named by the columns is not a failure. Comparison criteria applied by a helper or the assertion body are graded by assertion-criteria-declared, not here. Judge every @TableTest method in the class. Your evidence must list each method name with PASS or FAIL beside it; a verdict reported from a subset of the methods is not a verdict. A value counts as published if it appears ANYWHERE on the test class's published surface: any @DisplayName or @Description on any method, the class-level @Description, or a column of any table. A method with no @DisplayName publishes its own name as its title, with camelCase split into words, so method names count as published text. Clause (1) triggers only when the value appears ONLY in the method body or a field — a value stated in a sibling method's @Description is published, not hidden.",
+      "passed": true,
+      "evidence": "accumulatesQuantityWhenAddingItems PASS (catalogue published in @Description: 'Catalogue is fixed: Widget = 5.00, Gadget = 3.00'); activatesACouponReplacingAnyPreviouslyActiveCoupon PASS (fixture published in @Description); calculatesCartTotalAsSumMinusCouponDiscountFlooredAtZero PASS (formula in method name, rates in Coupon column); all other methods need no hidden values - PASS."
+    },
+    {
+      "id": "title-states-system-behaviour",
+      "text": "Each @DisplayName (or the method name it falls back to) states what the code under test does, not an external fact it depends on. Apply the check mechanically: strike the system under test from the sentence — if it still reads as true, because it merely restates a regulation, standard, format, or domain fact, the title is about something else and fails. Judge ONLY the title — the @DisplayName, or the method name it falls back to. The @Description and the scenario names are other assertions' subject; a description that restates a domain rule is not this assertion's failure and must not be cited as one.",
+      "passed": true,
+      "evidence": "Method names like 'accumulatesQuantityWhenAddingItems' and 'rejectsAnInvalidCouponCodeAndKeepsTheExistingCouponActive' state system actions, not external facts."
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "quantifier-covered-by-rows",
+      "text": "When a title or description quantifies over a domain — 'regardless of X', 'any X', 'whatever the X', 'with or without X' — the rows must actually cover that domain. A value set discharges the promise and is the preferred way to do so: one row holding {A, B, C} both covers the domain and states the independence. Additional near-identical rows are NOT required and are NOT credited. FAILS when a quantifying claim appears and the tables show only one value of the quantified domain, or fewer values than the claim needs (e.g. 'regardless of category' with a single category anywhere in the table). PASSES when the quantified values appear, whether as a value set in one row or as separate rows; also passes when no quantifying claim is made. This assertion is about the claim matching the rows, NOT about row count. Satisfying it by adding rows where a value set would do is not an improvement and must not be scored as one, and it never requires cross-multiplying two quantified domains. Enumerate before you decide: your evidence must list EVERY quantifying claim in the class — each one in a @DisplayName, a @Description, or a scenario name — naming the table it sits in, the domain it quantifies over, and PASS or FAIL beside it. A claim that a title states about the values a column is fixed at, or about a value the converter supplies, counts and must appear in the list. A verdict reported from the first claim you found, or from a subset of the tables, is not a verdict. One decidable test governs a claim naming two or more inputs ('a null value for either X or Y', 'whatever the X and Y'): it is discharged as soon as EACH named value appears somewhere in the table, and ONE row holding all of them at once is enough. Do NOT require the mixed combination — X null beside Y present — that is cross-multiplying two domains, which this assertion never requires. A description that names the row discharging its own claim has discharged it.",
+      "passed": false,
+      "evidence": "activatesACouponReplacingAnyPreviouslyActiveCoupon @Description claims 'item content does not affect coupon activation' but 'Cart items are held empty throughout' - only one cart-content value used, domain not covered - FAIL (method 8's 'RegardlessOfInventory' with value set `{[:], [Widget: 5]}` PASSES, but one failing claim suffices)."
+    },
+    {
+      "id": "assertion-criteria-declared",
+      "text": "A comparison criterion applied by the assertion must be stated on the published surface — the table, the @DisplayName, or the @Description. FAILS when a helper or the assertion body applies ordering (sorting either side before comparing), a numeric tolerance, subset or 'contains' matching, or normalisation of the actual or expected value, and no column, title or description says so. Such a criterion is a rule the test enforces and no table claims: a reader cannot tell whether order is part of the behaviour or an artefact of the comparison. PASSES when each such criterion is named — a description sentence ('the expected column lists substrings the message must contain', 'shipments are compared without regard to order') or a column that makes it evident — and passes when the assertion is a plain equality on the values the columns name. Constructing the objects the columns name is not a criterion. The title is the @DisplayName, or the method name it falls back to, with camelCase split into words. A conventional floating-point epsilon (an assertEquals delta of the order of 0.001 on a decimal column, or BigDecimal.compareTo) is numeric hygiene, not a rule, and is exempt. What this assertion is for is a criterion that changes which behaviours the test would accept — ordering, subset matching, normalisation — since those are rules the test enforces while no table claims them.",
+      "passed": true,
+      "evidence": "`assertEquals(0, total.compareTo(actual));` is BigDecimal.compareTo, exempt as numeric hygiene; all other assertions are plain assertEquals with no hidden ordering/subset/normalisation criteria."
+    },
+    {
+      "id": "consistent-quantity-naming",
+      "text": "Across the @TableTest methods in one class, the same observable quantity carries the same column name. FAILS when one output quantity appears under two or more names in sibling tables (e.g. 'Base Rate?' in one table, 'Rate?' in a second and 'Total Cost?' in a third for the same computed cost; or 'Cart Items' in one table and 'Cart Before' in another for the same input). A genuinely different quantity may of course have a different name — a base rate before surcharges and a final total are two quantities, and naming them differently is correct, provided the same quantity is named the same wherever it recurs. PASSES when each recurring quantity has one name throughout, and passes trivially for a class with a single table. This assertion is about naming only: it never asks for more tables or more rows, and collapsing tables satisfies it rather than violating it.",
+      "passed": false,
+      "evidence": "Cart contents column named 'Cart Before'/'Cart After?' in add/remove tables, 'Cart Items' in checkout tests, and 'Items' in calculatesCartTotalAsSumMinusCouponDiscountFlooredAtZero - three names for the same quantity."
+    },
+    {
+      "id": "concern-not-over-split",
+      "text": "Do not fragment a single concern across multiple @TableTest methods that share the same fixture and assertion and differ only in which one sub-rule they exercise. Two or more tables that fix the same setup (e.g. same zone and base cost) and each vary a single option or surcharge, with the same output column, should instead be one table with a column for the varying input. FAILS when two or more such same-fixture, single-sub-rule tables exist for one concern (e.g. a separate table per surcharge). PASSES when each @TableTest addresses a genuinely distinct concern with its own inputs. This is the complement of concerns-decomposed: that forbids cramming unrelated concerns into one table; this forbids scattering one concern across many. Apply two guards when judging whether tables should be collapsed. Collapsing is right when the combined table's total row count stays small — a handful, never a cross-product — and each row still makes clear which sub-rule it demonstrates, normally through its scenario name and the varying column. Where collapsing would multiply into a cross-product, or would leave rows whose purpose is no longer legible, the tables are genuinely distinct and separate methods PASS.",
+      "passed": false,
+      "evidence": "removesAnItemPresentInTheCart / rejectsRemovingAProductNotInTheCart both use columns 'Cart Before | Product Id | Cart After? | Message?' and only differ by success vs rejection rows, mirroring the single 4-row reference table but split into two methods; same pattern repeats for coupon (activatesACoupon.../rejectsAnInvalidCouponCode...) and checkout (verifiesStockLevels.../rejectsCheckoutOfAnEmptyCart...)."
+    },
+    {
+      "id": "titles-form-a-family",
+      "text": "Read the class's test titles (each @DisplayName, or the method name it falls back to) as the sorted index a reader would scan, stripped of their tables. FAILS when the titles do not function as a catalogue: when three or more share a leading word that carries no information ('should…', 'test…', 'verify…'), so the varying subject arrives last and the list cannot be scanned; or when no single grammatical shape accounts for a majority of the titles, so no scanning pattern exists. PASSES when the varying subject comes first or early and one consistent shape runs across the family. A single title that differs from an otherwise consistent family is NOT a failure: negative and invariant claims ('carrier does not affect cost') often read best subject-first, and one such outlier does not make an index unscannable. Judge whether a reader scanning the list would find a pattern, not whether every entry matches it. Judge the set, never a title in isolation — a title that reads perfectly on its own page can still be an unscannable entry in the index, which is the failure this assertion exists to catch. A class with fewer than three @TableTest methods PASSES.",
+      "passed": true,
+      "evidence": "Method names like addsAnItemFoundInTheCatalogueOrRejectsAnUnknownProduct, accumulatesQuantityWhenAddingItems, removesAnItemPresentInTheCart, rejectsRemovingAProductNotInTheCart, activatesACouponReplacingAnyPreviouslyActiveCoupon, calculatesCartTotalAsSumMinusCouponDiscountFlooredAtZero all follow the same verb-first, third-person-singular shape."
+    }
+  ],
+  "assertions_passed": 26,
+  "assertions_total": 32,
+  "pass_rate": 0.8125,
+  "grading_usage": {
+    "input_tokens": 38660,
+    "output_tokens": 27744,
+    "total_tokens": 66404,
+    "calls": 3,
+    "cost_usd": 0.53214,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 65,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "fbb11268cd1157275255f0a83c72564c239b2fb2",
+  "skill_digest": "e316002b84e99480",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-04T13:43:21.220Z",
+  "evals": [
+    {
+      "id": "eval-29-shopping-cart-tt",
+      "name": "shopping cart tt",
+      "skill": "tabletest",
+      "fingerprint": "9209ab13def7",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 26,
+        "assertions_total": 32,
+        "pass_rate": 0.8125,
+        "failed_assertions": [
+          "no-duplicate-rows-within-a-table",
+          "type-converters-for-complex-objects",
+          "rule-falsifiable-by-a-row",
+          "quantifier-covered-by-rows",
+          "consistent-quantity-naming",
+          "concern-not-over-split"
+        ],
+        "total_tokens": 1444882,
+        "duration_ms": 424802,
+        "cost_usd": 1.7080732000000003,
+        "grading_usage": {
+          "input_tokens": 38660,
+          "output_tokens": 27744,
+          "total_tokens": 66404,
+          "calls": 3,
+          "cost_usd": 0.53214,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 26,
+    "assertions_total": 32,
+    "pass_rate": 0.8125,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 1444882,
+    "total_duration_ms": 424802,
+    "total_cost_usd": 1.7080732000000003,
+    "grading": {
+      "input_tokens": 38660,
+      "output_tokens": 27744,
+      "total_tokens": 66404,
+      "calls": 3,
+      "cost_usd": 0.53214,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}
