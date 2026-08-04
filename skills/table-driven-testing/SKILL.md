@@ -382,7 +382,13 @@ And three shapes account for nearly every genuinely redundant case:
 - **A larger n in the same direction.** If two incompatible items force a batch into separate streams,
   three incompatible items force it for the same reason. One obligation, one case.
 - **A value the rule ignores.** The redundancy test above, applied directly: one case carrying a
-  value set.
+  value set. **Where the value that differs sits inside a composite cell, the collapse needs the
+  column reshaped first** — a value set varies a whole cell, never one part of one. Ask what else in
+  that cell this table reads. If nothing does, the object does not belong in the cell and the value
+  does: give it a column of its own and fix the object's other parts outside the table — bar any
+  part a surface makes a claim about, which has to stay visible (*Assume the Table Is Published*).
+  If other parts are read too, add a further element instead, so one case carries every state and
+  the near-duplicate pair never arises.
 
 **One value can carry two obligations, in two different tables.** A value that is a boundary for one
 rule is often the subject of another. A zero duty period is both the accepted end of "duty hours

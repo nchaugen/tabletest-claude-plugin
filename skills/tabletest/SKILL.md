@@ -647,7 +647,13 @@ And three shapes account for nearly every genuinely redundant row:
 - **A larger n in the same direction.** If two incompatible items force a batch into separate streams,
   three incompatible items force it for the same reason. One obligation, one row.
 - **A value the rule ignores.** The redundancy test above, applied directly: one row carrying a
-  value set.
+  value set. **Where the value that differs sits inside a composite cell, the collapse needs the
+  column reshaped first** — a value set varies a whole cell, never one part of one. Ask what else in
+  that cell this table reads. If nothing does, the object does not belong in the cell and the value
+  does: give it a column of its own and fix the object's other parts outside the table — bar any
+  part a surface makes a claim about, which has to stay visible (*Assume the Table Is Published*).
+  If other parts are read too, add a further element instead, so one row carries every state and
+  the near-duplicate pair never arises.
 
 **One value can carry two obligations, in two different tables.** A value that is a boundary for one
 rule is often the subject of another. A zero duty period is both the accepted end of "duty hours
@@ -1422,11 +1428,16 @@ decision; it cannot be, while the gap is invisible. Same move as naming a seam y
 
 ### What the Notation Cannot Express
 
-Three limits worth knowing before you design around them, because each is otherwise found by a
+Four limits worth knowing before you design around them, because each is otherwise found by a
 failing build or by a table that will not come out right:
 
 - **Value-set members are separated by commas**, so a member containing one has to be quoted:
   `{"a,b", c}`.
+- **A value set expands per column only.** `{a, b}` written *inside* a map or list cell is a `Set`
+  value in that position and produces no extra rows — expansion tests one whole cell against the
+  column's parameter type. A set of whole composites (`{[k: v], [k: v]}`) does expand, but it repeats
+  the composite once per member to vary one part of it; reshape the column instead — see *Give Each
+  Obligation Exactly One Row*.
 - **A collection cell cannot hold a null element.** Blank the whole cell to get a null collection.
 - **One converter per target type, per class** — see *One Converter Per Target Type*, which is what
   forces several tables in one class onto one cell format for a shared domain type.
