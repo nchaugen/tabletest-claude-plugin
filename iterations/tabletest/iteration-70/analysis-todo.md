@@ -65,7 +65,11 @@ Grader said: _Neither discount applies | ... | Price? 100.00 | Discount? 0.00 �
 - Output: `eval-22-event-registration-tt/outputs/`
 - Narration: `eval-22-event-registration-tt/narration.md`
 - Raw transcript: `eval-22-event-registration-tt/conversation.jsonl` (gitignored, trimmed each cycle — mine it now)
-- Cause (from artefact): **Not attributed — this is the suite's worst flipper.** `docs/assertion-triage.md` records it at 3 flips across three identical re-grades, the highest of any slot, and lists it as one of the two whose repair would halve the instrument's flip rate. The grader's quoted evidence, *"Neither discount applies"* echoing `Discount? 0.00`, is a defensible read of a name that genuinely states the outcome — so this is plausibly real, and equally plausibly the flip. **It also moved on eval-29 in portion A, in the other direction.** Confirming it costs a `--grade-only --grading-suffix` re-grade of stored outputs, not a re-run; not worth it for a slot no repair in this batch targets. 
+- Cause (from artefact): **Real, not a flip — the baseline settles it.** it-52 named the same {{row}} `On the early-bird cutoff, small group`, which states the input condition; it-70 renamed it `Neither discount applies`, which states the expectation. **The name genuinely got worse**, so the grader is right and this is a content change rather than instrument noise.
+
+  **Check the baseline text before writing this slot off as its own flip rate.** It is the suite's worst flipper (3 flips over three identical re-grades) and it *did* flip in portion D — `iteration-10` lost it on eval-21 for `Neither discount applies` while it-3 passed for the near-identical `Neither applies`, and won it on eval-24 in the same run. Two movements, opposite directions, one run: that is the flip. This one is not.
+
+  **Not attributed to any repair.** Nothing in the batch touches scenario naming (`3a16988` predates it). Record as real unexplained drift on eval-22 and watch it. 
 
 ## LOST `fewer-than-nine-rows` — eval-7-permission-check
 

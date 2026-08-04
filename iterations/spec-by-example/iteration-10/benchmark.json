@@ -1,0 +1,96 @@
+{
+  "skill_name": "spec-by-example",
+  "iteration": 10,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "cdc31432d44354d544819ac72c018273ef2ce271",
+  "skill_digest": "1add4c6a739765bd",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-04T22:46:18.496Z",
+  "evals": [
+    {
+      "id": "eval-21-event-registration-sbe",
+      "name": "event registration sbe",
+      "skill": "spec-by-example",
+      "fingerprint": "bb0357453b4f",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 11,
+        "assertions_total": 13,
+        "pass_rate": 0.8461538461538461,
+        "failed_assertions": [
+          "scenario-names-describe-conditions",
+          "descriptive-registration-date"
+        ],
+        "total_tokens": 80431,
+        "duration_ms": 104405,
+        "cost_usd": 0.33210999999999996,
+        "grading_usage": {
+          "input_tokens": 4422,
+          "output_tokens": 2851,
+          "total_tokens": 7273,
+          "calls": 1,
+          "cost_usd": 0.056031,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-24-weekly-pay-sbe",
+      "name": "weekly pay sbe",
+      "skill": "spec-by-example",
+      "fingerprint": "236f00216f09",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 9,
+        "assertions_total": 9,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 80414,
+        "duration_ms": 104162,
+        "cost_usd": 0.3355125,
+        "grading_usage": {
+          "input_tokens": 3456,
+          "output_tokens": 1449,
+          "total_tokens": 4905,
+          "calls": 1,
+          "cost_usd": 0.032103,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 20,
+    "assertions_total": 22,
+    "pass_rate": 0.9090909090909091,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 160845,
+    "total_duration_ms": 208567,
+    "total_cost_usd": 0.6676225,
+    "grading": {
+      "input_tokens": 7878,
+      "output_tokens": 4300,
+      "total_tokens": 12178,
+      "calls": 2,
+      "cost_usd": 0.08813399999999999,
+      "evals_measured": 2,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}

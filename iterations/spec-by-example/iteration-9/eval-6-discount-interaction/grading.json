@@ -1,0 +1,60 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "1 markdown table(s); first header: Scenario | Bulk Discount | Loyalty Discount | Assumed Cap | Stacked (Additive Sum)? | Higher-Only (Max)? | Capped Additive Stack?"
+    },
+    {
+      "id": "does-not-invent-resolution",
+      "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved",
+      "passed": true,
+      "evidence": "I've left it as `?` rather than guessing."
+    },
+    {
+      "id": "covers-both-discounts-applying",
+      "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)",
+      "passed": true,
+      "evidence": "Both qualify, combined well under the cap | 5% | 5% | 25% | 10% | 5% | 10%"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note",
+      "passed": true,
+      "evidence": "Open questions for the team (in priority order): 1. Stack, max, or capped-stack?"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Question-mark columns: Stacked (Additive Sum)?, Higher-Only (Max)?, Capped Additive Stack?"
+    },
+    {
+      "id": "extreme-discount-row",
+      "text": "Table includes at least one row with a high combined discount (e.g. large order + top loyalty tier) that would force a decision about whether a cap applies — making the cap question concrete, not theoretical.",
+      "passed": true,
+      "evidence": "Loyalty discount alone already over the cap | 0% | 30% | 25% | 30% | 30% | **?**"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\""
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 7,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 2533,
+    "output_tokens": 242,
+    "total_tokens": 2775,
+    "calls": 1,
+    "cost_usd": 0.011229,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}

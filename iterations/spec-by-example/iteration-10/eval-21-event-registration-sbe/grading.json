@@ -1,0 +1,96 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains at least one markdown table (using | column | syntax)",
+      "passed": true,
+      "evidence": "5 markdown table(s); first header: Scenario | Name | Email | Dietary Requirements | Accessibility Needs | Valid? | Rejection Reason?"
+    },
+    {
+      "id": "validation-rules-covered",
+      "text": "Email validation and name-required scenarios are present — at least one row for invalid email and one for missing name.",
+      "passed": true,
+      "evidence": "Rows: 'Malformed email', 'Missing email', and 'Missing name' with Valid? = no"
+    },
+    {
+      "id": "blank-for-absent-optional",
+      "text": "Dietary requirements and/or accessibility needs use blank cells when the attendee has not provided them (genuinely absent) — not 'N/A' or 'none'.",
+      "passed": true,
+      "evidence": "Row 'Complete registration, no optional fields' has blank Dietary/Accessibility cells"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column name ends with '?' (e.g. 'Accepted?', 'Price?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Valid?, Rejection Reason?, Early-Bird Eligible?, Group Discount Eligible?, Early-Bird Eligible?, Group Eligible?, Discount Applied?, Final Price?"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names name the variation the row exercises, not the result it produces. The decidable test: FAILS when a scenario name states or paraphrases a value that appears in an expectation column of that same row — 'User cannot delete' beside an Allowed? cell of false, 'No discount applies' beside a Discount? cell of 0.00, 'Contractor gets no bonus' beside a Bonus? cell of 0. Also FAILS on generic labels ('Test 1', 'Test case 2'), which name no variation at all. PASSES otherwise. Naming the rule or the situation is correct even when it makes the outcome inferable — 'Delivery and pickup items always split', 'At the standard threshold, not above it', 'EU express, light package', 'Renewal with no claims', 'Missing name' all PASS. The failure this catches is a name echoing its own expectation cell, not a name that describes what the row is about, and not a name from which a reader who knows the rule could predict the outcome. A single offending name fails the assertion. Judge every table in the response.",
+      "passed": false,
+      "evidence": "'Neither discount applies' row has Discount Applied? = None, echoing the result"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The discount stacking ambiguity (early-bird + group) is surfaced as an open question — not silently resolved.",
+      "passed": true,
+      "evidence": "'This is your open question, and I picked one of four plausible answers...please confirm'"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\", \"Policy\""
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": true,
+      "evidence": "'I split them into four separate concerns — validation, early-bird eligibility, group eligibility, and the price calculation'"
+    },
+    {
+      "id": "no-duplicate-rows-within-a-table",
+      "text": "Judge each table in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a linear premium sampled at 0, 2 and 4 claims: two samples state the effect and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by this eval's own coverage assertions. Judge every table in the response; your evidence must name each table with PASS or FAIL.",
+      "passed": true,
+      "evidence": "Table1 PASS (6 distinct validation cases); Table2 PASS (4 boundary rows, no 3rd redundant sample); Table3 PASS (4 distinct boundary rows); Table4 PASS (2x2 interaction cross-product needed for stacking concern)"
+    },
+    {
+      "id": "separates-validation-and-pricing",
+      "text": "Input validation rules and pricing/discount calculation are in separate tables",
+      "passed": true,
+      "evidence": "'### 1. Validates attendee registration details' is separate from '### 4. Calculates final registration price'"
+    },
+    {
+      "id": "descriptive-registration-date",
+      "text": "Registration date uses descriptive values (e.g. 'before cutoff', 'on cutoff', 'after cutoff') rather than raw dates — making the table readable without knowing the actual cutoff date.",
+      "passed": false,
+      "evidence": "Registration Date column shows raw dates like '2026-01-10' and '2026-02-28', not descriptive terms"
+    },
+    {
+      "id": "no-redundant-policy-columns",
+      "text": "If registration date uses descriptive values like 'before cutoff', the cutoff date is not also present as a separate column (it's already encoded in the description). Numeric policy thresholds like min group size are acceptable as columns since they are configuration values worth discussing with business experts.",
+      "passed": true,
+      "evidence": "Registration Date column uses raw dates (not descriptive), so the conditional rule about redundant cutoff column does not apply"
+    },
+    {
+      "id": "group-size-policy-as-column",
+      "text": "The minimum group size threshold appears as a policy column (e.g. 'Min group size (policy)') — surfacing this as a configurable business rule, not just implied by the boundary rows.",
+      "passed": true,
+      "evidence": "Column header 'Min Group Size (Policy)' appears in table 3"
+    }
+  ],
+  "assertions_passed": 11,
+  "assertions_total": 13,
+  "pass_rate": 0.8461538461538461,
+  "grading_usage": {
+    "input_tokens": 4422,
+    "output_tokens": 2851,
+    "total_tokens": 7273,
+    "calls": 1,
+    "cost_usd": 0.056031,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}
