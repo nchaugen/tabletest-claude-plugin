@@ -1,0 +1,14 @@
+{
+  "model": "claude-sonnet-5",
+  "models_used": [
+    "claude-haiku-4-5-20251001",
+    "claude-sonnet-5"
+  ],
+  "duration_ms": 138551,
+  "input_tokens": 43,
+  "output_tokens": 10424,
+  "cache_creation_input_tokens": 59093,
+  "cache_read_input_tokens": 1354000,
+  "total_tokens": 1423560,
+  "cost_usd": 0.9180449999999999
+}

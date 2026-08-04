@@ -1,0 +1,10 @@
+Conversion is complete and verified. Summary:
+
+- **New file**: `src/test/kotlin/com/example/ShippingCostCalculatorTest.kt` — a single `@TableTest` with 15 rows covering the same behavior as the original 17 Spock cases.
+- **Design choices**:
+  - `ShippingZone` and `PackageOptions` are built via `@TypeConverter` from map cells (`[region: EU, speed: standard]`, `[fragile: true, insuredValue: 500]`), so the test method stays pure arrange-act-assert instead of constructing objects inline like the old `given:` block did.
+  - Discovered that `carrier` is accepted by `calculateShippingCost` but never affects the result — the original spec's three "same rate DHL/UPS/FEDEX" rows existed only to prove that. Replaced them with one row using a carrier value set `{DHL, UPS, FEDEX}`, which expands to the same 3 executions but states the "carrier doesn't matter" rule explicitly instead of implicitly.
+  - Held `Carrier` constant at `DHL` on the other 14 rows (previously varied arbitrarily between DHL/UPS/FEDEX for no tested reason) so only the dedicated row varies it.
+  - BigDecimal comparison uses `compareTo` (via `assertEquals(0, cost.compareTo(actual))`) rather than `equals`, since Groovy's `==` on the old Spock test did numeric comparison while the calculator's `stripTrailingZeros()` changes scale — a straight `assertEquals(BigDecimal, BigDecimal)` would have spuriously failed on scale mismatches (e.g. `5.00` vs `5`).
+- **Build**: removed the `groovy` plugin and `spock-core`/`groovy` test dependencies (this was the only Groovy/Spock test in the repo) from `build.gradle.kts`, added `org.tabletest:tabletest-junit:1.2.2`.
+- **Verified**: ran `gradle test` — build succeeds, all 17 test executions pass (confirmed via the JUnit XML report), and `format-table.sh --check` confirms the table is well-formed.

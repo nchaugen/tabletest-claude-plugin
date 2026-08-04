@@ -1,0 +1,66 @@
+{
+  "assertions": [
+    {
+      "id": "uses-parametrize",
+      "text": "Tests use @pytest.mark.parametrize (or pytest.param rows) — not one test function per case, and not a loop over cases inside a single test body.",
+      "passed": true,
+      "evidence": "Found @pytest.mark.parametrize"
+    },
+    {
+      "id": "parametrize-has-ids",
+      "text": "Parametrized cases carry scenario identifiers — an ids= argument or pytest.param(..., id=...) — so each case has a readable name in test output.",
+      "passed": true,
+      "evidence": "Parametrized cases carry ids (ids= or pytest.param id=)"
+    },
+    {
+      "id": "no-if-in-python-test",
+      "text": "Test function bodies contain no if/elif statements — expected outcomes come from the parametrized data, not branching logic.",
+      "passed": true,
+      "evidence": "No if/elif statements in test function bodies"
+    },
+    {
+      "id": "full-tier-enumeration",
+      "text": "Every fee tier is represented (included, 75-euro heavy, 150-euro oversize) and every boundary is tested from both sides: 23 kg (included) vs 24 kg (heavy), 32 kg (heavy) vs 33 kg (oversize), 45 kg (oversize) vs 46 kg (not accepted). Middle-tier boundaries (23/24 and 32/33) must not be skipped in favour of only the outer edges.",
+      "passed": true,
+      "evidence": "pytest.param(23,0)...pytest.param(24,75)...pytest.param(32,75)...pytest.param(33,150)...pytest.param(45,150)...pytest.param(46,...)"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario ids name the variation the case exercises, not the result it produces. The decidable test: FAILS when a scenario id states or paraphrases a value that appears in an expectation column of that same case — 'User cannot delete' beside an Allowed? cell of false, 'No discount applies' beside a Discount? cell of 0.00, 'Contractor gets no bonus' beside a Bonus? cell of 0. Also FAILS on generic labels ('Test 1', 'Test case 2'), which name no variation at all. PASSES otherwise. Naming the rule or the situation is correct even when it makes the outcome inferable — 'Delivery and pickup items always split', 'At the standard threshold, not above it', 'EU express, light package', 'Renewal with no claims', 'Missing name' all PASS. The failure this catches is an id echoing its own expectation cell, not an id that describes what the case is about, and not an id from which a reader who knows the rule could predict the outcome. A single offending id fails the assertion. Judge every parametrized test in the file.",
+      "passed": true,
+      "evidence": "id=\"top of no-fee tier\", id=\"just above no-fee tier\", id=\"top of heavy-bag tier\", id=\"just above heavy-bag tier\", id=\"top of oversize tier\", id=\"just above oversize tier\""
+    },
+    {
+      "id": "exception-case-separated",
+      "text": "The over-45-kg not-accepted case is expressed as its own test (or clearly separated parametrized cases) using pytest.raises(BagNotAccepted) — not mixed into the fee table via sentinel values, None expectations, or branching inside the test body.",
+      "passed": true,
+      "evidence": "def test_rejects_bags_over_the_oversize_limit(weight_kg):\n    with pytest.raises(BagNotAccepted):"
+    },
+    {
+      "id": "concrete-domain-values",
+      "text": "Case values are concrete domain values (weights like 24, fees like 75) — not abstract placeholders or symbolic constants that hide the actual numbers from the reader.",
+      "passed": true,
+      "evidence": "pytest.param(23, 0, id=\"top of no-fee tier\"), pytest.param(24, 75, ...)"
+    },
+    {
+      "id": "compiles",
+      "text": "pytest can import and collect the test modules against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 8,
+  "assertions_total": 8,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 2531,
+    "output_tokens": 646,
+    "total_tokens": 3177,
+    "calls": 1,
+    "cost_usd": 0.017283,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}
