@@ -17,6 +17,11 @@ and the delta between them determine the rest, that is the formula talking: the 
 the rule names, and identifying the formula is the implementation's job. Nine tiers stay nine
 {{rows}}.
 
+**And it does not reduce the boundaries.** Where the tier is decided by a formula over several
+inputs, every input still has a value at which the outcome flips, and that pair is what the {{rows}}
+have to straddle — one just below it, one just above, the other inputs held. Sampling that input at
+two comfortable values instead exercises the arithmetic and leaves the boundary untested.
+
 This is the coverage half of *Give Each Obligation Exactly One {{Row}}*, and the two meet at a
 boundary: the straddling pair is required here and earns both its {{rows}} there. A third {{row}}
 further past the same boundary is what the other rule removes.
@@ -28,4 +33,4 @@ to one cell makes the ladder look repetitive long before it is complete.
 
 {{example}}
 
-**Check:** **Every tier once**: a tier ladder has one {{row}} per tier — all of them, none twice — and every boundary is exercised from both sides at the finest unit the rule distinguishes, middle tiers included
+**Check:** **Every tier once**: a tier ladder has one {{row}} per tier — all of them, none twice — and every boundary is exercised from both sides at the finest unit the rule distinguishes, middle tiers included, and a boundary an input reaches through a formula straddled like any other

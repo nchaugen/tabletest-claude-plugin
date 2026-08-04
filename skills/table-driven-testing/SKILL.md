@@ -421,6 +421,11 @@ and the delta between them determine the rest, that is the formula talking: the 
 the rule names, and identifying the formula is the implementation's job. Nine tiers stay nine
 cases.
 
+**And it does not reduce the boundaries.** Where the tier is decided by a formula over several
+inputs, every input still has a value at which the outcome flips, and that pair is what the cases
+have to straddle — one just below it, one just above, the other inputs held. Sampling that input at
+two comfortable values instead exercises the arithmetic and leaves the boundary untested.
+
 This is the coverage half of *Give Each Obligation Exactly One Case*, and the two meet at a
 boundary: the straddling pair is required here and earns both its cases there. A third case
 further past the same boundary is what the other rule removes.
@@ -1016,7 +1021,7 @@ When tests come before the implementation:
 - [ ] **Combining tables prove an interaction**: any table exercising several rules together shows behaviour the single-rule tables cannot (a precedence, an ordering), not the earlier rules re-run end to end
 - [ ] **Rules separated from arithmetic**: every expectation cell is predictable from its case in one step; a classification and the calculation that follows it are two tables
 - [ ] **One case per obligation**: every obligation of the concern is discharged by some case, and every case discharges one no other case in that table reaches; where two cases share an expectation, what differs between them is what the rule is about — not a value further past the same boundary, a larger n in the same direction, or an input the rule ignores
-- [ ] **Every tier once**: a tier ladder has one case per tier — all of them, none twice — and every boundary is exercised from both sides at the finest unit the rule distinguishes, middle tiers included
+- [ ] **Every tier once**: a tier ladder has one case per tier — all of them, none twice — and every boundary is exercised from both sides at the finest unit the rule distinguishes, middle tiers included, and a boundary an input reaches through a formula straddled like any other
 - [ ] **Value set semantics**: value sets appear only where every value produces the same result, never as shorthand for "test several values"; an input this rule claims not to affect the outcome varies across the values it ignores, while an input another rule owns is held at one valid value
 - [ ] **Stateful cases independent**: transition cases carry their own before-state and after-state; no case depends on another having run
 - [ ] **Held constants declared**: every value the outcome depends on that the table fixes for all cases is a column where it can be one — always so for a threshold or limit the rule turns on — and otherwise named in the title or description as held fixed; never left only in the test body, a field, a conversion helper, or a comment
