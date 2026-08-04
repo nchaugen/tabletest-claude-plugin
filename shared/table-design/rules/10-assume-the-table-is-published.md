@@ -28,10 +28,9 @@ reference point is declared — a clock, an origin, a baseline — the columns m
 better as offsets against it than as restatements of it. Both are then visible, and the offsets stay
 short enough to scan.
 
-**Pick the offset's unit from the finest distinction the rule has to draw.** Where the rule separates
-29 days 23 hours from 30 days 1 hour, the column is `Hours Ago` and not `Days Ago` — whole days cannot
-state that boundary at all. Read the boundary {{rows}} first and choose the unit second; a shorter
-cell that cannot state the rule has bought nothing.
+**Choose that unit before shortening anything, and choose it from the boundary rather than from the
+offset.** A shorter cell that cannot state the rule has bought nothing — see *Cover Every Tier and
+Both Sides of Every Boundary*, which owns the choice.
 
 **Keep a slot in the cell for every field the {{description_surface}} makes a claim about.** A compact
 cell carries the fields the rule reads and drops the rest, and a dropped field is pinned exactly as it

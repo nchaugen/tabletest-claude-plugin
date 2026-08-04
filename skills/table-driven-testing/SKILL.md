@@ -406,13 +406,24 @@ value of the next.
 **Middle-tier boundaries are the ones most often skipped.** Outer edges alone do not pin down where
 the middle tiers change.
 
+**Pick the pair's unit from the finest distinction the rule draws, before writing either value.**
+Where the rule separates 29 days 23 hours from 30 days 1 hour, whole-day cases of 30 and 31
+straddle nothing — the column is `Hours Ago` and not `Days Ago`. A boundary drawn in a unit coarser
+than the rule is not drawn at all, however many cases surround it.
+
+**A formula behind the tiers does not reduce the tiers.** If you find yourself arguing that two tiers
+and the delta between them determine the rest, that is the formula talking: the table pins the tiers
+the rule names, and identifying the formula is the implementation's job. Nine tiers stay nine
+cases.
+
 This is the coverage half of *Give Each Obligation Exactly One Case*, and the two meet at a
 boundary: the straddling pair is required here and earns both its cases there. A third case
 further past the same boundary is what the other rule removes.
 
 Where a tier is a range rather than a single value, a value set spanning it carries its own
 boundaries — a separate "tier begins" case then discharges nothing the "tier holds" case has
-not.
+not. **That is economy inside a case and buys no licence to drop cases:** shortening each tier
+to one cell makes the ladder look repetitive long before it is complete.
 
 ```javascript
 test.each`
@@ -529,10 +540,9 @@ reference point is declared — a clock, an origin, a baseline — the columns m
 better as offsets against it than as restatements of it. Both are then visible, and the offsets stay
 short enough to scan.
 
-**Pick the offset's unit from the finest distinction the rule has to draw.** Where the rule separates
-29 days 23 hours from 30 days 1 hour, the column is `Hours Ago` and not `Days Ago` — whole days cannot
-state that boundary at all. Read the boundary cases first and choose the unit second; a shorter
-cell that cannot state the rule has bought nothing.
+**Choose that unit before shortening anything, and choose it from the boundary rather than from the
+offset.** A shorter cell that cannot state the rule has bought nothing — see *Cover Every Tier and
+Both Sides of Every Boundary*, which owns the choice.
 
 **Keep a slot in the cell for every field the the test's docstring or leading comment makes a claim about.** A compact
 cell carries the fields the rule reads and drops the rest, and a dropped field is pinned exactly as it
@@ -990,7 +1000,7 @@ When tests come before the implementation:
 - [ ] **Combining tables prove an interaction**: any table exercising several rules together shows behaviour the single-rule tables cannot (a precedence, an ordering), not the earlier rules re-run end to end
 - [ ] **Rules separated from arithmetic**: every expectation cell is predictable from its case in one step; a classification and the calculation that follows it are two tables
 - [ ] **One case per obligation**: every obligation of the concern is discharged by some case, and every case discharges one no other case in that table reaches; where two cases share an expectation, what differs between them is what the rule is about — not a value further past the same boundary, a larger n in the same direction, or an input the rule ignores
-- [ ] **Every tier once**: a tier ladder has one case per tier — all of them, none twice — and every boundary is exercised from both sides, middle tiers included
+- [ ] **Every tier once**: a tier ladder has one case per tier — all of them, none twice — and every boundary is exercised from both sides at the finest unit the rule distinguishes, middle tiers included
 - [ ] **Value set semantics**: value sets appear only where every value produces the same result, never as shorthand for "test several values"; an input this rule claims not to affect the outcome varies across the values it ignores, while an input another rule owns is held at one valid value
 - [ ] **Stateful cases independent**: transition cases carry their own before-state and after-state; no case depends on another having run
 - [ ] **Held constants declared**: every value the outcome depends on that the table fixes for all cases is a column where it can be one — always so for a threshold or limit the rule turns on — and otherwise named in the title or description as held fixed; never left only in the test body, a field, a conversion helper, or a comment
