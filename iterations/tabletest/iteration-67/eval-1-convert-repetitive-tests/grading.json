@@ -1,0 +1,96 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Discount?' or 'Expected?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Discount?"
+    },
+    {
+      "id": "has-three-data-rows",
+      "text": "Table has exactly 3 data rows (GOLD, SILVER, BRONZE)",
+      "passed": true,
+      "evidence": "Found 3 data row(s)"
+    },
+    {
+      "id": "single-assertion-in-method",
+      "text": "Each @TableTest method applies one uniform assertion pattern to every row — not different assertions per scenario. Several unconditional assertions checking distinct observable outputs of one result (e.g. success, message, resulting cart) count as one uniform pattern; the anti-pattern is branching on the row (if/switch/ternary/try-catch) to choose what is asserted.",
+      "passed": true,
+      "evidence": "1 method(s) apply one uniform assertion pattern to all rows"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "1 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\""
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'discountByCustomerTier' → 'Discount By Customer Tier'). Not a generic name like 'test1' or 'testMethod'.",
+      "passed": true,
+      "evidence": "1 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "description-if-present-adds-information",
+      "text": "PASSES when no @Description is present anywhere in the class — omitting it is always acceptable, and this assertion NEVER penalises its absence. Do not fail it for a missing @Description, and do not treat a @DisplayName as a substitute. When a @Description IS present, it must provide context beyond what the table rows already express — such as fixed values shared by all rows, or where/when the rule applies — and FAILS when it merely restates the column names or summarises what the rows already show.",
+      "passed": true,
+      "evidence": "@Description states 'Amount is held at 100 throughout: the rule under test is the discount rate applied per tier, not the multiplication itself.' — adds context beyond rows, not a restatement of columns."
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order (@DisplayName, @Description, @TableTest) across 1 annotated method(s)"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (pom.xml) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The generated tests pass when executed against DiscountService",
+      "passed": true,
+      "evidence": "Tests passed"
+    }
+  ],
+  "assertions_passed": 13,
+  "assertions_total": 13,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 2682,
+    "output_tokens": 205,
+    "total_tokens": 2887,
+    "calls": 1,
+    "cost_usd": 0.011121,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}

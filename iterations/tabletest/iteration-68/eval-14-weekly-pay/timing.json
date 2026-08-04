@@ -1,0 +1,6 @@
+{
+  "error": "claude exited with code 1:\n  result: You've hit your monthly spend limit · raise it at claude.ai/settings/usage?from=cc_cli_limit_message\n  stderr: ",
+  "failure_kind": "crash",
+  "duration_ms": 314063,
+  "harvested_files": 1
+}
