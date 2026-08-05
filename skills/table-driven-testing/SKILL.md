@@ -200,6 +200,16 @@ concerns. These are the signs that show up later, once the table exists:
 edge cases and needs boundary cases of its own. The rule's table then takes the *derived value* as
 a direct input column, not the raw data. Two tables, not one.
 
+**Ask of every input column where its value comes from.** Either it arrives from outside, or a rule
+computes it — and a rule that computes it is a table you have not written yet. Two shapes say you
+skipped it, and they look nothing alike: **the raw data is a column and the derived value is nowhere**,
+so the derivation happens inside the cases where no case can put a boundary on it; or **both are
+columns of the same table**, so the derived one restates a value already present and the rule
+connecting them is legible only by reading the cases against each other. Split either way — the
+deriving rule takes the raw data and reports the value, and this table takes that value as an input
+column and never sees the raw data. **That the value must be visible is not the question**; which
+table it is a column *of* is.
+
 **A column at a placeholder value throughout for most of its cases is a column decision before it is a table
 decision.** Ask what the sparse columns feed. Several feeding the *same* expectation column are one
 family: collapse them into one column keyed by member, and the table stays whole. Feeding
@@ -307,6 +317,11 @@ cell is predictable from its case.
 
 This usually needs a narrower function to call. A table that can only reach the fused result means
 the seam is missing, not that the table must fuse.
+
+**Putting the classification in a column of the fused table satisfies this test without splitting
+anything.** With the classified value beside the raw data, every cell is predictable in one step
+again — and the rule that produces it has still not been stated anywhere. One-step predictability is
+necessary, not sufficient; *Decompose When You See These Signs* asks the second question.
 
 **Where you may not add the seam, name it.** Code you cannot change still has the boundary in its
 behaviour, and a table that fuses two rules without saying why reads as a design choice. One sentence
@@ -556,6 +571,11 @@ case assumes a two-pilot crew states, to its reader, a rule about two-pilot crew
 So a constant the outcome depends on is a **column** wherever it can be one — and a value the rule
 turns on, such as a threshold or a limit, always can be. The other two surfaces carry what a column
 cannot: where the data came from, what the fixture fixes, an assumption the cases cannot state.
+
+**Which table it is a column of is a separate question, and this rule does not answer it.** Where
+another rule derives the value, it is an input column here and an expectation column there — see
+*Decompose When You See These Signs*, which owns that split. Making a value visible is never a reason
+to absorb the rule that produces it.
 
 **If the declaration says the value does not matter, declaring it is not enough.** *"Held empty
 throughout, and it makes no difference"* is not apparatus — it is a claim about the rule, and a claim
@@ -817,6 +837,9 @@ just over it — become natural to add once the threshold is visible.
 **A constant column often signals configuration.** Ask under what circumstances the value would
 differ. The answer may reveal a second axis that belongs as new cases or as a separate table.
 
+**A threshold another rule computes stays a column here, and that rule keeps its table.** Never carry
+both the threshold and the input it is derived from — see *Decompose When You See These Signs*.
+
 ```go
 tests := []struct {
     name          string
@@ -1035,7 +1058,7 @@ When tests come before the implementation:
 
 - [ ] **One rule per table**: every case and column serves this table's one axis; a behaviour you cannot name without "and" has been split, and a rule that is a conjunction of independent conditions has one table per condition rather than their cross-product — but inputs that are contributions to one combined answer stay in one table, with cases that show them combining
 - [ ] **Complete outputs**: all observable outputs of the same rule sit in one table, and every expectation column there is exercised by the cases that table varies — one constant down all cases, or moving only as a side effect of another, belongs to a different rule's table
-- [ ] **Decomposed, not over-split**: no table mixes concerns (blank-throughout columns, qualified scenario ids, two groups of expectation columns), and no set of same-fixture tables reports one expectation column that a family column would collapse
+- [ ] **Decomposed, not over-split**: no table mixes concerns (blank-throughout columns, qualified scenario ids, two groups of expectation columns), no table carries both a value and the raw data another rule derives it from, and no set of same-fixture tables reports one expectation column that a family column would collapse
 - [ ] **Combining tables prove an interaction**: any table exercising several rules together shows behaviour the single-rule tables cannot (a precedence, an ordering), not the earlier rules re-run end to end
 - [ ] **Rules separated from arithmetic**: every expectation cell is predictable from its case in one step; a classification and the calculation that follows it are two tables
 - [ ] **One case per obligation**: every obligation of the concern is discharged by some case, and every case discharges one no other case in that table reaches; where two cases share an expectation, swapping what differs between them would change an expectation cell in that table — not a value further past the same boundary, a larger n in the same direction, or an input the rule ignores even though it names it

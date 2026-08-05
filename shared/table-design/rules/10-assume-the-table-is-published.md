@@ -17,6 +17,11 @@ So a constant the outcome depends on is a **column** wherever it can be one — 
 turns on, such as a threshold or a limit, always can be. The other two surfaces carry what a column
 cannot: where the data came from, what the fixture fixes, an assumption the {{rows}} cannot state.
 
+**Which table it is a column of is a separate question, and this rule does not answer it.** Where
+another rule derives the value, it is an input column here and an expectation column there — see
+*Decompose When You See These Signs*, which owns that split. Making a value visible is never a reason
+to absorb the rule that produces it.
+
 **If the declaration says the value does not matter, declaring it is not enough.** *"Held empty
 throughout, and it makes no difference"* is not apparatus — it is a claim about the rule, and a claim
 no {{row}} can contradict is not stated in the table at all. Vary it instead, across the values it

@@ -11,6 +11,16 @@ concerns. These are the signs that show up later, once the table exists:
 edge cases and needs boundary {{rows}} of its own. The rule's table then takes the *derived value* as
 a direct input column, not the raw data. Two tables, not one.
 
+**Ask of every input column where its value comes from.** Either it arrives from outside, or a rule
+computes it — and a rule that computes it is a table you have not written yet. Two shapes say you
+skipped it, and they look nothing alike: **the raw data is a column and the derived value is nowhere**,
+so the derivation happens inside the {{rows}} where no {{row}} can put a boundary on it; or **both are
+columns of the same table**, so the derived one restates a value already present and the rule
+connecting them is legible only by reading the {{rows}} against each other. Split either way — the
+deriving rule takes the raw data and reports the value, and this table takes that value as an input
+column and never sees the raw data. **That the value must be visible is not the question**; which
+table it is a column *of* is.
+
 **A column {{unused_cell}} for most of its {{rows}} is a column decision before it is a table
 decision.** Ask what the sparse columns feed. Several feeding the *same* expectation column are one
 family: collapse them into one column keyed by member, and the table stays whole. Feeding
@@ -47,4 +57,4 @@ collapsing would cross-multiply, or leave {{rows}} whose purpose is no longer le
 
 {{example}}
 
-**Check:** **Decomposed, not over-split**: no table mixes concerns (blank-throughout columns, qualified {{names}}, two groups of expectation columns), and no set of same-fixture tables reports one expectation column that a family column would collapse
+**Check:** **Decomposed, not over-split**: no table mixes concerns (blank-throughout columns, qualified {{names}}, two groups of expectation columns), no table carries both a value and the raw data another rule derives it from, and no set of same-fixture tables reports one expectation column that a family column would collapse
