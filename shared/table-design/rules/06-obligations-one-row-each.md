@@ -22,16 +22,28 @@ every obligation dropped that way:
   {{row}} looks like the ordinary case with smaller numbers, and it is the only one that reaches the
   boundary of the container.
 - **A distinct branch that shares its expectation with a neighbour.** Two {{rows}} agreeing on the
-  answer are not redundant when they reach it by different routes **this table's rule names**. Ask
-  which rule names the branch. If the answer is a neighbouring table's, the difference is a value
-  *this* rule ignores, and it collapses into a value set — see *Use Value Sets for "Regardless Of"
-  Relationships*. Kinds of a thing that another rule tells apart are the usual false positive: three
-  {{rows}} for three kinds, where the rule under test reads only whether the thing was valid.
+  answer are not redundant when they reach it by different routes — but **the routes have to differ
+  in what this table expects, not in what its rule mentions.** Ask whether swapping one {{row}}'s
+  differing input for the other's would change an expectation cell *in this table*. If it would not,
+  they are one {{row}}, and a value set is how you say so — see *Use Value Sets for "Regardless Of"
+  Relationships*. **A value the rule names is not thereby a branch:** enumerating the members is how
+  a rule gets stated, and the table's job is to show which of them the answer turns on. Kinds of a
+  thing that another rule tells apart are the usual false positive: three {{rows}} for three kinds,
+  where the rule under test reads only whether the thing was valid.
   **Collapsing means the value set, not the delete key.** Put every kind in the surviving cell —
   `{percentage, fixed, product-specific}` — because the description will still claim the kind makes
   no difference, and deleting the {{rows}} leaves that claim with nothing behind it.
 
-When you cut a {{row}}, say which surviving {{row}} discharges its obligation. If none does, keep it.
+When you cut a {{row}}, say which surviving {{row}} discharges its obligation. If none does, keep it —
+but **a value set discharges every obligation its members carried**, because it expands into one case
+per value. Collapsing {{rows}} into a value set is not cutting them, and the floor is not in play.
+
+**Two closed sets of inputs are where the floor gets misread.** With m values of one input and n of
+another, every one of the m×n combinations is a case the rule names, so every one looks like an
+obligation of its own and the {{rows}} grow to the full cross-product. The obligations are the
+distinct *answers*, not the combinations: group the combinations that share an expectation, give
+each group one {{row}}, and let the value sets carry the members. This is a {{row}} count, not a
+table count — one rule still means one table, however its inputs multiply.
 
 And three shapes account for nearly every genuinely redundant {{row}}:
 
@@ -60,4 +72,4 @@ reached first, feels like coverage and is not. **Count obligations per rule, nev
 
 {{example}}
 
-**Check:** **One {{row}} per obligation**: every obligation of the concern is discharged by some {{row}}, and every {{row}} discharges one no other {{row}} in that table reaches; where two {{rows}} share an expectation, what differs between them is what the rule is about — not a value further past the same boundary, a larger n in the same direction, or an input the rule ignores
+**Check:** **One {{row}} per obligation**: every obligation of the concern is discharged by some {{row}}, and every {{row}} discharges one no other {{row}} in that table reaches; where two {{rows}} share an expectation, swapping what differs between them would change an expectation cell in that table — not a value further past the same boundary, a larger n in the same direction, or an input the rule ignores even though it names it
