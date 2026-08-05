@@ -586,8 +586,21 @@ Give the classification its own table, whose expectation columns *are* the class
 arithmetic its own, taking the classification as an input. Each table then states one rule, and every
 cell is predictable from its row.
 
-This usually needs a narrower function to call. A table that can only reach the fused result means
-the seam is missing, not that the table must fuse.
+**Three routes to the seam, in this order:**
+
+1. **Make the existing call report the intermediate value.** Where the fused result is the classified
+   value scaled by a later input, set that input to its identity — one, zero, an empty adjustment —
+   and the output *is* the classification, through the public call, with nothing added. Ask what the
+   last step does to the classified value and which value of its input would leave it unchanged.
+2. **Add the narrower function.** A table that can only reach the fused result means the seam is
+   missing, not that the table must fuse.
+3. **Name the seam you may not add** — below.
+
+**Route 1 is the one most often missed, and it is not a workaround.** It adds no API, so the
+objection that an intermediate value is an implementation detail does not reach it: the call is the
+published one and the inputs are ordinary values. Concluding from *Design Black-Box Tables* that a
+classification cannot be observed is what makes the fused table look inevitable — that rule asks for
+observable inputs and outputs, and route 1 uses nothing else.
 
 **Putting the classification in a column of the fused table satisfies this test without splitting
 anything.** With the classified value beside the raw data, every cell is predictable in one step
@@ -711,6 +724,12 @@ Where the rule separates 29 days 23 hours from 30 days 1 hour, whole-day rows of
 straddle nothing — the column is `Hours Ago` and not `Days Ago`. A boundary drawn in a unit coarser
 than the rule is not drawn at all, however many rows surround it.
 
+**And express it as an offset from the reference point, not as an absolute value restated in every
+row.** `Hours Ago` is the whole example: it fixes the unit *and* keeps the row readable, where
+absolute instants pin the same boundary while making the reader subtract before the rule is visible.
+*Assume the Table Is Published* sends the reference point itself to a column; this rule owns the unit,
+and one choice satisfies both. A boundary win bought with an unreadable cell has been paid for twice.
+
 **A formula behind the tiers does not reduce the tiers.** If you find yourself arguing that two tiers
 and the delta between them determine the rest, that is the formula talking: the table pins the tiers
 the rule names, and identifying the formula is the implementation's job. Nine tiers stay nine
@@ -726,9 +745,14 @@ boundary: the straddling pair is required here and earns both its rows there. A 
 further past the same boundary is what the other rule removes.
 
 Where a tier is a range rather than a single value, a value set spanning it carries its own
-boundaries — a separate "tier begins" row then discharges nothing the "tier holds" row has
-not. **That is economy inside a row and buys no licence to drop rows:** shortening each tier
-to one cell makes the ladder look repetitive long before it is complete.
+boundaries — **provided its first and last members are the tier's own first and last values.** The
+straddling pair is then already written: the last member of one row's set and the first member of
+the next row's. **State the tier's edges, not two comfortable values inside it** — a set of middle
+values straddles nothing and the explicit pair is still owed. Done that way a separate "tier begins"
+row discharges nothing the "tier holds" row has not, and **one row per tier covers the
+whole ladder and every boundary in it**. That is economy inside a row and buys no licence to drop
+rows: shortening each tier to one cell makes the ladder look repetitive long before it is
+complete.
 
 ```
 Scenario                       | Haemoglobin | Donation Band?
@@ -1173,6 +1197,10 @@ convert.
 Model observable inputs and outputs. Avoid internal flags and setup-only columns unless they are part
 of the public contract.
 
+**This is not a reason to fuse two rules into one table.** An intermediate value being internal rules
+out a column for it, not a table for the rule that produces it — and the published call will often
+report that value already, given the right inputs; see *Separate Rules from Arithmetic*, route 1.
+
 Anything the test does beyond arranging, acting and asserting is a rule the table cannot show.
 Construction belongs in a conversion helper, the expected error in a column, defaulting and
 normalisation outside the body entirely. When you find yourself writing logic in the test, ask which
@@ -1568,7 +1596,7 @@ unsure about. It answers in under a second what a `gradle test` round answers in
 - [ ] **Combining tables prove an interaction**: any table exercising several rules together shows behaviour the single-rule tables cannot (a precedence, an ordering), not the earlier rules re-run end to end
 - [ ] **Rules separated from arithmetic**: every expectation cell is predictable from its row in one step; a classification and the calculation that follows it are two tables
 - [ ] **One row per obligation**: every obligation of the concern is discharged by some row, and every row discharges one no other row in that table reaches; where two rows share an expectation, swapping what differs between them would change an expectation cell in that table — not a value further past the same boundary, a larger n in the same direction, or an input the rule ignores even though it names it
-- [ ] **Every tier once**: a tier ladder has one row per tier — all of them, none twice — and every boundary is exercised from both sides at the finest unit the rule distinguishes, middle tiers included, and a boundary an input reaches through a formula straddled like any other
+- [ ] **Every tier once**: a tier ladder has one row per tier — all of them, none twice — and every boundary is exercised from both sides at the finest unit the rule distinguishes, whether by two rows or by a value set whose end members are the tier's own edges, middle tiers included, and a boundary an input reaches through a formula straddled like any other
 - [ ] **Value set semantics**: value sets appear only where every value produces the same result, never as shorthand for "test several values"; an input this rule claims not to affect the outcome varies across the values it ignores, while an input another rule owns is held at one valid value
 - [ ] **Stateful rows independent**: transition rows carry their own before-state and after-state; no row depends on another having run
 - [ ] **Held constants declared**: every value the outcome depends on that the table fixes for all rows is a column where it can be one — always so for a threshold or limit the rule turns on — and otherwise named in the title or description as held fixed; never left only in the test body, a field, a conversion helper, or a comment
