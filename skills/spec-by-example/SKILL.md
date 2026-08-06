@@ -377,21 +377,8 @@ Give the classification its own table, whose expectation columns *are* the class
 arithmetic its own, taking the classification as an input. Each table then states one rule, and every
 cell is predictable from its row.
 
-**Three routes to the seam, in this order:**
-
-1. **Make the existing call report the intermediate value.** Where the fused result is the classified
-   value scaled by a later input, set that input to its identity — one, zero, an empty adjustment —
-   and the output *is* the classification, through the public call, with nothing added. Ask what the
-   last step does to the classified value and which value of its input would leave it unchanged.
-2. **Add the narrower function.** A table that can only reach the fused result means the seam is
-   missing, not that the table must fuse.
-3. **Name the seam you may not add** — below.
-
-**Route 1 is the one most often missed, and it is not a workaround.** It adds no API, so the
-objection that an intermediate value is an implementation detail does not reach it: the call is the
-published one and the inputs are ordinary values. Concluding from *Design Black-Box Tables* that a
-classification cannot be observed is what makes the fused table look inevitable — that rule asks for
-observable inputs and outputs, and route 1 uses nothing else.
+This usually needs a narrower function to call. A table that can only reach the fused result means
+the seam is missing, not that the table must fuse.
 
 **Putting the classification in a column of the fused table satisfies this test without splitting
 anything.** With the classified value beside the raw data, every cell is predictable in one step
@@ -971,10 +958,6 @@ something else.
 
 Model observable inputs and outputs. Avoid internal flags and setup-only columns unless they are part
 of the public contract.
-
-**This is not a reason to fuse two rules into one table.** An intermediate value being internal rules
-out a column for it, not a table for the rule that produces it — and the published call will often
-report that value already, given the right inputs; see *Separate Rules from Arithmetic*, route 1.
 
 Anything the test does beyond arranging, acting and asserting is a rule the table cannot show.
 Construction belongs in a conversion helper, the expected error in a column, defaulting and
