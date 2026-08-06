@@ -1426,6 +1426,31 @@ several optional fields, it is one column — never one column per field. Decidi
 is drafted is too late: by then every field has a column, most rows carry a blank or a `false`, and
 the sea of near-empty cells reads as deliberate.
 
+**A table that moves one part of the value still gets the one column.** The trigger is the
+parameter's shape, not what this table varies: if the signature takes one object, or one collection,
+the column holds that whole value, however few of its parts this table touches. Three dimensions
+reaching the method as a `List<Integer>` are one `[10, 10, 10]` cell in a table that moves only the
+first of them. For an object, write `[:]` where it is empty and one key where the row sets
+something — not a blank cell, which becomes `null` and never reaches the converter at all:
+
+```
+Scenario           | Config          | Timeout Used?
+All defaults       | [:]             | 3000
+Explicit timeout   | [timeout: 5000] | 5000
+```
+
+**"Each table exercises a different field, so a map is overkill" is the reasoning to reject.** One
+object split across per-table columns gets a different column vocabulary in every table and its
+construction moves into the method body, which *Custom Type Converters* rules out whatever the
+construction idiom — a one-line constructor is still construction. The exception stated there is
+mechanical and narrow: it is for a value the code under test has **no type** for, not for a type
+whose assembly looks easy enough to inline.
+
+**The one field that does earn its own column is one you need a value set on.** Value sets expand per
+column only, so `{X, Y}` inside a map cell adds no rows — see *What the Notation Cannot Express*.
+That is a limit of the notation, and it is the only reason on this page to break an object apart.
+Ease of construction is not one.
+
 **Leave out what this table says nothing about.** An object with twelve properties whose rule reads
 two is a two-part cell, and the converter supplies valid values for the rest. The only field that may
 not leave is one some surface makes a claim about — see *Assume the Table Is Published*.
