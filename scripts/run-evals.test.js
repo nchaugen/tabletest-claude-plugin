@@ -1873,12 +1873,55 @@ describe("classifying a generation failure", () => {
     fs.rmSync(dir, { recursive: true });
   });
 
-  test("a dropped connection is never countable, however much it delivered", () => {
+  const retryLine = (delay = 500) =>
+    JSON.stringify({ type: "system", subtype: "api_retry", attempt: 1, retry_delay_ms: delay });
+  const working = (n) =>
+    Array.from({ length: n }, (_, i) => JSON.stringify({ type: "assistant", seq: i })).join("\n");
+
+  test("a connection dropped with nothing after it is never countable, however much it delivered", () => {
     const dir = withOutputs(delivered);
-    const stdout = JSON.stringify({ type: "system", subtype: "api_retry", attempt: 1 });
-    const r = classifyGenerationFailure({ message: "Timed out after 900000ms", stdout }, dir, evalDef);
+    const stdout = `${working(5)}\n${retryLine()}`;
+    const r = classifyGenerationFailure({ message: "Timed out after 900000ms", stdout }, dir, evalDef, 900000);
     assert.equal(r.kind, "timeout-after-api-retry");
     assert.equal(r.countable, false, "network weather must never be attributed to the skill");
+    fs.rmSync(dir, { recursive: true });
+  });
+
+  test("a retry the run recovered from is a budget overrun, not a transport failure", () => {
+    const dir = withOutputs(delivered);
+    // iteration-72's eval-25: two retries costing 1,084ms of 900,000ms, then 80% of the transcript.
+    const stdout = `${retryLine(515)}\n${retryLine(569)}\n${working(400)}`;
+    const r = classifyGenerationFailure({ message: "Timed out after 900000ms", stdout }, dir, evalDef, 900000);
+    assert.equal(r.kind, "timeout-after-delivery", "it worked its whole budget and delivered");
+    assert.equal(r.countable, true);
+    assert.equal(r.retry.retries, 2);
+    assert.equal(r.retry.delayMs, 1084);
+    fs.rmSync(dir, { recursive: true });
+  });
+
+  test("a recovered retry that delivered nothing is an overrun, not network weather", () => {
+    const dir = withOutputs({});
+    const stdout = `${retryLine()}\n${working(400)}`;
+    const r = classifyGenerationFailure({ message: "Timed out after 900000ms", stdout }, dir, evalDef, 900000);
+    assert.equal(r.kind, "timeout-no-delivery", "the diagnosis a re-run decision depends on");
+    assert.equal(r.countable, false);
+    fs.rmSync(dir, { recursive: true });
+  });
+
+  test("backoff that ate the budget is blamed even when the run recovered", () => {
+    const dir = withOutputs(delivered);
+    const stdout = `${retryLine(120000)}\n${working(400)}`;
+    const r = classifyGenerationFailure({ message: "Timed out after 900000ms", stdout }, dir, evalDef, 900000);
+    assert.equal(r.kind, "timeout-after-api-retry", "120s of 900s is the run's time, not the agent's");
+    assert.equal(r.countable, false);
+    fs.rmSync(dir, { recursive: true });
+  });
+
+  test("the budget falls back to the timeout in the message when none is passed", () => {
+    const dir = withOutputs(delivered);
+    const stdout = `${retryLine(120000)}\n${working(400)}`;
+    const r = classifyGenerationFailure({ message: "Timed out after 900000ms", stdout }, dir, evalDef);
+    assert.equal(r.kind, "timeout-after-api-retry", "older call sites pass no explicit budget");
     fs.rmSync(dir, { recursive: true });
   });
 
@@ -1902,13 +1945,24 @@ describe("classifying a generation failure", () => {
     fs.rmSync(dir, { recursive: true });
   });
 
-  test("a halt outranks delivery but not a dropped connection", () => {
+  test("a halt outranks delivery but not a connection that killed the run", () => {
     const dir = withOutputs(delivered);
-    const stdout = JSON.stringify({ type: "system", subtype: "api_retry", attempt: 1 });
+    const stdout = `${working(5)}\n${retryLine()}`;
     const r = classifyGenerationFailure(
-      { message: "Timed out after 900000ms", stdout, silenceMs: 898000 }, dir, evalDef
+      { message: "Timed out after 900000ms", stdout, silenceMs: 898000 }, dir, evalDef, 900000
     );
     assert.equal(r.kind, "timeout-after-api-retry", "the retry is the more specific diagnosis");
+    assert.equal(r.countable, false);
+    fs.rmSync(dir, { recursive: true });
+  });
+
+  test("a run that recovered and then went silent is a halt, not a retry failure", () => {
+    const dir = withOutputs(delivered);
+    const stdout = `${retryLine()}\n${working(400)}`;
+    const r = classifyGenerationFailure(
+      { message: "Timed out after 900000ms", stdout, silenceMs: 898000 }, dir, evalDef, 900000
+    );
+    assert.equal(r.kind, "timeout-after-silent-halt");
     assert.equal(r.countable, false);
     fs.rmSync(dir, { recursive: true });
   });

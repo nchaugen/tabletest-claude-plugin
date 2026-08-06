@@ -1565,7 +1565,7 @@ async function generateOne(evalDef, worktreePath, iterationDir, args, repoRoot) 
       harvested = collectTestFiles(agentCwd, languageProfile(evalDef)).length;
     } catch { /* harvesting is best-effort — never mask the original failure */ }
 
-    const failure = classifyGenerationFailure(err, evalDir, evalDef);
+    const failure = classifyGenerationFailure(err, evalDir, evalDef, generationTimeoutFor(evalDef, args));
 
     // A truncated run that delivered test code is graded on what it delivered. A transient failure
     // or an empty one is not — it produced no answer, and scoring it would attribute network
@@ -1645,10 +1645,10 @@ function harvestGeneratedFiles(agentCwd, evalDir, evalDef) {
  * method written is a checkpoint"), so whether it does is a property of the wording and belongs in
  * the score.
  *
- * Three signals, all already available: the error is a timeout rather than a transport failure, the
- * transcript carries no `api_retry` (which is how a dropped connection burns the budget), and the
- * harvested files satisfy the language profile's deliverable test — the same predicate `gradeOne`
- * uses to stop empty responses passing format assertions vacuously.
+ * Three signals, all already available: the error is a timeout rather than a transport failure, an
+ * `api_retry` actually *cost* the run (see `retryProfile` — the mere presence of one does not), and
+ * the harvested files satisfy the language profile's deliverable test — the same predicate
+ * `gradeOne` uses to stop empty responses passing format assertions vacuously.
  */
 /**
  * How long the child may emit nothing before the run counts as halted rather than working.
@@ -1674,19 +1674,84 @@ function halted(err) {
   return Number.isFinite(err.silenceMs) && err.silenceMs >= GENERATION_SILENCE_LIMIT_MS;
 }
 
-function classifyGenerationFailure(err, evalDir, evalDef) {
+/**
+ * Share of the transcript that must follow the last `api_retry` for the run to count as recovered.
+ *
+ * **A retry is only the cause of a timeout when the run never came back from it.** Measured over
+ * the seven archived runs that retried, this separates them cleanly: `iteration-54`'s eval-30 emitted
+ * **nothing** after its retry and died there, while every other run emitted 8%–99% of its transcript
+ * afterwards and either finished or was killed much later doing real work.
+ */
+const RETRY_RECOVERY_SHARE = 0.02;
+
+/**
+ * Share of the generation budget that summed retry backoff must reach to be blamed on its own.
+ *
+ * This has never fired and is here for the case that would justify it. Backoff across the archive
+ * tops out at **4,046 ms against a 900,000 ms budget** — 0.4% — so a threshold on delay alone would
+ * be dead code today. It stops being dead the moment a server sends a large `Retry-After`, which
+ * `retryDelayMs` honours verbatim.
+ */
+const RETRY_BUDGET_SHARE = 0.1;
+
+/**
+ * What an `api_retry` actually cost a run, rather than whether one happened.
+ *
+ * **The presence test this replaces was wrong in the expensive direction.** `iteration-72`'s eval-25
+ * retried twice for a combined **1,084 ms of a 900,000 ms budget**, recovered, and worked for the
+ * remaining 80% of its transcript before the deadline killed it — a plain budget overrun. Filed as a
+ * transport flake, it read as "just re-run it", and the re-run cost a second full generation.
+ *
+ * Recovery is measured by transcript position rather than by wall clock because the stream carries
+ * no timestamp on thinking deltas: what a recovered run leaves behind is *output after the retry*.
+ */
+function retryProfile(stdout, timeoutMs) {
+  const text = stdout || "";
+  let delayMs = 0;
+  let retries = 0;
+  let lastOffset = -1;
+  let offset = 0;
+  for (const line of text.split("\n")) {
+    if (line.includes('"api_retry"')) {
+      let event = null;
+      try { event = JSON.parse(line); } catch { /* a truncated line still counts as a retry */ }
+      if (!event || event.subtype === "api_retry") {
+        retries += 1;
+        delayMs += Number(event && event.retry_delay_ms) || 0;
+        // The *end* of the retry line, so "output after the retry" excludes the retry itself. Using
+        // its start would read a transcript ending in a retry as fully recovered.
+        lastOffset = offset + line.length + 1;
+      }
+    }
+    offset += line.length + 1;
+  }
+  if (!retries) return { retries: 0, delayMs: 0, recoveredShare: 1, blamed: false };
+
+  const after = Math.max(0, text.length - lastOffset);
+  const recoveredShare = text.length ? after / text.length : 0;
+  const ateTheBudget = Boolean(timeoutMs) && delayMs >= timeoutMs * RETRY_BUDGET_SHARE;
+  return {
+    retries,
+    delayMs,
+    recoveredShare,
+    blamed: ateTheBudget || recoveredShare < RETRY_RECOVERY_SHARE,
+  };
+}
+
+function classifyGenerationFailure(err, evalDir, evalDef, timeoutMs) {
   const timedOut = /Timed out after \d+ms/.test(err.message || "");
-  const sawApiRetry = Boolean(err.stdout && /"subtype"\s*:\s*"api_retry"/.test(err.stdout));
+  const budgetMs = timeoutMs || Number((/Timed out after (\d+)ms/.exec(err.message || "") || [])[1]) || 0;
+  const retry = retryProfile(err.stdout, budgetMs);
   const profile = languageProfile(evalDef);
   const delivered = loadOutputFiles(evalDir).some(
     (f) => profile.deliverablePath.test(f.path) && profile.deliverableContent.test(f.content)
   );
 
-  if (!timedOut) return { kind: "crash", countable: false, delivered };
-  if (sawApiRetry) return { kind: "timeout-after-api-retry", countable: false, delivered };
-  if (halted(err)) return { kind: "timeout-after-silent-halt", countable: false, delivered };
-  if (!delivered) return { kind: "timeout-no-delivery", countable: false, delivered };
-  return { kind: "timeout-after-delivery", countable: true, delivered };
+  if (!timedOut) return { kind: "crash", countable: false, delivered, retry };
+  if (retry.blamed) return { kind: "timeout-after-api-retry", countable: false, delivered, retry };
+  if (halted(err)) return { kind: "timeout-after-silent-halt", countable: false, delivered, retry };
+  if (!delivered) return { kind: "timeout-no-delivery", countable: false, delivered, retry };
+  return { kind: "timeout-after-delivery", countable: true, delivered, retry };
 }
 
 /** The agent's last piece of visible prose, for a run that never returned a final result. */

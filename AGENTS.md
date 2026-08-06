@@ -137,7 +137,8 @@ decided, not assumed.** Four outcomes, classified in `run-evals.js` from signals
 |---|---|
 | `timeout-after-delivery` — ran its budget out but **delivered test code** | **Yes**, on what it delivered |
 | `timeout-no-delivery` — thought for the whole budget, shipped nothing | No |
-| `timeout-after-api-retry` — a dropped connection burned the budget | No |
+| `timeout-after-api-retry` — a dropped connection **killed** the run (see below) | No |
+| `timeout-after-silent-halt` — output stopped long before the deadline | No |
 | `crash` | No |
 
 **The distinction is the point.** A transient failure says nothing about the guidance, and scoring
@@ -146,6 +147,17 @@ worked its whole budget and shipped three of five tables **has partly succeeded*
 here tells it to work that way ("each method written is a checkpoint that can't be lost to a
 timeout"). Whether it does is a property of the wording, so it belongs in the score. Excluding both
 alike made the only guidance of that kind unmeasurable.
+
+**A retry only counts as the cause when the run never came back from it.** The test is not whether
+an `api_retry` appears — it is whether the transcript continues afterwards, plus a second check on
+whether the summed backoff itself ate a tenth of the budget. Presence alone was the old test and it
+was wrong in the expensive direction: `iteration-72`'s eval-25 retried twice for **1,084 ms of a
+900,000 ms budget**, recovered, worked through the remaining 64% of its transcript and was killed by
+the deadline doing real work. Filed as network weather, it read as "just re-run it", and the re-run
+cost a second full generation. Across the nine archived runs that retried, the rule separates them
+exactly: the four that emitted nothing after the retry are blamed, the five that carried on are not.
+Backoff has never on its own reached the budget threshold — it tops out at 4,046 ms — but
+`retryDelayMs` honours a server's `Retry-After` verbatim, so a rate-limit storm would reach it.
 
 The predicate is the language profile's `deliverablePath`/`deliverableContent` — the same one
 `gradeOne` uses to stop an empty response passing format assertions vacuously. A countable truncation
