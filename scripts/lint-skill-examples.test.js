@@ -10,6 +10,8 @@ const {
   lintSkill,
   compareToBaseline,
   readBaseline,
+  distinctiveIdentifiers,
+  evalIdentifierTerms,
 } = require("./lint-skill-examples.js");
 
 const fence = (body) => "```java\n" + body + "\n```\n";
@@ -251,5 +253,38 @@ describe("the tabletest skill's own examples", () => {
     const inSkillMd = violations.filter((v) => v.file.endsWith("skills/tabletest/SKILL.md"));
 
     assert.deepEqual(inSkillMd, []);
+  });
+});
+
+
+describe("eval-identifier-in-skill", () => {
+  const suite = new Set(["widget", "delivery"]);
+
+  test("flags an eval's data value used as data in the skill", () => {
+    const hits = lintMarkdown("SKILL.md", "Write it as `2 x Widget @ £5.00` in the cell.", suite);
+    assert.deepEqual(hits.map((h) => h.check), ["eval-identifier-in-skill"]);
+  });
+
+  test("flags a token buried in an opaque composite code", () => {
+    const hits = lintMarkdown("SKILL.md", "An opaque `W12/DELIVERY/addr-1` needs a legend.", suite);
+    assert.deepEqual(hits.map((h) => h.check), ["eval-identifier-in-skill"]);
+  });
+
+  test("ignores prose, where every Title-Case sentence opener would match", () => {
+    assert.deepEqual(lintMarkdown("SKILL.md", "Delivery of the value happens later.", suite), []);
+  });
+
+  test("passes a reserved-domain replacement", () => {
+    assert.deepEqual(lintMarkdown("SKILL.md", "Write it as `2 x 5 mg tablet` in the cell.", suite), []);
+  });
+
+  test("does not flag generic vocabulary a Title-Case scan picks up", () => {
+    const generic = new Set(["scenario", "expected", "senior"]);
+    assert.deepEqual(evalIdentifierTerms("| Senior donor | Expected? |", generic), []);
+  });
+
+  test("reads table rows and fenced code as data, so a cell value is seen", () => {
+    assert.ok(distinctiveIdentifiers("| Gadget | 3 |").has("gadget"));
+    assert.ok(!distinctiveIdentifiers("Gadget is a word in a sentence.").has("gadget"));
   });
 });

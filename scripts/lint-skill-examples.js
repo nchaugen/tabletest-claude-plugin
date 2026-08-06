@@ -213,11 +213,109 @@ function evalDomainTerms(markdown) {
   );
 }
 
-function lintMarkdown(file, markdown) {
+/**
+ * Ordinary English and technical vocabulary a Title-Case scan picks up from any document, plus
+ * words the reserved skill domains legitimately use — `travel` and `heavy` for blood-donation
+ * deferral and medication dosing, `credit` for flight-crew rest credit, `adult`/`senior`/`premium`
+ * for age and class descriptors.
+ *
+ * This list is generic English, so an eval landing never requires an edit here. That inverts the
+ * maintenance burden of `EVAL_DOMAIN_TERMS`, which must gain a term per eval or silently stop
+ * covering it: forgetting a word here costs a false positive someone dismisses, not a silent miss.
+ */
+const GENERIC_IDENTIFIERS = new Set([
+  "accepted", "action", "adult", "below", "boolean", "both", "category", "credit", "days",
+  "description", "does", "email", "empty", "exactly", "expected", "full", "heavy", "integer",
+  "invalid", "iso", "items", "just", "kept", "list", "message", "missing", "mixed", "name",
+  "notes", "null", "optional", "premium", "rejected", "result", "scenario", "senior", "several",
+  "short", "single", "standard", "state", "string", "success", "table", "test", "this", "throws",
+  "total", "travel", "unknown", "valid", "weight", "where", "write",
+]);
+
+const IDENTIFIER_PATTERN = /\b[A-Z][a-z]{3,}\b|\b[A-Z]{3,}(?:_[A-Z]+)*\b/g;
+
+/**
+ * The parts of a markdown file where a value is *data* rather than prose: fenced code, table
+ * rows, and backticked spans.
+ *
+ * Prose was too noisy to act on — every Title-Case sentence opener matched. A domain value that
+ * anchors an illustration to an eval appears as data on both sides, which is a much narrower
+ * target and is where both 2026-08-06 breaches sat.
+ */
+function dataPositions(markdown) {
+  const kept = [];
+  let inFence = false;
+
+  for (const line of markdown.split("\n")) {
+    if (/^\s*```/.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
+    if (inFence || line.split("|").length > 2) {
+      kept.push(line);
+      continue;
+    }
+    for (const span of line.match(/`[^`]+`/g) || []) kept.push(span);
+  }
+
+  return kept.join("\n");
+}
+
+/** Title-Case words and ALLCAPS enum-style tokens in data positions, minus generic vocabulary. */
+function distinctiveIdentifiers(markdown) {
+  return new Set(
+    (dataPositions(markdown).match(IDENTIFIER_PATTERN) || [])
+      .map((token) => token.toLowerCase())
+      .filter((token) => !GENERIC_IDENTIFIERS.has(token))
+  );
+}
+
+/**
+ * Data values an eval owns, appearing verbatim as data in a skill.
+ *
+ * `EVAL_DOMAIN_TERMS` catches domain *phrases* — "shopping cart", "order splitting" — and by
+ * construction cannot catch a product name or an opaque code. Both slipped through on 2026-08-06:
+ * `2 x Widget @ £5.00` borrows eval-29's literal catalogue entry (`[Widget: 9.99]`), and
+ * `W12/DELIVERY/addr-1` packs three of eval-30's five splitting dimensions — warehouse, fulfilment
+ * type, delivery address — into one token. No term list would have held either.
+ */
+function evalIdentifierTerms(markdown, evalIdentifiers) {
+  return [...distinctiveIdentifiers(markdown)]
+    .filter((token) => evalIdentifiers.has(token))
+    .sort()
+    .map((token) => `"${token}" is a value the eval suite uses as data — rename it to a reserved domain`);
+}
+
+/** Every distinctive identifier the eval prompts and answer keys use as data. */
+function evalSuiteIdentifiers(repoRoot) {
+  const evalsRoot = path.join(repoRoot, "evals");
+  if (!fs.existsSync(evalsRoot)) return new Set();
+
+  const identifiers = new Set();
+  for (const skill of fs.readdirSync(evalsRoot)) {
+    const skillDir = path.join(evalsRoot, skill);
+    if (!fs.statSync(skillDir).isDirectory()) continue;
+    for (const evalName of fs.readdirSync(skillDir)) {
+      for (const file of ["prompt.md", "expected_output.md"]) {
+        const full = path.join(skillDir, evalName, file);
+        if (!fs.existsSync(full) || !fs.statSync(full).isFile()) continue;
+        for (const token of distinctiveIdentifiers(fs.readFileSync(full, "utf-8"))) {
+          identifiers.add(token);
+        }
+      }
+    }
+  }
+  return identifiers;
+}
+
+function lintMarkdown(file, markdown, evalIdentifiers = new Set()) {
   const domainHits = evalDomainTerms(markdown).map((evidence) => ({
     file, line: 1, check: "eval-domain-in-skill", evidence,
   }));
-  return domainHits.concat(
+  const identifierHits = evalIdentifierTerms(markdown, evalIdentifiers).map((evidence) => ({
+    file, line: 1, check: "eval-identifier-in-skill", evidence,
+  }));
+  return domainHits.concat(identifierHits).concat(
     extractTableTestExamples(markdown).flatMap((example) =>
       findViolations(example).map(({ check, evidence, line }) => ({ file, line, check, evidence }))
     )
@@ -232,9 +330,9 @@ function skillMarkdownFiles(skillDir) {
   return [path.join(skillDir, "SKILL.md"), ...references].filter((f) => fs.existsSync(f));
 }
 
-function lintSkill(skillDir, repoRoot) {
+function lintSkill(skillDir, repoRoot, evalIdentifiers = new Set()) {
   return skillMarkdownFiles(skillDir).flatMap((file) =>
-    lintMarkdown(path.relative(repoRoot, file), fs.readFileSync(file, "utf-8"))
+    lintMarkdown(path.relative(repoRoot, file), fs.readFileSync(file, "utf-8"), evalIdentifiers)
   );
 }
 
@@ -288,9 +386,10 @@ function main() {
   // its own suite to keep out-of-domain. The example checks are TableTest-specific but harmless
   // elsewhere — extractTableTestExamples only matches fenced code containing @TableTest.
   const skillsRoot = path.join(repoRoot, "skills");
+  const evalIdentifiers = evalSuiteIdentifiers(repoRoot);
   const violations = fs.readdirSync(skillsRoot).sort()
     .filter((name) => fs.statSync(path.join(skillsRoot, name)).isDirectory())
-    .flatMap((name) => lintSkill(path.join(skillsRoot, name), repoRoot));
+    .flatMap((name) => lintSkill(path.join(skillsRoot, name), repoRoot, evalIdentifiers));
 
   if (process.argv.includes("--write-baseline")) {
     const body = {
@@ -314,6 +413,9 @@ if (require.main === module) main();
 
 module.exports = {
   extractTableTestExamples,
+  distinctiveIdentifiers,
+  evalIdentifierTerms,
+  evalSuiteIdentifiers,
   parseTables,
   findViolations,
   lintMarkdown,

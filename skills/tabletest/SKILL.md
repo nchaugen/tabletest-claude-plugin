@@ -1088,8 +1088,8 @@ placeholder and still says what each part is. Single letters cost more than they
 legend that decodes them lives outside the table.
 
 **Where a cell carries several parts, the test is whether a reader can name each one.** That is the
-same legend question asked of a compound value: `2 x Widget @ £5.00` explains itself, while
-`W12/DELIVERY/addr-1` needs a key that lives somewhere else. It decides how much structure the cell
+same legend question asked of a compound value: `2 x 5 mg tablet` explains itself, while
+`G3/HEAT/zone-2` needs a key that lives somewhere else. It decides how much structure the cell
 has to show — spell the parts out where the values alone do not identify them, and let them stand
 bare where they do.
 
@@ -1408,7 +1408,7 @@ each part of this cell?**
 | The cell holds | Write it | Parameter |
 |---|---|---|
 | An object — the default, and always safe | a map, `[k: v]` | the domain type, converter takes `Map` |
-| …whose values name themselves without keys | a domain notation (`2 x Widget @ £5.00`) | the domain type, converter takes `String` |
+| …whose values name themselves without keys | a domain notation (`2 x 5 mg tablet`) | the domain type, converter takes `String` |
 | …reduced to one part | that value alone (`<50`, `90d`) | the domain type, converter takes `String` |
 | **Several objects** | **a list of any of those, `[[k: v], [k: v]]`** | **`List<DomainType>`** |
 
@@ -1512,7 +1512,7 @@ carries. See *Assume the Table Is Published*.
 per class (see *One Converter Per Target Type*), so an object written as a plain value needs a domain
 type rather than `String` — and two objects both written plainly need two types. **That constraint is
 what makes the simplification available**, not merely a limit on it: the type you declare to hold
-`2 x Widget @ £5.00` is the same type that lets the cell be that short.
+`2 x 5 mg tablet` is the same type that lets the cell be that short.
 
 **Last resort — several columns for one object.** Where no domain type exists to pin a converter to,
 spread the object across columns and assemble it in the method. It costs exactly what the converter

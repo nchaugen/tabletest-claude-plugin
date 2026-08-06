@@ -829,8 +829,8 @@ placeholder and still says what each part is. Single letters cost more than they
 legend that decodes them lives outside the table.
 
 **Where a cell carries several parts, the test is whether a reader can name each one.** That is the
-same legend question asked of a compound value: `2 x Widget @ £5.00` explains itself, while
-`W12/DELIVERY/addr-1` needs a key that lives somewhere else. It decides how much structure the cell
+same legend question asked of a compound value: `2 x 5 mg tablet` explains itself, while
+`G3/HEAT/zone-2` needs a key that lives somewhere else. It decides how much structure the cell
 has to show — spell the parts out where the values alone do not identify them, and let them stand
 bare where they do.
 
