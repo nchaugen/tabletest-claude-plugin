@@ -54,10 +54,6 @@ argument stops: the table states the rule the specification gives, and a specifi
 bands declares one ladder. Without this, the obligation above reads as *boundaries × classes* and
 the {{row}} count multiplies with nothing added.
 
-This is the coverage half of *Give Each Obligation Exactly One {{Row}}*, and the two meet at a
-boundary: the straddling pair is required here and earns both its {{rows}} there. A third {{row}}
-further past the same boundary is what the other rule removes.
-
 Where a tier is a range rather than a single value, a value set spanning it carries its own
 boundaries — **provided its first and last members are the tier's own first and last values.** The
 straddling pair is then already written: the last member of one {{row}}'s set and the first member of
@@ -67,6 +63,10 @@ values straddles nothing and the explicit pair is still owed. Done that way a se
 whole ladder and every boundary in it**. That is economy inside a {{row}} and buys no licence to drop
 {{rows}}: shortening each tier to one cell makes the ladder look repetitive long before it is
 complete.
+
+This is the coverage half of *Give Each Obligation Exactly One {{Row}}*, and the two meet at a
+boundary: the straddling pair is required here and earns both its {{rows}} there. A third {{row}}
+further past the same boundary is what the other rule removes.
 
 {{example}}
 

@@ -624,9 +624,10 @@ them. Both errors are real and they do not read alike: a missing obligation lets
 implementation pass, while a repeated one costs the reader time and suggests a distinction that is
 not there.
 
-**The test for a redundant row: if two rows share an expectation, the difference between them
-must be the thing the rule is about.** If it is not, they are one row — and a value set is how you
-say so.
+**The test for a redundant row, and it is decidable inside the table in front of you: where two
+rows share an expectation, ask whether swapping one's differing input for the other's would
+change an expectation cell *in this table*.** If it would not, they are one row — and a value set
+is how you say so.
 
 **"Exactly one" is a floor as well as a ceiling, and consolidating is where the floor gets broken.**
 Trimming a table is the moment to re-read the obligation list, because the rows that look most
@@ -641,13 +642,11 @@ every obligation dropped that way:
   boundary of the container.
 - **A distinct branch that shares its expectation with a neighbour.** Two rows agreeing on the
   answer are not redundant when they reach it by different routes — but **the routes have to differ
-  in what this table expects, not in what its rule mentions.** Ask whether swapping one row's
-  differing input for the other's would change an expectation cell *in this table*. If it would not,
-  they are one row, and a value set is how you say so — see *Use Value Sets for "Regardless Of"
-  Relationships*. **A value the rule names is not thereby a branch:** enumerating the members is how
-  a rule gets stated, and the table's job is to show which of them the answer turns on. Kinds of a
-  thing that another rule tells apart are the usual false positive: three rows for three kinds,
-  where the rule under test reads only whether the thing was valid.
+  in what this table expects, not in what its rule mentions**, which is what the test above decides.
+  **A value the rule names is not thereby a branch:** enumerating the members is how a rule gets
+  stated, and the table's job is to show which of them the answer turns on. Kinds of a thing that
+  another rule tells apart are the usual false positive: three rows for three kinds, where the
+  rule under test reads only whether the thing was valid.
   **Collapsing means the value set, not the delete key.** Put every kind in the surviving cell —
   `{percentage, fixed, product-specific}` — because the description will still claim the kind makes
   no difference, and deleting the rows leaves that claim with nothing behind it.
@@ -753,10 +752,6 @@ argument stops: the table states the rule the specification gives, and a specifi
 bands declares one ladder. Without this, the obligation above reads as *boundaries × classes* and
 the row count multiplies with nothing added.
 
-This is the coverage half of *Give Each Obligation Exactly One Row*, and the two meet at a
-boundary: the straddling pair is required here and earns both its rows there. A third row
-further past the same boundary is what the other rule removes.
-
 Where a tier is a range rather than a single value, a value set spanning it carries its own
 boundaries — **provided its first and last members are the tier's own first and last values.** The
 straddling pair is then already written: the last member of one row's set and the first member of
@@ -766,6 +761,10 @@ row discharges nothing the "tier holds" row has not, and **one row per tier cove
 whole ladder and every boundary in it**. That is economy inside a row and buys no licence to drop
 rows: shortening each tier to one cell makes the ladder look repetitive long before it is
 complete.
+
+This is the coverage half of *Give Each Obligation Exactly One Row*, and the two meet at a
+boundary: the straddling pair is required here and earns both its rows there. A third row
+further past the same boundary is what the other rule removes.
 
 ```
 Scenario                       | Haemoglobin | Donation Band?
@@ -1415,11 +1414,12 @@ each part of this cell?**
 Keys are never *wrong*; they are the shape that always works. The lower rows are what you may drop to
 when the shorter cell costs the reader nothing.
 
-**Invent a notation only when its legend is in the cell** — the *Concrete Domain Values* test, applied
-to the shape you are choosing, and the discriminator is the legend rather than the punctuation. Read
-your own cell back cold: where you cannot say what a part is, the keys were doing work, so put them
-back. **A separator between repeats of one shape is always wrong** — `30d, 10d, 15d` packed as
-`30d;10d;15d` is a list the notation already has.
+**Invent a notation only when its legend is in the cell** — *Use Concrete Domain Values* asks that
+question of every compound value, and applying it to the shape you are choosing is what decides this
+one. **The discriminator is the legend, not the punctuation.** Read your own cell back cold: where
+you cannot say what a part is, the keys were doing work, so put them back. **A separator between
+repeats of one shape is always wrong** — `30d, 10d, 15d` packed as `30d;10d;15d` is a list the
+notation already has.
 
 **Decide this from the signature, before drafting columns.** Where a parameter is an object with
 several optional fields, it is one column — never one column per field. Deciding after the table
@@ -1451,9 +1451,9 @@ column only, so `{X, Y}` inside a map cell adds no rows — see *What the Notati
 That is a limit of the notation, and it is the only reason on this page to break an object apart.
 Ease of construction is not one.
 
-**Leave out what this table says nothing about.** An object with twelve properties whose rule reads
-two is a two-part cell, and the converter supplies valid values for the rest. The only field that may
-not leave is one some surface makes a claim about — see *Assume the Table Is Published*.
+**Leave out what this table says nothing about** — *Assume the Table Is Published* states the rule
+and its one exception. The mechanic here is that the `@TypeConverter` supplies valid values for
+every part the cell omits, which is what lets the cell carry only the parts the rule reads.
 
 ```java
 @TableTest("""

@@ -6,9 +6,10 @@ them. Both errors are real and they do not read alike: a missing obligation lets
 implementation pass, while a repeated one costs the reader time and suggests a distinction that is
 not there.
 
-**The test for a redundant {{row}}: if two {{rows}} share an expectation, the difference between them
-must be the thing the rule is about.** If it is not, they are one {{row}} — and a value set is how you
-say so.
+**The test for a redundant {{row}}, and it is decidable inside the table in front of you: where two
+{{rows}} share an expectation, ask whether swapping one's differing input for the other's would
+change an expectation cell *in this table*.** If it would not, they are one {{row}} — and a value set
+is how you say so.
 
 **"Exactly one" is a floor as well as a ceiling, and consolidating is where the floor gets broken.**
 Trimming a table is the moment to re-read the obligation list, because the {{rows}} that look most
@@ -23,13 +24,11 @@ every obligation dropped that way:
   boundary of the container.
 - **A distinct branch that shares its expectation with a neighbour.** Two {{rows}} agreeing on the
   answer are not redundant when they reach it by different routes — but **the routes have to differ
-  in what this table expects, not in what its rule mentions.** Ask whether swapping one {{row}}'s
-  differing input for the other's would change an expectation cell *in this table*. If it would not,
-  they are one {{row}}, and a value set is how you say so — see *Use Value Sets for "Regardless Of"
-  Relationships*. **A value the rule names is not thereby a branch:** enumerating the members is how
-  a rule gets stated, and the table's job is to show which of them the answer turns on. Kinds of a
-  thing that another rule tells apart are the usual false positive: three {{rows}} for three kinds,
-  where the rule under test reads only whether the thing was valid.
+  in what this table expects, not in what its rule mentions**, which is what the test above decides.
+  **A value the rule names is not thereby a branch:** enumerating the members is how a rule gets
+  stated, and the table's job is to show which of them the answer turns on. Kinds of a thing that
+  another rule tells apart are the usual false positive: three {{rows}} for three kinds, where the
+  rule under test reads only whether the thing was valid.
   **Collapsing means the value set, not the delete key.** Put every kind in the surviving cell —
   `{percentage, fixed, product-specific}` — because the description will still claim the kind makes
   no difference, and deleting the {{rows}} leaves that claim with nothing behind it.
