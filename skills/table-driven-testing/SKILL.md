@@ -465,6 +465,32 @@ inputs, every input still has a value at which the outcome flips, and that pair 
 have to straddle — one just below it, one just above, the other inputs held. Sampling that input at
 two comfortable values instead exercises the arithmetic and leaves the boundary untested.
 
+**A ladder repeated across several classes states its boundaries once.** Where one ladder is priced
+or graded differently per class — the same usage bands on every tariff, the same age brackets in
+every region — exercise both sides of every boundary in **one** class, and give each other class one
+case per tier:
+
+```
+Standard, at band 1 limit | standard | 100    | 12.00
+Standard, band 2 begins   | standard | 100.01 | 18.00
+Standard, at band 2 limit | standard | 500    | 18.00
+Standard, band 3 begins   | standard | 500.01 | 30.00
+Economy, band 1           | economy  | 50     |  9.00
+Economy, band 2           | economy  | 300    | 13.50
+Economy, band 3           | economy  | 800    | 22.50
+```
+
+**The check is whether the boundary positions differ between classes.** If they differ, each class
+has its own ladder and owes its own straddling pairs. If they do not, the positions belong to the
+ladder and the classes differ only in their values — which is what their one-case-per-tier lines
+state.
+
+**Duplicated implementation is not a reason to repeat the pairs.** That the same comparison is
+written out once per class is a property of the code, and *Design Black-Box Tables* is where that
+argument stops: the table states the rule the specification gives, and a specification with shared
+bands declares one ladder. Without this, the obligation above reads as *boundaries × classes* and
+the case count multiplies with nothing added.
+
 This is the coverage half of *Give Each Obligation Exactly One Case*, and the two meet at a
 boundary: the straddling pair is required here and earns both its cases there. A third case
 further past the same boundary is what the other rule removes.
@@ -1073,7 +1099,7 @@ When tests come before the implementation:
 - [ ] **Combining tables prove an interaction**: any table exercising several rules together shows behaviour the single-rule tables cannot (a precedence, an ordering), not the earlier rules re-run end to end
 - [ ] **Rules separated from arithmetic**: every expectation cell is predictable from its case in one step; a classification and the calculation that follows it are two tables
 - [ ] **One case per obligation**: every obligation of the concern is discharged by some case, and every case discharges one no other case in that table reaches; where two cases share an expectation, swapping what differs between them would change an expectation cell in that table — not a value further past the same boundary, a larger n in the same direction, or an input the rule ignores even though it names it
-- [ ] **Every tier once**: a tier ladder has one case per tier — all of them, none twice — and every boundary is exercised from both sides at the finest unit the rule distinguishes, whether by two cases or by a value set whose end members are the tier's own edges, middle tiers included, and a boundary an input reaches through a formula straddled like any other
+- [ ] **Every tier once**: a tier ladder has one case per tier — all of them, none twice — and every boundary is exercised from both sides at the finest unit the rule distinguishes, whether by two cases or by a value set whose end members are the tier's own edges, middle tiers included, and a boundary an input reaches through a formula straddled like any other; where one ladder repeats across classes that share its boundary positions, the straddling pairs appear in one class and the rest carry one case per tier
 - [ ] **Value set semantics**: value sets appear only where every value produces the same result, never as shorthand for "test several values"; an input this rule claims not to affect the outcome varies across the values it ignores, while an input another rule owns is held at one valid value
 - [ ] **Stateful cases independent**: transition cases carry their own before-state and after-state; no case depends on another having run
 - [ ] **Held constants declared**: every value the outcome depends on that the table fixes for all cases is a column where it can be one — always so for a threshold or limit the rule turns on — and otherwise named in the title or description as held fixed; never left only in the test body, a field, a conversion helper, or a comment
