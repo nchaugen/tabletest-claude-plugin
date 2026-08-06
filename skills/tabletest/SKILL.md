@@ -1563,7 +1563,7 @@ ${CLAUDE_PLUGIN_ROOT}/skills/tabletest/scripts/format-table.sh <file>
 
 It pads the columns and lines up the pipes; it ships with this skill, and that variable is the only
 reliable way to reach it — the path is not relative to your working directory. It also tells you
-whether a table parses at all — see *Checking a Table Parses* below.
+whether a table parses at all — see *Checking a Table Parses Without Running the Build* below.
 
 ### Converting Existing Tests
 

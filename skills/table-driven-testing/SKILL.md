@@ -42,7 +42,7 @@ Always name cases — `pytest.param(..., id="...")` or an `ids=` argument. Auto-
 
 **"Regardless of" inputs**: put them in the *same* case list, varying together. Stacking a second `@pytest.mark.parametrize` multiplies the decorators into a cartesian product, which is four visible cases for one claim — see *Generating "Regardless Of" Combinations*.
 
-**Expected exceptions**: a case list mixing `pytest.raises` cases with return-value cases needs branching in the body — forbidden. Give rejection cases their own parametrized test built around `pytest.raises`. Exception: an accept/reject boundary is one rule and stays in one table — see *Separate Expected-Error Cases*.
+**Expected exceptions**: a case list mixing `pytest.raises` cases with return-value cases needs branching in the body — forbidden. Give rejection cases their own parametrized test built around `pytest.raises`. Exception: an accept/reject boundary is one rule and stays in one table — see *Model Rejection as an Expected Column*.
 
 ### Swift Testing (Swift)
 
@@ -62,7 +62,7 @@ func standingByCreditHours(creditHours: Int, standing: Standing) {
 
 **Cartesian footgun**: passing two collections — `arguments: inputs, expectations` — produces every combination, not paired rows. Pair with labelled tuples in one collection, a row struct, or `zip` — including for "regardless of" inputs, which vary together in one collection rather than crossed; see *Generating "Regardless Of" Combinations*.
 
-**Expected exceptions**: a separate `@Test` with `#expect(throws:)` — never sentinel values or branching in a parameterised body. Exception: an accept/reject boundary is one rule and stays in one table — see *Separate Expected-Error Cases*.
+**Expected exceptions**: a separate `@Test` with `#expect(throws:)` — never sentinel values or branching in a parameterised body. Exception: an accept/reject boundary is one rule and stays in one table — see *Model Rejection as an Expected Column*.
 
 ### Jest / Vitest (JavaScript / TypeScript)
 
@@ -79,7 +79,7 @@ test.each`
 });
 ```
 
-The test title interpolates row values — write it so each generated name reads as a condition. Expected rejections use `expect(() => ...).toThrow(...)` in their own `test.each` block. Exception: an accept/reject boundary is one rule and stays in one table — see *Separate Expected-Error Cases*.
+The test title interpolates row values — write it so each generated name reads as a condition. Expected rejections use `expect(() => ...).toThrow(...)` in their own `test.each` block. Exception: an accept/reject boundary is one rule and stays in one table — see *Model Rejection as an Expected Column*.
 
 ### Go
 
@@ -103,11 +103,11 @@ for _, tt := range tests {
 }
 ```
 
-The loop over the case slice is the framework mechanic here — the rule against loops applies inside the subtest body. Error-returning cases go in a separate table whose rows expect a specific error, not a mixed table with `wantErr bool` alongside unrelated expected values. A `wantErr error` field on an accept/reject boundary table is the sanctioned exception, and is idiomatic Go — see *Separate Expected-Error Cases*.
+The loop over the case slice is the framework mechanic here — the rule against loops applies inside the subtest body. Error-returning cases go in a separate table whose rows expect a specific error, not a mixed table with `wantErr bool` alongside unrelated expected values. A `wantErr error` field on an accept/reject boundary table is the sanctioned exception, and is idiomatic Go — see *Model Rejection as an Expected Column*.
 
 ### xUnit (C#)
 
-`[Theory]` with `[InlineData]` rows, or `TheoryData<...>` when rows need real types. `[InlineData]` has no per-row name — put the condition in a leading string argument or use `MemberData` with self-describing row objects. Expected exceptions use `Assert.Throws<T>` in their own theory. Exception: an accept/reject boundary is one rule and stays in one table — see *Separate Expected-Error Cases*.
+`[Theory]` with `[InlineData]` rows, or `TheoryData<...>` when rows need real types. `[InlineData]` has no per-row name — put the condition in a leading string argument or use `MemberData` with self-describing row objects. Expected exceptions use `Assert.Throws<T>` in their own theory. Exception: an accept/reject boundary is one rule and stays in one table — see *Model Rejection as an Expected Column*.
 
 ## Table Design
 
