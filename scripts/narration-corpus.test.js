@@ -153,3 +153,26 @@ test("an echo far from any decision is recorded as unplaced, not on-topic", () =
   assert.strictEqual(echo.nearestDecision, null);
   assert.strictEqual(echo.onTopic, false);
 });
+
+test("reach counts a rule mentioned anywhere in the narration, not only at a decision", () => {
+  const { corpusRows, ruleReach } = require("./narration-corpus.js");
+  const rows = [
+    { rulesMentioned: ["08-value-sets", "07-tiers-and-boundaries"] },
+    { rulesMentioned: ["08-value-sets"] },
+    { rulesMentioned: [] },
+  ];
+  const reach = ruleReach(rows);
+  const byRule = Object.fromEntries(reach.map((r) => [r.rule, r.narrations]));
+  assert.strictEqual(byRule["08-value-sets"], 2);
+  assert.strictEqual(byRule["07-tiers-and-boundaries"], 1);
+  assert.strictEqual(byRule["12-scenario-names-as-conditions"], 0);
+  assert.ok(typeof corpusRows === "function");
+});
+
+test("rule 12 matches a naming decision that omits the word 'by'", () => {
+  const { RULE_SIGNATURES } = require("./narration-corpus.js");
+  const rule12 = RULE_SIGNATURES.find((s) => s.rule === "12-scenario-names-as-conditions");
+  // The pattern that once required a literal "by" reported 3 narrations where 13 mention the rule.
+  const sentence = "The scenario names all describe conditions rather than outcomes.";
+  assert.ok(rule12.patterns.some((pattern) => pattern.test(sentence)));
+});

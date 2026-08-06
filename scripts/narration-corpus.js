@@ -120,10 +120,10 @@ const RULE_SIGNATURES = [
   { rule: "04-combining-table", owns: "tables-decided", patterns: [/\bcombining table\b/i, /\bits own rule\b/i] },
   { rule: "05-rules-not-arithmetic", owns: "tables-decided", patterns: [/\bseparate(?:s|d)? (?:the )?rules? from (?:the )?arithmetic\b/i, /\barithmetic of\b/i] },
   { rule: "06-obligations-one-row-each", owns: "rows-decided", patterns: [/\bobligations?\b/i, /\bsmallest set of\b/i, /\bcovering problem\b/i, /\bshare an expectation\b/i] },
-  { rule: "07-tiers-and-boundaries", owns: "rows-decided", patterns: [/\bboth sides of\b/i, /\bevery tier\b/i, /\bboundary (?:rows?|cases?|values?)\b/i] },
+  { rule: "07-tiers-and-boundaries", owns: "rows-decided", patterns: [/\bboth sides of\b/i, /\bevery tier\b/i, /\ball (?:four |three |the )?tiers\b/i, /\btier boundar(?:y|ies)\b/i, /\bboundary (?:rows?|cases?|values?)\b/i] },
   { rule: "08-value-sets", owns: "rows-decided", patterns: [/\bregardless of\b/i, /\bdoes(?:n't| not) affect the outcome\b/i, /\bdoes(?:n't| not) read the column\b/i] },
   { rule: "11-titles-form-an-index", owns: "naming-decided", patterns: [/\btitles? .{0,20}index\b/i, /\bmethod name\b/i, /\btable titles?\b/i] },
-  { rule: "12-scenario-names-as-conditions", owns: "naming-decided", patterns: [/\bunder what circumstances\b/i, /\bby (?:their )?conditions? rather than outcomes?\b/i, /\bcondition,? not outcome\b/i, /\bnames? the outcome\b/i] },
+  { rule: "12-scenario-names-as-conditions", owns: "naming-decided", patterns: [/\bunder what circumstances\b/i, /\bconditions? rather than outcomes?\b/i, /\bcondition,? not outcome\b/i, /\bnames? the outcome\b/i] },
   { rule: "13-name-expectation-columns", owns: "naming-decided", patterns: [/\bexpectation columns?\b/i, /\bquestion mark\b/i] },
   { rule: "17-thresholds-visible", owns: "rows-decided", patterns: [/\bthreshold visible\b/i, /\bmake the threshold\b/i, /\bits own column\b/i] },
   { rule: "20-black-box-tables", owns: "tables-decided", patterns: [/\bblack[- ]box\b/i, /\bpublic (?:API|method|interface)\b/i, /\binternal(?:s)? (?:of|to) the\b/i] },
@@ -414,6 +414,9 @@ function corpusRows(root, skillFilter) {
             return counts;
           }, {}),
           ruleEchoes: ruleEchoes(events, segments),
+          rulesMentioned: RULE_SIGNATURES
+            .filter(({ patterns }) => patterns.some((pattern) => pattern.test(text)))
+            .map(({ rule }) => rule),
           tableCount: shape.tableCount,
           rowCounts: shape.rowCounts,
           totalRows: shape.totalRows,
@@ -446,6 +449,28 @@ function tsv(rows) {
   return lines.join("\n");
 }
 
+/**
+ * How many narrations arrive at each rule at all, by its distinctive vocabulary.
+ *
+ * **This is the instrument that works** (§ J22) — no pairing, no holdout, no co-location window —
+ * and it is the check to run before moving guidance from one rule to another. It lives here rather
+ * than in a shell one-liner because a retyped grep is how the first measurement went wrong: an
+ * over-narrow pattern for rule 12 (requiring a literal "by" before "conditions") reported 3/123
+ * where the real figure is 13/123.
+ *
+ * **Reach is counted over the whole narration, not over sentences that produced a decision event.**
+ * Scoring only decision sentences was the second version of this mistake and it halved rule 08 and
+ * rule 06: the question is whether the agent arrives at the rule at all, and it can quote one while
+ * explaining, rejecting, or merely noticing something.
+ */
+function ruleReach(rows) {
+  const reach = RULE_SIGNATURES.map(({ rule }) => {
+    const hits = rows.filter((row) => row.rulesMentioned.includes(rule));
+    return { rule, narrations: hits.length, share: hits.length / rows.length };
+  });
+  return reach.sort((a, b) => b.narrations - a.narrations);
+}
+
 function main() {
   const args = process.argv.slice(2);
   const flag = (name) => {
@@ -464,6 +489,12 @@ function main() {
     }
     return;
   }
+  if (args.includes("--reach")) {
+    for (const entry of ruleReach(rows)) {
+      console.log(`${entry.rule.padEnd(34)} ${String(entry.narrations).padStart(3)}/${rows.length}  ${(entry.share * 100).toFixed(0).padStart(3)}%`);
+    }
+    return;
+  }
   if (args.includes("--json")) {
     console.log(JSON.stringify(rows, null, 2));
     return;
@@ -475,5 +506,5 @@ if (require.main === module) main();
 
 module.exports = {
   parseNarration, sentences, decisionEvents, decisionOrder, rowDecisionShortfall, ruleEchoes,
-  pipeTables, outputShape, corpusRows, RULE_SIGNATURES, DECISION_LEXICON,
+  pipeTables, outputShape, corpusRows, ruleReach, RULE_SIGNATURES, DECISION_LEXICON,
 };
