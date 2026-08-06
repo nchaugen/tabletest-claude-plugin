@@ -1,0 +1,118 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 72,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "caf563c5cb2e1b01bea5b9517fe9454c7f544697",
+  "skill_digest": "8349171bf2a50f6a",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-06T08:39:54.995Z",
+  "evals": [
+    {
+      "id": "eval-14-weekly-pay",
+      "name": "weekly pay",
+      "skill": "tabletest",
+      "fingerprint": "5bd90c0519ca",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 19,
+        "assertions_total": 23,
+        "pass_rate": 0.8260869565217391,
+        "failed_assertions": [
+          "1.6-readability-empty-cells",
+          "1.14-depth-zero-rate",
+          "no-duplicate-rows-within-a-table",
+          "separates-classification-and-calculation"
+        ],
+        "total_tokens": 1152532,
+        "duration_ms": 317815,
+        "cost_usd": 1.0502892,
+        "grading_usage": {
+          "input_tokens": 13409,
+          "output_tokens": 5441,
+          "total_tokens": 18850,
+          "calls": 2,
+          "cost_usd": 0.121842,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-25-convert-from-spock",
+      "name": "convert from spock",
+      "skill": "tabletest",
+      "fingerprint": "cf05d6e40ec6",
+      "results": {
+        "model": null,
+        "assertions_passed": 0,
+        "assertions_total": 27,
+        "pass_rate": 0,
+        "failed_assertions": [
+          "has-tabletest-annotation",
+          "options-as-map",
+          "options-type-converter",
+          "dimensions-as-list",
+          "uses-value-sets",
+          "concerns-decomposed",
+          "concern-not-over-split",
+          "rule-falsifiable-by-a-row",
+          "rule-statable-from-table",
+          "numeric-types-correct",
+          "scenario-column-present",
+          "scenario-names-describe-conditions",
+          "has-question-mark-column",
+          "business-language-columns",
+          "no-if-switch-in-method",
+          "annotation-order",
+          "has-descriptive-title",
+          "output-is-kotlin",
+          "no-groovy-syntax",
+          "has-tabletest-dependency",
+          "compiles",
+          "tests-pass",
+          "spock-dependency-removed",
+          "consistent-quantity-naming",
+          "titles-form-a-family",
+          "no-duplicate-rows-within-a-table",
+          "no-table-reproves-another"
+        ],
+        "total_tokens": 0,
+        "duration_ms": 900027,
+        "cost_usd": 0,
+        "error": "Timed out after 900000ms"
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 19,
+    "assertions_total": 23,
+    "pass_rate": 0.8260869565217391,
+    "errored_evals": [
+      "eval-25-convert-from-spock"
+    ],
+    "truncated_evals": [],
+    "total_tokens": 1152532,
+    "total_duration_ms": 1217842,
+    "total_cost_usd": 1.0502892,
+    "grading": {
+      "input_tokens": 13409,
+      "output_tokens": 5441,
+      "total_tokens": 18850,
+      "calls": 2,
+      "cost_usd": 0.121842,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}
