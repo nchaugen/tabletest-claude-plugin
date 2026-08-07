@@ -1,0 +1,74 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 77,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "a60d3e139941f0a37e874a9fc7d7bd754cb832d5",
+  "skill_digest": "1d5b863abf1c4a0b",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-07T18:44:25.174Z",
+  "evals": [
+    {
+      "id": "eval-25-convert-from-spock",
+      "name": "convert from spock",
+      "skill": "tabletest",
+      "fingerprint": "cf05d6e40ec6",
+      "results": {
+        "model": null,
+        "assertions_passed": 0,
+        "assertions_total": 27,
+        "pass_rate": 0,
+        "failed_assertions": [
+          "has-tabletest-annotation",
+          "options-as-map",
+          "options-type-converter",
+          "dimensions-as-list",
+          "uses-value-sets",
+          "concerns-decomposed",
+          "concern-not-over-split",
+          "rule-falsifiable-by-a-row",
+          "rule-statable-from-table",
+          "numeric-types-correct",
+          "scenario-column-present",
+          "scenario-names-describe-conditions",
+          "has-question-mark-column",
+          "business-language-columns",
+          "no-if-switch-in-method",
+          "annotation-order",
+          "has-descriptive-title",
+          "output-is-kotlin",
+          "no-groovy-syntax",
+          "has-tabletest-dependency",
+          "compiles",
+          "tests-pass",
+          "spock-dependency-removed",
+          "consistent-quantity-naming",
+          "titles-form-a-family",
+          "no-duplicate-rows-within-a-table",
+          "no-table-reproves-another"
+        ],
+        "total_tokens": 0,
+        "duration_ms": 1010015,
+        "cost_usd": 0,
+        "error": "Timed out after 900000ms"
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "pass_rate": 0,
+    "errored_evals": [
+      "eval-25-convert-from-spock"
+    ],
+    "truncated_evals": [],
+    "total_tokens": 0,
+    "total_duration_ms": 1010015,
+    "total_cost_usd": 0,
+    "grading": null
+  },
+  "model_resolved": [],
+  "cost_basis": "cli-list-price-estimate"
+}
