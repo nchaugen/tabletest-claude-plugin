@@ -1,0 +1,76 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 78,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "5cf57edfcb356cfc40ff2c634de383920b7c6757",
+  "skill_digest": "1d5b863abf1c4a0b",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-07T19:14:36.820Z",
+  "evals": [
+    {
+      "id": "eval-25-convert-from-spock",
+      "name": "convert from spock",
+      "skill": "tabletest",
+      "fingerprint": "cf05d6e40ec6",
+      "results": {
+        "model": null,
+        "assertions_passed": 22,
+        "assertions_total": 27,
+        "pass_rate": 0.8148148148148148,
+        "failed_assertions": [
+          "concern-not-over-split",
+          "rule-statable-from-table",
+          "has-tabletest-dependency",
+          "compiles",
+          "spock-dependency-removed"
+        ],
+        "total_tokens": 0,
+        "duration_ms": 901626,
+        "cost_usd": 0,
+        "grading_usage": {
+          "input_tokens": 19613,
+          "output_tokens": 5853,
+          "total_tokens": 25466,
+          "calls": 2,
+          "cost_usd": 0.146634,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        },
+        "truncated": "Timed out after 900000ms",
+        "failure_kind": "timeout-after-delivery"
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 22,
+    "assertions_total": 27,
+    "pass_rate": 0.8148148148148148,
+    "errored_evals": [],
+    "truncated_evals": [
+      "eval-25-convert-from-spock"
+    ],
+    "total_tokens": 0,
+    "total_duration_ms": 901626,
+    "total_cost_usd": 0,
+    "grading": {
+      "input_tokens": 19613,
+      "output_tokens": 5853,
+      "total_tokens": 25466,
+      "calls": 2,
+      "cost_usd": 0.146634,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": [],
+  "cost_basis": "cli-list-price-estimate"
+}
