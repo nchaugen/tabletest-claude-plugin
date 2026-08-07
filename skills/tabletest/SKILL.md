@@ -1451,9 +1451,9 @@ column only, so `{X, Y}` inside a map cell adds no rows — see *What the Notati
 That is a limit of the notation, and it is the only reason on this page to break an object apart.
 Ease of construction is not one.
 
-**Leave out what this table says nothing about** — *Assume the Table Is Published* states the rule
-and its one exception. The mechanic here is that the `@TypeConverter` supplies valid values for
-every part the cell omits, which is what lets the cell carry only the parts the rule reads.
+**Leave out what this table says nothing about.** An object with twelve properties whose rule reads
+two is a two-part cell, and the converter supplies valid values for the rest. The only field that may
+not leave is one some surface makes a claim about — see *Assume the Table Is Published*.
 
 ```java
 @TableTest("""
