@@ -1,0 +1,68 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 83,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "501c4d058b25facdc96a1698d3e5d6490dd4c069",
+  "skill_digest": "1a587c9bf7c69511",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-08T21:54:01.004Z",
+  "evals": [
+    {
+      "id": "eval-22-event-registration-tt",
+      "name": "event registration tt",
+      "skill": "tabletest",
+      "fingerprint": "3756824de753",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 28,
+        "assertions_total": 29,
+        "pass_rate": 0.9655172413793104,
+        "failed_assertions": [
+          "descriptive-registration-date"
+        ],
+        "total_tokens": 1111762,
+        "duration_ms": 219599,
+        "cost_usd": 1.0144958999999998,
+        "grading_usage": {
+          "input_tokens": 15554,
+          "output_tokens": 9943,
+          "total_tokens": 25497,
+          "calls": 2,
+          "cost_usd": 0.195807,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 28,
+    "assertions_total": 29,
+    "pass_rate": 0.9655172413793104,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 1111762,
+    "total_duration_ms": 219599,
+    "total_cost_usd": 1.0144958999999998,
+    "grading": {
+      "input_tokens": 15554,
+      "output_tokens": 9943,
+      "total_tokens": 25497,
+      "calls": 2,
+      "cost_usd": 0.195807,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}
