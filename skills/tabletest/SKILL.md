@@ -77,6 +77,32 @@ Rules:
 - Expect one invocation per data row.
 - Keep methods non-private, non-static, and returning void.
 
+**A column binds to the test method's parameter list, not to the argument list of the code under
+test.** They are two different lists. The test method takes one parameter per data column; the body
+passes on whichever of them the call accepts. So a value the API never receives can still be a
+column: a policy constant the implementation hardcodes — a cutoff date, a tier threshold, a retention
+limit — takes a parameter like any other column, and the body does not pass it anywhere. The column
+is what puts the number on the page; the call is unchanged.
+
+```java
+@TableTest("""
+    Scenario                       | Days Since Archived | Retention Limit (Days) | Purged?
+    Day before the retention limit | 89                  | 90                     | false
+    On the retention limit         | 90                  | 90                     | true
+    """)
+void purgesAnArchiveOnceItReachesTheRetentionLimit(
+        int daysSinceArchived, int retentionLimitDays, boolean purged) {
+    // purge(...) takes no limit — 90 is fixed inside the policy it reads. The column states the
+    // boundary these rows straddle; the parameter is what makes the column legal.
+    assertEquals(purged, retentionPolicy.purge(daysSinceArchived));
+}
+```
+
+**"The method under test has no argument for it" is not a reason to move a threshold into the
+`@Description`.** Check the test method's signature, not the call's, before deciding a value cannot
+be a column. What does not bend: every data column has a parameter — an unbound column does not
+compile, and this licenses no column without one.
+
 ### Single Values and Quoting
 
 Use blank cells for `null` (reference types). Use `''` for empty strings. Use `'   '` for blank strings.
