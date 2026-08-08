@@ -270,6 +270,19 @@ describe("eval-20 collection and quoting checkers", () => {
     assert.equal(checkers["special-chars-quoted"](map).passed, true);
   });
 
+  test("special-chars-quoted leaves a map entry whose value is a nested map alone", () => {
+    const nested = table(
+      "Scenario | Stock\nTwo warehouses | [W1: [p1: IN_STOCK, p2: IN_STOCK], W2: [p1: IN_STOCK]]",
+      "t(Map<String,Map<String,String>> stock)"
+    );
+    assert.equal(checkers["special-chars-quoted"](nested).passed, true);
+  });
+
+  test("special-chars-quoted still fails a stray bracket in a map entry's value", () => {
+    const stray = table("Scenario | Opts\nStray | [label: a]b]", "t(Map<String,String> opts)");
+    assert.equal(checkers["special-chars-quoted"](stray).passed, false);
+  });
+
   test("pipe-quoted fails an unquoted pipe inside a collection", () => {
     const bad = table("Scenario | Tags\nUnquoted pipe | [biz:hr|recruiting]", "t(List<String> tags)");
     assert.equal(checkers["pipe-quoted"](bad).passed, false);

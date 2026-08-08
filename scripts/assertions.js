@@ -226,10 +226,20 @@ function isQuoted(element) {
   return t.length >= 2 && ((t[0] === '"' && t[t.length - 1] === '"') || (t[0] === "'" && t[t.length - 1] === "'"));
 }
 
-/** Does the element start a nested collection, so brackets in it are structure, not stray syntax? */
+/**
+ * Does the element hold a nested collection, so brackets in it are structure, not stray syntax?
+ *
+ * A map entry counts when its *value* is the nested collection — `W1: [p1: IN_STOCK]` in a
+ * `Map<String, Map<String, String>>` column. Testing only the first character missed that shape and
+ * demanded quotes that would turn the nested map into a string, which is a wrong verdict every time
+ * rather than an unstable one. Found 2026-08-08 when the skill's own linter refused a nested-map
+ * example that `iteration-66`'s 26/26 artefact also contains.
+ */
 function isNestedCollection(element) {
   const t = String(element).trim();
-  return t[0] === "[" || t[0] === "{";
+  if (t[0] === "[" || t[0] === "{") return true;
+  const mapEntryValue = t.replace(/^[^:[\]{}]*:\s*/, "");
+  return mapEntryValue !== t && (mapEntryValue[0] === "[" || mapEntryValue[0] === "{");
 }
 
 /**
