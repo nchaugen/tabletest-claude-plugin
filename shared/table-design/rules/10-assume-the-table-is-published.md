@@ -17,6 +17,15 @@ So a constant the outcome depends on is a **column** wherever it can be one — 
 turns on, such as a threshold or a limit, always can be. The other two surfaces carry what a column
 cannot: where the data came from, what the fixture fixes, an assumption the {{rows}} cannot state.
 
+**Once a value is a column, it is declared — check the table before writing about it or adding to
+it.** A {{description_surface}} sentence naming a value the {{rows}} already show tells the reader
+nothing they cannot read off the table, and a column that does not vary is declared just as well as
+one that does. Being constant is not on its own a reason to add a {{row}} varying it: where a constant
+column hides a second axis, *Make Thresholds Visible* owns that question — and when the {{rows}} are
+given to you, by a conversion or a supplied set of examples, adding one *to vary the constant* changes
+the question you were asked. Boundary and tier {{rows}} are a separate obligation and are never what
+this paragraph is about.
+
 **Which table it is a column of is a separate question, and this rule does not answer it.** Where
 another rule derives the value, it is an input column here and an expectation column there — see
 *Decompose When You See These Signs*, which owns that split. Making a value visible is never a reason
@@ -70,4 +79,4 @@ constructing the objects the columns name.
 
 {{example}}
 
-**Check:** **Held constants declared**: every value the outcome depends on that the table fixes for all {{rows}} is a column where it can be one — always so for a threshold or limit the rule turns on — and otherwise named in the title or description as held fixed; never left only in the test body, a field, a conversion helper, or a comment
+**Check:** **Held constants declared**: every value the outcome depends on that the table fixes for all {{rows}} is a column where it can be one — always so for a threshold or limit the rule turns on — and otherwise named in the title or description as held fixed; never left only in the test body, a field, a conversion helper, or a comment; a value already shown as a column needs nothing further on any surface

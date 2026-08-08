@@ -864,6 +864,15 @@ So a constant the outcome depends on is a **column** wherever it can be one — 
 turns on, such as a threshold or a limit, always can be. The other two surfaces carry what a column
 cannot: where the data came from, what the fixture fixes, an assumption the rows cannot state.
 
+**Once a value is a column, it is declared — check the table before writing about it or adding to
+it.** A `@Description` sentence naming a value the rows already show tells the reader
+nothing they cannot read off the table, and a column that does not vary is declared just as well as
+one that does. Being constant is not on its own a reason to add a row varying it: where a constant
+column hides a second axis, *Make Thresholds Visible* owns that question — and when the rows are
+given to you, by a conversion or a supplied set of examples, adding one *to vary the constant* changes
+the question you were asked. Boundary and tier rows are a separate obligation and are never what
+this paragraph is about.
+
 **Which table it is a column of is a separate question, and this rule does not answer it.** Where
 another rule derives the value, it is an input column here and an expectation column there — see
 *Decompose When You See These Signs*, which owns that split. Making a value visible is never a reason
@@ -1352,7 +1361,7 @@ Good reasons to add `@Description`:
 - **Open questions** — decisions not yet resolved
 - **Relationship between tables** — how this table connects to others in the class
 
-Do not restate what the table already shows. If the description merely summarises the column names or row outcomes, delete it. Don't include irrelevant fixed values — "Fixed for all rows: donor name = 'A. Nolan'" is noise unless the name affects behaviour.
+Do not restate what the table already shows. If the description merely summarises the column names or row outcomes, delete it. A fixed value is noise either way — one the rule never reads is irrelevant, and one it does read belongs in a column — so "Fixed for all rows: donor name = 'A. Nolan'" earns a place here only when it cannot be a column.
 
 **A description must not publish the algorithm.** Restating the internal formula — "the dose index is
 body weight divided by ten plus four per severity grade, capped once it passes 75" — turns a
@@ -1633,7 +1642,7 @@ unsure about. It answers in under a second what a `gradle test` round answers in
 - [ ] **Every tier once**: a tier ladder has one row per tier — all of them, none twice — and every boundary is exercised from both sides at the finest unit the rule distinguishes, whether by two rows or by a value set whose end members are the tier's own edges, middle tiers included, and a boundary an input reaches through a formula straddled like any other; where one ladder repeats across classes that share its boundary positions, the straddling pairs appear in one class and the rest carry one row per tier
 - [ ] **Value set semantics**: value sets appear only where every value produces the same result, never as shorthand for "test several values"; an input this rule claims not to affect the outcome varies across the values it ignores, while an input another rule owns is held at one valid value
 - [ ] **Stateful rows independent**: transition rows carry their own before-state and after-state; no row depends on another having run
-- [ ] **Held constants declared**: every value the outcome depends on that the table fixes for all rows is a column where it can be one — always so for a threshold or limit the rule turns on — and otherwise named in the title or description as held fixed; never left only in the test body, a field, a conversion helper, or a comment
+- [ ] **Held constants declared**: every value the outcome depends on that the table fixes for all rows is a column where it can be one — always so for a threshold or limit the rule turns on — and otherwise named in the title or description as held fixed; never left only in the test body, a field, a conversion helper, or a comment; a value already shown as a column needs nothing further on any surface
 - [ ] **Titles form an index**: read the titles as a sorted list — each states an action the code performs (not a label for a topic), one grammatical shape runs across them, and no three share an uninformative opener
 - [ ] **No scenario name restates its own row's answer**: read each scenario name beside the expectation cells of that row — none states or paraphrases one of them, and none is a generic label
 - [ ] **Expectation columns marked**: at least one column uses the `?` suffix (never a prefix), no input column does, and a compound result stays a native collection rather than a flattened string

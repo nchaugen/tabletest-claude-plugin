@@ -608,6 +608,15 @@ So a constant the outcome depends on is a **column** wherever it can be one — 
 turns on, such as a threshold or a limit, always can be. The other two surfaces carry what a column
 cannot: where the data came from, what the fixture fixes, an assumption the cases cannot state.
 
+**Once a value is a column, it is declared — check the table before writing about it or adding to
+it.** A the test's docstring or leading comment sentence naming a value the cases already show tells the reader
+nothing they cannot read off the table, and a column that does not vary is declared just as well as
+one that does. Being constant is not on its own a reason to add a case varying it: where a constant
+column hides a second axis, *Make Thresholds Visible* owns that question — and when the cases are
+given to you, by a conversion or a supplied set of examples, adding one *to vary the constant* changes
+the question you were asked. Boundary and tier cases are a separate obligation and are never what
+this paragraph is about.
+
 **Which table it is a column of is a separate question, and this rule does not answer it.** Where
 another rule derives the value, it is an input column here and an expectation column there — see
 *Decompose When You See These Signs*, which owns that split. Making a value visible is never a reason
@@ -1101,7 +1110,7 @@ When tests come before the implementation:
 - [ ] **Every tier once**: a tier ladder has one case per tier — all of them, none twice — and every boundary is exercised from both sides at the finest unit the rule distinguishes, whether by two cases or by a value set whose end members are the tier's own edges, middle tiers included, and a boundary an input reaches through a formula straddled like any other; where one ladder repeats across classes that share its boundary positions, the straddling pairs appear in one class and the rest carry one case per tier
 - [ ] **Value set semantics**: value sets appear only where every value produces the same result, never as shorthand for "test several values"; an input this rule claims not to affect the outcome varies across the values it ignores, while an input another rule owns is held at one valid value
 - [ ] **Stateful cases independent**: transition cases carry their own before-state and after-state; no case depends on another having run
-- [ ] **Held constants declared**: every value the outcome depends on that the table fixes for all cases is a column where it can be one — always so for a threshold or limit the rule turns on — and otherwise named in the title or description as held fixed; never left only in the test body, a field, a conversion helper, or a comment
+- [ ] **Held constants declared**: every value the outcome depends on that the table fixes for all cases is a column where it can be one — always so for a threshold or limit the rule turns on — and otherwise named in the title or description as held fixed; never left only in the test body, a field, a conversion helper, or a comment; a value already shown as a column needs nothing further on any surface
 - [ ] **Titles form an index**: read the titles as a sorted list — each states an action the code performs (not a label for a topic), one grammatical shape runs across them, and no three share an uninformative opener
 - [ ] **No scenario id restates its own case's answer**: read each scenario id beside the expectation cells of that case — none states or paraphrases one of them, and none is a generic label
 - [ ] **Expectation columns marked**: at least one column uses the `?` suffix (never a prefix), no input column does, and a compound result stays a native collection rather than a flattened string
