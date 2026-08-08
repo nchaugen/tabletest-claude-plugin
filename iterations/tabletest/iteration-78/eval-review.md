@@ -1,35 +1,29 @@
 # Eval Review — tabletest, Iteration 78
 
-**Model:** sonnet · **Grading:** claude-sonnet-5 · **Date:** 2026-08-07 · **Evals:** 1
+**Model:** sonnet · **Grading:** claude-sonnet-5 · **Date:** 2026-08-08 · **Evals:** 1
 
 ## Summary
 
-22/27 (81.5%) · 0 tokens · 901.6s
+23/27 (85.2%) · 0 tokens · 901.6s
 
-> ⚠️ **5 assertion verdicts moved** vs iteration 76. These are deltas, not attributions: read each eval's `outputs/` and `narration.md` before explaining any of them, and do not start the next iteration until every entry in `analysis-todo.md` has a cause.
+> ⛔ **Void comparison — none of the 1 evals could be compared** vs iteration 77. Every delta below is computed over nothing; an absence of movement here is not evidence that nothing moved. See `analysis-todo.md`.
 
-## Delta vs Iteration 76
+## Delta vs Iteration 77
 
-**Regressions (3):**
-- ❌ eval-25-convert-from-spock: `has-tabletest-dependency`
-- ❌ eval-25-convert-from-spock: `compiles`
-- ❌ eval-25-convert-from-spock: `spock-dependency-removed`
+**Not comparable (1) — excluded from the deltas above:**
+- ⚠️ eval-25-convert-from-spock: fingerprint differs from iteration 77; re-baseline to compare
 
-**Improvements (2):**
-- ✅ eval-25-convert-from-spock: `options-as-map`
-- ✅ eval-25-convert-from-spock: `options-type-converter`
-
-## Resource Comparison vs Iteration 76
+## Resource Comparison vs Iteration 77
 
 | Eval | Pass Rate | Prev | Tokens | Prev | Time(s) | Prev |
 |------|-----------|------|--------|------|---------|------|
-| eval-25-convert-from-spock | 22/27 | 23/27 | 0 | 1898939 | 901.6 | 514.2 |
+| eval-25-convert-from-spock | 23/27 | 0/27 | 0 | 0 | 901.6 | 1010.0 |
 
 ## Per-Eval Results
 
 ### ⚠️ Eval eval-25-convert-from-spock
 
-**22/27** · 0 tokens · 901626ms
+**23/27** · 0 tokens · 901626ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ✅ **options-as-map**: Package options are collapsed into a single map column like [fragile: true, insuredValue: 500] — not kept as three separate columns (Fragile, Insured Value, Handling) with mostly-blank cells. A row with no options uses [:], NEVER a blank cell: a blank cell converts to null before converter lookup, so it bypasses the @TypeConverter entirely and hands the method null instead of a defaulted PackageOptions, while [:] parses to an empty map, which is non-null, so the converter runs and can default every field. FAILS when options are kept as separate sparse columns, and FAILS when an options column exists but its no-options row is blank.

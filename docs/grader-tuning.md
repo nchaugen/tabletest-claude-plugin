@@ -79,10 +79,19 @@ believing a small gain.
 grader has disproved them. Re-read the artefact before changing an assertion.
 
 **Validate against *level*, not only variance.** Does a known-good eval hold its score? The batch-size
-experiment that motivated `LLM_GRADING_BATCH_SIZE = 1` measured flip-rate only, never level, so it
+experiment that once set `LLM_GRADING_BATCH_SIZE = 1` measured flip-rate only, never level, so it
 could not catch that grading assertions in isolation is *systematically stricter* — it collapsed
 every eval uniformly. A uniform drop across all seventeen is a calibration break, not solutions
-getting worse.
+getting worse. **That experiment was reverted; the value is 10 today** (`run-evals.js:584`), and the
+whole suite's calibration is tuned against it.
+
+**Editing one assertion's text can move its batch-mates.** Assertions are graded ten to a call, so a
+longer or shorter text changes the prompt every other assertion in that batch is judged in.
+`run-evals.js:578` names this cross-contamination as the accepted price of the calibration, and it is
+observable: the 2026-08-08 `consistent-quantity-naming` fix flipped `description-not-redundant-with-scenarios`
+on eval-29 and `concern-not-over-split` on eval-25, both on byte-identical artefacts. **Register the
+batch-mates as noise before a text edit, not after** — compute the batch with the eval's LLM
+assertions in file order, ten per call. Do not read a batch-mate's move as evidence about anything.
 
 **Two things that do not fix grader disagreement**, both tried more than once: sharper assertion
 *wording* (the disagreement is response-level, so it is a sampling problem — **check call parameters
@@ -151,6 +160,20 @@ for d in eval-*/; do git mv "$d/grading-t5.json" "$d/grading.json"; done
 **All four, or none.** `--rebuild` and the grader-evidence lookup both read `grading{suffix}.json`, so
 promoting the benchmark while leaving the gradings suffixed means a later no-suffix `--rebuild`
 reassembles from the stale files and **silently resurrects the superseded score**.
+
+**That recipe assumes the regrade covered every eval in the directory. When it covered a subset,
+renaming its benchmark over the plain one deletes the others' baseline entries.** A regrade of one
+eval writes a one-eval `benchmark-S.json`; iteration-79 holds three. Promote through `--rebuild`
+instead — rename only the `grading-S.json` files, delete the suffixed roll-ups, then reassemble:
+
+```
+mv eval-29-…/grading-cqn.json eval-29-…/grading.json
+rm benchmark-cqn.json eval-review-cqn.md analysis-todo-cqn.md
+node scripts/run-evals.js --skill tabletest --iteration 79 --evals 20,29,30 --rebuild
+```
+
+`--rebuild` needs no API key and no network, and `--evals` must list **every** eval in the directory,
+not the regraded one. Confirm with `node scripts/check-baseline.js --skill <skill>` afterwards.
 
 The plain name is load-bearing: `--compare-official` resolves to `benchmark.json` and has no way to be
 told otherwise. **At most one benchmark per official iteration directory is plain-named, and it is the

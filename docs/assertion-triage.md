@@ -1326,6 +1326,23 @@ pair FAILS only when…"* rather than *"It FAILS only when…"* — the bare pro
 whole assertion, which would license the two-name `Base Rate?`/`Rate?` drift the first clause exists
 to catch.
 
+**MEASURED 2026-08-08** — `iteration-79 [cqn]` and `iteration-78 [cqn]`, regrades of the stored
+outputs, $0.61 of grading and no generation. **The fix works on its host:** eval-29's slot went FAIL →
+PASS and the new evidence field states the carve-out unprompted — *"'Cart Before'/'Cart After?' used
+consistently in mutating tables (add/remove/coupon), while read-only tables use 'Cart Items'
+consistently"*. eval-25's slot stayed PASS, as registered: it has no before/after pair, so the clause
+is inert there.
+
+**Both totals moved anyway, and both moves are batch-mate contamination.**
+`description-not-redundant-with-scenarios` went PASS → FAIL on eval-29 and `concern-not-over-split`
+FAIL → PASS on eval-25, on byte-identical artefacts. Assertions grade ten to a call
+(`LLM_GRADING_BATCH_SIZE = 10`) and this text grew 871 → 1192 chars; eval-29's flipper shares batch 2
+with it. `run-evals.js:578` names this as the accepted price of the calibration. **Consequence for
+any future text edit: work out the batch and register its members as noise before the regrade** —
+procedure now in `docs/grader-tuning.md` § Measuring whether a change worked. `description-not-redundant-with-scenarios`
+had never been recorded as flipping before; this is its first observation and it is not evidence
+about the artefact.
+
 **The answer key moved with it.** `docs/grader-answer-key.json`'s eval-29 entry flipped `false` →
 `true`: iteration-40's artefact has the same rule as iteration-79's (`Cart Before` beside `Cart
 After?` in both mutating tables, `Cart Items` in the two read-only ones, no third name), so the

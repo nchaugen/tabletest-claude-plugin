@@ -8,20 +8,19 @@
   "skill_commit": "5cf57edfcb356cfc40ff2c634de383920b7c6757",
   "skill_digest": "1d5b863abf1c4a0b",
   "generation_auth": "subscription",
-  "timestamp": "2026-08-07T19:14:36.820Z",
+  "timestamp": "2026-08-08T21:42:45.222Z",
   "evals": [
     {
       "id": "eval-25-convert-from-spock",
       "name": "convert from spock",
       "skill": "tabletest",
-      "fingerprint": "cf05d6e40ec6",
+      "fingerprint": "f3f9cbb342bc",
       "results": {
         "model": null,
-        "assertions_passed": 22,
+        "assertions_passed": 23,
         "assertions_total": 27,
-        "pass_rate": 0.8148148148148148,
+        "pass_rate": 0.8518518518518519,
         "failed_assertions": [
-          "concern-not-over-split",
           "rule-statable-from-table",
           "has-tabletest-dependency",
           "compiles",
@@ -31,11 +30,11 @@
         "duration_ms": 901626,
         "cost_usd": 0,
         "grading_usage": {
-          "input_tokens": 19613,
-          "output_tokens": 5853,
-          "total_tokens": 25466,
+          "input_tokens": 19720,
+          "output_tokens": 4464,
+          "total_tokens": 24184,
           "calls": 2,
-          "cost_usd": 0.146634,
+          "cost_usd": 0.12612,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -47,9 +46,9 @@
     }
   ],
   "summary": {
-    "assertions_passed": 22,
+    "assertions_passed": 23,
     "assertions_total": 27,
-    "pass_rate": 0.8148148148148148,
+    "pass_rate": 0.8518518518518519,
     "errored_evals": [],
     "truncated_evals": [
       "eval-25-convert-from-spock"
@@ -58,11 +57,11 @@
     "total_duration_ms": 901626,
     "total_cost_usd": 0,
     "grading": {
-      "input_tokens": 19613,
-      "output_tokens": 5853,
-      "total_tokens": 25466,
+      "input_tokens": 19720,
+      "output_tokens": 4464,
+      "total_tokens": 24184,
       "calls": 2,
-      "cost_usd": 0.146634,
+      "cost_usd": 0.12612,
       "evals_measured": 1,
       "rates_usd_per_mtok": {
         "input": 3,
