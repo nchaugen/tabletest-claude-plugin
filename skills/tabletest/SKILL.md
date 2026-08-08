@@ -100,8 +100,16 @@ void purgesAnArchiveOnceItReachesTheRetentionLimit(
 
 **"The method under test has no argument for it" is not a reason to move a threshold into the
 `@Description`.** Check the test method's signature, not the call's, before deciding a value cannot
-be a column. What does not bend: every data column has a parameter — an unbound column does not
-compile, and this licenses no column without one.
+be a column. Two objections that look like reasons and are not:
+
+- **"An unused parameter is a code smell."** Here it is the binding that makes the column legal, and
+  the column is the point: a threshold only the description states cannot be read off the rows.
+- **"Nothing checks that the column matches the constant in the code."** The rows check it. The
+  boundary rows at and just past the threshold produce their expected values only if the
+  implementation's constant is the one the column names — change either and a row fails.
+
+Neither is a reason to add a parameter to the code under test. What does not bend: every data column
+has a parameter — an unbound column does not compile, and this licenses no column without one.
 
 ### Single Values and Quoting
 
