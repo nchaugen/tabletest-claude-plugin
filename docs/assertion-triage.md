@@ -1273,3 +1273,53 @@ and never quote a single observation as a result.
 
 Neither is scheduled for an assertion edit. Both are recorded so a future run does not spend on
 explaining a move that is noise.
+
+## `consistent-quantity-naming` cannot see a before/after pair — reviewed 2026-08-08 (eval-29, `iteration-79`)
+
+**The grader is applying the text correctly; the text is wrong.** The assertion's own FAILS list
+names this exact pair as a worked counter-example: *"or 'Cart Items' in one table and 'Cart Before'
+in another for the same input"*. Nothing the grader could have done would have passed it.
+
+**The artefact splits on a rule, with no crossover.** In `iteration-79`'s `ShoppingCartTest`:
+
+| Column head | Tables | Also has `Cart After?` |
+|---|---|---|
+| `Cart Before` | `addsItemsPricedFromTheCatalogue`, `removesItemsFromTheCart`, `appliesCouponsToTheCart` | yes, all three |
+| `Cart Items` | `computesCartTotalByCouponType`, `floorsCartTotalAtZero`, `verifiesStockAtCheckout` | no, none |
+
+Three tables mutate the cart and head the input `Cart Before` beside a `Cart After?` expectation;
+three read it and head it `Cart Items`. **The pre-state of a transition is not the same quantity as
+a read-only input** — it only exists where there is a post-state — so the two names carry
+information rather than drift.
+
+**The assertion also cannot see the improvement it should reward.** `iteration-65` had *three*
+names, including a bare `Items` in one table, which is genuine drift and a correct FAIL.
+`iteration-79` has two, on a stated rule. **Same verdict for a materially better artefact** — the
+failure mode this document calls a shallow pass, in the other direction.
+
+### The edit, and what it costs
+
+Replace the cart clause in the FAILS list with a decidable carve-out. Keep the `Base Rate?`/`Rate?`/
+`Total Cost?` example — that one is real drift.
+
+> …FAILS when one output quantity appears under two or more names in sibling tables (e.g. 'Base
+> Rate?' in one table, 'Rate?' in a second and 'Total Cost?' in a third for the same computed cost).
+> A genuinely different quantity may of course have a different name — a base rate before surcharges
+> and a final total are two quantities. **A before/after pair is not a second name for the input: a
+> table that mutates a value may head its input 'X Before' beside an 'X After?' expectation while a
+> table that only reads the same value heads it plainly. The check is the post-state column — 'Cart
+> Before'/'Cart After?' in the mutating tables and 'Cart Items' in the read-only ones is one naming
+> rule, not two names. It FAILS only when a third name appears, or when a 'Before' name is used in a
+> table that has no matching 'After?' column.** PASSES when…
+
+The check is mechanical: *does this table have the matching `After?` column?*
+
+**Cost: two fingerprints.** `consistent-quantity-naming` is carried by **eval-25 and eval-29 with
+byte-identical text**, and assertions feed `computeEvalFingerprint`, so editing it voids both evals'
+comparisons until re-baselined. The cheap path is the one used for the 2026-08-01 port: a
+`--grade-only` regrade with `--grading-suffix` over the **existing** outputs — grading API spend
+only, no generation and no subscription quota. Note eval-25's live baseline is `iteration-78`, which
+is truncated, so its re-baseline is unsound for a different reason and should be handled separately.
+
+**Not applied.** It changes the instrument mid-closing-run, with Parts 4 and 5 unrun. Do it when the
+run closes, and regrade both hosts in one pass.
