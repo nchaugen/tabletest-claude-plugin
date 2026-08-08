@@ -1321,5 +1321,38 @@ comparisons until re-baselined. The cheap path is the one used for the 2026-08-0
 only, no generation and no subscription quota. Note eval-25's live baseline is `iteration-78`, which
 is truncated, so its re-baseline is unsound for a different reason and should be handled separately.
 
-**Not applied.** It changes the instrument mid-closing-run, with Parts 4 and 5 unrun. Do it when the
-run closes, and regrade both hosts in one pass.
+**APPLIED 2026-08-08**, closing run complete. One wording change against the draft above: *"Such a
+pair FAILS only when…"* rather than *"It FAILS only when…"* — the bare pronoun reads as governing the
+whole assertion, which would license the two-name `Base Rate?`/`Rate?` drift the first clause exists
+to catch.
+
+**The answer key moved with it.** `docs/grader-answer-key.json`'s eval-29 entry flipped `false` →
+`true`: iteration-40's artefact has the same rule as iteration-79's (`Cart Before` beside `Cart
+After?` in both mutating tables, `Cart Items` in the two read-only ones, no third name), so the
+corrected text passes it. The old entry was right under the old text; it is the text that changed.
+**A key entry that quotes an assertion's worked example dies with that example** — check the key
+whenever an assertion's examples are edited, not only when its criterion is.
+
+## eval-8's two moved slots are both defective — read 2026-08-08 (`iteration-81`)
+
+Neither is evidence about the skill, and both were caught by the evidence-field check before any
+attribution.
+
+- **`no-duplicate-rows-within-a-table` — FAIL whose own evidence says PASS.** The verdict reads
+  *"both tables PASS: parsesAmountsIntoMoney has no repeated rows, rejectsInvalidAmounts has no
+  repeated rows"* and the slot is marked failed. A contradiction inside one verdict, not a judgement
+  call. No text fix is available from one instance: the criterion is already decidable and the grader
+  applied it correctly, then reported the opposite. **Watch for a second instance before touching the
+  text** — if it recurs, it is a response-level sampling problem (`docs/grader-tuning.md` § Measuring),
+  not wording.
+- **`description-if-present-adds-information` — vacuous PASS.** `MoneyParserTest` has no
+  `@Description` anywhere, so the conditional passes on an empty antecedent. This is the same
+  conditional-assertion hole already recorded for this eval on `iteration-70`, where the grader went
+  the other way and quoted a `@DisplayName` as the description. **The assertion is unstable in both
+  directions on an artefact with no `@Description` at all.**
+
+**What both cost.** eval-8 is flat on the artefact in `iteration-81` and reads as one win and one loss
+in the benchmark. **Do not cite either slot in an attribution.** The conditional hole is the fixable
+one: give the assertion an explicit vacuous-case verdict (*"PASSES with no further checks when the
+class contains no `@Description` annotation"*) so the two readings collapse to one. Not applied —
+it re-fingerprints eval-8, and no comparison currently depends on that slot.

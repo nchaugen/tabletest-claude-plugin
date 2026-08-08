@@ -4,7 +4,7 @@
     "iteration": "iterations/tabletest/iteration-40",
     "outputs_generated": "2026-07-22",
     "skill_commit": "170d5b4",
-    "assertion_texts": "post-tranche-2 (tabletest-claude-plugin 84e6916, then the titles/description/minimal-rows/falsifiable edits of 2026-07-25); then 2026-07-26: rule-statable-from-table gained a per-method enumeration requirement (its recorded verdicts stand — they were read by checking every method, which is what the clause now asks the grader to do), and minimal-rows-per-concern was split into no-duplicate-rows-within-a-table + no-table-reproves-another (verdicts pending re-read)"
+    "assertion_texts": "post-tranche-2 (tabletest-claude-plugin 84e6916, then the titles/description/minimal-rows/falsifiable edits of 2026-07-25); then 2026-07-26: rule-statable-from-table gained a per-method enumeration requirement (its recorded verdicts stand — they were read by checking every method, which is what the clause now asks the grader to do), and minimal-rows-per-concern was split into no-duplicate-rows-within-a-table + no-table-reproves-another (verdicts pending re-read); then 2026-08-08: consistent-quantity-naming lost its 'Cart Items'/'Cart Before' counter-example and gained a before/after carve-out with a decidable check (does the table have the matching 'After?' column), flipping the eval-29 entry from false to true"
   },
   "how_to_use": "node scripts/score-grader.js --iteration 40 [--grading-suffix <s>]. Re-verify an entry against the artefact before trusting a disagreement — the key is a reading, not an oracle.",
   "caveats": [
@@ -490,9 +490,9 @@
     {
       "eval": 29,
       "assertion": "consistent-quantity-naming",
-      "expected": false,
+      "expected": true,
       "confidence": "firm",
-      "basis": "'Cart Before' in addsItemsFromTheCatalogue and removesItemsFromTheCart names the same quantity as 'Cart Items' in checksOutTheCart and calculatesTheCartTotal — the cart's contents on the way in. This is the assertion's own worked example."
+      "basis": "Flipped from false on 2026-08-08 when the assertion text was corrected: the before/after carve-out now passes this shape. iteration-40's artefact heads 'Cart Before' beside a 'Cart After?' expectation in both mutating tables (addsItemsFromTheCatalogue, removesItemsFromTheCart) and 'Cart Items' in the two read-only tables, with no third name — one naming rule, which the corrected text passes. The old verdict was correct under the old text, which named this exact pair as a failure."
     },
     {
       "eval": 29,
