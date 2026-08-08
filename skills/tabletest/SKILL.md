@@ -1566,6 +1566,35 @@ test rather than in the table, and whether it gets closed there or bridged here 
 decision; it cannot be, while the gap is invisible. Same move as naming a seam you may not add — see
 *Separate Rules from Arithmetic*.
 
+**An object with two collection-shaped parts is not the last-resort case.** A converter takes one
+cell, so an object holding, say, a stock map and a set of product groups cannot be built from two
+columns — and that is a fact about converters, not a missing type. **Ask which part this table
+varies.** That part is the cell and the converter builds the object from it; the parts no row varies
+are fixed in the test method and declared in the `@Description`, which is what *Leave out what this
+table says nothing about* asks one level up. Do not deepen the cell to fit both parts in either: a
+third level of nesting has no legend the reader can follow.
+
+```java
+@Description("""
+    Zones G3 and G4 are one linked pair in every row; the rows vary which boiler stocks capacity.
+    """)
+@TableTest("""
+    Scenario                     | Boiler Capacity (kW)             | Heated Together?
+    One boiler serves both zones | [B1: [G3: 12, G4: 12]]           | true
+    Neither boiler serves both   | [B1: [G3: 12], B2: [G4: 12]]     | false
+    """)
+void heatsLinkedZonesFromOneBoilerWhenItCan(BoilerCapacity capacity, boolean heatedTogether) {
+    Site site = new Site(zones(), Set.of("G3", "G4"));   // held for every row, and declared above
+    assertEquals(heatedTogether, scheduler.plan(site, capacity).isSingleBoiler());
+}
+```
+
+**Fixing a held part in the method is not the construction the converter rule forbids.** That rule is
+about what a *column* feeds: a column's value reaches the method as its domain type, never as fields
+the body assembles. A part no row varies has no column to feed it. **The violation is a helper that
+takes two varying column values and returns one object** — if you are writing one, one of those two
+columns is not this table's concern.
+
 ### What the Notation Cannot Express
 
 Four limits worth knowing before you design around them, because each is otherwise found by a
