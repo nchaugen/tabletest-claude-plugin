@@ -34,15 +34,6 @@ only whether the expectation cells match in the {{rows}} in front of you. A cate
 as a catch-all is the easy case and gets collapsed almost automatically; **the one that gets missed
 is two values you think of as distinct that this particular rule happens to treat the same.**
 
-**The rule does not have to ignore the column.** Everything above is framed as an input the rule pays
-no attention to, and that framing is what hides the other case: **the rule reads this column, and two
-of the values it reads still share every expectation cell.** *"Splitting is allowed for the 5 mg and
-10 mg tablets"* reads the strength and names two values, so both look like obligations and get a
-{{row}} each. They are one {{row}}, `{5 mg, 10 mg}` — naming the members is how a rule gets stated,
-and the table's job is to show which of them the answer turns on. **The tell is that you have already
-collapsed the other side of the same rule:** the strengths it excludes went into a single
-`{20 mg, 50 mg}` {{row}} without a second thought, because you never thought of *those* as distinct.
-
 {{example}}
 
-**Check:** **Value set semantics**: value sets appear only where every value produces the same result, never as shorthand for "test several values"; an input this rule claims not to affect the outcome varies across the values it ignores, while an input another rule owns is held at one valid value; and two values of a column the rule *reads* still collapse into one {{row}} whenever every expectation cell matches
+**Check:** **Value set semantics**: value sets appear only where every value produces the same result, never as shorthand for "test several values"; an input this rule claims not to affect the outcome varies across the values it ignores, while an input another rule owns is held at one valid value
