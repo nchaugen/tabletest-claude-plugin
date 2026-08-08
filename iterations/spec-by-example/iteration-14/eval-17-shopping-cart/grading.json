@@ -1,0 +1,126 @@
+{
+  "assertions": [
+    {
+      "id": "4.1a-concern-item-operations",
+      "text": "Item operations (add/remove) are represented as their own table or tables — separate from coupon and cart total logic.",
+      "passed": true,
+      "evidence": "Table 1 — Adds an Item to the Cart; Table 2 — Removes an Item from the Cart, separate from coupon/cart total tables"
+    },
+    {
+      "id": "4.1b-concern-coupon-application",
+      "text": "Coupon application (entering, replacing, rejecting codes) is represented as its own table — separate from item operations and cart total calculation.",
+      "passed": true,
+      "evidence": "Table 3 — Applies a Coupon Code to the Cart, distinct from item ops and cart total tables"
+    },
+    {
+      "id": "4.1c-concern-cart-total",
+      "text": "Cart total calculation (how different coupon types affect the price) is represented as its own table — separate from coupon application and item operations.",
+      "passed": true,
+      "evidence": "Table 4 — Calculates the Coupon Discount Amount; Table 5 — Computes the Cart Total, separate from coupon application and item ops"
+    },
+    {
+      "id": "4.1d-concern-checkout",
+      "text": "Checkout (stock verification) is represented as its own table — separate from the other concerns.",
+      "passed": true,
+      "evidence": "Table 6 — Determines Checkout Eligibility, separate from other concerns"
+    },
+    {
+      "id": "4.3-rows-independently-executable",
+      "text": "Each table row is independently executable — no row depends on a prior row's result. The table expresses rules, not a sequential test script.",
+      "passed": true,
+      "evidence": "Each row includes its own 'Cart Before'/'Active Coupon Before' state, e.g. 'Removing a product that isn't in the cart | {[:], [Gadget: 1 @ 9.99]}'"
+    },
+    {
+      "id": "4.4-depth-item-operations",
+      "text": "Item operations cover at least: add to empty cart, add to non-empty cart, add more of an item already in cart, remove item from cart, remove last item in cart, remove item not in cart.",
+      "passed": true,
+      "evidence": "'First item added to an empty cart', 'Adding more of an item already in the cart', 'Removing the last item empties the cart', 'Removing a product that isn't in the cart'"
+    },
+    {
+      "id": "4.5-depth-coupon-application",
+      "text": "Coupon application table covers validity and replacement — not coupon types. Scenarios include at least: add valid coupon (none active), add valid coupon (another active), add expired coupon (none active), add expired coupon (another active), add nonexistent code (none active), add nonexistent code (another active).",
+      "passed": true,
+      "evidence": "'Applying a valid code when no coupon is active', 'A new valid code replaces the active coupon', 'An expired code is rejected...', 'An unknown code is rejected...'"
+    },
+    {
+      "id": "4.6-depth-cart-total-scenarios",
+      "text": "Cart total table covers how different coupon types affect the price. Scenarios include at least: no coupon, percentage off whole cart, fixed amount off, fixed amount exceeding cart total (floors at zero), product-specific discount (product in cart), product-specific discount (product not in cart).",
+      "passed": true,
+      "evidence": "'No coupon applied', 'Percentage off the whole cart', 'Fixed amount off the whole cart', 'Discount larger than the subtotal is floored at zero', 'Product discount when the target is in/not in the cart'"
+    },
+    {
+      "id": "4.7-depth-checkout-scenarios",
+      "text": "Checkout table covers at least: empty cart, all items in stock, and not all items in stock (insufficient inventory).",
+      "passed": true,
+      "evidence": "'An empty cart cannot check out', 'Every item has enough stock', 'One of several items is short'"
+    },
+    {
+      "id": "4.8-readability-business-language",
+      "text": "Column names use business/user-perspective language (e.g. 'Message?' not 'Result?', 'Coupon code' not 'input'). The tables read as a specification a product person could review.",
+      "passed": true,
+      "evidence": "Column headers like 'Cart After?', 'Message?', 'Discount Amount?', 'Checkout Result?', 'Shortfalls?'"
+    },
+    {
+      "id": "4.9-readability-test-data-visible",
+      "text": "Test data that affects the outcome — product prices, coupon rules (type, amount, expiry) — is visible in the table via columns, notes, or explicit setup, not silently hardcoded. The reader can trace how inputs lead to outputs.",
+      "passed": true,
+      "evidence": "Table 1 has 'Catalogue Price' column; Table 4 has 'Coupon Parameters' e.g. '[percent: 10%]'; Table 5 shows 'Subtotal'/'Discount Amount' columns."
+    },
+    {
+      "id": "4.10-depth-open-questions",
+      "text": "Multiple open questions are surfaced — ambiguities or product decisions the requirements don't specify (e.g. what happens to a product-specific coupon when that product is removed, or how percentage and product-specific discounts interact).",
+      "passed": true,
+      "evidence": "'Open questions' section lists 5 items, e.g. 'Rounding mode for percentage discounts (half-up, half-even, truncate)?'"
+    },
+    {
+      "id": "4.11-correctness-cart-totals",
+      "text": "Cart totals are arithmetically correct: sum(quantity × price) − coupon = total, for every row in the total calculation table.",
+      "passed": true,
+      "evidence": "Table 5 rows: '10.00 | 9.99 | 0.01' and '10.00 | 15.00 | 0.00' (floored) — all subtotal-discount=total computations check out."
+    },
+    {
+      "id": "4.12-coupon-expiry-column",
+      "text": "Coupon application table uses a column to signal expiry status — either an 'Expired?' yes/no column, a 'Status' column, or equivalent. Expiry is visible per row, not just implied by the scenario name.",
+      "passed": true,
+      "evidence": "Table 3 column 'Code Validity' with values 'valid', 'expired', 'not found' signals expiry status per row."
+    },
+    {
+      "id": "4.14-coupon-before-after-columns",
+      "text": "Coupon application table uses before/after columns (e.g. 'Active coupon' / 'Active coupon after?') to specify the state change when entering, replacing, or entering invalid coupon codes.",
+      "passed": true,
+      "evidence": "Table 3 uses 'Active Coupon Before' and 'Active Coupon After?' columns, e.g. 'WELCOME5 | SAVE10 | valid | ... | SAVE10'."
+    },
+    {
+      "id": "4.15-readability-scenario-names",
+      "text": "Scenario names describe the business situation (e.g. 'Add more of same product', 'Replace active coupon') — not 'Test case 1' or generic labels.",
+      "passed": true,
+      "evidence": "Scenario names like 'A new valid code replaces the active coupon' and 'Removing the last item empties the cart' describe business situations."
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": true,
+      "evidence": "Six distinct tables: 'Adds an Item', 'Removes an Item', 'Applies a Coupon Code', 'Calculates the Coupon Discount Amount', 'Computes the Cart Total', 'Determines Checkout Eligibility'."
+    },
+    {
+      "id": "no-duplicate-rows-within-a-table",
+      "text": "Judge each table in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a linear premium sampled at 0, 2 and 4 claims: two samples state the effect and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by this eval's own coverage assertions. Judge every table in the response; your evidence must name each table with PASS or FAIL.",
+      "passed": true,
+      "evidence": "Table 1 PASS (5 distinct ops); Table 2 PASS (3 distinct cases); Table 3 PASS (valid/expired/not-found x none/active tests distinct disturbance invariant); Table 4 PASS (distinct coupon types incl. target-in/out-of-cart); Table 5 PASS (each row a distinct boundary: <, =, =, one-cent-under, >); Table 6 PASS (single-item vs multi-item shortfall messages test distinct filtering behavior, e.g. 'One of several items is short' vs 'Multiple items are short at once')."
+    }
+  ],
+  "assertions_passed": 18,
+  "assertions_total": 18,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 9541,
+    "output_tokens": 7121,
+    "total_tokens": 16662,
+    "calls": 2,
+    "cost_usd": 0.135438,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}

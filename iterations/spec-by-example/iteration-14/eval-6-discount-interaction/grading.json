@@ -1,0 +1,60 @@
+{
+  "assertions": [
+    {
+      "id": "produces-markdown-table",
+      "text": "Output contains a markdown table",
+      "passed": true,
+      "evidence": "1 markdown table(s); first header: Scenario | Bulk % | Loyalty % | Cap (TBD, shown as 20%) | Additive %? | Multiplicative %? | Additive, Capped %? | Higher-Only %? | Agreed Combined %? | Open Question"
+    },
+    {
+      "id": "does-not-invent-resolution",
+      "text": "The output does NOT silently resolve the stacking/cap ambiguity — it leaves the conflicting cases as open questions, blank cells, or explicitly marks them as unresolved",
+      "passed": true,
+      "evidence": "'Agreed Combined %?' column shows '?' and text 'left the actual answer open.'"
+    },
+    {
+      "id": "covers-both-discounts-applying",
+      "text": "Table includes at least one row where both bulk and loyalty discounts apply simultaneously (exposing the interaction)",
+      "passed": true,
+      "evidence": "Row 'Both apply, bulk higher | 10 | 5 | ... | ? | Stack or higher-only?'"
+    },
+    {
+      "id": "open-question-surfaced",
+      "text": "The unresolved decision (stacking vs. higher-only vs. cap) is explicitly surfaced — via an Open Questions column, a '?' cell, or a note",
+      "passed": true,
+      "evidence": "Table column 'Open Question' with entries like 'Stack or higher-only?'"
+    },
+    {
+      "id": "output-column-has-question-mark",
+      "text": "At least one output column ends with '?'",
+      "passed": true,
+      "evidence": "Question-mark columns: Additive %?, Multiplicative %?, Additive, Capped %?, Higher-Only %?, Agreed Combined %?"
+    },
+    {
+      "id": "extreme-discount-row",
+      "text": "Table includes at least one row with a high combined discount (e.g. large order + top loyalty tier) that would force a decision about whether a cap applies — making the cap question concrete, not theoretical.",
+      "passed": true,
+      "evidence": "'Both apply, extreme tiers | 30 | 20 | 20 | 50 | 44 | 20 | 30 | ?'"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\""
+    }
+  ],
+  "assertions_passed": 7,
+  "assertions_total": 7,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 2673,
+    "output_tokens": 425,
+    "total_tokens": 3098,
+    "calls": 1,
+    "cost_usd": 0.014394,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}

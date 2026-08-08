@@ -1252,3 +1252,24 @@ Same for `business-language-columns` (8 texts). Schedule those two deliberately.
 **Cost.** $0.81 grading for 10 `spec-by-example` evals, $0.13 for 5 `table-driven-testing` evals, no
 generation. Both runs exit 0 — the void-regime guard fires on the *report's* iteration-1 comparison
 and warns rather than exiting 2, because the baseline is pre-guard.
+
+## Two spec-by-example slots that flip — five observations each, from `iteration-14` (2026-08-08)
+
+**`refund-table-shows-proportion`/10 is not a standing skill-versus-assertion conflict.** The slice-8
+notes describe it as one the skill wins by instruction, so the assertion always loses. Five runs say
+otherwise: **PASS (it-2), fail (it-3), PASS (it-4), fail (it-9), PASS (it-14)** — 3 of 5 pass, and
+`iteration-14` passes with an explicit `Unused Days?` column between the inputs and `Refund Amount?`.
+The grader's evidence tracks the artefact both ways (it-9: *"no proportion/rate column shown"*;
+it-14: *"'Unused Days?' as an intermediate column … showing the proration step explicitly"*). **Stop
+citing it as a standing loss.** It is a coin-flip on whether the run exposes the intermediate, which
+is a skill question, not an assertion defect. Nothing to repair on the assertion side.
+
+**`question-mark-only-on-outputs` flips on both its hosts.** eval-12: PASS/fail/PASS/PASS/fail/PASS
+across it-2/3/4/9/13/14. eval-10: PASS/PASS/PASS/fail/PASS across it-2/3/4/9/14. The rule that owns
+the convention (13, *Name Expectation Columns*) was untouched by the whole slice-8 batch, so neither
+direction is attributable to a skill change. **Six flips across two hosts puts it in the same class
+as `scenario-names-describe-conditions`** — read it against the baseline's own evidence every time,
+and never quote a single observation as a result.
+
+Neither is scheduled for an assertion edit. Both are recorded so a future run does not spend on
+explaining a move that is noise.
