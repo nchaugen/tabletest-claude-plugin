@@ -1,0 +1,3 @@
+It compiles correctly and expands to all 9 role/action combinations via value sets, failing as expected against the unimplemented stub (`UnsupportedOperationException`).
+
+The test class `PermissionCheckerTest.java` is at `src/test/java/com/example/`, added the `tabletest-junit` dependency to `build.gradle`, and left `PermissionChecker.canPerform` untouched as its stub (throws `UnsupportedOperationException`) — it compiles fine and the tests correctly fail until the logic is implemented.

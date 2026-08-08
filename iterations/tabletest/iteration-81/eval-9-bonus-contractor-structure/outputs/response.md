@@ -1,0 +1,5 @@
+The test compiles and correctly generates 6 cases (the value set expands the contractor row into 2), all failing as expected since `BonusCalculator` still throws `UnsupportedOperationException` — exactly the TDD state requested.
+
+## Summary
+
+Added `org.tabletest:tabletest-junit:1.2.2` to `build.gradle` and wrote `src/test/java/com/example/BonusCalculatorTest.java` with one `@TableTest` covering all 5 bonus rules (6 generated cases, since the CONTRACTOR row uses a `{SALES, ENGINEERING}` value set to state the "regardless of department" rule as data). `Level`/`Department` are separate columns rather than a single `Employee` cell specifically to make that value set possible — documented in the `@Description`, along with the assumption that `15` means 15% (not `0.15`). `BonusCalculator` stub is untouched, so all 6 cases currently fail with `UnsupportedOperationException` as expected — ready for the bonus logic to be implemented next.
