@@ -1,0 +1,192 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest annotation",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "validation-rules-covered",
+      "text": "Email validation and name-required error scenarios are present — at least one row for invalid email and one for missing name.",
+      "passed": true,
+      "evidence": "Rows 'Malformed email address' and 'Missing name' present with Accepted?=false"
+    },
+    {
+      "id": "blank-for-absent-optional",
+      "text": "Dietary requirements and/or accessibility needs use blank cells (null) when not provided — not 'N/A' or 'none'. These are genuinely optional and absent.",
+      "passed": true,
+      "evidence": "'Valid registration without optional info | Ada Lovelace | ada@example.com | | |' uses blank cells for optionals"
+    },
+    {
+      "id": "blank-vs-value-set-correct",
+      "text": "When testing pricing rules, irrelevant inputs (e.g. dietary requirements don't affect price) use value sets or representative values — not blanks (which mean null). Blanks are reserved for genuinely absent/null inputs.",
+      "passed": true,
+      "evidence": "Pricing tables omit dietary/accessibility columns entirely rather than using blanks for irrelevant inputs"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\", \"Scenario\", \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "At least one output column name ends with '?' (e.g. 'Result?', 'Price?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Accepted?, Error Message?, Price (£)?, Discount (£)?, Price (£)?, Discount (£)?, Price (£)?, Discount (£)?"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language (e.g. 'Name', 'Email', 'Registration date', 'Group size', 'Price?') — not code identifiers.",
+      "passed": true,
+      "evidence": "Columns: 'Name', 'Email', 'Dietary Requirements', 'Accessibility Needs', 'Registration Date', 'Group Size', 'Discount (£)?'"
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names name the variation the row exercises, not the result it produces. The decidable test: FAILS when a scenario name states or paraphrases a value that appears in an expectation column of that same row — 'User cannot delete' beside an Allowed? cell of false, 'No discount applies' beside a Discount? cell of 0.00, 'Contractor gets no bonus' beside a Bonus? cell of 0. Also FAILS on generic labels ('Test 1', 'Test case 2'), which name no variation at all. PASSES otherwise. Naming the rule or the situation is correct even when it makes the outcome inferable — 'Delivery and pickup items always split', 'At the standard threshold, not above it', 'EU express, light package', 'Renewal with no claims', 'Missing name' all PASS. The failure this catches is a name echoing its own expectation cell, not a name that describes what the row is about, and not a name from which a reader who knows the rule could predict the outcome. A single offending name fails the assertion. Judge every @TableTest method in the class.",
+      "passed": true,
+      "evidence": "'Day before the early-bird cutoff', 'At the group threshold' name conditions, not outcomes"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test method body contains no if or switch statements",
+      "passed": true,
+      "evidence": "4 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order (@DisplayName, @Description, @TableTest) across 4 annotated method(s)"
+    },
+    {
+      "id": "has-descriptive-title",
+      "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "4 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "description-uses-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": true,
+      "evidence": "Four @TableTest methods split validation from early-bird, group, and combined pricing rules"
+    },
+    {
+      "id": "no-duplicate-rows-within-a-table",
+      "text": "Judge each @TableTest in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a linear premium sampled at 0, 2 and 4 claims: two samples state the effect and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by 2.19-covers-every-tier and quantifier-covered-by-rows. Judge every @TableTest method in the class; your evidence must name each method with PASS or FAIL.",
+      "passed": true,
+      "evidence": "Each table's rows (e.g. 'before/on cutoff', 'below/at group threshold') cover distinct boundaries with no excess"
+    },
+    {
+      "id": "no-table-reproves-another",
+      "text": "Judge the class as a whole, and only its @TableTest methods: a plain @Test method is not a table and can never fail this assertion, however much of an earlier table it re-proves. The assertion FAILS if a whole @TableTest re-proves rules that earlier tables already established — an integration or end-to-end table whose rows re-prove established rules is the common case, and it fails however clean the other tables are. Sibling tables that each isolate one rule are NOT duplication merely because they share a baseline row: four surcharge tables that each show 'no surcharge' then 'surcharge applied' are four legitimate tables, not one duplicated four times. Collapsing several same-fixture tables into one, as concern-not-over-split requires, is likewise not a failure here. Rows you think are missing are never a failure here. Your evidence must name the re-proving table and the table it duplicates, or state that no @TableTest re-proves another.",
+      "passed": true,
+      "evidence": "Combined table 'registerUsesHigherOfEarlyBirdOrGroupDiscountWithoutStacking' tests new max-not-stack interaction, not a re-proof"
+    },
+    {
+      "id": "separates-validation-and-pricing",
+      "text": "Input validation and pricing/discount calculation are in separate @TableTest methods",
+      "passed": true,
+      "evidence": "registerValidatesEmailFormatAndRequiresName is separate from the three pricing @TableTest methods"
+    },
+    {
+      "id": "validation-includes-optional-fields",
+      "text": "Validation @TableTest includes Dietary Requirements and Accessibility Needs columns, with rows showing both null (blank) and non-null values are accepted — not hardcoded as null in the method body.",
+      "passed": true,
+      "evidence": "'Valid registration with optional info | ... | Vegetarian | Wheelchair access | true' shows non-null optional row alongside blank row"
+    },
+    {
+      "id": "descriptive-registration-date",
+      "text": "Registration date uses descriptive values (e.g. 'before cutoff', 'on cutoff', 'after cutoff') with a @TypeConverter method converting to actual dates — not raw date literals like '2025-02-28'. Readability over precision.",
+      "passed": true,
+      "evidence": "TableTest rows use 'before cutoff', 'on cutoff', 'after cutoff' with a @TypeConverter parseRegistrationDate method converting them to LocalDate."
+    },
+    {
+      "id": "cutoff-date-column-if-literal-dates",
+      "text": "If registration dates are literal (e.g. '2025-02-28' instead of descriptive), the early-bird cutoff date appears as a separate policy column so the reader can see both dates and verify the comparison. Passes automatically if descriptive date values are used.",
+      "passed": true,
+      "evidence": "Registration dates are descriptive ('before cutoff', 'on cutoff') via @TypeConverter, so this assertion passes automatically."
+    },
+    {
+      "id": "description-no-irrelevant-information",
+      "text": "If @Description is present, it does not include information already visible in the table columns or derivable from the table structure — such as fixed input values that could be columns, or restating a rule the rows already demonstrate. It PASSES when the description adds what the rows cannot: a threshold or constant fixed in the method body, currency, where/when the rule applies, or naming an interpretation as a deliberate assumption (legitimate even when a row also demonstrates it — that is rationale, not redundancy).",
+      "passed": false,
+      "evidence": "Method4 @Description states 'Group Size is fixed at the group threshold so both rows qualify for the group discount' while the table's Group Size and Group Threshold columns both already show 5,5 in every row - restating visible column values."
+    },
+    {
+      "id": "discount-column-preferred",
+      "text": "Output column is 'Discount?' (percentage or amount off) rather than 'Price?' — making verification simpler (discount is the rule's direct output; price requires knowing the base price). If 'Price?' is used instead, both 'Base price' and 'Price?' columns must be present so the reader can trace the calculation.",
+      "passed": true,
+      "evidence": "Tables use 'Price (£)?' alongside 'Base Price (£)' and 'Discount (£)?' columns, satisfying the Price?+Base price pairing requirement."
+    },
+    {
+      "id": "single-assertion-in-method",
+      "text": "Each @TableTest method applies one uniform assertion pattern to every row — not different assertions per scenario. Several unconditional assertions checking distinct observable outputs of one result (e.g. success, message, resulting cart) count as one uniform pattern; the anti-pattern is branching on the row (if/switch/ternary/try-catch) to choose what is asserted.",
+      "passed": true,
+      "evidence": "4 method(s) apply one uniform assertion pattern to all rows"
+    },
+    {
+      "id": "optional-fields-has-expected-column",
+      "text": "The optional-fields acceptance table includes an expectation/output column (e.g. 'Approved?', 'Result?', or 'Status?') asserting that each combination is accepted — not just varying inputs without any expected column.",
+      "passed": true,
+      "evidence": "Validation table has an 'Accepted?' column: 'Scenario | Name | Email | Dietary Requirements | Accessibility Needs | Accepted? | Error Message?'"
+    },
+    {
+      "id": "description-no-redundant-field-values",
+      "text": "Scenario names and @Description text do not restate values the table already shows. Two surfaces are judged, and BOTH must be reported: your evidence must give the clause-(1) verdict over the scenario names and the clause-(2) verdict over the @Description separately, each quoting the text it judged. A verdict from one surface alone is not a verdict. The assertion FAILS if either: (1) a scenario name contains a literal value that also appears in an input cell of the same row (e.g. scenario 'Age 35, score 700' beside Age and Credit score columns holding 35 and 700); or (2) @Description states a fixed value for an input that is already a column in that table. Otherwise it PASSES. Stating a constant that is NOT a column — a threshold, a policy figure, a value fixed in the method body — is correct and must not fail this assertion. A policy threshold is not a fixed input value, even when the input column happens to contain a cell equal to it: 'approved above a credit score of 650' beside a Credit Score column holding 650 and 651 states the rule's boundary, not a restatement of a cell. That exemption covers clause (1) as well: a scenario name that names the rule's boundary — 'At the 650 threshold', 'Just below the 600 senior threshold' — states the boundary and PASSES, even though the row's own cell holds that number. Clause (1) fires only on a value incidental to the row: an age, an amount, a score chosen to sit somewhere ordinary and then echoed in the name. Clause (2) fires only when the description pins an input to ONE value that the column then shows in EVERY row.",
+      "passed": false,
+      "evidence": "(1) Scenario names like 'At the group threshold', 'On the early-bird cutoff' name the rule's boundary, not incidental values - PASSES. (2) Method4 @Description: 'Group Size is fixed at the group threshold so both rows qualify for the group discount' pins Group Size to the exact value (5) that the Group Size and Group Threshold columns show in every row of that table - FAILS clause 2."
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES. Do not fail a table merely because its values are simple or round — only these three conditions matter. One exemption applies to conditions (1) and (3): a table whose claim IS an invariance — that some input does not affect the outcome — correctly holds one expectation value across every row, because that constant is the rule's subject rather than evidence of a weak table. A single row varying that input over a value set (e.g. '{DHL, UPS, FEDEX} | 12.00') is the correct compact form and PASSES, provided the title or description states the invariance. Condition (2) is not exempted. Enumerate before you decide: your evidence must name every @TableTest method in the class and, under each, every one of its expectation columns with PASS or FAIL beside it. A table with several expectation columns fails on condition (1) as soon as ONE of them is constant across all rows without a stated invariance. A verdict reported from a subset of the methods, or from a subset of one method's expectation columns, is not a verdict.",
+      "passed": true,
+      "evidence": "registerValidatesEmailFormatAndRequiresName: Accepted?=PASS (true/false vary), Error Message?=PASS (varies/blank). registerAppliesEarlyBirdDiscountBeforeCutoff: Price(£)?=PASS (80.00/100.00), Discount(£)?=PASS (20.00/0.00). registerAppliesGroupDiscountAtThreshold: Price(£)?=PASS (100.00/85.00), Discount(£)?=PASS (0.00/15.00). registerUsesHigherOfEarlyBirdOrGroupDiscountWithoutStacking: Price(£)?=PASS (80.00/85.00), Discount(£)?=PASS (20.00/15.00). No expectation column is constant, and none is a verbatim copy of same-row input cells."
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone; (3) a helper method used in the assertion applies a comparison criterion (ordering, tolerance, subset matching) that is stated nowhere in the table, title, or description. Otherwise the assertion PASSES. Setup that merely constructs the objects named by the columns is not a failure. Judge every @TableTest method in the class. Your evidence must list each method name with PASS or FAIL beside it; a verdict reported from a subset of the methods is not a verdict. A value counts as published if it appears ANYWHERE on the test class's published surface: any @DisplayName or @Description on any method, the class-level @Description, or a column of any table. A method with no @DisplayName publishes its own name as its title, with camelCase split into words, so method names count as published text. Clause (1) triggers only when the value appears ONLY in the method body or a field — a value stated in a sibling method's @Description is published, not hidden.",
+      "passed": true,
+      "evidence": "registerValidatesEmailFormatAndRequiresName=PASS (all values in columns). registerAppliesEarlyBirdDiscountBeforeCutoff=PASS ('Early-bird Cutoff' column + Base Price/Discount visible). registerAppliesGroupDiscountAtThreshold=PASS ('Group Threshold' column shown). registerUsesHigherOfEarlyBirdOrGroupDiscountWithoutStacking=PASS (method name states 'HigherOf...WithoutStacking', both threshold columns present)."
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "quantifier-covered-by-rows",
+      "text": "When a title or description quantifies over a domain — 'regardless of X', 'any X', 'whatever the X', 'with or without X' — the rows must actually cover that domain. A value set discharges the promise and is the preferred way to do so: one row holding {A, B, C} both covers the domain and states the independence. Additional near-identical rows are NOT required and are NOT credited. FAILS when a quantifying claim appears and the tables show only one value of the quantified domain, or fewer values than the claim needs (e.g. 'regardless of category' with a single category anywhere in the table). PASSES when the quantified values appear, whether as a value set in one row or as separate rows; also passes when no quantifying claim is made. This assertion is about the claim matching the rows, NOT about row count. Satisfying it by adding rows where a value set would do is not an improvement and must not be scored as one, and it never requires cross-multiplying two quantified domains. Enumerate before you decide: your evidence must list EVERY quantifying claim in the class — each one in a @DisplayName, a @Description, or a scenario name — naming the table it sits in, the domain it quantifies over, and PASS or FAIL beside it. A claim that a title states about the values a column is fixed at, or about a value the converter supplies, counts and must appear in the list. A verdict reported from the first claim you found, or from a subset of the tables, is not a verdict. One decidable test governs a claim naming two or more inputs ('a null value for either X or Y', 'whatever the X and Y'): it is discharged as soon as EACH named value appears somewhere in the table, and ONE row holding all of them at once is enough. Do NOT require the mixed combination — X null beside Y present — that is cross-multiplying two domains, which this assertion never requires. A description that names the row discharging its own claim has discharged it.",
+      "passed": false,
+      "evidence": "Claim in method1 @Description: 'an invalid email format is rejected with the same message whether it is malformed, blank or missing' (table registerValidatesEmailFormatAndRequiresName, domain={malformed,blank,missing} for email) - malformed and missing are covered by rows, but no row has an empty-string 'blank' email value (only a fully blank/missing cell) - FAILS. Other claim: 'Assumes required rejects both a null name and a blank/whitespace-only name' (same table, domain={null, blank/whitespace} for name) - covered by 'Missing name' and 'Blank or whitespace-only name' rows with value set {'', '   '} - PASSES."
+    }
+  ],
+  "assertions_passed": 26,
+  "assertions_total": 29,
+  "pass_rate": 0.896551724137931,
+  "grading_usage": {
+    "input_tokens": 16650,
+    "output_tokens": 12663,
+    "total_tokens": 29313,
+    "calls": 2,
+    "cost_usd": 0.239895,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}
