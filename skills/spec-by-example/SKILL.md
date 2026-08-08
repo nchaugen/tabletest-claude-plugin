@@ -602,6 +602,15 @@ only whether the expectation cells match in the rows in front of you. A category
 as a catch-all is the easy case and gets collapsed almost automatically; **the one that gets missed
 is two values you think of as distinct that this particular rule happens to treat the same.**
 
+**The rule does not have to ignore the column.** Everything above is framed as an input the rule pays
+no attention to, and that framing is what hides the other case: **the rule reads this column, and two
+of the values it reads still share every expectation cell.** *"Splitting is allowed for the 5 mg and
+10 mg tablets"* reads the strength and names two values, so both look like obligations and get a
+row each. They are one row, `{5 mg, 10 mg}` — naming the members is how a rule gets stated,
+and the table's job is to show which of them the answer turns on. **The tell is that you have already
+collapsed the other side of the same rule:** the strengths it excludes went into a single
+`{20 mg, 50 mg}` row without a second thought, because you never thought of *those* as distinct.
+
 | Scenario                           | Donor Age | Haemoglobin | Recent Travel | Eligible? |
 |------------------------------------|-----------|-------------|---------------|-----------|
 | Below the minimum age              | 16        | {125, 140}  | {yes, no}     | no        |
@@ -1078,7 +1087,7 @@ Before handing off to implementation, verify the example table.
 - [ ] **Rules separated from arithmetic**: every expectation cell is predictable from its row in one step; a classification and the calculation that follows it are two tables
 - [ ] **One row per obligation**: every obligation of the concern is discharged by some row, and every row discharges one no other row in that table reaches; where two rows share an expectation, swapping what differs between them would change an expectation cell in that table — not a value further past the same boundary, a larger n in the same direction, or an input the rule ignores even though it names it
 - [ ] **Every tier once**: a tier ladder has one row per tier — all of them, none twice — and every boundary is exercised from both sides at the finest unit the rule distinguishes, whether by two rows or by a value set whose end members are the tier's own edges, middle tiers included, and a boundary an input reaches through a formula straddled like any other; where one ladder repeats across classes that share its boundary positions, the straddling pairs appear in one class and the rest carry one row per tier
-- [ ] **Value set semantics**: value sets appear only where every value produces the same result, never as shorthand for "test several values"; an input this rule claims not to affect the outcome varies across the values it ignores, while an input another rule owns is held at one valid value
+- [ ] **Value set semantics**: value sets appear only where every value produces the same result, never as shorthand for "test several values"; an input this rule claims not to affect the outcome varies across the values it ignores, while an input another rule owns is held at one valid value; and two values of a column the rule *reads* still collapse into one row whenever every expectation cell matches
 - [ ] **Stateful rows independent**: transition rows carry their own before-state and after-state; no row depends on another having run
 - [ ] **Held constants declared**: every value the outcome depends on that the table fixes for all rows is a column where it can be one — always so for a threshold or limit the rule turns on — and otherwise named in the title or description as held fixed; never left only in the test body, a field, a conversion helper, or a comment; a value already shown as a column needs nothing further on any surface
 - [ ] **Titles form an index**: read the titles as a sorted list — each states an action the code performs (not a label for a topic), one grammatical shape runs across them, and no three share an uninformative opener
