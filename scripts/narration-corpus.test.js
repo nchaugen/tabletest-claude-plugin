@@ -190,3 +190,16 @@ test("rule 10 matches a held-constant decision, which had no signature until 202
     assert.ok(rule10.patterns.some((pattern) => pattern.test(sentence)), sentence);
   }
 });
+
+test("rule 10 matches a held-constant decision phrased without the verb 'hold'", () => {
+  const { RULE_SIGNATURES } = require("./narration-corpus.js");
+  const rule10 = RULE_SIGNATURES.find((s) => s.rule === "10-assume-the-table-is-published");
+  // Both from iteration-82's eval-1, which the first signature scored as zero mentions.
+  const sentences = [
+    "The amount stays constant at 100 across all test cases.",
+    "amount kept visible since the discount is a percentage of it, even though it's constant across the original rows",
+  ];
+  for (const sentence of sentences) {
+    assert.ok(rule10.patterns.some((pattern) => pattern.test(sentence)), sentence);
+  }
+});
