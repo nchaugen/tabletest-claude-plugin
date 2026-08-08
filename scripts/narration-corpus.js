@@ -122,6 +122,7 @@ const RULE_SIGNATURES = [
   { rule: "06-obligations-one-row-each", owns: "rows-decided", patterns: [/\bobligations?\b/i, /\bsmallest set of\b/i, /\bcovering problem\b/i, /\bshare an expectation\b/i] },
   { rule: "07-tiers-and-boundaries", owns: "rows-decided", patterns: [/\bboth sides of\b/i, /\bevery tier\b/i, /\ball (?:four |three |the )?tiers\b/i, /\btier boundar(?:y|ies)\b/i, /\bboundary (?:rows?|cases?|values?)\b/i] },
   { rule: "08-value-sets", owns: "rows-decided", patterns: [/\bregardless of\b/i, /\bdoes(?:n't| not) affect the outcome\b/i, /\bdoes(?:n't| not) read the column\b/i] },
+  { rule: "10-assume-the-table-is-published", owns: "rows-decided", patterns: [/\bheld constant\b/i, /\bheld (?:at|fixed)\b/i, /\bhold(?:ing)? .{0,25}\b(?:constant|fixed)\b/i, /\bassume the table is published\b/i, /\bpublished (?:report|surface)\b/i, /\bpart of the rule\b/i] },
   { rule: "11-titles-form-an-index", owns: "naming-decided", patterns: [/\btitles? .{0,20}index\b/i, /\bmethod name\b/i, /\btable titles?\b/i] },
   { rule: "12-scenario-names-as-conditions", owns: "naming-decided", patterns: [/\bunder what circumstances\b/i, /\bconditions? rather than outcomes?\b/i, /\bcondition,? not outcome\b/i, /\bnames? the outcome\b/i] },
   { rule: "13-name-expectation-columns", owns: "naming-decided", patterns: [/\bexpectation columns?\b/i, /\bquestion mark\b/i] },

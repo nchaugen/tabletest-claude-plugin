@@ -176,3 +176,17 @@ test("rule 12 matches a naming decision that omits the word 'by'", () => {
   const sentence = "The scenario names all describe conditions rather than outcomes.";
   assert.ok(rule12.patterns.some((pattern) => pattern.test(sentence)));
 });
+
+test("rule 10 matches a held-constant decision, which had no signature until 2026-08-08", () => {
+  const { RULE_SIGNATURES } = require("./narration-corpus.js");
+  const rule10 = RULE_SIGNATURES.find((s) => s.rule === "10-assume-the-table-is-published");
+  // Each line is from a narration that decided what to do with a value the table does not vary.
+  const sentences = [
+    "a constant held across every row gets misread as part of the rule",
+    "I'll add a Base Price column held constant at 100 across all rows",
+    "hold the category fixed in the fixture and note it as a documented assumption",
+  ];
+  for (const sentence of sentences) {
+    assert.ok(rule10.patterns.some((pattern) => pattern.test(sentence)), sentence);
+  }
+});
