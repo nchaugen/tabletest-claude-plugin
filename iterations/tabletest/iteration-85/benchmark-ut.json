@@ -1,0 +1,71 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 85,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "58c8dfb1a317b68fcde56134f691284a6bb38ca1",
+  "skill_digest": "7115bc8ee9ee46fd",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-09T10:53:15.454Z",
+  "evals": [
+    {
+      "id": "eval-30-order-splitting-tt",
+      "name": "order splitting tt",
+      "skill": "tabletest",
+      "fingerprint": "a1eb4c68e002",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 23,
+        "assertions_total": 27,
+        "pass_rate": 0.8518518518518519,
+        "failed_assertions": [
+          "rule-falsifiable-by-a-row",
+          "no-table-reproves-another",
+          "all-outputs-same-table",
+          "native-collection-output"
+        ],
+        "total_tokens": 1696466,
+        "duration_ms": 374997,
+        "cost_usd": 1.6334936999999998,
+        "grading_usage": {
+          "input_tokens": 26478,
+          "output_tokens": 13265,
+          "total_tokens": 39743,
+          "calls": 2,
+          "cost_usd": 0.278409,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 23,
+    "assertions_total": 27,
+    "pass_rate": 0.8518518518518519,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 1696466,
+    "total_duration_ms": 374997,
+    "total_cost_usd": 1.6334936999999998,
+    "grading": {
+      "input_tokens": 26478,
+      "output_tokens": 13265,
+      "total_tokens": 39743,
+      "calls": 2,
+      "cost_usd": 0.278409,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}

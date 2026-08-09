@@ -946,8 +946,10 @@ async function main() {
     `\nEval run: ${args.skill} (${label}), iteration ${args.iteration}, ${evals.length} evals, model ${args.model}, provider ${args.provider}${args.nudgeSkill ? ", nudge-skill" : ""}`
   );
 
-  // Validate variant directory exists
-  if (args.variant && !args.noSkill) {
+  // Validate variant directory exists. A --grade-only run never hands a skill to an agent
+  // (no worktree is set up below), so it has no skill directory to validate — requiring one
+  // would block grading stored outputs under a variant label that holds results, not a skill.
+  if (args.variant && !args.noSkill && !args.gradeOnly) {
     const variantDir = path.join(repoRoot, variantSkillDir(args.skill, args.variant));
     if (!fs.existsSync(path.join(variantDir, "SKILL.md"))) {
       console.error(`Error: Variant skill file not found: ${path.join(variantDir, "SKILL.md")}`);

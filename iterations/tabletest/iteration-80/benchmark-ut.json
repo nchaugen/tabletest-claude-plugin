@@ -1,0 +1,75 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 80,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "107e9a86966b95cce40f055a588fda95f1602b30",
+  "skill_digest": "1d5b863abf1c4a0b",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-09T10:47:10.910Z",
+  "evals": [
+    {
+      "id": "eval-18-convert-from-code",
+      "name": "convert from code",
+      "skill": "tabletest",
+      "fingerprint": "b55a89167851",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 26,
+        "assertions_total": 34,
+        "pass_rate": 0.7647058823529411,
+        "failed_assertions": [
+          "separates-decision-and-premium",
+          "decision-claim-cliff",
+          "decision-cliff-independent-of-age",
+          "concern-not-over-split",
+          "row-values-traceable-to-requirement",
+          "premium-charge-is-per-claim",
+          "premium-claim-effect-varies-by-band",
+          "premium-age-is-banded"
+        ],
+        "total_tokens": 1095928,
+        "duration_ms": 238322,
+        "cost_usd": 0.9891714999999999,
+        "grading_usage": {
+          "input_tokens": 25215,
+          "output_tokens": 22009,
+          "total_tokens": 47224,
+          "calls": 3,
+          "cost_usd": 0.40578,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 26,
+    "assertions_total": 34,
+    "pass_rate": 0.7647058823529411,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 1095928,
+    "total_duration_ms": 238322,
+    "total_cost_usd": 0.9891714999999999,
+    "grading": {
+      "input_tokens": 25215,
+      "output_tokens": 22009,
+      "total_tokens": 47224,
+      "calls": 3,
+      "cost_usd": 0.40578,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}

@@ -1,0 +1,76 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 64,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "fbb11268cd1157275255f0a83c72564c239b2fb2",
+  "skill_digest": "e316002b84e99480",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-09T10:51:03.972Z",
+  "evals": [
+    {
+      "id": "eval-15-reis-discount",
+      "name": "reis discount",
+      "skill": "tabletest",
+      "fingerprint": "1e110ecd5777",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 25,
+        "assertions_total": 34,
+        "pass_rate": 0.7352941176470589,
+        "failed_assertions": [
+          "2.1-decomposition-concern-separation",
+          "2.9-correctness-value-set-tier-semantics",
+          "2.15-ticket-count-uses-value-sets",
+          "2.17-zone-irrelevance-visible",
+          "2.18-adult-senior-value-set",
+          "2.20-readability-one-row-per-tier",
+          "2.21-readability-relative-time",
+          "no-duplicate-rows-within-a-table",
+          "rule-traceable-to-requirement"
+        ],
+        "total_tokens": 2269456,
+        "duration_ms": 595326,
+        "cost_usd": 2.0725176,
+        "grading_usage": {
+          "input_tokens": 38278,
+          "output_tokens": 20945,
+          "total_tokens": 59223,
+          "calls": 3,
+          "cost_usd": 0.429009,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 25,
+    "assertions_total": 34,
+    "pass_rate": 0.7352941176470589,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 2269456,
+    "total_duration_ms": 595326,
+    "total_cost_usd": 2.0725176,
+    "grading": {
+      "input_tokens": 38278,
+      "output_tokens": 20945,
+      "total_tokens": 59223,
+      "calls": 3,
+      "cost_usd": 0.429009,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}

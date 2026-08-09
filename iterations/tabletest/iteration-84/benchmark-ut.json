@@ -1,0 +1,70 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 84,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "b9d4ba5b3b64c78b33439e675b01accc0f411d70",
+  "skill_digest": "46117e268179fda8",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-09T10:55:07.141Z",
+  "evals": [
+    {
+      "id": "eval-14-weekly-pay",
+      "name": "weekly pay",
+      "skill": "tabletest",
+      "fingerprint": "5ef27b930718",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 21,
+        "assertions_total": 24,
+        "pass_rate": 0.875,
+        "failed_assertions": [
+          "1.6-readability-empty-cells",
+          "1.14-depth-zero-rate",
+          "separates-classification-and-calculation"
+        ],
+        "total_tokens": 644634,
+        "duration_ms": 148827,
+        "cost_usd": 0.7480157,
+        "grading_usage": {
+          "input_tokens": 13362,
+          "output_tokens": 5730,
+          "total_tokens": 19092,
+          "calls": 2,
+          "cost_usd": 0.126036,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 21,
+    "assertions_total": 24,
+    "pass_rate": 0.875,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 644634,
+    "total_duration_ms": 148827,
+    "total_cost_usd": 0.7480157,
+    "grading": {
+      "input_tokens": 13362,
+      "output_tokens": 5730,
+      "total_tokens": 19092,
+      "calls": 2,
+      "cost_usd": 0.126036,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}
