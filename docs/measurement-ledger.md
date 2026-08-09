@@ -257,3 +257,13 @@ The correction lives only in the forward-looking baseline copy.
 | 2026-08-09 | `iteration-64 [ut]` | regrade | 1 | `e316002b84` | claude-sonnet-5/default | `060b1195` | 25/34 | — | $0.43 | — | vs iteration 63: 0/1 comparable, 0 moved. |
 | 2026-08-09 | `iteration-85 [ut]` | regrade | 1 | `7115bc8ee9` | claude-sonnet-5/default | `c7b55655` | 23/27 | — | $0.28 | — | vs iteration 84: 0/1 comparable, 0 moved. |
 | 2026-08-09 | `iteration-84 [ut]` | regrade | 1 | `46117e2681` | claude-sonnet-5/default | `70d4dd32` | 21/24 | — | $0.13 | — | vs iteration 83: 0/1 comparable, 0 moved. |
+| 2026-08-09 | `iteration-78 [rb]` | regrade | 1 | `1d5b863abf` | claude-sonnet-5/default | `61962f0a` | 24/28 | — | $0.19 | — | vs iteration 77: 0/1 comparable, 0 moved. |
+| 2026-08-09 | `iteration-79 [rb]` | regrade | 2 | `1d5b863abf` | claude-sonnet-5/default | `2de6d050` | 47/51 | — | $0.58 | — | vs iteration 78: 0/2 comparable, 0 moved. |
+| 2026-08-09 | `iteration-80 [rb]` | regrade | 2 | `1d5b863abf` | claude-sonnet-5/default | `0b7bd842` | 56/68 | — | $0.63 | — | vs iteration 79: 0/2 comparable, 0 moved. |
+| 2026-08-09 | `iteration-81 [rb]` | regrade | 4 | `1d5b863abf` | claude-sonnet-5/default | `4afeefcd` | 66/68 | — | $0.23 | — | vs iteration 80: 0/4 comparable, 0 moved. |
+| 2026-08-09 | `iteration-83 [rb]` | regrade | 1 | `1a587c9bf7` | claude-sonnet-5/default | `78568e1b` | 27/30 | — | $0.18 | — | vs iteration 82: 0/1 comparable, 0 moved. |
+| 2026-08-09 | `iteration-84 [rb]` | regrade | 1 | `46117e2681` | claude-sonnet-5/default | `70d4dd32` | 20/24 | — | $0.13 | — | vs iteration 83: 0/1 comparable, 0 moved. |
+| 2026-08-09 | `iteration-85 [rb]` | regrade | 1 | `7115bc8ee9` | claude-sonnet-5/default | `c7b55655` | 22/27 | — | $0.26 | — | vs iteration 84: 0/1 comparable, 0 moved. |
+| 2026-08-09 | `iteration-14 [rb]` | regrade | 8 | `9314d40340` | claude-sonnet-5/default | `9a34aa55` | 106/111 | — | $0.60 | — | vs iteration 13: 0/8 comparable, 0 moved. |
+| 2026-08-09 | `iteration-15 [rb]` | regrade | 1 | `0cda7b072d` | claude-sonnet-5/default | `4107a099` | 9/12 | — | $0.05 | — | vs iteration 14: 0/1 comparable, 0 moved. |
+| 2026-08-09 | `iteration-11 [rb]` | regrade | 1 | `8c48d55601` | claude-sonnet-5/default | `7867c5a2` | 12/13 | — | $0.08 | — | vs iteration 10: 0/1 comparable, 0 moved. |

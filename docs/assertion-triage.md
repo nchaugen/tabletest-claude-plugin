@@ -20,7 +20,7 @@ comparison rather than reserved for adjudication.
 
 Length does not predict instability. The flippers average 521 chars against 292 for stable ones, but
 **the five longest assertions in the suite are all stable** — `assertion-criteria-declared` (1290),
-`held-constants-declared` (1275), `concern-not-over-split` (1211), `consistent-quantity-naming` (871),
+`held-constants-declared` (1275), `concern-not-over-split` (1211) — **not stable; corrected 2026-08-09, it moved on eval-25 and eval-18 in one session (§ J60)** —, `consistent-quantity-naming` (871),
 `native-collection-output` (652) — while three of the worst flippers are among the shortest:
 `scenario-names-describe-conditions` (127), `business-language-columns` (173),
 `minimal-rows-per-concern` (192).

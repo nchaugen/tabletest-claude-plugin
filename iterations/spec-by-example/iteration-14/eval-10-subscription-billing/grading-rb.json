@@ -1,0 +1,114 @@
+{
+  "assertions": [
+    {
+      "id": "produces-multiple-tables",
+      "text": "Output contains at least 2 separate markdown tables (not everything crammed into one table)",
+      "passed": true,
+      "evidence": "3 markdown table(s): \"Scenario\", \"Scenario\", \"Scenario\""
+    },
+    {
+      "id": "tables-have-distinct-concerns",
+      "text": "The tables cover distinct concerns — e.g. pricing/plans is separate from cancellation/refund rules",
+      "passed": true,
+      "evidence": "Table 1 — Triggers a Billing Charge...; Table 2 — Refund Eligibility on Cancellation; Table 3 — Prorated Refund Calculation"
+    },
+    {
+      "id": "output-columns-have-question-marks",
+      "text": "At least one output column in each table ends with '?'",
+      "passed": true,
+      "evidence": "All 3 table(s) name at least one output column with '?'"
+    },
+    {
+      "id": "refund-exception-covered",
+      "text": "The 24-hour no-refund exception is included as a distinct scenario row",
+      "passed": true,
+      "evidence": "Cancel exactly at the 24-hour mark | 24 | 1st (trial→paid) | no | Within 24 hours of the charge"
+    },
+    {
+      "id": "business-language-columns",
+      "text": "Column names use domain/business language — no implementation terms like 'boolean', 'int', 'isProrated', camelCase identifiers",
+      "passed": true,
+      "evidence": "| Scenario | Hours Since Last Charge | Which Charge | Refund Eligible? | Reason? |"
+    },
+    {
+      "id": "trial-cancellation-row",
+      "text": "Includes a row or scenario for cancelling during the free trial — no charge was made, so no refund applies. This case should be explicit, not omitted.",
+      "passed": true,
+      "evidence": "Cancel during trial | N/A — no charge made | — | no | No charge has been made yet"
+    },
+    {
+      "id": "prorated-refund-formula",
+      "text": "The prorated refund calculation is shown or explained — e.g. days remaining × daily rate, or an equivalent formula. Not just 'prorated refund' without showing how.",
+      "passed": true,
+      "evidence": "Refund = Cycle Price × Unused Days / Days in Cycle`, rounded half-up to the nearest penny."
+    },
+    {
+      "id": "24h-boundary-near-boundary",
+      "text": "The 24-hour no-refund window is tested near the boundary (e.g. values at or close to 23h, 24h, 25h) — not just 'within 24h' vs 'well after renewal'.",
+      "passed": true,
+      "evidence": "Cancel exactly at the 24-hour mark | 24 ... Cancel just past the 24-hour mark | 24.5"
+    },
+    {
+      "id": "eligibility-separate-from-amount",
+      "text": "Refund eligibility (yes/no, based on 24h rule and trial status) and refund amount (prorated calculation) are in separate tables — not mixed into one table. This separation makes each concern independently reviewable.",
+      "passed": true,
+      "evidence": "Table 2 — Refund Eligibility on Cancellation ... Table 3 — Prorated Refund Calculation"
+    },
+    {
+      "id": "question-mark-only-on-outputs",
+      "text": "The '?' suffix is only used on output or derived columns (e.g. 'Refund Eligible?', 'Refund Amount?') — not on given input columns like plan type, loyalty status, or subscription phase. A column that interprets or classifies an input value (e.g. deriving whether a cancellation falls within 24h from a raw time value) is a valid derived output and may use '?'.",
+      "passed": true,
+      "evidence": "| Scenario | Plan | Cycle Price | Days in Cycle | Days Used | Unused Days? | Refund Amount? |"
+    },
+    {
+      "id": "output-values-traceable",
+      "text": "Output values (e.g. refund amounts, prices) can be derived from input values by a reader — the calculation is visible or explained. Not just magic numbers with no traceable origin.",
+      "passed": true,
+      "evidence": "Exact rounding boundary (.XX5) | Monthly | £9.99 | 30 | 15 | 15 | £5.00"
+    },
+    {
+      "id": "refund-table-includes-price-paid",
+      "text": "The refund amount table includes the price paid (or daily rate) as an input column, making the table self-contained — a reader should not need to refer to another table or the spec to verify the refund calculation.",
+      "passed": true,
+      "evidence": "| Scenario | Plan | Cycle Price | Days in Cycle | Days Used | Unused Days? | Refund Amount? |"
+    },
+    {
+      "id": "refund-table-shows-proportion",
+      "text": "The refund amount table includes an intermediate traceability column (e.g. 'Refund Proportion?', fraction, or daily rate) that makes the calculation step visible before the final amount — not just inputs and a final number.",
+      "passed": true,
+      "evidence": "Table 3 includes 'Unused Days?' column before 'Refund Amount?', making the proration step explicit."
+    },
+    {
+      "id": "rules-separate-from-arithmetic",
+      "text": "Refund eligibility (yes/no rule based on 24h window, trial status) and refund amount (prorated calculation) are treated as separate concerns — not mixed into one table where rules and arithmetic are interleaved.",
+      "passed": true,
+      "evidence": "Table 2 'Refund Eligibility on Cancellation' handles the 24h rule; Table 3 'Prorated Refund Calculation' handles the arithmetic separately."
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": true,
+      "evidence": "Three distinct tables: 'Triggers a Billing Charge...', 'Refund Eligibility on Cancellation', and 'Prorated Refund Calculation'."
+    },
+    {
+      "id": "no-duplicate-rows-within-a-table",
+      "text": "Judge each table in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a premium sampled at 0, 2, 4 and 6 claims once the charge is already known to be per claim: two samples state a difference, a third states its shape, and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. Two further cases are NOT excess, and both are commonly mistaken for it. A third consecutive value of a count, where two would leave a per-unit rate and a one-off charge indistinguishable: 0, 1 and 2 prior claims, because 0 and 1 alone are equally consistent with a flat penalty for having any claim history, and the third row is what decides between them. And a row whose point is that an input does NOT move the outcome — two ages priced the same, a value set over every carrier against one cost — because an invariance is a rule of its own and the only way to state it is to vary the input and hold the expectation. Neither is a repeat of a direction: the first establishes a shape, the second establishes that there is no direction at all. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by this eval's own coverage assertions. Judge every table in the response; your evidence must name each table with PASS or FAIL.",
+      "passed": true,
+      "evidence": "Table 1 PASS: trial rows (Day0/Day15/Cancel during trial) are distinct scenarios sharing an invariant outcome, not pure repetition. Table 2 PASS: 0h/24h/24.5h are boundary tests, and the 5th row explicitly justified ('5th row exists specifically to confirm the 24-hour rule applies to every renewal charge'). Table 3 PASS: denominators (28/30/31/365/366) and days-used points (1/15/29/30) each test a distinct boundary or branch (rounding boundary, near-full usage, exact zero-refund case), not mere repetition of direction."
+    }
+  ],
+  "assertions_passed": 16,
+  "assertions_total": 16,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 8086,
+    "output_tokens": 6018,
+    "total_tokens": 14104,
+    "calls": 2,
+    "cost_usd": 0.114528,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}
