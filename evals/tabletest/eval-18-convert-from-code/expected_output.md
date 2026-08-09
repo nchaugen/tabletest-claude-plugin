@@ -44,36 +44,49 @@ same risk/premium path (approved at 1 claim, rejected at 5).
 
 ## Premium: a few illustrative rows, not an enumeration
 
-For approved applications the premium concern shows three effects, and only needs enough rows to
+For approved applications the premium concern shows four effects, and only needs enough rows to
 make each visible (the user's steer: "just a few illustrative examples", claims being the
 important factor overall). Hold one thing constant and move the other:
 
 | Scenario | Applicant type | Age | Claims | Premium? |
 |---|---|---|---|---|
-| Standard applicant, no claims | NEW | 30 | 0 | 106.0 |
+| Standard applicant, clean history | NEW | `{30, 39}` | 0 | 106.0 |
 | Standard applicant, one claim | NEW | 30 | 1 | 136.0 |
+| Standard applicant, a second claim | NEW | 30 | 2 | 166.0 |
 | Just below senior age | NEW | 64 | 0 | 112.0 |
-| Senior applicant, no claims | NEW | 65 | 0 | 221.0 |
+| Senior applicant, clean history | NEW | 65 | 0 | 221.0 |
 | Senior applicant, one claim | NEW | 65 | 1 | 273.5 |
+| Senior applicant, a second claim | NEW | 65 | 2 | 326.0 |
 
-**Three obligations, not two.** Each row must earn its place by showing a *different kind of impact*:
+**Four obligations.** Each row must earn its place by showing a *different kind of impact*, and each
+obligation below names the wrong reading its rows exist to kill:
 
-- **Claim impact** (`106 → 136` at age 30): one claim raises the premium; the two rows isolate it.
-- **Senior threshold** (`112 → 221` at 64 → 65): age crosses 65 and the base premium and rate
-  both jump. Because `64/10 == 65/10 == 6`, the risk score is identical across the pair, so the
-  jump is purely the senior formula — a clean isolation of the threshold.
-- **A claim costs a senior more** (`221 → 273.5` at age 65, against `106 → 136` at age 30): the
-  per-claim increment is **not** constant — 30.00 for a standard applicant, 52.50 for a senior. The
-  claim pair therefore has to appear at **both** ages. A table showing it at one age only invites the
-  reading "a claim adds 30", which is wrong for a senior by 22.50 and which no row in that table
-  falsifies. This is the *rate* half of the senior jump that the threshold pair alone cannot separate
-  from the base half.
+- **A claim raises the premium** (`106 → 136` at age 30). Kills "claims do not price".
+- **The charge is per claim, not per claim history** (`106 → 136 → 166`): three consecutive counts,
+  because 0 against 1 alone is equally consistent with a flat penalty for having any claim history —
+  a real pricing pattern, and the reading a two-row pair cannot exclude. The third row is what
+  decides between them. **This is not sampling a known-linear effect**; it is what establishes that
+  the effect is linear rather than a step.
+- **A claim costs a senior more** (`221 → 273.5` at age 65, against `136 → 106` at age 30): the
+  increment is 30.00 for a standard applicant and 52.50 for a senior. Kills "a claim adds 30",
+  which is wrong for a senior by 22.50. This is the *rate* half of the senior jump, which the
+  threshold pair alone cannot separate from the base half. The claim run therefore appears at
+  **both** ages.
+- **Age is banded, not counted** (`{30, 39} → 106.0`, against `64 → 112` and `65 → 221`): two
+  applicants in the same decade pay the same, and the price steps at the decade edge and again at
+  the senior threshold. Kills **"premium rises with age"**, which is the reading a table of 30 → 106
+  beside 64 → 112 invites and which is false — every age from 30 to 39 prices identically. A value
+  set is the compact discharge; two rows sharing a premium do it just as well.
 
 The premium properties would really be a graph; the table is only a handful of samples of it. Do not
 add rows that are the same pattern with different arithmetic (age 30, 40, 50 all "standard, no
-claims") — they exercise the same multiplication and teach nothing the first sample did not. A second
-claim pair at a second age is **not** that case: it discharges the third obligation, and the third
-obligation is the one that makes the increment falsifiable.
+claims", or claims 3 and 4 once the per-claim charge is established) — they exercise the same
+multiplication and teach nothing the earlier rows did not.
+
+**The test for a further row is whether you can name the wrong reading it kills.** If you cannot, it
+is excess. This is also the line between a black-box table and a white-box one: the table states a
+rule a reader can act on and rules out the readings a reader would otherwise take, and it stops well
+short of letting anyone reconstruct the formula.
 
 The senior threshold is a **premium** effect, not a decision one: 64 and 65 both decide
 `APPROVED`, so the distinction only shows up in the premium column and belongs here, not in the
@@ -105,12 +118,15 @@ that is currently inert.
 
 Score the two-concern split and black-box discipline first, then the claim-count cliff (4 vs 5,
 demonstrated across ages) and the renewal-at-zero-claims rule. The premium table's stated rule is
-necessarily **qualitative** — seniors pay a higher premium, premium rises with claims and age, and a
-claim costs a senior more than it costs a standard applicant — because the exact multipliers are
-internal and a black-box test rightly does not expose them. Correct-but-opaque premium figures are
-the honest limit of converting a formula to a black-box table, not a legibility failure.
+necessarily **qualitative** — each claim adds a fixed amount, that amount is larger for a senior, and
+age is banded rather than counted — because the exact multipliers are internal and a black-box test
+rightly does not expose them. Correct-but-opaque premium figures are the honest limit of converting a
+formula to a black-box table, not a legibility failure.
 
-**Qualitative does not mean unfalsifiable.** The third statement above is the one a four-row premium
-table usually leaves out, and it is the one that stops a reader generalising a single claim pair into
-a constant charge. A premium table showing the claim pair at one age only is incomplete, not merely
-sparse — but **no assertion scores this today**, so do not invent one while grading.
+**Qualitative does not mean unfalsifiable, and "premium rises with age" is not one of the rules.**
+Premium is flat across each decade and steps at the decade edge: every age from 30 to 39 prices
+identically. The last three statements above are the ones a four-row premium table leaves out, and
+each is a reading a reader would otherwise take and be wrong about. A premium table that shows the
+claim pair at one age only, or that never shows two ages pricing the same, is incomplete rather than
+merely sparse — but **no assertion scores any of the three today**, so do not invent one while
+grading.
