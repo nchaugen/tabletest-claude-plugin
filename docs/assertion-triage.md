@@ -82,6 +82,10 @@ least one PASS and one FAIL case before it is trusted** (`docs/grader-answer-key
 
 ## Bounded — narrow the criterion
 
+**Every time you narrow one, name what the narrowing cut and check something else still owns it** —
+see § Check the residue when you narrow an assertion for the procedure and the instance that cost
+four runs.
+
 - **`scenario-names-describe-conditions`** (3 flips, the worst) — replace "describes conditions, not
   outcomes" with the decidable core: **FAILS when a scenario name states or paraphrases a value in an
   expectation column of the same row.** Narrower than the current property — it will not catch "No
@@ -1373,3 +1377,72 @@ in the benchmark. **Do not cite either slot in an attribution.** The conditional
 one: give the assertion an explicit vacuous-case verdict (*"PASSES with no further checks when the
 class contains no `@Description` annotation"*) so the two readings collapse to one. Not applied —
 it re-fingerprints eval-8, and no comparison currently depends on that slot.
+
+## eval-15 re-baselined — two mis-scoped slots repaired 2026-08-09
+
+From the perfect-answer pilot (`products/claude-plugin/plans/slice-7-perfect-answer-pilot.md`,
+findings A-F1 and A-F4). eval-15 goes **34 → 33 slots**, and no comparison may span the change.
+
+**`three-schemes-distinguished` retired, not retargeted.** It required "no discount for a period
+ticket" as an outcome of the purchase being made, and the prompt scopes the feature to *"a new single
+ticket purchase"* — so the row it asks for tests a call the feature cannot receive. It failed 0/10 in
+the 34-assertion era and 0/6 before that: **0 of 16, never once passed.** Two narrations (iterations
+60 and 80) reason the constraint out correctly and are charged a slot for it.
+
+It was worse than a permanent fail: it **contradicted a sibling**.
+`period-ticket-excluded-from-count` fails a solution that shows period tickets *only* where the
+purchase's discount is decided, which is exactly the shape `three-schemes-distinguished` demanded.
+No solution could satisfy both.
+
+Retirement rather than retarget, because after removing the out-of-scope outcome nothing is left that
+other slots do not already own: child flat 20% → `2.2-children-flat-discount`, the adult/senior
+ladder → `2.3-depth-tier-boundaries` and `2.19-depth-all-tiers`, the period ticket →
+`period-ticket-excluded-from-count`, the single derivation → `scheme-derived-once` and `2.1`.
+Retargeting would have added a fourth wording of properties three slots already carry, on an eval
+where 12 of 34 assertions already pass 10/10.
+
+**`2.4-depth-rolling-window-boundary` rewritten to score a *stated* boundary, not a chosen side.**
+Old text: *"a ticket at exactly 30 days is included, at 31 days is excluded."* The prompt decides
+neither — it says only "in the last 30 days" — and the eval author's own published worked example of
+this domain puts the boundary the other way. Iteration-58 documented the exclusive reading on its
+published surface and was failed for it, with the grader citing `expected_output.md` as "spec". The
+new text requires the straddling pair plus a stated side, and passes either convention.
+`expected_output.md` changed in the same commit — the grader reads it, so relaxing the assertion
+alone would have left it primed for the inclusive answer.
+
+**Two other over-specifications in `expected_output.md` fixed while in there**, both instances of the
+same fault: the ground truth naming a mechanism where it means a property. The `@TypeConverter`
+sentence now says relative time at sub-day granularity is the property and the converter is one way
+to get it (`Duration` is another, and needs no converter); § The dimensions no longer lists a
+period-ticket purchase as a scheme outcome.
+
+**The general check, which costs nothing and found three instances on this eval alone: where
+`expected_output.md` says "intended" or "must", ask whether the prompt actually decides it.**
+
+## Check the residue when you narrow an assertion
+
+**When you narrow an assertion to its decidable core, name what the narrowing cut and check something
+else still owns it.** § Bounded tells you to narrow; it does not tell you to look at what falls out,
+and nothing else in the loop will — the loop only ever proposes additions justified by a slot that
+moved.
+
+Worked instance (eval-18, 2026-08-09). `black-box-columns` was narrowed to *"Judge ONLY the column
+headers"*, correctly: it is 3/4 and its one failure is a true catch. What the narrowing cut was the
+rest of black-box discipline. Three siblings picked up part of the residue — `observable-io-only`
+(column names), `no-reimplemented-internals` (the method body), `description-no-internals`
+(`@Description` text) — and between the four of them, **cell values have no owner**. All four runs in
+the era duplicate the private inequality in their row values (approving at age 9, rejecting at age
+10; ages 760, 800 and 999) and pay nothing; iteration-80 passes `black-box-columns` on the strength
+of its column list alone.
+
+The residue was visible in July and read as something else: § Grading effort swept records these same
+age-9 rows as *"a repeated skill gap worth teaching, not an assertion to soften"*. Both are true. It
+is a skill gap **and** an assertion hole, and only the second explains why five iterations of skill
+work never moved it.
+
+The check when narrowing, in three lines:
+
+1. Write the property the assertion had before the narrowing.
+2. Write the property it has after.
+3. Name the assertion that owns the difference. If you cannot, you have traded variance for a blind
+   spot — decide that deliberately, and record it.

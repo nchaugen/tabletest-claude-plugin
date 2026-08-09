@@ -12,11 +12,18 @@ is read twice: once about the purchase being made, once about each past purchase
 
 | Question | Inputs | Outcome |
 |---|---|---|
-| **Which scheme applies to the purchase being made?** | traveller category, ticket type | no discount (period ticket) · flat 20% (child single) · Reis (adult/senior single) |
+| **Which scheme applies to the purchase being made?** | traveller category | flat 20% (child) · Reis (adult/senior) |
 | **Does this past purchase count toward the travel count?** | traveller category, ticket type, age at purchase time | counts / does not count |
 
-The second is the first plus time: **a past purchase counts if and only if its own scheme would
-have been Reis and it falls within the trailing 30 days.**
+The second is the first plus ticket type plus time: **a past purchase counts if and only if it is an
+adult/senior single ticket falling within the trailing 30 days.**
+
+**The purchase being made is always a single ticket**, because the prompt scopes the feature to one:
+*"the new code needs to calculate the discount to be applied to a new single ticket purchase"*. So
+ticket type is an input to the *second* question only. **A solution is not expected to model a
+period-ticket purchase, and must not be marked down for omitting one** — a "period ticket → no
+discount" row tests a call the feature cannot receive. Where period tickets do belong is the
+countability rule, which `period-ticket-excluded-from-count` scores.
 
 A solution does not have to name a "scheme" concept to score well — see § Degrees of decomposition.
 What it has to do is cover both questions, and not re-derive the category/ticket-type mapping in two
@@ -26,7 +33,7 @@ The remaining dimensions are internal to Reis.
 
 | Dimension | Governs | Notes |
 |---|---|---|
-| Rolling window | whether a past purchase is recent enough | Measured at the time of purchase, so not a whole-day comparison. Exactly 30 days is inside; 30 days and one hour is outside. |
+| Rolling window | whether a past purchase is recent enough | Measured at the time of purchase, so not a whole-day comparison. 29 days 23 hours is inside; 30 days and one hour is outside. Which side *exactly* 30 days falls on is not decided by the prompt — see § The rolling window. |
 | Travel count | position on the ladder | The number of counting past purchases in the window. |
 | Ladder | count → percentage | Nine rungs. **The ticket being bought counts toward its own discount, and the ladder is where that is applied** — see § Where the new purchase enters. |
 | Traveller category (ADULT vs SENIOR) | nothing | They follow identical rules and are **one** value of the category dimension, not two. |
@@ -81,12 +88,20 @@ claim the tests do not support.
 - The boundary is **measured at the time of purchase**, so it is not a whole-day comparison: a
   purchase 30 days and one hour before the new purchase is outside the window, one 29 days and
   23 hours before it is inside.
-- Exactly 30 days is included; just past 30 days is excluded.
+- **Which side exactly 30 days falls on is not decided by the prompt, and both readings are
+  correct.** "The last 30 days" is ordinary English for either, and both are ordinary API
+  conventions. A solution that counts a purchase at exactly 30 days and one that excludes it are
+  equally right. What the eval scores is that the pair of rows straddling the boundary is there and
+  that the chosen side is *stated* on the published surface — a scenario name, the title, the
+  description, or a column. **Do not mark a solution down for the convention it picked**; the
+  requirement never called it.
 - Times are expressed **relative to the purchase being counted** — `29 days ago`, `SINGLE@29`, a
-  `Days ago` column. No literal timestamp should be needed to read a table, including one parked in
-  a converter class or a test field, which is the same defect one indirection away. A
-  `@TypeConverter` turning `30 days 1 hour ago` into a `LocalDateTime` relative to a fixed purchase
-  time is the intended shape, and it is what makes the sub-day boundary legible.
+  `Days ago` column, an ISO-8601 `P29DT23H` duration. No literal timestamp should be needed to read
+  a table, including one parked in a converter class or a test field, which is the same defect one
+  indirection away. The property is relative time at sub-day granularity; **the mechanism is
+  latitude.** A `@TypeConverter` turning `30 days 1 hour ago` into a `LocalDateTime` relative to a
+  fixed purchase time does it, and so does a `Duration` column, which TableTest converts with no
+  converter at all. Neither is preferred over the other.
 
 ## Degrees of decomposition
 

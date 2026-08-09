@@ -11,11 +11,6 @@
       "type": "llm"
     },
     {
-      "id": "three-schemes-distinguished",
-      "text": "All three discount outcomes appear as distinct expectations somewhere in the class: no discount for a period ticket, a flat 20% for a child single ticket, and a ladder-derived percentage for an adult/senior single ticket. Judge wherever each is stated — they need not share a table, and no particular table name is required.",
-      "type": "llm"
-    },
-    {
       "id": "scheme-derived-once",
       "text": "The mapping from traveller category and ticket type to which discount scheme applies is derived in one table. FAILS when a sibling table repeats traveller-category rows to re-derive it. A solution need not name a 'scheme' concept and must not be rewarded for doing so — what is judged is that the mapping is derived in a single place.",
       "type": "llm"
@@ -32,7 +27,7 @@
     },
     {
       "id": "2.4-depth-rolling-window-boundary",
-      "text": "The 30-day rolling window boundary is tested: a ticket at exactly 30 days is included, at 31 days is excluded.",
+      "text": "The window boundary is exercised by a pair of rows differing only in falling just inside and just outside it, and the side the boundary itself falls on is stated on the published surface — a scenario name, the @DisplayName, the @Description, or a column. FAILS when no such pair of rows exists, or when the pair exists but nothing on the published surface says which side the exact 30-day point falls on. The requirement does not decide that side, so EITHER convention PASSES: a solution counting a purchase at exactly 30 days and a solution excluding it are equally correct, and the only thing judged here is that the pair is there and the reading is stated. Do not fail a solution for choosing the convention you would not have chosen. Judge wherever the window is decided, not in a table with a particular name.",
       "type": "llm"
     },
     {
