@@ -1375,8 +1375,15 @@ attribution.
 **What both cost.** eval-8 is flat on the artefact in `iteration-81` and reads as one win and one loss
 in the benchmark. **Do not cite either slot in an attribution.** The conditional hole is the fixable
 one: give the assertion an explicit vacuous-case verdict (*"PASSES with no further checks when the
-class contains no `@Description` annotation"*) so the two readings collapse to one. Not applied —
-it re-fingerprints eval-8, and no comparison currently depends on that slot.
+class contains no `@Description` annotation"*) so the two readings collapse to one. ~~Not applied —
+it re-fingerprints eval-8, and no comparison currently depends on that slot.~~
+
+> **Correction 2026-08-09: it was already applied, on 2026-08-01 in `dd8d2cd`, a week before this
+> note was written.** All five hosts open with *"PASSES when no `@Description` is present anywhere in
+> the class — omitting it is always acceptable, and this assertion NEVER penalises its absence."* So
+> `iteration-81`'s PASS was **correct by design, not a vacuous hole**, and the diagnosis above is
+> wrong. The lesson is the cheap one: read the assertion text before filing a defect against it.
+> What is genuinely wrong with the slot is different, and measured below.
 
 ## eval-15 re-baselined — two mis-scoped slots repaired 2026-08-09
 
@@ -1446,3 +1453,63 @@ The check when narrowing, in three lines:
 2. Write the property it has after.
 3. Name the assertion that owns the difference. If you cannot, you have traded variance for a blind
    spot — decide that deliberately, and record it.
+
+## `description-if-present-adds-information` is ballast where nothing writes a description — 2026-08-09
+
+**40 of 42 across five hosts, and both failures are the grader misfiring on an empty antecedent.**
+The slot's condition is almost never satisfied:
+
+| Eval | Slot | Runs whose output has a `@Description` |
+|---|---|---|
+| eval-7 | 9/10 | **0 of 10** |
+| eval-8 | 6/7 | **0 of 7** |
+| eval-1 | 10/10 | 2 of 10 |
+| eval-2 | 7/7 | 6 of 7 |
+| eval-9 | 8/8 | 8 of 8 |
+
+**Retired from eval-7 (13 → 12 slots).** Its ground truth makes the slot unfalsifiable by design:
+*"`@Description` is optional; there is no out-of-band context … in the prompt, so omitting it is
+correct rather than a gap."* An assertion that the eval's own answer key says can only pass is
+ballast, and its one failure in ten is the `iteration-70` misfire that quoted a `@DisplayName` as the
+description. **eval-7 is newly re-fingerprinted by this; it was one of the four tabletest evals still
+matching.**
+
+**Kept on eval-8 and watched.** Same 0-of-7 observation, but eval-8's ground truth does not declare
+omission correct, so the slot is live in principle. **Read its verdict in the next regrade before
+deciding** — if the coming runs still write no description, retire it there too.
+
+Kept without qualification on evals 2 and 9, where the antecedent is satisfied 6 of 7 and 8 of 8.
+
+**The general shape, which A-F3 also found:** a conditional assertion whose antecedent the solutions
+never satisfy is not a lenient assertion, it is an absent one — and its only observable behaviour is
+the grader's error rate on the empty case.
+
+## Boundary-row naming is an assertion question, not a skill repair — closed 2026-08-09
+
+**§ J53 queue item 1, discharged here. The skill needs nothing.** The finding was that boundary rows
+get named for their outcome rather than their condition. Reading the artefacts says the names are
+sound and no better ones exist.
+
+`table-driven-testing` eval-32's ladder, `iteration-7`:
+
+```
+"at the ticket-included limit"      "just over the ticket-included limit"
+"at the heavy-bag limit"            "just over the heavy-bag limit"
+"at the oversize limit"
+```
+
+Every id names the boundary by the band it bounds. **The bands have no vocabulary other than their
+fees**, so there is no alternative name available — `"at the 23 kg allowance"` only restates the
+weight column, which is the defect `scenario-names-describe-conditions` exists to catch. eval-29 is
+the same shape. Only eval-14 has an alternative at all (name the input relation, *"corrections exceed
+hours worked"*) and it is not clearly better.
+
+**So the pressure runs the wrong way.** `scenario-names-describe-conditions` is the instrument's worst
+slot — 3 flips on identical bytes, and recorded above as already majority-wrong and staying wrong.
+§ J49 measured it pushing the agent into **deleting** eval-14's `-41/-40/-39` boundary triple. An
+assertion that removes boundary rows to satisfy a naming preference is doing damage, and the repair
+belongs to the assertion.
+
+**Do not spend a skill loop on this.** If anything is written, it is a narrowing of
+`scenario-names-describe-conditions` — and § Check the residue when you narrow an assertion applies
+to it in full.
