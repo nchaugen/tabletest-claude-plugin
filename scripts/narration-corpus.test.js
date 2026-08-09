@@ -1,5 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert");
+const fs = require("node:fs");
+const path = require("node:path");
 const { parseNarration, decisionEvents, decisionOrder, rowDecisionShortfall, pipeTables } = require("./narration-corpus.js");
 
 const NARRATION = `# Narration — 9
@@ -202,4 +204,31 @@ test("rule 10 matches a held-constant decision phrased without the verb 'hold'",
   for (const sentence of sentences) {
     assert.ok(rule10.patterns.some((pattern) => pattern.test(sentence)), sentence);
   }
+});
+
+test("every shared table-design rule has a signature", () => {
+  const { RULE_SIGNATURES } = require("./narration-corpus.js");
+  const ruleDir = path.join(__dirname, "..", "shared", "table-design", "rules");
+  const onDisk = fs
+    .readdirSync(ruleDir)
+    .filter((f) => f.endsWith(".md"))
+    .map((f) => f.replace(/\.md$/, "").slice(0, 2))
+    .sort();
+  const detected = RULE_SIGNATURES.map((s) => s.rule.slice(0, 2)).sort();
+  assert.deepStrictEqual(
+    onDisk.filter((n) => !detected.includes(n)),
+    [],
+    "a rule with no signature has unmeasurable reach, so 'check reach first' cannot be honoured for it",
+  );
+});
+
+test("rule 19's N/A pattern does not fire inside a word", () => {
+  const { RULE_SIGNATURES } = require("./narration-corpus.js");
+  const rule19 = RULE_SIGNATURES.find((s) => s.rule === "19-blank-means-absent");
+  const matches = (text) => rule19.patterns.some((p) => p.test(text));
+  // "correction/adjustment" contains n/a and is not blank-cell reasoning: it inflated
+  // eval-14's reach from 14% to 29% until the boundary was added.
+  assert.strictEqual(matches("a correction/adjustment entry"), false);
+  assert.strictEqual(matches("marked N/A because no charge exists"), true);
+  assert.strictEqual(matches("blank cells represent an absent optional"), true);
 });
