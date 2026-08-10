@@ -1,0 +1,222 @@
+{
+  "assertions": [
+    {
+      "id": "2.1-decomposition-concern-separation",
+      "text": "The mapping from traveller category and ticket type to which discount applies is not in the same table as the count → percentage ladder, and the ladder consumes a count it does not itself derive. Judge this as a property of the decomposition, not as a fixed table count: a solution using four or more tables PASSES provided both conditions hold, and adding a table that covers a further dimension is never a failure here. FAILS when one table both decides the discount by traveller category and maps counts to percentages, or when the ladder table derives its own count from a raw history.",
+      "passed": false,
+      "evidence": "SingleTicketDiscountCalculatorTest rows 'ADULT | 0 | 0' and '{ADULT, SENIOR} | 5 | 5' both decide by category and map count to percentage in one table."
+    },
+    {
+      "id": "scheme-derived-once",
+      "text": "The mapping from traveller category and ticket type to which discount scheme applies is derived in one table. FAILS when a sibling table repeats traveller-category rows to re-derive it. A solution need not name a 'scheme' concept and must not be rewarded for doing so — what is judged is that the mapping is derived in a single place.",
+      "passed": true,
+      "evidence": "Category routing to flat/Reis is derived only in SingleTicketDiscountCalculatorTest; no sibling table re-derives category rows."
+    },
+    {
+      "id": "2.2-children-flat-discount",
+      "text": "Children's flat 20% discount is represented — as a row wherever the discount that applies is decided, or a separate note. It does not follow the ladder. Judge wherever that rule is stated, not in a table with a particular name.",
+      "passed": true,
+      "evidence": "'Child gets the flat discount regardless of travel frequency | CHILD | {0, 5, 40} | 20'"
+    },
+    {
+      "id": "2.3-depth-tier-boundaries",
+      "text": "The discount ladder has multiple tiers derived from the 'every fifth trip' rule, with boundary values or value sets showing which ticket counts produce which discount. The maximum 40% discount is represented.",
+      "passed": true,
+      "evidence": "'Reaches the maximum discount | 40 | 40' and multiple tier rows up to 40% in ReisDiscountLadderTest."
+    },
+    {
+      "id": "2.4-depth-rolling-window-boundary",
+      "text": "The window boundary is exercised by a pair of rows differing only in falling just inside and just outside it, and the side the boundary itself falls on is stated on the published surface — a scenario name, the @DisplayName, the @Description, or a column. FAILS when no such pair of rows exists, or when the pair exists but nothing on the published surface says which side the exact 30-day point falls on. The requirement does not decide that side, so EITHER convention PASSES: a solution counting a purchase at exactly 30 days and a solution excluding it are equally correct, and the only thing judged here is that the pair is there and the reading is stated. Do not fail a solution for choosing the convention you would not have chosen. Judge wherever the window is decided, not in a table with a particular name.",
+      "passed": true,
+      "evidence": "'Single ticket at the edge of the window | 30 | 1' vs 'Single ticket just outside the window | 31 | 0' names state the side of the boundary."
+    },
+    {
+      "id": "window-boundary-uses-purchase-time",
+      "text": "The 30-day window is exercised at time-of-purchase granularity, not whole days only. The requirement says the count is 'measured at the time of purchase', so at least one pair of rows must distinguish just-inside from just-outside by less than a day (e.g. 29 days 23 hours ago counts, 30 days 1 hour ago does not). A table whose finest distinction is whole days (30 vs 31) FAILS, however many boundary rows it has.",
+      "passed": false,
+      "evidence": "Rows only distinguish 'daysAgo: 30' vs 'daysAgo: 31' — whole-day granularity, no sub-day pair."
+    },
+    {
+      "id": "period-ticket-excluded-from-count",
+      "text": "A past purchase that is not a single ticket is shown by row not to count toward the travel count. FAILS when period tickets appear only where the discount for the purchase being made is decided, and never in the rule that decides whether a past purchase counts. Judge wherever countability is decided, not in a table with a particular name.",
+      "passed": true,
+      "evidence": "'Weekly and monthly tickets are not counted | [[daysAgo: 5, ticketType: WEEKLY], [daysAgo: 6, ticketType: MONTHLY]] | 30 | 0' in the travel count table."
+    },
+    {
+      "id": "count-derived-from-raw-history",
+      "text": "A table takes a purchase history and produces a travel count, and at least one of its histories contains both counting and non-counting purchases. FAILS when every count the ladder consumes is supplied as a bare number and no table derives one from a history.",
+      "passed": true,
+      "evidence": "'Mixed history counts only single tickets inside the window | [...SINGLE, WEEKLY, SINGLE(45 days), SINGLE(10 days)...] | 30 | 2'"
+    },
+    {
+      "id": "2.9-correctness-value-set-tier-semantics",
+      "text": "Value sets in the tier table contain exactly the values that produce the same discount. No cross-tier contamination.",
+      "passed": true,
+      "evidence": "'No discount before the first tier | {0, 4} | 0' — both values map to the same 0% tier without contamination."
+    },
+    {
+      "id": "2.15-ticket-count-uses-value-sets",
+      "text": "The discount ladder table uses value sets for the ticket count column to group counts within the same tier (e.g. {5, 6, 7, 8, 9} or {5, 9} for min/max → 5%) — not one row per boundary value. The 'every fifth trip' rule creates tiers; the table should express tiers, not enumerate boundaries.",
+      "passed": false,
+      "evidence": "Most ladder rows enumerate single boundary values like '5|5', '9|5', '10|10' instead of grouping tiers via value sets."
+    },
+    {
+      "id": "2.16-no-duplicate-tier-mapping",
+      "text": "The tier-to-discount mapping is expressed once — not repeated across multiple tables. A price application table (if present) should test the arithmetic (base price × discount → final price) without re-enumerating which ticket counts map to which tier.",
+      "passed": true,
+      "evidence": "No price-application table is present in the solution; tier mapping appears only once in ReisDiscountLadderTest."
+    },
+    {
+      "id": "new-purchase-inclusion-published",
+      "text": "The count a history table derives and the count the ladder consumes are the same quantity, and where the ticket being bought enters that count is visible on the published surface — a column name, a @DisplayName or a @Description, not only a method body. Either placement is correct: the count may include the purchase being made, or the ladder may apply the +1. FAILS when a history table derives a count of prior purchases only (an empty history yields 0) while the ladder consumes a count that includes the purchase being made, under the same column name — composing the two tables is then off by one, however each reads alone, and publishing the +1 in a description does not repair it. PASSES when both name the same quantity and the +1 is stated on the published surface. Judge the class as a whole; a solution with no separate count table PASSES if its ladder states where the purchase being bought enters.",
+      "passed": true,
+      "evidence": "@Description in SingleTicketDiscountCalculatorTest states 'Recent Single-Ticket Count (Last 30 Days) includes the single ticket currently being purchased', matching the ladder's assumed +1 at the composition point."
+    },
+    {
+      "id": "2.10-format-displayname",
+      "text": "@DisplayName is present on test methods, OR method names read as clear descriptive titles when converted from camelCase/snake_case.",
+      "passed": true,
+      "evidence": "3 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+    },
+    {
+      "id": "2.11-format-description",
+      "text": "@Description is present on at least the class or the tier method and provides context beyond what the table rows already express — such as the discount ladder structure, eligibility rules, or application context. Does NOT merely restate the column names or summarise what the rows show.",
+      "passed": true,
+      "evidence": "'Applies to adult and senior travelers only; children receive a separate flat discount... (see SingleTicketDiscountCalculatorTest)' adds context beyond columns."
+    },
+    {
+      "id": "2.13-format-annotation-order",
+      "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
+      "passed": true,
+      "evidence": "Annotations in correct order (@DisplayName, @Description, @TableTest) across 3 annotated method(s)"
+    },
+    {
+      "id": "2.14-format-description-textblock",
+      "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
+      "passed": true,
+      "evidence": "@Description uses text block or is short single-line"
+    },
+    {
+      "id": "2.17-zone-irrelevance-visible",
+      "text": "Wherever the discount percentage is decided, a Zone column (or equivalent) carries a value set showing that the discount applies regardless of zone — rather than silently omitting zone. The requirement explicitly says 'regardless of the zones you travel in'. Judge wherever that rule is stated, not in a table with a particular name. This is about the percentage, not about counting, which zone-independent-counting covers.",
+      "passed": false,
+      "evidence": "SingleTicketDiscountCalculatorTest table has no Zone column at all: 'Scenario | Traveler Category | Recent Single-Ticket Count (Last 30 Days) | Discount?'"
+    },
+    {
+      "id": "zone-independent-counting",
+      "text": "The rolling-window counting concern shows by row that a past purchase's zone does not affect whether it counts toward the travel count — for example history entries whose zones differ (or a zone value set) reaching the same count. The claim must be exercised by data: stating it only in @Description, or fixing every history entry to a single zone in the test or a converter, FAILS. This is about counting, not about the discount percentage, which zone-irrelevance-visible covers.",
+      "passed": false,
+      "evidence": "'the conversion fixes them to ADULT and ZONE_1' in SingleTicketTravelCountTest's @Description/@TypeConverter."
+    },
+    {
+      "id": "2.18-adult-senior-value-set",
+      "text": "Adult and senior are expressed as a value set {ADULT, SENIOR} (or equivalent) in at least one row wherever traveller category appears, since they follow identical discount rules. Not enumerated as separate rows with the same outcome. Judge wherever traveller category is stated, not in a table with a particular name.",
+      "passed": true,
+      "evidence": "'Adult or senior reaching the first Reis tier | {ADULT, SENIOR} | 5 | 5'"
+    },
+    {
+      "id": "2.19-depth-all-tiers",
+      "text": "All 9 discount tiers are represented in the ladder table: 0% (tickets 1-4), 5% (5-9), 10% (10-14), 15% (15-19), 20% (20-24), 25% (25-29), 30% (30-34), 35% (35-39), and 40% (40+). Not just a subset of tiers.",
+      "passed": true,
+      "evidence": "Rows cover 0,5,10,15,20,25,30,35,40 discount values including 'Discount stays capped past the maximum | 41 | 40'."
+    },
+    {
+      "id": "2.20-readability-one-row-per-tier",
+      "text": "Each tier in the discount ladder is expressed as a single row with a value set for ticket counts — not split across multiple rows (e.g. separate rows for 'tier kicks in' and 'tier holds'). One tier = one row.",
+      "passed": false,
+      "evidence": "'Reaches the first tier | 5 | 5' and 'Stays at the first tier | 9 | 5' split the same tier into two rows."
+    },
+    {
+      "id": "2.21-readability-relative-time",
+      "text": "The rolling window table expresses time relatively (e.g. '14 days ago', '30 days ago', or an integer 'Days ago' column) rather than using absolute dates, making the table readable without needing to know the reference date.",
+      "passed": true,
+      "evidence": "'[[daysAgo: 0, ticketType: SINGLE]]' uses relative days-ago rather than absolute dates."
+    },
+    {
+      "id": "concerns-decomposed",
+      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "passed": true,
+      "evidence": "Three distinct test classes: ReisDiscountLadderTest, SingleTicketTravelCountTest, SingleTicketDiscountCalculatorTest each covering a different concern."
+    },
+    {
+      "id": "no-duplicate-rows-within-a-table",
+      "text": "Judge each @TableTest in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a premium sampled at 0, 2, 4 and 6 claims once the charge is already known to be per claim: two samples state a difference, a third states its shape, and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. Two further cases are NOT excess, and both are commonly mistaken for it. A third consecutive value of a count, where two would leave a per-unit rate and a one-off charge indistinguishable: 0, 1 and 2 prior claims, because 0 and 1 alone are equally consistent with a flat penalty for having any claim history, and the third row is what decides between them. And a row whose point is that an input does NOT move the outcome — two ages priced the same, a value set over every carrier against one cost — because an invariance is a rule of its own and the only way to state it is to vary the input and hold the expectation. Neither is a repeat of a direction: the first establishes a shape, the second establishes that there is no direction at all. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by 2.19-covers-every-tier and quantifier-covered-by-rows. Judge every @TableTest method in the class; your evidence must name each method with PASS or FAIL.",
+      "passed": true,
+      "evidence": "appliesTheReisDiscountLadder: PASS (17 rows, each a distinct tier boundary e.g. 'Reaches the first tier | 5' vs 'Stays at the first tier | 9'). routesToTheFlatOrReisDiscountByTravelerCategory: PASS (3 rows: child value set, adult 0, adult/senior 5 — no repeats). countsSingleTicketsPurchasedInTheTrailingWindow: PASS (6 rows: empty, today, edge-30, outside-31, non-single filtered, mixed — each a distinct branch)."
+    },
+    {
+      "id": "no-table-reproves-another",
+      "text": "Judge the class as a whole, and only its @TableTest methods: a plain @Test method is not a table and can never fail this assertion, however much of an earlier table it re-proves. The assertion FAILS if a whole @TableTest re-proves rules that earlier tables already established — an integration or end-to-end table whose rows re-prove established rules is the common case, and it fails however clean the other tables are. Sibling tables that each isolate one rule are NOT duplication merely because they share a baseline row: four surcharge tables that each show 'no surcharge' then 'surcharge applied' are four legitimate tables, not one duplicated four times. Collapsing several same-fixture tables into one, as concern-not-over-split requires, is likewise not a failure here. Rows you think are missing are never a failure here. Your evidence must name the re-proving table and the table it duplicates, or state that no @TableTest re-proves another.",
+      "passed": true,
+      "evidence": "No @TableTest re-proves another; the plain @Test 'combinesTravelHistoryAndCategoryThroughThePublicEntryPoint' is not a @TableTest so is exempt, and the three tables each isolate ladder, routing, and counting respectively."
+    },
+    {
+      "id": "has-tabletest-dependency",
+      "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
+      "passed": true,
+      "evidence": "Build file contains tabletest-junit"
+    },
+    {
+      "id": "rule-falsifiable-by-a-row",
+      "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES. Do not fail a table merely because its values are simple or round — only these three conditions matter. One exemption applies to conditions (1) and (3): a table whose claim IS an invariance — that some input does not affect the outcome — correctly holds one expectation value across every row, because that constant is the rule's subject rather than evidence of a weak table. A single row varying that input over a value set (e.g. '{DHL, UPS, FEDEX} | 12.00') is the correct compact form and PASSES, provided the title or description states the invariance. Condition (2) is not exempted. Enumerate before you decide: your evidence must name every @TableTest method in the class and, under each, every one of its expectation columns with PASS or FAIL beside it. A table with several expectation columns fails on condition (1) as soon as ONE of them is constant across all rows without a stated invariance. A verdict reported from a subset of the methods, or from a subset of one method's expectation columns, is not a verdict.",
+      "passed": true,
+      "evidence": "appliesTheReisDiscountLadder Discount?: PASS (varies 0-40, not all rows copy input e.g. '9 | 5'). routesToTheFlatOrReisDiscountByTravelerCategory Discount?: PASS (row1 'CHILD | {0,5,40} | 20' isn't a copy though rows2-3 coincide with input). countsSingleTicketsPurchasedInTheTrailingWindow Count?: PASS (varies 0,1,1,0,0,2, not constant nor copy of 'Window (Days)' column of 30)."
+    },
+    {
+      "id": "rule-statable-from-table",
+      "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone; (3) a helper method used in the assertion applies a comparison criterion (ordering, tolerance, subset matching) that is stated nowhere in the table, title, or description. Otherwise the assertion PASSES. Setup that merely constructs the objects named by the columns is not a failure. Judge every @TableTest method in the class. Your evidence must list each method name with PASS or FAIL beside it; a verdict reported from a subset of the methods is not a verdict. A value counts as published if it appears ANYWHERE on the test class's published surface: any @DisplayName or @Description on any method, the class-level @Description, or a column of any table. A method with no @DisplayName publishes its own name as its title, with camelCase split into words, so method names count as published text. Clause (1) triggers only when the value appears ONLY in the method body or a field — a value stated in a sibling method's @Description is published, not hidden.",
+      "passed": true,
+      "evidence": "appliesTheReisDiscountLadder: PASS (tiers and +1 rule stated in @Description). routesToTheFlatOrReisDiscountByTravelerCategory: PASS (flat 20 shown in table, ladder detail deferred per sibling @Description, which is published). countsSingleTicketsPurchasedInTheTrailingWindow: PASS (window value 30 and relative daysAgo shown in columns/@Description)."
+    },
+    {
+      "id": "title-states-system-behaviour",
+      "text": "Each @DisplayName (or the method name it falls back to) states what the code under test does, not an external fact it depends on. Apply the check mechanically: strike the system under test from the sentence — if it still reads as true, because it merely restates a regulation, standard, format, or domain fact, the title is about something else and fails. Judge ONLY the title — the @DisplayName, or the method name it falls back to. The @Description and the scenario names are other assertions' subject; a description that restates a domain rule is not this assertion's failure and must not be cited as one.",
+      "passed": true,
+      "evidence": "'appliesTheReisDiscountLadder', 'routesToTheFlatOrReisDiscountByTravelerCategory', 'combinesTravelHistoryAndCategoryThroughThePublicEntryPoint', 'countsSingleTicketsPurchasedInTheTrailingWindow' all name what the code does, not a domain fact."
+    },
+    {
+      "id": "compiles",
+      "text": "The generated test code compiles successfully against the project scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "held-constants-declared",
+      "text": "A value the rule's outcome depends on, and which the table holds constant for every row, must be visible as a column or named in the @DisplayName/@Description as deliberately held fixed. It must not sit silently in the test method body or a field. Readers generalise from what varies, so an unstated constant is read as part of the rule: a table whose every row happens to use one traveller category states, to its reader, a rule about that category. FAILS when the method body, a field, or a @TypeConverter fixes a value that (1) the outcome depends on, and (2) appears in no column and is not named in the title or description as held fixed. A value declared only in a source-code comment (// or /* */) FAILS: the published surface is the title, the description and the table, and a comment reaches none of them. A method with no @DisplayName publishes its own name as its title, with camelCase split into words, so a constant named in the method name is declared. PASSES when every such constant is either a column or declared. Values that cannot affect the outcome are not failures — a fixed clock used only to construct inputs, object identity, or fixture values the rule is indifferent to. Declaring a held constant in @Description is NOT redundancy and does not conflict with the description-* assertions: those forbid restating what the rows already show, whereas a held constant is precisely what the rows cannot show.",
+      "passed": true,
+      "evidence": "'Traveler category and zone validity of past purchases do not affect this rule, so the conversion fixes them to ADULT and ZONE_1.' declares the fixed constants in @Description; PURCHASE_TIME is a fixture the rule is indifferent to (relative offsets drive outcome)."
+    },
+    {
+      "id": "quantifier-covered-by-rows",
+      "text": "When a title or description quantifies over a domain — 'regardless of X', 'any X', 'whatever the X', 'with or without X' — the rows must actually cover that domain. A value set discharges the promise and is the preferred way to do so: one row holding {A, B, C} both covers the domain and states the independence. Additional near-identical rows are NOT required and are NOT credited. FAILS when a quantifying claim appears and the tables show only one value of the quantified domain, or fewer values than the claim needs (e.g. 'regardless of category' with a single category anywhere in the table). PASSES when the quantified values appear, whether as a value set in one row or as separate rows; also passes when no quantifying claim is made. This assertion is about the claim matching the rows, NOT about row count. Satisfying it by adding rows where a value set would do is not an improvement and must not be scored as one, and it never requires cross-multiplying two quantified domains. Enumerate before you decide: your evidence must list EVERY quantifying claim in the class — each one in a @DisplayName, a @Description, or a scenario name — naming the table it sits in, the domain it quantifies over, and PASS or FAIL beside it. A claim that a title states about the values a column is fixed at, or about a value the converter supplies, counts and must appear in the list. A verdict reported from the first claim you found, or from a subset of the tables, is not a verdict. One decidable test governs a claim naming two or more inputs ('a null value for either X or Y', 'whatever the X and Y'): it is discharged as soon as EACH named value appears somewhere in the table, and ONE row holding all of them at once is enough. Do NOT require the mixed combination — X null beside Y present — that is cross-multiplying two domains, which this assertion never requires. A description that names the row discharging its own claim has discharged it.",
+      "passed": false,
+      "evidence": "SingleTicketTravelCountTest @Description claims 'Traveler category and zone validity of past purchases do not affect this rule' but every row is converted via a fixed ADULT/ZONE_1 in the @TypeConverter, so the domain is never varied in the rows -- 'the conversion fixes them to ADULT and ZONE_1.'"
+    },
+    {
+      "id": "titles-form-a-family",
+      "text": "Read the class's test titles (each @DisplayName, or the method name it falls back to) as the sorted index a reader would scan, stripped of their tables. FAILS when the titles do not function as a catalogue: when three or more share a leading word that carries no information ('should…', 'test…', 'verify…'), so the varying subject arrives last and the list cannot be scanned; or when no single grammatical shape accounts for a majority of the titles, so no scanning pattern exists. PASSES when the varying subject comes first or early and one consistent shape runs across the family. A single title that differs from an otherwise consistent family is NOT a failure: negative and invariant claims ('carrier does not affect cost') often read best subject-first, and one such outlier does not make an index unscannable. Judge whether a reader scanning the list would find a pattern, not whether every entry matches it. Judge the set, never a title in isolation — a title that reads perfectly on its own page can still be an unscannable entry in the index, which is the failure this assertion exists to catch. A class with fewer than three @TableTest methods PASSES.",
+      "passed": true,
+      "evidence": "Each class has fewer than three @TableTest methods (ReisDiscountLadderTest:1, SingleTicketDiscountCalculatorTest:1, SingleTicketTravelCountTest:1), which PASSES per rule; titles also share a verb-first shape: 'appliesTheReisDiscountLadder', 'routesTheFlatOrReisDiscountByTravelerCategory', 'countsSingleTicketsPurchasedInTheTrailingWindow'."
+    },
+    {
+      "id": "rule-traceable-to-requirement",
+      "text": "Every rule the rows assert is traceable to the requirement. The requirement is the prompt plus the source the prompt points at — the class under test, the existing test file. Enumerate before you decide: for each @TableTest, state in one sentence the rule its rows establish, then name the requirement text that decides that point, or write \"requirement silent\". A verdict reached without that list is not a verdict. FAILS when the requirement states a rule without a qualifier and the rows only hold under a qualifier the requirement does not attach — the rows narrow a rule the requirement states plainly. Worked example of a failure: the requirement says a count is \"the number of single tickets you have purchased in the last 30 days\", and a table whose rows exclude a past purchase because its traveller category differs from the new purchase's has added a matching condition the requirement never states. PASSES when the requirement is silent on the point. Resolving something the requirement leaves open is what is being asked for here, and EITHER reading passes: an inclusive-versus-exclusive boundary, behaviour for an input the requirement never mentions, which of two colliding requirement rules wins, what an operation does to an entry that is already there. Naming the rule an assumption on `@Description` neither creates a failure nor discharges one — the test is whether the requirement already decided the point, not how the solution described its choice, and whether an assumption is published is graded elsewhere. Rules you think are MISSING are never a failure here: this assertion judges rules the rows add, and coverage is judged by the depth and concern assertions. Judge every @TableTest method in the class.",
+      "passed": true,
+      "evidence": "appliesTheReisDiscountLadder establishes the nine-rung ladder, traceable to the prompt's ladder table; routesToTheFlatOrReisDiscountByTravelerCategory establishes flat-vs-Reis routing per 'children receive a separate flat discount'; countsSingleTicketsPurchasedInTheTrailingWindow establishes SINGLE-ticket-only, 30-day window counting per 'single tickets you have purchased in the last 30 days' -- all traceable, none narrows the requirement with an unstated qualifier."
+    }
+  ],
+  "assertions_passed": 27,
+  "assertions_total": 34,
+  "pass_rate": 0.7941176470588235,
+  "grading_usage": {
+    "input_tokens": 30124,
+    "output_tokens": 15739,
+    "total_tokens": 45863,
+    "calls": 3,
+    "cost_usd": 0.326457,
+    "rates_usd_per_mtok": {
+      "input": 3,
+      "output": 15
+    }
+  }
+}
