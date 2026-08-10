@@ -10,7 +10,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -27,21 +26,24 @@ public class OrderSplitterTest {
         it goes to, and pickup carries nothing, because there is nowhere to send it. Fulfilment is
         one value with two shapes rather than a type beside an optional address, which is why no
         order can make the two disagree and why these rows exercise them together. Every item is in
-        stock at one warehouse, so nothing here turns on stock or warehouse choice. A shipment is a
-        set of products and the result a set of shipments, so neither the order of shipments nor the
-        order within one is part of the rule.
+        stock at one warehouse, so nothing here turns on stock or warehouse choice. Each shipment is
+        keyed by the fulfilment it serves, written exactly as the Items column writes it, so the
+        result names why it split; a shipment is a set of products, so the order within one is not
+        part of the rule.
         """)
     @TableTest("""
-        Scenario                    | Items                                             | Shipments?
-        One address, both delivered | [camera: delivery@Addr-A, lens: delivery@Addr-A]  | {{camera, lens}}
-        Two addresses               | [camera: delivery@Addr-A, watch: delivery@Addr-B] | {{camera}, {watch}}
-        Delivery beside pickup      | [camera: delivery@Addr-A, mug: pickup]            | {{camera}, {mug}}
-        Both collected in store     | [mug: pickup, candle: pickup]                     | {{mug, candle}}
+        Scenario                    | Items                                             | Shipments By Fulfilment?
+        One address, both delivered | [camera: DELIVERY@Addr-A, lens: DELIVERY@Addr-A]  | [DELIVERY@Addr-A: {camera, lens}]
+        Two addresses               | [camera: DELIVERY@Addr-A, watch: DELIVERY@Addr-B] | [DELIVERY@Addr-A: {camera}, DELIVERY@Addr-B: {watch}]
+        Delivery beside pickup      | [camera: DELIVERY@Addr-A, mug: PICKUP]            | [DELIVERY@Addr-A: {camera}, PICKUP: {mug}]
+        Both collected in store     | [mug: PICKUP, candle: PICKUP]                     | [PICKUP: {mug, candle}]
         """)
-    void groupsItemsByFulfillmentTypeAndDeliveryAddress(List<OrderItem> items, Set<Set<String>> shipments) {
+    void groupsItemsByFulfillmentTypeAndDeliveryAddress(
+            List<OrderItem> items,
+            Map<String, Set<String>> shipmentsByFulfilment) {
         List<Shipment> result = splitter.splitOrder(new Order(items), everythingInStock(items));
 
-        assertEquals(shipments, productSetPerShipment(result));
+        assertEquals(shipmentsByFulfilment, productSetPerFulfilment(result));
     }
 
     @DisplayName("Ships available items without waiting for delayed ones")
@@ -125,7 +127,7 @@ public class OrderSplitterTest {
     }
 
     /**
-     * The order's items, keyed by product: {@code [camera: delivery@Addr-A, mug: pickup]}. The
+     * The order's items, keyed by product: {@code [camera: DELIVERY@Addr-A, mug: PICKUP]}. The
      * address belongs to delivery rather than sitting beside it, since there is no address a
      * collected item could carry.
      */
@@ -141,7 +143,7 @@ public class OrderSplitterTest {
         return new OrderItem(
                 productId,
                 1,
-                FulfillmentType.valueOf(parts[0].toUpperCase()),
+                FulfillmentType.valueOf(parts[0]),
                 parts.length > 1 ? parts[1] : null);
     }
 
@@ -171,10 +173,18 @@ public class OrderSplitterTest {
         return inventory;
     }
 
-    private static Set<Set<String>> productSetPerShipment(List<Shipment> shipments) {
-        return shipments.stream()
-                .map(shipment -> (Set<String>) new LinkedHashSet<>(shipment.productIds()))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+    private static Map<String, Set<String>> productSetPerFulfilment(List<Shipment> shipments) {
+        Map<String, Set<String>> byFulfilment = new LinkedHashMap<>();
+        shipments.forEach(shipment -> byFulfilment
+                .put(fulfilmentOf(shipment), new LinkedHashSet<>(shipment.productIds())));
+        return byFulfilment;
+    }
+
+    /** The grouping key the rule uses, written the way the Items column writes it. */
+    private static String fulfilmentOf(Shipment shipment) {
+        String type = shipment.fulfillmentType().name();
+        String address = shipment.items().get(0).deliveryAddress();
+        return address == null ? type : type + "@" + address;
     }
 
     private static Map<String, Set<String>> productSetPerWarehouse(List<Shipment> shipments) {
