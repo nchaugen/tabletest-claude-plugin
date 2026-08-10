@@ -23,6 +23,13 @@ that tests the formatter rather than the rule, hides the structure from the read
 formatting logic back into the test body. Use a set where order is not part of the rule, and a list
 with a canonical sort where it is.
 
+**A key is part of the value, so the same holds one level down.** Grouping the result under a key
+pasted together from several fields — `HEAT/G3/zone-2` standing for a mode, a unit and a zone — has
+flattened the structure into the key instead of the value, and the {{row}} still reads as one token
+whose parts the reader separates by eye. Nest one level per part, or give the key a type with a name.
+**The test is the one that governs any cell: can a reader name each part?** A delimited string is not
+the alternative to nesting, at any level.
+
 {{example}}
 
 **Check:** **Expectation columns marked**: at least one column uses the `?` suffix (never a prefix), no input column does, and a compound result stays a native collection rather than a flattened string
