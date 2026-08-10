@@ -73,19 +73,22 @@ public class OrderSplitterTest {
         coverage varies. Each warehouse column is the set of products that warehouse holds.
         """)
     @TableTest("""
-        Scenario                            | Order                        | Warehouse Stock                                          | Shipments By Warehouse?
-        One warehouse holds the whole order | {camera, lens, mic}          | [W1: {camera, lens, mic}, W2: {camera}]                  | [W1: {camera, lens, mic}]
-        No single warehouse holds it all    | {camera, lens, mic}          | [W1: {camera, lens}, W2: {mic}]                          | [W1: {camera, lens}, W2: {mic}]
-        Overlapping stock, one still covers | {camera, lens, mic}          | [W1: {camera}, W2: {camera, lens, mic}]                  | [W2: {camera, lens, mic}]
-        Only one pair of warehouses covers  | {camera, lens, mic, battery} | [W1: {camera, lens}, W2: {lens, mic}, W3: {mic, battery}]| [W1: {camera, lens}, W3: {mic, battery}]
+        Scenario                            | Order                        | W1 Stock            | W2 Stock            | W3 Stock       | Shipments By Warehouse?
+        One warehouse holds the whole order | {camera, lens, mic}          | {camera, lens, mic} | {camera}            | {}             | [W1: {camera, lens, mic}]
+        No single warehouse holds it all    | {camera, lens, mic}          | {camera, lens}      | {mic}               | {}             | [W1: {camera, lens}, W2: {mic}]
+        Overlapping stock, one still covers | {camera, lens, mic}          | {camera}            | {camera, lens, mic} | {}             | [W2: {camera, lens, mic}]
+        Only one pair of warehouses covers  | {camera, lens, mic, battery} | {camera, lens}      | {lens, mic}         | {mic, battery} | [W1: {camera, lens}, W3: {mic, battery}]
         """)
     void coversTheOrderFromAsFewWarehousesAsPossible(
             Set<String> order,
-            WarehouseInventory warehouseStock,
+            Set<String> w1Stock,
+            Set<String> w2Stock,
+            Set<String> w3Stock,
             Map<String, Set<String>> shipmentsByWarehouse) {
         List<OrderItem> items = order.stream().map(OrderSplitterTest::delivered).toList();
 
-        List<Shipment> result = splitter.splitOrder(new Order(items), warehouseStock);
+        List<Shipment> result = splitter.splitOrder(
+                new Order(items), stockedAs(w1Stock, w2Stock, w3Stock));
 
         assertEquals(shipmentsByWarehouse, productSetPerWarehouse(result));
     }
@@ -97,20 +100,23 @@ public class OrderSplitterTest {
         holds both. Every item is delivered to one address and in stock wherever listed.
         """)
     @TableTest("""
-        Scenario                                | Order               | Warehouse Stock                                     | Companions     | Shipments By Warehouse?
-        Two covers tie, one keeps them together | {camera, lens, mic} | [W1: {camera, lens}, W2: {camera, mic}, W3: {lens}] | {camera, lens} | [W1: {camera, lens}, W2: {mic}]
-        No warehouse holds both                 | {camera, lens}      | [W1: {camera}, W2: {lens}]                          | {camera, lens} | [W1: {camera}, W2: {lens}]
-        Already together, nothing to trade      | {camera, lens}      | [W1: {camera, lens}]                                | {camera, lens} | [W1: {camera, lens}]
+        Scenario                                | Order               | W1 Stock       | W2 Stock      | W3 Stock | Companions     | Shipments By Warehouse?
+        Two covers tie, one keeps them together | {camera, lens, mic} | {camera, lens} | {camera, mic} | {lens}   | {camera, lens} | [W1: {camera, lens}, W2: {mic}]
+        No warehouse holds both                 | {camera, lens}      | {camera}       | {lens}        | {}       | {camera, lens} | [W1: {camera}, W2: {lens}]
+        Already together, nothing to trade      | {camera, lens}      | {camera, lens} | {}            | {}       | {camera, lens} | [W1: {camera, lens}]
         """)
     void keepsCompanionProductsTogetherWhenATieAllowsIt(
             Set<String> order,
-            WarehouseInventory warehouseStock,
+            Set<String> w1Stock,
+            Set<String> w2Stock,
+            Set<String> w3Stock,
             Set<String> companions,
             Map<String, Set<String>> shipmentsByWarehouse) {
         List<OrderItem> items = order.stream().map(OrderSplitterTest::delivered).toList();
         Order withCompanions = new Order(items, List.of(List.copyOf(companions)));
 
-        List<Shipment> result = splitter.splitOrder(withCompanions, warehouseStock);
+        List<Shipment> result = splitter.splitOrder(
+                withCompanions, stockedAs(w1Stock, w2Stock, w3Stock));
 
         assertEquals(shipmentsByWarehouse, productSetPerWarehouse(result));
     }
@@ -133,14 +139,18 @@ public class OrderSplitterTest {
     }
 
     /**
-     * The products each warehouse holds. Everything listed is in stock, because stock standing is
-     * the availability table's subject and is held constant wherever coverage is what varies.
+     * One warehouse column per warehouse keeps the coverage visible down the column, which is what
+     * these two tables are read for. A `@TypeConverter` cannot serve them, since it converts a
+     * single cell and the inventory spans three; the products listed are all in stock, because
+     * stock standing is the availability table's subject.
      */
-    @TypeConverter
-    public static WarehouseInventory parseWarehouseStock(Map<String, Set<String>> productsByWarehouse) {
+    private static WarehouseInventory stockedAs(Set<String>... stockPerWarehouse) {
         WarehouseInventory inventory = new WarehouseInventory();
-        productsByWarehouse.forEach((warehouseId, products) -> products
-                .forEach(productId -> inventory.addStock(warehouseId, productId, StockStatus.IN_STOCK)));
+        for (int warehouse = 0; warehouse < stockPerWarehouse.length; warehouse++) {
+            String warehouseId = "W" + (warehouse + 1);
+            stockPerWarehouse[warehouse]
+                    .forEach(productId -> inventory.addStock(warehouseId, productId, StockStatus.IN_STOCK));
+        }
         return inventory;
     }
 

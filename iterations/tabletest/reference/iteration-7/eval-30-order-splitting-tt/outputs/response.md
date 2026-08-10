@@ -14,15 +14,13 @@ Outputs are native TableTest collections throughout:
   `[IMMEDIATE: {camera}, WHEN_AVAILABLE: {lens}]`, the availability map keyed by the enum itself.
 
 Items use a compact `product/type/address` shorthand through a `@TypeConverter`, with a slash rather
-than a colon so no cell needs quoting; a pickup carries no address at all. Warehouse stock is one
-column, `[W1: {camera, lens}, W2: {mic}]`, converted to a `WarehouseInventory` — the same notation the
-result column uses, so a reader compares what was available against what was chosen without
-translating. A converter reads one cell, so this only works because the whole inventory is one
-column; three per-warehouse columns would have to be assembled in the test instead.
+than a colon so no cell needs quoting; a pickup carries no address at all.
 
-The availability table keeps its two `StockStatus` columns and arranges its fixture in the body,
-because **a class may hold only one converter per target type**: a second one returning
-`WarehouseInventory` from a differently shaped cell would collide on the erased type.
+Warehouse stock stays **one column per warehouse**, so the coverage a row sets up can be read down
+the column — which is what those two tables are for, and an empty `{}` says that warehouse holds
+nothing rather than padding the row. That shape rules a `@TypeConverter` out: a converter reads one
+cell and the inventory spans three, so the three sets are assembled by a named helper instead. The
+one-cell alternative was tried and rejected on legibility.
 
 Row counts come from the coverage obligations rather than from permutation. The warehouse table
 carries the four-product row where `{W1, W3}` is the only two-warehouse cover, which a greedy picker
