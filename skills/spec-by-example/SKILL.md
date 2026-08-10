@@ -590,10 +590,18 @@ receives will not do instead** — that route is open to a threshold, which only
 contradictable. Decide it by asking who supplies the value: **if a caller hands it over with the
 request it is an input, so keep it and let the table vary it**, even where the code will not read it.
 
-**If the ignored value sits inside a composite cell, reshape the column first** — a value set varies
-a whole cell, never one part of one, so `{a, b}` written inside a cell adds no rows. Give the
-value its own column when this table reads nothing else in that cell (*Give Each Obligation Exactly
-One Row*). Holding it at one value instead abandons the claim.
+**If the ignored value sits inside a composite cell, the value set is the wrong tool — and it is not
+the only one.** `{a, b}` written inside a cell adds no rows: expansion varies a whole cell, never
+one part of one. Two routes remain, and the cheap one is easy to miss. **Where the cell holds a list,
+vary the ignored value across its elements** — one row, three entries, three different values,
+nothing reshaped. Where it holds a single object, give the value its own column if this table reads
+nothing else in that cell (*Give Each Obligation Exactly One Row*).
+
+**Fixing the value in the converter is the move to catch yourself making.** It is the cheapest thing
+to write and it drops the claim altogether: what reaches the reader is one hard-coded value they
+cannot tell from an oversight, and a sentence about a rule that no row exercises. The reshape is
+worth it because the claim is; if the claim is not worth a column, it was not worth the sentence
+either.
 
 **A value set cannot vary an expectation.** It expands the row into one case per value, and every
 expanded case keeps the same expectation cells. Where the answer differs per value, those are
