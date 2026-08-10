@@ -4,7 +4,7 @@
 
 ## Summary
 
-24/24 (100.0%) · 0 tokens · 0.0s
+23/24 (95.8%) · 0 tokens · 0.0s
 
 > ⛔ **Void comparison — none of the 1 evals could be compared** vs iteration 3. Every delta below is computed over nothing; an absence of movement here is not evidence that nothing moved. See `analysis-todo.md`.
 
@@ -17,13 +17,13 @@
 
 | Eval | Pass Rate | Prev | Tokens | Prev | Time(s) | Prev |
 |------|-----------|------|--------|------|---------|------|
-| eval-14-weekly-pay | 24/24 | — | 0 | — | 0.0 | — |
+| eval-14-weekly-pay | 23/24 | — | 0 | — | 0.0 | — |
 
 ## Per-Eval Results
 
-### ✅ Eval eval-14-weekly-pay
+### ⚠️ Eval eval-14-weekly-pay
 
-**24/24** · 0 tokens · 0ms
+**23/24** · 0 tokens · 0ms
 
 - ✅ **1.2-error-has-expected-column**: The error/rejection table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row — rather than hardcoding the exception type in @Description or the method name.
 - ✅ **1.3-depth-overtime-boundary**: Judge every @TableTest in the class. Overtime starts strictly above 40 hours, so the boundary is shown by two rows in the SAME column of the SAME table: one holding exactly 40, and one holding a value greater than 40 and no greater than 41 (41 is the intended value; 40.5 and 41.0 also count). FAILS when no single column carries both. A value of 42 or above does NOT discharge it, however close it looks — 45 shows that overtime exists, not where it starts, because 41 through 44 could still be regular under a different threshold. Rows well below 40 are fine but discharge nothing here. Your evidence must quote the two cell values and name the column and method they sit in, or say which of the two is missing.

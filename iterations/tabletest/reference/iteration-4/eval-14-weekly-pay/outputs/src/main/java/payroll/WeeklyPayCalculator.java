@@ -5,14 +5,13 @@ public final class WeeklyPayCalculator {
     private WeeklyPayCalculator() {
     }
 
-    public static HoursSplit splitWeekdayHours(int weekdayHours) {
-        throw new UnsupportedOperationException("Weekday hour classification not implemented yet");
-    }
-
+    /**
+     * Weekly pay for one employee. A null hour count means no hours of that kind were worked.
+     */
     public static int calculateWeeklyPay(
-            int weekdayHours,
-            int sundayHours,
-            int holidayHours,
+            Integer weekdayHours,
+            Integer sundayHours,
+            Integer holidayHours,
             int hourlyRate) {
         throw new UnsupportedOperationException("Weekly pay calculation not implemented yet");
     }
