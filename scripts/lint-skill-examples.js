@@ -225,7 +225,7 @@ function evalDomainTerms(markdown) {
  */
 const GENERIC_IDENTIFIERS = new Set([
   "accepted", "action", "adult", "below", "boolean", "both", "category", "credit", "days",
-  "description", "does", "email", "empty", "exactly", "expected", "full", "heavy", "integer",
+  "description", "does", "duration", "email", "empty", "exactly", "expected", "full", "heavy", "integer",
   "invalid", "iso", "items", "just", "kept", "list", "message", "missing", "mixed", "name",
   "notes", "null", "optional", "premium", "rejected", "result", "scenario", "senior", "several",
   "short", "single", "standard", "state", "string", "success", "table", "test", "this", "throws",
