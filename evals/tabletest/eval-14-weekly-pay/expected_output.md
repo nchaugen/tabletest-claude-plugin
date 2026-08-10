@@ -62,12 +62,16 @@ the **rate**, and both boundaries should be explicit rows:
 
 The prompt does **not** say what happens when an hour count is negative. Several readings are
 defensible: reject the whole hour sheet as invalid; floor pay at zero; or let a negative slot
-offset a positive one. **None is "the" answer.** What the eval rewards is that the solution
-*commits to one and makes it visible as an example row a reviewer can challenge*
-(`1.5-depth-error-edge-cases`) — not that it picks a particular semantics, and not that it buries
-the decision in a helper with no row to expose it. The reference solution treats negative hours in
-any slot as invalid input and puts them in the rejection table with an expected exception; a
-solution that instead floors pay at zero and *shows a row proving it* is equally acceptable.
+offset a positive one. What the eval rewards is that the solution *commits to one and makes it
+visible as an example row a reviewer can challenge* (`1.5-depth-error-edge-cases`) — not that it
+buries the decision in a helper with no row to expose it.
+
+**The readings are not equally good, though, and the difference is worth crediting.** Reject every
+negative and the prompt's own rule *"total pay cannot go below zero"* can no longer be exercised by
+any row: nothing is left that could drive a week below zero, so a stated requirement becomes
+undemonstrable. Reading a negative hour count as a timesheet correction and flooring the total keeps
+both rules alive. Prefer that reading where a solution states it; accept rejection-as-invalid where
+the solution commits to it in a row, but note that it costs the floor rule its only witness.
 
 ## Mechanics and format
 

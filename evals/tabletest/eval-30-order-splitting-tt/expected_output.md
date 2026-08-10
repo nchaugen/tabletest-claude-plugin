@@ -31,6 +31,13 @@ availability, warehouse selection, and companion preference each need their own 
   quantities. So the warehouse table's columns are product **sets** per warehouse, and product identity
   is the whole logic. (This is why a "scalar quantity" column is the wrong shape here and its assertion
   was removed.)
+
+  **One column per warehouse is preferred, one column for the whole inventory is acceptable, and
+  neither is scored.** `{camera, lens}` under `W1 Stock`, `W2 Stock`, `W3 Stock` lets the coverage a
+  row sets up be read down the column, which is what this table is for, and an empty `{}` states that
+  a warehouse holds nothing. A single `[W1: {camera, lens}, W2: {mic}]` column is equally correct and
+  is the only shape a `@TypeConverter` can serve, since a converter reads one cell and a per-warehouse
+  layout spans three. Do not mark either down: no assertion judges this and none should.
 - **Companion grouping is a tie-breaker.** It only changes the outcome when two warehouse combinations
   tie for fewest shipments; it never forces an *extra* shipment to keep companions together, and it
   yields entirely when no single warehouse stocks both. The rows must prove all three: tie broken,
