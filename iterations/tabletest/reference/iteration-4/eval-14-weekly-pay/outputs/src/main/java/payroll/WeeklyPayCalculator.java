@@ -10,8 +10,7 @@ public final class WeeklyPayCalculator {
     }
 
     public static int calculateWeeklyPay(
-            int regularHours,
-            int overtimeHours,
+            int weekdayHours,
             int sundayHours,
             int holidayHours,
             int hourlyRate) {

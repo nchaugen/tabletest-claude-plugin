@@ -6,7 +6,9 @@ Four `@TableTest` methods:
 
 - `splitsWeekdayHoursAtTheOvertimeThreshold` — classification only, no pay arithmetic. The overtime
   threshold is a column because it is policy the split does not take as an argument.
-- `paysEachBandOfHoursAtItsOwnRate` — calculation from classified hours. Hour columns are `Integer`,
+- `paysEachBandOfHoursAtItsOwnRate` — pay through the API the requirement names: the calculator
+  receives weekday, Sunday and holiday hours plus the rate, and applies the overtime threshold
+  itself rather than taking pre-split hours from the caller. Hour columns are `Integer`,
   so a band a row is not about is a **blank cell rather than a 0**, and one hour of each band at a
   rate of 10 prices the band directly. The zero-rate row is a value set over three hour counts that
   all collapse to the same pay.
