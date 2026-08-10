@@ -4,7 +4,7 @@
 
 ## Summary
 
-24/24 (100.0%) · 0 tokens · 0.0s
+25/25 (100.0%) · 0 tokens · 0.0s
 
 > ⛔ **Void comparison — none of the 1 evals could be compared** vs iteration 4. Every delta below is computed over nothing; an absence of movement here is not evidence that nothing moved. See `analysis-todo.md`.
 
@@ -17,13 +17,13 @@
 
 | Eval | Pass Rate | Prev | Tokens | Prev | Time(s) | Prev |
 |------|-----------|------|--------|------|---------|------|
-| eval-23-loan-approval-tt | 24/24 | — | 0 | — | 0.0 | — |
+| eval-23-loan-approval-tt | 25/25 | — | 0 | — | 0.0 | — |
 
 ## Per-Eval Results
 
 ### ✅ Eval eval-23-loan-approval-tt
 
-**24/24** · 0 tokens · 0ms
+**25/25** · 0 tokens · 0ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ✅ **threshold-verifiable-from-table**: Each policy threshold (650 for non-seniors, 600 for seniors) is verifiable from the table, in one of two ways: (a) a dedicated policy column (e.g. 'Credit threshold') beside the applicant's score, or (b) boundary rows that bracket it — within one age band, a row that qualifies just above the threshold and a row that fails at/below it, carrying different decisions. The assertion FAILS only if a threshold governs the outcome yet neither a policy column nor a bracketing row pair makes its location visible — e.g. the score column holds arbitrary values with no boundary pair and no threshold column.
@@ -49,4 +49,5 @@
 - ✅ **compiles**: The generated test code compiles successfully against the project scaffolding
 - ✅ **held-constants-declared**: A value the rule's outcome depends on, and which the table holds constant for every row, must be visible as a column or named in the @DisplayName/@Description as deliberately held fixed. It must not sit silently in the test method body or a field. Readers generalise from what varies, so an unstated constant is read as part of the rule: a table whose every row happens to use one traveller category states, to its reader, a rule about that category. FAILS when the method body, a field, or a @TypeConverter fixes a value that (1) the outcome depends on, and (2) appears in no column and is not named in the title or description as held fixed. A value declared only in a source-code comment (// or /* */) FAILS: the published surface is the title, the description and the table, and a comment reaches none of them. A method with no @DisplayName publishes its own name as its title, with camelCase split into words, so a constant named in the method name is declared. PASSES when every such constant is either a column or declared. Values that cannot affect the outcome are not failures — a fixed clock used only to construct inputs, object identity, or fixture values the rule is indifferent to. Declaring a held constant in @Description is NOT redundancy and does not conflict with the description-* assertions: those forbid restating what the rows already show, whereas a held constant is precisely what the rows cannot show.
 - ✅ **rule-traceable-to-requirement**: Every rule the rows assert is traceable to the requirement. The requirement is the prompt plus the source the prompt points at — the class under test, the existing test file. Enumerate before you decide: for each @TableTest, state in one sentence the rule its rows establish, then name the requirement text that decides that point, or write "requirement silent". A verdict reached without that list is not a verdict. FAILS when the requirement states a rule without a qualifier and the rows only hold under a qualifier the requirement does not attach — the rows narrow a rule the requirement states plainly. Worked example of a failure: the requirement says a count is "the number of single tickets you have purchased in the last 30 days", and a table whose rows exclude a past purchase because its traveller category differs from the new purchase's has added a matching condition the requirement never states. PASSES when the requirement is silent on the point. Resolving something the requirement leaves open is what is being asked for here, and EITHER reading passes: an inclusive-versus-exclusive boundary, behaviour for an input the requirement never mentions, which of two colliding requirement rules wins, what an operation does to an entry that is already there. Naming the rule an assumption on `@Description` neither creates a failure nor discharges one — the test is whether the requirement already decided the point, not how the solution described its choice, and whether an assumption is published is graded elsewhere. Rules you think are MISSING are never a failure here: this assertion judges rules the rows add, and coverage is judged by the depth and concern assertions. Judge every @TableTest method in the class.
+- ✅ **blank-for-unknown-income**: Unknown income is written as a blank cell, not as a word or a second column. The prompt makes income a Boolean precisely so that it can be unknown, so the third state belongs in the notation: a blank cell converting to null. FAILS when the unknown case is carried by a literal such as 'UNKNOWN', 'null' or 'n/a' in the income column, or by an extra boolean column ('Income Known?') that splits one input across two, or when no row exercises the unknown case at all. PASSES when at least one row leaves the income cell blank and the parameter is a Boolean that receives null. Your evidence must quote the row.
 

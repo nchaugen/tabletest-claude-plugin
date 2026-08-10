@@ -8,28 +8,28 @@
   "skill_commit": "unknown",
   "skill_digest": "unknown",
   "generation_auth": "unknown",
-  "timestamp": "2026-08-10T18:38:12.241Z",
+  "timestamp": "2026-08-10T22:26:28.697Z",
   "evals": [
     {
       "id": "eval-14-weekly-pay",
       "name": "weekly pay",
       "skill": "tabletest",
-      "fingerprint": "d4da9d29ad00",
+      "fingerprint": "58ed4991c121",
       "results": {
         "model": null,
-        "assertions_passed": 23,
-        "assertions_total": 23,
+        "assertions_passed": 24,
+        "assertions_total": 24,
         "pass_rate": 1,
         "failed_assertions": [],
         "total_tokens": 0,
         "duration_ms": 0,
         "cost_usd": 0,
         "grading_usage": {
-          "input_tokens": 14893,
-          "output_tokens": 3950,
-          "total_tokens": 18843,
+          "input_tokens": 15651,
+          "output_tokens": 4242,
+          "total_tokens": 19893,
           "calls": 2,
-          "cost_usd": 0.103929,
+          "cost_usd": 0.110583,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -39,8 +39,8 @@
     }
   ],
   "summary": {
-    "assertions_passed": 23,
-    "assertions_total": 23,
+    "assertions_passed": 24,
+    "assertions_total": 24,
     "pass_rate": 1,
     "errored_evals": [],
     "truncated_evals": [],
@@ -48,11 +48,11 @@
     "total_duration_ms": 0,
     "total_cost_usd": 0,
     "grading": {
-      "input_tokens": 14893,
-      "output_tokens": 3950,
-      "total_tokens": 18843,
+      "input_tokens": 15651,
+      "output_tokens": 4242,
+      "total_tokens": 19893,
       "calls": 2,
-      "cost_usd": 0.103929,
+      "cost_usd": 0.110583,
       "evals_measured": 1,
       "rates_usd_per_mtok": {
         "input": 3,

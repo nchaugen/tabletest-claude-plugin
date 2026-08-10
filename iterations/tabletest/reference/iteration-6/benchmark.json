@@ -8,28 +8,28 @@
   "skill_commit": "unknown",
   "skill_digest": "unknown",
   "generation_auth": "unknown",
-  "timestamp": "2026-08-10T21:01:12.574Z",
+  "timestamp": "2026-08-10T22:29:46.525Z",
   "evals": [
     {
       "id": "eval-29-shopping-cart-tt",
       "name": "shopping cart tt",
       "skill": "tabletest",
-      "fingerprint": "97e5a1b028b0",
+      "fingerprint": "c33c9b84380d",
       "results": {
         "model": null,
-        "assertions_passed": 33,
-        "assertions_total": 33,
+        "assertions_passed": 36,
+        "assertions_total": 36,
         "pass_rate": 1,
         "failed_assertions": [],
         "total_tokens": 0,
         "duration_ms": 0,
         "cost_usd": 0,
         "grading_usage": {
-          "input_tokens": 38554,
-          "output_tokens": 15602,
-          "total_tokens": 54156,
+          "input_tokens": 39613,
+          "output_tokens": 17728,
+          "total_tokens": 57341,
           "calls": 3,
-          "cost_usd": 0.349692,
+          "cost_usd": 0.384759,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -39,8 +39,8 @@
     }
   ],
   "summary": {
-    "assertions_passed": 33,
-    "assertions_total": 33,
+    "assertions_passed": 36,
+    "assertions_total": 36,
     "pass_rate": 1,
     "errored_evals": [],
     "truncated_evals": [],
@@ -48,11 +48,11 @@
     "total_duration_ms": 0,
     "total_cost_usd": 0,
     "grading": {
-      "input_tokens": 38554,
-      "output_tokens": 15602,
-      "total_tokens": 54156,
+      "input_tokens": 39613,
+      "output_tokens": 17728,
+      "total_tokens": 57341,
       "calls": 3,
-      "cost_usd": 0.349692,
+      "cost_usd": 0.384759,
       "evals_measured": 1,
       "rates_usd_per_mtok": {
         "input": 3,

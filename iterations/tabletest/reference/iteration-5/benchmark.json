@@ -8,28 +8,28 @@
   "skill_commit": "unknown",
   "skill_digest": "unknown",
   "generation_auth": "unknown",
-  "timestamp": "2026-08-10T19:48:01.337Z",
+  "timestamp": "2026-08-10T22:26:56.451Z",
   "evals": [
     {
       "id": "eval-23-loan-approval-tt",
       "name": "loan approval tt",
       "skill": "tabletest",
-      "fingerprint": "34655973e8ed",
+      "fingerprint": "ca9b6f41f69e",
       "results": {
         "model": null,
-        "assertions_passed": 24,
-        "assertions_total": 24,
+        "assertions_passed": 25,
+        "assertions_total": 25,
         "pass_rate": 1,
         "failed_assertions": [],
         "total_tokens": 0,
         "duration_ms": 0,
         "cost_usd": 0,
         "grading_usage": {
-          "input_tokens": 13660,
-          "output_tokens": 3509,
-          "total_tokens": 17169,
+          "input_tokens": 13873,
+          "output_tokens": 2532,
+          "total_tokens": 16405,
           "calls": 2,
-          "cost_usd": 0.093615,
+          "cost_usd": 0.079599,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -39,8 +39,8 @@
     }
   ],
   "summary": {
-    "assertions_passed": 24,
-    "assertions_total": 24,
+    "assertions_passed": 25,
+    "assertions_total": 25,
     "pass_rate": 1,
     "errored_evals": [],
     "truncated_evals": [],
@@ -48,11 +48,11 @@
     "total_duration_ms": 0,
     "total_cost_usd": 0,
     "grading": {
-      "input_tokens": 13660,
-      "output_tokens": 3509,
-      "total_tokens": 17169,
+      "input_tokens": 13873,
+      "output_tokens": 2532,
+      "total_tokens": 16405,
       "calls": 2,
-      "cost_usd": 0.093615,
+      "cost_usd": 0.079599,
       "evals_measured": 1,
       "rates_usd_per_mtok": {
         "input": 3,
