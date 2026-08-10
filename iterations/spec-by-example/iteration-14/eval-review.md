@@ -4,7 +4,7 @@
 
 ## Summary
 
-122/130 (93.8%) · 1023056 tokens · 1436.1s · $3.9163
+121/129 (93.8%) · 1023056 tokens · 1436.1s · $3.9163
 
 _Cost figures are Claude Code list-price estimates; actual billing may differ (e.g. promotional pricing). Timed-out evals score 0 with unrecorded token usage._
 
@@ -37,7 +37,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 | eval-16-order-splitting | 18/19 | — | 101205 | — | 280.2 | — |
 | eval-17-shopping-cart | 18/18 | — | 91008 | — | 162.2 | — |
 | eval-21-event-registration-sbe | 11/13 | — | 82761 | — | 102.6 | — |
-| eval-24-weekly-pay-sbe | 9/9 | — | 82651 | — | 95.5 | — |
+| eval-24-weekly-pay-sbe | 8/8 | — | 82651 | — | 95.5 | — |
 
 ## Per-Eval Results
 
@@ -217,7 +217,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ✅ Eval eval-24-weekly-pay-sbe
 
-**9/9** · 82651 tokens · 95545ms
+**8/8** · 82651 tokens · 95545ms
 
 - ✅ **produces-markdown-table**: Output contains at least one markdown table (using | column | syntax)
 - ✅ **output-column-has-question-mark**: At least one output column name ends with '?' (e.g. 'Pay?', 'Rate?')
@@ -227,5 +227,4 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 - ✅ **overtime-boundary-covered**: The overtime threshold boundary (40 hours) is covered with at least a value at the threshold and one above.
 - ✅ **concerns-decomposed**: Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.
 - ✅ **no-duplicate-rows-within-a-table**: Judge each table in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a premium sampled at 0, 2, 4 and 6 claims once the charge is already known to be per claim: two samples state a difference, a third states its shape, and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. Two further cases are NOT excess, and both are commonly mistaken for it. A third consecutive value of a count, where two would leave a per-unit rate and a one-off charge indistinguishable: 0, 1 and 2 prior claims, because 0 and 1 alone are equally consistent with a flat penalty for having any claim history, and the third row is what decides between them. And a row whose point is that an input does NOT move the outcome — two ages priced the same, a value set over every carrier against one cost — because an invariance is a rule of its own and the only way to state it is to vary the input and hold the expectation. Neither is a repeat of a direction: the first establishes a shape, the second establishes that there is no direction at all. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by this eval's own coverage assertions. Judge every table in the response; your evidence must name each table with PASS or FAIL.
-- ✅ **separates-classification-and-calculation**: Payable hours categorisation (1x regular, 1.5x overtime, 2x Sunday/holiday) and pay calculation (hours × rate) are in separate tables
 

@@ -8,7 +8,7 @@
   "skill_commit": "7d8780edc347bc49de3f67353ad554d15cd127df",
   "skill_digest": "9314d4034006bff5",
   "generation_auth": "subscription",
-  "timestamp": "2026-08-10T11:20:29.727Z",
+  "timestamp": "2026-08-10T19:12:37.179Z",
   "evals": [
     {
       "id": "eval-4-loan-approval",
@@ -270,22 +270,22 @@
       "id": "eval-24-weekly-pay-sbe",
       "name": "weekly pay sbe",
       "skill": "spec-by-example",
-      "fingerprint": "58496c89ec7a",
+      "fingerprint": "4fc3294f9c93",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 9,
-        "assertions_total": 9,
+        "assertions_passed": 8,
+        "assertions_total": 8,
         "pass_rate": 1,
         "failed_assertions": [],
         "total_tokens": 82651,
         "duration_ms": 95545,
         "cost_usd": 0.30550180000000005,
         "grading_usage": {
-          "input_tokens": 3644,
-          "output_tokens": 1385,
-          "total_tokens": 5029,
+          "input_tokens": 3574,
+          "output_tokens": 1541,
+          "total_tokens": 5115,
           "calls": 1,
-          "cost_usd": 0.031707,
+          "cost_usd": 0.033837,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -295,20 +295,20 @@
     }
   ],
   "summary": {
-    "assertions_passed": 122,
-    "assertions_total": 130,
-    "pass_rate": 0.9384615384615385,
+    "assertions_passed": 121,
+    "assertions_total": 129,
+    "pass_rate": 0.937984496124031,
     "errored_evals": [],
     "truncated_evals": [],
     "total_tokens": 1023056,
     "total_duration_ms": 1436095,
     "total_cost_usd": 3.9163332000000004,
     "grading": {
-      "input_tokens": 57498,
-      "output_tokens": 32671,
-      "total_tokens": 90169,
+      "input_tokens": 57428,
+      "output_tokens": 32827,
+      "total_tokens": 90255,
       "calls": 14,
-      "cost_usd": 0.662559,
+      "cost_usd": 0.664689,
       "evals_measured": 10,
       "rates_usd_per_mtok": {
         "input": 3,
