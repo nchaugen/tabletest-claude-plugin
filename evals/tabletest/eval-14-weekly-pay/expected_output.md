@@ -1,9 +1,12 @@
-Weekly pay for hourly employees, test-first against a stub. The feature has two concerns and
-they belong in two `@TableTest` methods: **classifying** raw hours into rate bands
-(regular 1×, overtime 1.5×, Sunday 2×, holiday 2×) and **calculating** pay from classified hours
-and a rate. A third table (or a clearly separated section) carries the **rejection** cases. The
-substance the tables must communicate is the *rate structure* — the multiplication itself is
-uninteresting and should be kept transparent.
+Weekly pay for hourly employees, test-first against a stub. **The calculator receives the hours the
+prompt says it receives** — weekday, Sunday and holiday — plus the rate, and applies the 40-hour
+overtime threshold itself. Where weekday hours stop being regular is internal to it, so a solution
+that makes the calculator take *pre-split* regular and overtime hours has moved the policy onto its
+caller and no longer implements the feature the prompt describes. A pay table and a **rejection**
+table are the two the feature needs; a further table is welcome where it carries a rule of its own
+(the pay floor, say), and a separate classification table is optional rather than expected — see
+below. The substance the tables must communicate is the *rate structure* — the multiplication itself
+is uninteresting and should be kept transparent.
 
 ## What the tables are really about
 
@@ -15,9 +18,12 @@ Two devices keep it transparent:
 - **Choose a wage that makes the multiplier legible** — a rate of 1 or 10, so `1 Sunday hour @ 10
   → 20` reads as "2×" directly. State a plain "1 normal hour @ rate" either as a `@Description`
   example or as the rate column itself.
-- **Separate classification from calculation** (`separates-classification-and-calculation`) so the
-  band logic (e.g. `41 weekday hours → 40 regular + 1 overtime`) is visible without any pay
-  arithmetic clouding it.
+- **Show each band's premium in rows a reader can compare**, not in prose. One weekday hour at 10
+  pays 10, one hour past the threshold adds 15, one Sunday hour pays 20 — the multipliers are then
+  readable off the cells with no sums to do. A separate classification table is one way to make the
+  band logic visible and is perfectly acceptable, but it is **not** required, and a solution without
+  one must not be marked down for it: with the calculator taking raw hours, classification has no
+  observable surface of its own.
 
 ## The rate structure, in rows not prose
 
@@ -79,8 +85,10 @@ solution that instead floors pay at zero and *shows a row proving it* is equally
 
 ## Judging
 
-Score the two-concern split and the visibility of the rate structure first: the 40/41 boundary,
-the 2× premiums shown by a legible wage, the all-bands composition, and zero-vs-negative rate as
-distinct rows. Then the underspecified negative-hours choice being made *explicit in a row*,
+Score the visibility of the rate structure first: the 40/41 boundary, the 2× premiums shown by a
+legible wage, the all-bands composition, and zero-vs-negative rate as distinct rows. **Do not score
+the number of tables** — how the solution divides its concerns is `concerns-decomposed`'s and
+`concern-not-over-split`'s business, and a calculator taking the raw hours the prompt names has no
+classification step to put in a table of its own. Then the underspecified negative-hours choice being made *explicit in a row*,
 whatever choice it is. Arithmetic must be internally consistent with the rule the rows state
 (`1.8-correctness-expected-values`).

@@ -96,11 +96,6 @@
       "type": "llm"
     },
     {
-      "id": "separates-classification-and-calculation",
-      "text": "Payable hours categorisation (1x regular, 1.5x overtime, 2x Sunday/holiday) and pay calculation (hours × rate) are in separate @TableTest methods",
-      "type": "llm"
-    },
-    {
       "id": "has-tabletest-dependency",
       "text": "The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency",
       "type": "deterministic"

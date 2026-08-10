@@ -4,7 +4,7 @@
 
 ## Summary
 
-20/24 (83.3%) · 644634 tokens · 148.8s · $0.7480
+21/23 (91.3%) · 644634 tokens · 148.8s · $0.7480
 
 _Cost figures are Claude Code list-price estimates; actual billing may differ (e.g. promotional pricing). Timed-out evals score 0 with unrecorded token usage._
 
@@ -19,13 +19,13 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 | Eval | Pass Rate | Prev | Tokens | Prev | Time(s) | Prev |
 |------|-----------|------|--------|------|---------|------|
-| eval-14-weekly-pay | 20/24 | — | 644634 | — | 148.8 | — |
+| eval-14-weekly-pay | 21/23 | — | 644634 | — | 148.8 | — |
 
 ## Per-Eval Results
 
 ### ⚠️ Eval eval-14-weekly-pay
 
-**20/24** · 644634 tokens · 148827ms
+**21/23** · 644634 tokens · 148827ms
 
 - ✅ **1.2-error-has-expected-column**: The error/rejection table has an expected column (e.g. 'Throws?' or 'Exception?') specifying the exception type per row — rather than hardcoding the exception type in @Description or the method name.
 - ✅ **1.3-depth-overtime-boundary**: Judge every @TableTest in the class. Overtime starts strictly above 40 hours, so the boundary is shown by two rows in the SAME column of the SAME table: one holding exactly 40, and one holding a value greater than 40 and no greater than 41 (41 is the intended value; 40.5 and 41.0 also count). FAILS when no single column carries both. A value of 42 or above does NOT discharge it, however close it looks — 45 shows that overtime exists, not where it starts, because 41 through 44 could still be regular under a different threshold. Rows well below 40 are fine but discharge nothing here. Your evidence must quote the two cell values and name the column and method they sit in, or say which of the two is missing.
