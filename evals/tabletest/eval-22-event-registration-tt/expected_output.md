@@ -1,6 +1,7 @@
 Two @TableTest methods, one per concern: form acceptance (validation) and pricing/discount. The
 validation table varies name, email, and the two optional fields in their own columns, with blank
-cells for the absent optionals and an output column asserting acceptance. The pricing table varies
+cells for the absent optionals and output columns asserting acceptance and, preferably, the reason a
+rejected registration gives. The pricing table varies
 registration date (descriptive values via a @TypeConverter) and group size, with a Discount? output
 (and optionally a per-attendee Price?). Column names are business language; each method applies one
 uniform assertion to every row; scenario names and @Description restate nothing the columns show.
@@ -39,18 +40,25 @@ date/group combination) is the anti-pattern the row-count assertions guard again
 **Validation** — name, email, and both optionals in columns; date and group size are irrelevant, so
 they are fixed at valid values in the method body rather than shown. One assertion: `Accepted?`.
 
-| Scenario | Name | Email | Dietary requirements | Accessibility needs | Accepted? |
-|---|---|---|---|---|---|
-| All fields provided | Ann | ann@example.com | Vegan | Wheelchair | true |
-| Optionals absent | Ben | ben@example.com | | | true |
-| One optional only | Cara | cara@example.com | Halal | | true |
-| Invalid email — no @ | Dan | dan.example.com | | | false |
-| Invalid email — no domain | Eve | eve@ | | | false |
-| Missing name | | fay@example.com | | | false |
+| Scenario | Name | Email | Dietary requirements | Accessibility needs | Accepted? | Error message? |
+|---|---|---|---|---|---|---|
+| All fields provided | Ann | ann@example.com | Vegan | Wheelchair | true | |
+| Optionals absent | Ben | ben@example.com | | | true | |
+| One optional only | Cara | cara@example.com | Halal | | true | |
+| Invalid email — no @ | Dan | dan.example.com | | | false | Email format is invalid |
+| Invalid email — no domain | Eve | eve@ | | | false | Email format is invalid |
+| Missing name | | fay@example.com | | | false | Name is required |
 
 The first three rows carry the point that the optionals are genuinely optional: present, absent, and
 half-present all accepted. The blank cells are the absent optionals (null), and are the reason the
 `blank-for-absent-optional` and `validation-includes-optional-fields` assertions exist.
+
+**The `Error message?` column is the same blank notation doing a second job**: blank on every
+accepted row means no message, and the two rejected rules carry different text while the two
+invalid-email rows share it. That is what stops the column being a restatement of `Accepted?`. The
+exact wording is latitude — any consistent phrasing passes, and asserting acceptance alone is
+acceptable. Note also that a blank `Name` cell and a blank optional cell mean the same thing (not
+supplied) and land on opposite verdicts, which is the table's sharpest single property.
 
 **Pricing** — a valid name/email fixed in the body; dietary/accessibility irrelevant to price and
 omitted; date and group size in columns. One assertion pattern (`Discount?`, optionally `Price?`):
@@ -74,8 +82,15 @@ Arithmetic (base £100): early-bird 20% → £80; group 15% → £85; neither �
   to 20% (early-bird) beating 15% (group) and lets a reviewer challenge it.
 - **The boundary date.** "before 2025-03-01" is read as strictly before; the `on cutoff` row makes
   that explicit rather than leaving the reader to guess whether the cutoff day is included.
-- **Error message text is unspecified**, so validation asserts *acceptance* (a boolean) and, at most,
-  that a rejected result carries a non-empty message — not a specific string the prompt never fixes.
+- **Error message text is unspecified, so committing to wording is one of the readings this eval
+  asks for.** The prompt fixes that a rejected registration carries a message and never says what it
+  says. A table that publishes the reason — one message per rule, blank on every accepted row — is
+  the preferred answer: it tells the two rejection rules apart, where a boolean `Error Reported?` is
+  the exact complement of `Accepted?` and states nothing the acceptance column has not. The wording
+  is an assumption, and naming it as one in the `@Description` is what makes it reviewable. Asserting
+  only acceptance, or only that *some* message is present, is weaker but not wrong.
+  **What is wrong is inventing a reason the rules do not distinguish** — two different messages for
+  the same rule, or a message naming a field the prompt never validates.
 
 ## Out of scope, but foreseeable
 
@@ -94,4 +109,5 @@ assertion and only the rows its concern needs. Then the representation choices t
 encode: blank = absent optional, descriptive dates, `Discount?` as the falsifiable output,
 business-language columns, and scenario names / descriptions that add context rather than echo cells.
 Whether a per-attendee `Price?` column accompanies `Discount?` is latitude; a group-total reading is
-tolerated if labelled, not preferred.
+tolerated if labelled, not preferred. Whether the validation table publishes the rejection reason is
+also latitude — preferred, not required — and the wording it chooses is never scored.
