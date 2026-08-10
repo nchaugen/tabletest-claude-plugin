@@ -8,28 +8,28 @@
   "skill_commit": "8dcc1266a813d4f1ac4ab5f29369b417d9d51d40",
   "skill_digest": "1d5b863abf1c4a0b",
   "generation_auth": "subscription",
-  "timestamp": "2026-08-10T11:20:19.199Z",
+  "timestamp": "2026-08-10T23:25:44.293Z",
   "evals": [
     {
       "id": "eval-20-collections-and-quoting",
       "name": "collections and quoting",
       "skill": "tabletest",
-      "fingerprint": "5c81d5b47bc8",
+      "fingerprint": "53fca6c0a68b",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 18,
-        "assertions_total": 18,
+        "assertions_passed": 19,
+        "assertions_total": 19,
         "pass_rate": 1,
         "failed_assertions": [],
         "total_tokens": 2066130,
         "duration_ms": 320078,
         "cost_usd": 1.4122433000000003,
         "grading_usage": {
-          "input_tokens": 6412,
-          "output_tokens": 974,
-          "total_tokens": 7386,
+          "input_tokens": 6744,
+          "output_tokens": 865,
+          "total_tokens": 7609,
           "calls": 1,
-          "cost_usd": 0.033846,
+          "cost_usd": 0.033207,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -41,27 +41,28 @@
       "id": "eval-29-shopping-cart-tt",
       "name": "shopping cart tt",
       "skill": "tabletest",
-      "fingerprint": "97e5a1b028b0",
+      "fingerprint": "c33c9b84380d",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 29,
-        "assertions_total": 33,
-        "pass_rate": 0.8787878787878788,
+        "assertions_passed": 31,
+        "assertions_total": 36,
+        "pass_rate": 0.8611111111111112,
         "failed_assertions": [
           "scenario-names-describe-conditions",
           "description-not-redundant-with-scenarios",
           "quantifier-covered-by-rows",
-          "concern-not-over-split"
+          "concern-not-over-split",
+          "native-collection-output"
         ],
         "total_tokens": 802970,
         "duration_ms": 310718,
         "cost_usd": 1.4024770000000002,
         "grading_usage": {
-          "input_tokens": 37198,
-          "output_tokens": 28640,
-          "total_tokens": 65838,
+          "input_tokens": 38257,
+          "output_tokens": 36463,
+          "total_tokens": 74720,
           "calls": 3,
-          "cost_usd": 0.541194,
+          "cost_usd": 0.661716,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -73,26 +74,25 @@
       "id": "eval-30-order-splitting-tt",
       "name": "order splitting tt",
       "skill": "tabletest",
-      "fingerprint": "a1eb4c68e002",
+      "fingerprint": "ca7e3d8994ac",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 23,
-        "assertions_total": 26,
-        "pass_rate": 0.8846153846153846,
+        "assertions_passed": 25,
+        "assertions_total": 27,
+        "pass_rate": 0.9259259259259259,
         "failed_assertions": [
           "no-duplicate-rows-within-a-table",
-          "no-table-reproves-another",
-          "concern-companion-products"
+          "no-table-reproves-another"
         ],
         "total_tokens": 3047158,
         "duration_ms": 617410,
         "cost_usd": 2.4249294,
         "grading_usage": {
-          "input_tokens": 26407,
-          "output_tokens": 15418,
-          "total_tokens": 41825,
+          "input_tokens": 29152,
+          "output_tokens": 17071,
+          "total_tokens": 46223,
           "calls": 2,
-          "cost_usd": 0.310491,
+          "cost_usd": 0.343521,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -102,20 +102,20 @@
     }
   ],
   "summary": {
-    "assertions_passed": 70,
-    "assertions_total": 77,
-    "pass_rate": 0.9090909090909091,
+    "assertions_passed": 75,
+    "assertions_total": 82,
+    "pass_rate": 0.9146341463414634,
     "errored_evals": [],
     "truncated_evals": [],
     "total_tokens": 5916258,
     "total_duration_ms": 1248206,
     "total_cost_usd": 5.2396497,
     "grading": {
-      "input_tokens": 70017,
-      "output_tokens": 45032,
-      "total_tokens": 115049,
+      "input_tokens": 74153,
+      "output_tokens": 54399,
+      "total_tokens": 128552,
       "calls": 6,
-      "cost_usd": 0.8855310000000001,
+      "cost_usd": 1.038444,
       "evals_measured": 3,
       "rates_usd_per_mtok": {
         "input": 3,

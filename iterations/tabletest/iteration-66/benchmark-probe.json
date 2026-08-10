@@ -1,14 +1,14 @@
 {
   "skill_name": "tabletest",
-  "iteration": 85,
+  "iteration": 66,
   "model": "sonnet",
   "provider": "anthropic",
   "grading_model": "claude-sonnet-5",
   "grading_effort": null,
-  "skill_commit": "58c8dfb1a317b68fcde56134f691284a6bb38ca1",
-  "skill_digest": "7115bc8ee9ee46fd",
+  "skill_commit": "fbb11268cd1157275255f0a83c72564c239b2fb2",
+  "skill_digest": "e316002b84e99480",
   "generation_auth": "subscription",
-  "timestamp": "2026-08-10T23:08:56.721Z",
+  "timestamp": "2026-08-10T23:20:45.976Z",
   "evals": [
     {
       "id": "eval-30-order-splitting-tt",
@@ -17,25 +17,22 @@
       "fingerprint": "ca7e3d8994ac",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 22,
+        "assertions_passed": 25,
         "assertions_total": 27,
-        "pass_rate": 0.8148148148148148,
+        "pass_rate": 0.9259259259259259,
         "failed_assertions": [
-          "rule-falsifiable-by-a-row",
           "no-table-reproves-another",
-          "all-outputs-same-table",
-          "native-collection-output",
-          "scenario-names-describe-conditions"
+          "concern-companion-products"
         ],
-        "total_tokens": 1696466,
-        "duration_ms": 374997,
-        "cost_usd": 1.6334936999999998,
+        "total_tokens": 1655907,
+        "duration_ms": 498036,
+        "cost_usd": 1.6751501999999998,
         "grading_usage": {
-          "input_tokens": 28452,
-          "output_tokens": 14406,
-          "total_tokens": 42858,
+          "input_tokens": 28786,
+          "output_tokens": 10645,
+          "total_tokens": 39431,
           "calls": 2,
-          "cost_usd": 0.301446,
+          "cost_usd": 0.246033,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -45,20 +42,20 @@
     }
   ],
   "summary": {
-    "assertions_passed": 22,
+    "assertions_passed": 25,
     "assertions_total": 27,
-    "pass_rate": 0.8148148148148148,
+    "pass_rate": 0.9259259259259259,
     "errored_evals": [],
     "truncated_evals": [],
-    "total_tokens": 1696466,
-    "total_duration_ms": 374997,
-    "total_cost_usd": 1.6334936999999998,
+    "total_tokens": 1655907,
+    "total_duration_ms": 498036,
+    "total_cost_usd": 1.6751501999999998,
     "grading": {
-      "input_tokens": 28452,
-      "output_tokens": 14406,
-      "total_tokens": 42858,
+      "input_tokens": 28786,
+      "output_tokens": 10645,
+      "total_tokens": 39431,
       "calls": 2,
-      "cost_usd": 0.301446,
+      "cost_usd": 0.246033,
       "evals_measured": 1,
       "rates_usd_per_mtok": {
         "input": 3,

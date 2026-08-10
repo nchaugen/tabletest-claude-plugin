@@ -10,13 +10,13 @@
       "id": "threshold-verifiable-from-table",
       "text": "Each policy threshold (650 for non-seniors, 600 for seniors) is verifiable from the table, in one of two ways: (a) a dedicated policy column (e.g. 'Credit threshold') beside the applicant's score, or (b) boundary rows that bracket it — within one age band, a row that qualifies just above the threshold and a row that fails at/below it, carrying different decisions. The assertion FAILS only if a threshold governs the outcome yet neither a policy column nor a bracketing row pair makes its location visible — e.g. the score column holds arbitrary values with no boundary pair and no threshold column.",
       "passed": true,
-      "evidence": "Rows 'Standard applicant, above threshold... 651' (APPROVED) vs 'at the threshold... 650' (REJECTED) bracket 650; similarly 601 vs 600 for seniors."
+      "evidence": "Rows: '...650|{true,false}|REJECTED' vs '...651|true|APPROVED' bracket the 650/651 boundary; similarly 600/601 for seniors."
     },
     {
       "id": "concrete-domain-values",
       "text": "Cell values use concrete domain terms (e.g. '70', '650', 'APPROVED') — not abstract codes like 'CATEGORY_A' or '1'. Boolean true/false is acceptable for yes/no flags when the parameter type is boolean.",
       "passed": true,
-      "evidence": "Cells use '64', '651', 'true', 'false', 'APPROVED', 'REJECTED', 'PENDING_REVIEW' — concrete domain values throughout."
+      "evidence": "Cells like '64', '651', 'true', 'APPROVED', 'REJECTED' are concrete domain values, not codes."
     },
     {
       "id": "scenario-column-present",
@@ -28,13 +28,13 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names name the variation the row exercises, not the result it produces. The decidable test: FAILS when a scenario name states or paraphrases a value that appears in an expectation column of that same row — 'User cannot delete' beside an Allowed? cell of false, 'No discount applies' beside a Discount? cell of 0.00, 'Contractor gets no bonus' beside a Bonus? cell of 0. Also FAILS on generic labels ('Test 1', 'Test case 2'), which name no variation at all. PASSES otherwise. Naming the rule or the situation is correct even when it makes the outcome inferable — 'Delivery and pickup items always split', 'At the standard threshold, not above it', 'EU express, light package', 'Renewal with no claims', 'Missing name' all PASS. The failure this catches is a name echoing its own expectation cell, not a name that describes what the row is about, and not a name from which a reader who knows the rule could predict the outcome. A single offending name fails the assertion. Judge every @TableTest method in the class.",
       "passed": true,
-      "evidence": "Names like 'Standard applicant, above threshold, unstable income' and 'At the senior age cutoff' describe conditions, not echoing the Result? cell's literal text."
+      "evidence": "Names like 'Standard applicant, above threshold, unstable income' describe conditions, not echoing 'REJECTED'/'APPROVED' cells."
     },
     {
       "id": "business-language-columns",
       "text": "Column names use domain/business language (e.g. 'Age', 'Credit score', 'Stable income', 'Decision?') — not code identifiers like 'customerAge', 'boolean'.",
       "passed": true,
-      "evidence": "Columns are 'Applicant Age | Credit Score | Stable Income | Result?' — domain language, no code identifiers."
+      "evidence": "Columns: 'Applicant Age | Credit Score | Stable Income | Result?' are business language, not code identifiers."
     },
     {
       "id": "has-question-mark-column",
@@ -69,38 +69,38 @@
     {
       "id": "concerns-decomposed",
       "text": "The distinct concerns (age→threshold, credit boundary, income status) are each covered, without a monolithic table that re-proves unrelated rules through redundant permutations. A single table is acceptable when the concerns share the same input columns and each is covered by only a row or two — as here — so the compact single-table form and a multi-table split are both correct. The assertion FAILS only for a table that cross-multiplies concerns into redundant rows, not for using one table.",
-      "passed": true,
-      "evidence": "Single table with age, credit, income concerns each covered by a few rows sharing columns, not a full cross-product of unrelated concerns."
+      "passed": false,
+      "evidence": "Income variation (true/false/blank) is fully re-tested at both age tiers (rows 1-3 vs 6-8, and 4-5 vs 9-10), cross-multiplying age x income redundantly."
     },
     {
       "id": "no-duplicate-rows-within-a-table",
       "text": "Judge each @TableTest in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a premium sampled at 0, 2, 4 and 6 claims once the charge is already known to be per claim: two samples state a difference, a third states its shape, and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. Two further cases are NOT excess, and both are commonly mistaken for it. A third consecutive value of a count, where two would leave a per-unit rate and a one-off charge indistinguishable: 0, 1 and 2 prior claims, because 0 and 1 alone are equally consistent with a flat penalty for having any claim history, and the third row is what decides between them. And a row whose point is that an input does NOT move the outcome — two ages priced the same, a value set over every carrier against one cost — because an invariance is a rule of its own and the only way to state it is to vary the input and hold the expectation. Neither is a repeat of a direction: the first establishes a shape, the second establishes that there is no direction at all. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by 2.19-covers-every-tier and quantifier-covered-by-rows. Judge every @TableTest method in the class; your evidence must name each method with PASS or FAIL.",
       "passed": false,
-      "evidence": "decidesLoanApproval: rows 'Just below the senior age cutoff' (64/620/true→REJECTED) and 'At the senior age cutoff' (65/620/true→APPROVED) re-prove the age→threshold shift already discharged by the 651/650 and 601/600 boundary pairs, making them excess."
+      "evidence": "decidesLoanApproval: rows 6-8 ('Senior applicant, above threshold, stable/unstable/unknown income') re-prove the same income rule already shown by rows 1-3 at age 64, and rows 9-10 duplicate the threshold-overrides-income rule from rows 4-5."
     },
     {
       "id": "no-table-reproves-another",
       "text": "Judge the class as a whole, and only its @TableTest methods: a plain @Test method is not a table and can never fail this assertion, however much of an earlier table it re-proves. The assertion FAILS if a whole @TableTest re-proves rules that earlier tables already established — an integration or end-to-end table whose rows re-prove established rules is the common case, and it fails however clean the other tables are. Sibling tables that each isolate one rule are NOT duplication merely because they share a baseline row: four surcharge tables that each show 'no surcharge' then 'surcharge applied' are four legitimate tables, not one duplicated four times. Collapsing several same-fixture tables into one, as concern-not-over-split requires, is likewise not a failure here. Rows you think are missing are never a failure here. Your evidence must name the re-proving table and the table it duplicates, or state that no @TableTest re-proves another.",
       "passed": true,
-      "evidence": "Only one @TableTest method, 'decidesLoanApproval', exists in the class, so no table re-proves another."
+      "evidence": "Only one @TableTest method ('decidesLoanApproval') exists in the class, so no table re-proves another."
     },
     {
       "id": "covers-age-credit-income",
       "text": "Age boundary policy, credit score categorisation, and income status are each covered by minimal scenarios. This may be one @TableTest whose rows exercise each concern (boundary pairs for age/credit, income held-constant rows for income status) or separate methods per concern with a combining verdict — both are correct given only a row or two per concern. The assertion FAILS if a concern is not exercised at all (e.g. income status never varied against a fixed score/age), not for choosing one table over several.",
       "passed": true,
-      "evidence": "Rows vary Applicant Age (64/65), Credit Score (650/651/600/601/620), and Stable Income (true/false/blank) with differing Result? outcomes, covering all three concerns."
+      "evidence": "Rows cover age boundary ('Just below the senior age cutoff' / 'At the senior age cutoff'), credit score boundaries (650/651, 600/601), and income variations (true/false/blank)."
     },
     {
       "id": "description-no-redundant-field-values",
       "text": "Scenario names and @Description text do not restate values the table already shows. Two surfaces are judged, and BOTH must be reported: your evidence must give the clause-(1) verdict over the scenario names and the clause-(2) verdict over the @Description separately, each quoting the text it judged. A verdict from one surface alone is not a verdict. The assertion FAILS if either: (1) a scenario name contains a literal value that also appears in an input cell of the same row (e.g. scenario 'Age 35, score 700' beside Age and Credit score columns holding 35 and 700); or (2) @Description states a fixed value for an input that is already a column in that table. Otherwise it PASSES. Stating a constant that is NOT a column — a threshold, a policy figure, a value fixed in the method body — is correct and must not fail this assertion. A policy threshold is not a fixed input value, even when the input column happens to contain a cell equal to it: 'approved above a credit score of 650' beside a Credit Score column holding 650 and 651 states the rule's boundary, not a restatement of a cell. That exemption covers clause (1) as well: a scenario name that names the rule's boundary — 'At the 650 threshold', 'Just below the 600 senior threshold' — states the boundary and PASSES, even though the row's own cell holds that number. Clause (1) fires only on a value incidental to the row: an age, an amount, a score chosen to sit somewhere ordinary and then echoed in the name. Clause (2) fires only when the description pins an input to ONE value that the column then shows in EVERY row.",
       "passed": true,
-      "evidence": "(1) Scenario names like 'At the senior age cutoff' state no literal input value; (2) @Description says 'strictly above the applicable threshold' and 'pending_review is reserved for...null' without pinning any column to one fixed value shown in every row."
+      "evidence": "Clause 1: scenario names like 'Standard applicant, above threshold, stable income' contain no literal numeric/boolean values matching row cells. Clause 2: @Description states the rule generically ('credit score to be strictly above the applicable threshold... equal to the threshold does not qualify') without citing the actual 650/600/65 figures shown in columns."
     },
     {
       "id": "depth-stable-income-effect",
       "text": "The effect of stable income on the outcome is visible from table rows, not merely implied. The assertion PASSES if some single @TableTest table contains two rows that differ in the stable-income column (or equivalent) while holding the credit score and age columns equal, and those two rows carry different expected decisions. It FAILS if no such row pair exists in any table — including when stable income appears only in scenario names, only in the @Description, or only in rows that also vary another input.",
       "passed": true,
-      "evidence": "Rows 'Standard applicant, above threshold, stable income' (651/true→APPROVED) and 'Standard applicant, above threshold, unstable income' (651/false→REJECTED) hold age/score equal and vary income with differing decisions."
+      "evidence": "Rows 'Standard applicant, above threshold, stable income | 64 | 651 | true | APPROVED' vs 'Standard applicant, above threshold, unstable income | 64 | 651 | false | REJECTED' hold age/score constant while varying income and decision."
     },
     {
       "id": "has-tabletest-dependency",
@@ -112,19 +112,19 @@
       "id": "rule-falsifiable-by-a-row",
       "text": "Cell values make the rule falsifiable, not merely distinguishable. Judge each @TableTest table independently; the assertion FAILS if any table meets any of these conditions: (1) its expectation column holds the same value in every row; (2) in every row, each expectation cell is a verbatim copy of a cell in an input column of the same row; (3) an implementation that ignored the input columns entirely and returned a fixed value would satisfy every row. Otherwise the assertion PASSES. Do not fail a table merely because its values are simple or round — only these three conditions matter. One exemption applies to conditions (1) and (3): a table whose claim IS an invariance — that some input does not affect the outcome — correctly holds one expectation value across every row, because that constant is the rule's subject rather than evidence of a weak table. A single row varying that input over a value set (e.g. '{DHL, UPS, FEDEX} | 12.00') is the correct compact form and PASSES, provided the title or description states the invariance. Condition (2) is not exempted. Enumerate before you decide: your evidence must name every @TableTest method in the class and, under each, every one of its expectation columns with PASS or FAIL beside it. A table with several expectation columns fails on condition (1) as soon as ONE of them is constant across all rows without a stated invariance. A verdict reported from a subset of the methods, or from a subset of one method's expectation columns, is not a verdict.",
       "passed": true,
-      "evidence": "decidesLoanApproval: Result? column varies APPROVED/REJECTED/PENDING_REVIEW across rows, not constant, not copied from inputs, not satisfiable by a fixed return."
+      "evidence": "decidesLoanApproval: Result? varies APPROVED/REJECTED/PENDING_REVIEW across rows, e.g. '651 | true | APPROVED' vs '650 | {true,false} | REJECTED'; no expectation cell copies an input cell verbatim."
     },
     {
       "id": "rule-statable-from-table",
       "text": "A reader can state the rule from the table alone, without the test method body. The assertion FAILS if any of these hold for any @TableTest: (1) a value needed to predict the expectation (a threshold, rate, cutoff, multiplier, reference date) appears only in the method body or a field, and in neither a column, the @DisplayName, nor the @Description; (2) the operation applied to the inputs cannot be named from the column headers and cell values alone; (3) a helper method used in the assertion applies a comparison criterion (ordering, tolerance, subset matching) that is stated nowhere in the table, title, or description. Otherwise the assertion PASSES. Setup that merely constructs the objects named by the columns is not a failure. Judge every @TableTest method in the class. Your evidence must list each method name with PASS or FAIL beside it; a verdict reported from a subset of the methods is not a verdict. A value counts as published if it appears ANYWHERE on the test class's published surface: any @DisplayName or @Description on any method, the class-level @Description, or a column of any table. A method with no @DisplayName publishes its own name as its title, with camelCase split into words, so method names count as published text. Clause (1) triggers only when the value appears ONLY in the method body or a field — a value stated in a sibling method's @Description is published, not hidden.",
       "passed": true,
-      "evidence": "decidesLoanApproval: thresholds visible via bracketed rows (650 REJECTED vs 651 APPROVED; 600 vs 601), and comparison stated in @Description: 'credit score to be strictly above the applicable threshold'."
+      "evidence": "decidesLoanApproval: thresholds shown via bracketing rows '651...APPROVED' vs '650...REJECTED' and '601...APPROVED' vs '600...REJECTED'; age cutoff shown via '64,620,REJECTED' vs '65,620,APPROVED'; operation nameable from Scenario/columns."
     },
     {
       "id": "title-states-system-behaviour",
       "text": "Each @DisplayName (or the method name it falls back to) states what the code under test does, not an external fact it depends on. Apply the check mechanically: strike the system under test from the sentence — if it still reads as true, because it merely restates a regulation, standard, format, or domain fact, the title is about something else and fails. Judge ONLY the title — the @DisplayName, or the method name it falls back to. The @Description and the scenario names are other assertions' subject; a description that restates a domain rule is not this assertion's failure and must not be cited as one.",
       "passed": true,
-      "evidence": "@DisplayName: 'Decides loan approval from credit score, income stability, and age-based threshold' names the system's decision behavior."
+      "evidence": "@DisplayName: 'Decides loan approval from credit score, income stability, and age-based threshold' uses active verb 'Decides' attributing behaviour to the system."
     },
     {
       "id": "compiles",
@@ -136,24 +136,30 @@
       "id": "held-constants-declared",
       "text": "A value the rule's outcome depends on, and which the table holds constant for every row, must be visible as a column or named in the @DisplayName/@Description as deliberately held fixed. It must not sit silently in the test method body or a field. Readers generalise from what varies, so an unstated constant is read as part of the rule: a table whose every row happens to use one traveller category states, to its reader, a rule about that category. FAILS when the method body, a field, or a @TypeConverter fixes a value that (1) the outcome depends on, and (2) appears in no column and is not named in the title or description as held fixed. A value declared only in a source-code comment (// or /* */) FAILS: the published surface is the title, the description and the table, and a comment reaches none of them. A method with no @DisplayName publishes its own name as its title, with camelCase split into words, so a constant named in the method name is declared. PASSES when every such constant is either a column or declared. Values that cannot affect the outcome are not failures — a fixed clock used only to construct inputs, object identity, or fixture values the rule is indifferent to. Declaring a held constant in @Description is NOT redundancy and does not conflict with the description-* assertions: those forbid restating what the rows already show, whereas a held constant is precisely what the rows cannot show.",
       "passed": true,
-      "evidence": "All rule-relevant inputs (age, credit score, stable income) vary across rows as columns; no silent fixed values found in the method body."
+      "evidence": "In decidesLoanApproval, Applicant Age, Credit Score, and Stable Income all vary across rows, so no silently-held constant exists to declare."
     },
     {
       "id": "rule-traceable-to-requirement",
       "text": "Every rule the rows assert is traceable to the requirement. The requirement is the prompt plus the source the prompt points at — the class under test, the existing test file. Enumerate before you decide: for each @TableTest, state in one sentence the rule its rows establish, then name the requirement text that decides that point, or write \"requirement silent\". A verdict reached without that list is not a verdict. FAILS when the requirement states a rule without a qualifier and the rows only hold under a qualifier the requirement does not attach — the rows narrow a rule the requirement states plainly. Worked example of a failure: the requirement says a count is \"the number of single tickets you have purchased in the last 30 days\", and a table whose rows exclude a past purchase because its traveller category differs from the new purchase's has added a matching condition the requirement never states. PASSES when the requirement is silent on the point. Resolving something the requirement leaves open is what is being asked for here, and EITHER reading passes: an inclusive-versus-exclusive boundary, behaviour for an input the requirement never mentions, which of two colliding requirement rules wins, what an operation does to an entry that is already there. Naming the rule an assumption on `@Description` neither creates a failure nor discharges one — the test is whether the requirement already decided the point, not how the solution described its choice, and whether an assumption is published is graded elsewhere. Rules you think are MISSING are never a failure here: this assertion judges rules the rows add, and coverage is judged by the depth and concern assertions. Judge every @TableTest method in the class.",
       "passed": true,
-      "evidence": "Row 'Standard applicant, at the threshold, income unknown | 650 | | REJECTED' resolves the precedence the requirement leaves open, an explicitly permitted reading."
+      "evidence": "Row 'Standard applicant, at the threshold, income unknown | 64 | 650 | | REJECTED' resolves the precedence question the requirement leaves open, an acceptable reading per the rules."
+    },
+    {
+      "id": "blank-for-unknown-income",
+      "text": "Unknown income is written as a blank cell, not as a word or a second column. The prompt makes income a Boolean precisely so that it can be unknown, so the third state belongs in the notation: a blank cell converting to null. FAILS when the unknown case is carried by a literal such as 'UNKNOWN', 'null' or 'n/a' in the income column, or by an extra boolean column ('Income Known?') that splits one input across two, or when no row exercises the unknown case at all. PASSES when at least one row leaves the income cell blank and the parameter is a Boolean that receives null. Your evidence must quote the row.",
+      "passed": true,
+      "evidence": "Row 'Standard applicant, above threshold, income unknown  | 64            | 651          |               | PENDING_REVIEW' leaves the income cell blank."
     }
   ],
   "assertions_passed": 23,
-  "assertions_total": 24,
-  "pass_rate": 0.9583333333333334,
+  "assertions_total": 25,
+  "pass_rate": 0.92,
   "grading_usage": {
-    "input_tokens": 13738,
-    "output_tokens": 7112,
-    "total_tokens": 20850,
+    "input_tokens": 13951,
+    "output_tokens": 6731,
+    "total_tokens": 20682,
     "calls": 2,
-    "cost_usd": 0.147894,
+    "cost_usd": 0.142818,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15
