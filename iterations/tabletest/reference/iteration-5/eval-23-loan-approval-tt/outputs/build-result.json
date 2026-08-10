@@ -1,0 +1,6 @@
+{
+  "compiles": true,
+  "tests_pass": false,
+  "compile_output": "",
+  "test_output": "\n7 tests completed, 7 failed\n\nAll 7 failures are UnsupportedOperationException from the supplied LoanEvaluator stub, which the prompt asks to leave unimplemented. Every row parsed: 7 test cases, one per row, each carrying its scenario name.\n"
+}
