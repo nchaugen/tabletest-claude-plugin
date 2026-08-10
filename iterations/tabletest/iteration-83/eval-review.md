@@ -4,7 +4,7 @@
 
 ## Summary
 
-27/30 (90.0%) · 1111762 tokens · 219.6s · $1.0145
+28/30 (93.3%) · 1111762 tokens · 219.6s · $1.0145
 
 _Cost figures are Claude Code list-price estimates; actual billing may differ (e.g. promotional pricing). Timed-out evals score 0 with unrecorded token usage._
 
@@ -19,13 +19,13 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 | Eval | Pass Rate | Prev | Tokens | Prev | Time(s) | Prev |
 |------|-----------|------|--------|------|---------|------|
-| eval-22-event-registration-tt | 27/30 | 26/29 | 1111762 | 985534 | 219.6 | 253.4 |
+| eval-22-event-registration-tt | 28/30 | 26/29 | 1111762 | 985534 | 219.6 | 253.4 |
 
 ## Per-Eval Results
 
 ### ⚠️ Eval eval-22-event-registration-tt
 
-**27/30** · 1111762 tokens · 219599ms
+**28/30** · 1111762 tokens · 219599ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest annotation
 - ✅ **validation-rules-covered**: Email validation and name-required error scenarios are present — at least one row for invalid email and one for missing name.

@@ -8,32 +8,31 @@
   "skill_commit": "501c4d058b25facdc96a1698d3e5d6490dd4c069",
   "skill_digest": "1a587c9bf7c69511",
   "generation_auth": "subscription",
-  "timestamp": "2026-08-10T11:20:29.542Z",
+  "timestamp": "2026-08-10T17:47:01.509Z",
   "evals": [
     {
       "id": "eval-22-event-registration-tt",
       "name": "event registration tt",
       "skill": "tabletest",
-      "fingerprint": "a70dee9059b4",
+      "fingerprint": "1c9ef62b1946",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 27,
+        "assertions_passed": 28,
         "assertions_total": 30,
-        "pass_rate": 0.9,
+        "pass_rate": 0.9333333333333333,
         "failed_assertions": [
           "no-duplicate-rows-within-a-table",
-          "descriptive-registration-date",
-          "description-no-irrelevant-information"
+          "descriptive-registration-date"
         ],
         "total_tokens": 1111762,
         "duration_ms": 219599,
         "cost_usd": 1.0144958999999998,
         "grading_usage": {
-          "input_tokens": 16325,
-          "output_tokens": 8799,
-          "total_tokens": 25124,
+          "input_tokens": 17277,
+          "output_tokens": 11171,
+          "total_tokens": 28448,
           "calls": 2,
-          "cost_usd": 0.18096,
+          "cost_usd": 0.219396,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -43,20 +42,20 @@
     }
   ],
   "summary": {
-    "assertions_passed": 27,
+    "assertions_passed": 28,
     "assertions_total": 30,
-    "pass_rate": 0.9,
+    "pass_rate": 0.9333333333333333,
     "errored_evals": [],
     "truncated_evals": [],
     "total_tokens": 1111762,
     "total_duration_ms": 219599,
     "total_cost_usd": 1.0144958999999998,
     "grading": {
-      "input_tokens": 16325,
-      "output_tokens": 8799,
-      "total_tokens": 25124,
+      "input_tokens": 17277,
+      "output_tokens": 11171,
+      "total_tokens": 28448,
       "calls": 2,
-      "cost_usd": 0.18096,
+      "cost_usd": 0.219396,
       "evals_measured": 1,
       "rates_usd_per_mtok": {
         "input": 3,
