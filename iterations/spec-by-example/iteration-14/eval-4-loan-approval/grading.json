@@ -16,13 +16,13 @@
       "id": "business-language-columns",
       "text": "Column names use domain/business language — no implementation terms like 'creditScore', 'isEligible', 'boolean', 'int'",
       "passed": true,
-      "evidence": "Columns: Scenario, Applicant Age, Credit Score, Credit Score Threshold (Policy), Income Stability, Approved?, Reason?"
+      "evidence": "Columns: Scenario, Applicant Age, Credit Score, Income Stability, Approved?, Reason?"
     },
     {
       "id": "senior-threshold-row",
       "text": "Table includes at least one row specifically for the senior applicant (65+) threshold scenario",
       "passed": true,
-      "evidence": "\"At the senior threshold | 600 | 600 | stable | no | Credit score not above threshold\""
+      "evidence": "\"At the senior age boundary | 65 | 600\" and \"At the senior threshold | 600 | 600 | stable | no\""
     },
     {
       "id": "missing-income-marked-open",
@@ -34,13 +34,13 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names name the variation the row exercises, not the result it produces. The decidable test: FAILS when a scenario name states or paraphrases a value that appears in an expectation column of that same row — 'User cannot delete' beside an Allowed? cell of false, 'No discount applies' beside a Discount? cell of 0.00, 'Contractor gets no bonus' beside a Bonus? cell of 0. Also FAILS on generic labels ('Test 1', 'Test case 2'), which name no variation at all. PASSES otherwise. Naming the rule or the situation is correct even when it makes the outcome inferable — 'Delivery and pickup items always split', 'At the standard threshold, not above it', 'EU express, light package', 'Renewal with no claims', 'Missing name' all PASS. The failure this catches is a name echoing its own expectation cell, not a name that describes what the row is about, and not a name from which a reader who knows the rule could predict the outcome. A single offending name fails the assertion. Judge every table in the response.",
       "passed": true,
-      "evidence": "Names like 'At the standard threshold', 'Just above the senior threshold', 'Unstable income' describe conditions, not outcomes"
+      "evidence": "Names like 'Just above the standard threshold', 'Unstable income', 'Income info missing' describe conditions, not results"
     },
     {
       "id": "threshold-values-visible",
       "text": "The policy thresholds (650 for standard, 600 for senior) appear as concrete values in the Credit Score column — not just described in prose. The reader can see the boundary values in the table rows.",
       "passed": true,
-      "evidence": "Credit Score column shows 650, 651, 600, 601 directly in Table 2"
+      "evidence": "Credit Score column shows 650, 651, 600, 601 values directly"
     },
     {
       "id": "scenario-column-present",
@@ -52,42 +52,42 @@
       "id": "threshold-as-column",
       "text": "Policy thresholds (650/600 credit scores) appear in a dedicated policy column (e.g. 'Credit threshold') separate from the applicant's actual credit score column. The reader sees both the threshold and the score, making the comparison explicit.",
       "passed": true,
-      "evidence": "\"Credit Score Threshold (Policy)\" column appears separate from \"Credit Score\" column"
+      "evidence": "Table 2/3 have both 'Credit Score' and 'Credit Score Threshold (Policy)' columns"
     },
     {
       "id": "concrete-domain-values",
       "text": "Cell values use concrete domain terms (e.g. '65', '700', 'Stable', 'yes', 'no') — not abstract codes or raw booleans like 'true', 'false', 'CATEGORY_A', '1'.",
       "passed": true,
-      "evidence": "Values like 'stable', 'unstable', 'yes', 'no' used instead of booleans"
+      "evidence": "'stable', 'unstable', 'yes', 'no', 650, 64 used instead of booleans/codes"
     },
     {
       "id": "concerns-decomposed",
       "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
       "passed": true,
-      "evidence": "Table 1 (age->threshold), Table 2 (credit score vs threshold), Table 3 (income stability) are separate"
+      "evidence": "Table 1 (age threshold), Table 2 (credit score vs threshold), Table 3 (income stability) are separate"
     },
     {
       "id": "no-duplicate-rows-within-a-table",
-      "text": "Judge each table in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a linear premium sampled at 0, 2 and 4 claims: two samples state the effect and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by this eval's own coverage assertions. Judge every table in the response; your evidence must name each table with PASS or FAIL.",
+      "text": "Judge each table in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a premium sampled at 0, 2, 4 and 6 claims once the charge is already known to be per claim: two samples state a difference, a third states its shape, and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. Two further cases are NOT excess, and both are commonly mistaken for it. A third consecutive value of a count, where two would leave a per-unit rate and a one-off charge indistinguishable: 0, 1 and 2 prior claims, because 0 and 1 alone are equally consistent with a flat penalty for having any claim history, and the third row is what decides between them. And a row whose point is that an input does NOT move the outcome — two ages priced the same, a value set over every carrier against one cost — because an invariance is a rule of its own and the only way to state it is to vary the input and hold the expectation. Neither is a repeat of a direction: the first establishes a shape, the second establishes that there is no direction at all. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by this eval's own coverage assertions. Judge every table in the response; your evidence must name each table with PASS or FAIL.",
       "passed": true,
-      "evidence": "Table 1: 2 boundary rows; Table 2: 4 distinct threshold-boundary rows; Table 3: 3 distinct branches - all PASS, no duplicates"
+      "evidence": "Table1 PASS (2 boundary rows), Table2 PASS (4 distinct threshold-boundary rows), Table3 PASS (3 distinct income branches)"
     },
     {
       "id": "separates-age-credit-income",
       "text": "Age boundary policy, credit score categorisation, and income status are separated into distinct tables, with a final table combining these for the expected verdict",
       "passed": false,
-      "evidence": "No final table combines age, credit score, and income together into one verdict; Table2 and Table3 each hold one factor constant"
+      "evidence": "No single final table combines age, credit score, and income together for the verdict; only Table2 and Table3 partially combine subsets"
     }
   ],
   "assertions_passed": 12,
   "assertions_total": 13,
   "pass_rate": 0.9230769230769231,
   "grading_usage": {
-    "input_tokens": 3584,
-    "output_tokens": 2105,
-    "total_tokens": 5689,
+    "input_tokens": 3833,
+    "output_tokens": 2609,
+    "total_tokens": 6442,
     "calls": 1,
-    "cost_usd": 0.042327,
+    "cost_usd": 0.050634,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

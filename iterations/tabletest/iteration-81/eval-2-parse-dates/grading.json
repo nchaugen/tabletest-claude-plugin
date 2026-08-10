@@ -16,19 +16,19 @@
       "id": "exception-handled-cleanly",
       "text": "The empty string / exception case is handled — either via a Throws? column, assertThrows inside the method, or a separate @TableTest — rather than being silently omitted",
       "passed": true,
-      "evidence": "Throws? column with java.lang.IllegalArgumentException for empty string row"
+      "evidence": "Throws? column with 'java.lang.IllegalArgumentException' for empty string row"
     },
     {
       "id": "localdate-result-column",
       "text": "There is a result column typed as LocalDate (or using a string representation that maps to LocalDate)",
       "passed": true,
-      "evidence": "Parsed? column typed as LocalDate parameter: 'void parsesSupportedDateFormats(String input, LocalDate parsed)'"
+      "evidence": "void parsesSupportedDateFormats(String input, LocalDate parsed)"
     },
     {
       "id": "type-conversion-addressed",
       "text": "The response addresses type conversion for non-trivial column types — either by providing a @TypeConverter/converter method, or by using a cell representation that TableTest's built-in conversion handles (e.g. ISO-8601 date strings for LocalDate — relying on built-in conversion counts as addressed).",
       "passed": true,
-      "evidence": "ISO-format date strings like '2024-01-15' map to LocalDate via built-in conversion; input remains plain String"
+      "evidence": "Parsed? column with ISO date strings like '2024-01-15' mapped to LocalDate"
     },
     {
       "id": "has-descriptive-title",
@@ -64,25 +64,25 @@
       "id": "concerns-decomposed",
       "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
       "passed": true,
-      "evidence": "Two @TableTest methods: parsesSupportedDateFormats and handlesAbsentInput, addressing format-parsing vs absent-input concerns"
+      "evidence": "Two @TableTest methods: parsesSupportedDateFormats and handlesAbsentInput"
     },
     {
       "id": "no-duplicate-rows-within-a-table",
-      "text": "Judge each @TableTest in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a linear premium sampled at 0, 2 and 4 claims: two samples state the effect and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by 2.19-covers-every-tier and quantifier-covered-by-rows. Judge every @TableTest method in the class; your evidence must name each method with PASS or FAIL.",
+      "text": "Judge each @TableTest in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a premium sampled at 0, 2, 4 and 6 claims once the charge is already known to be per claim: two samples state a difference, a third states its shape, and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. Two further cases are NOT excess, and both are commonly mistaken for it. A third consecutive value of a count, where two would leave a per-unit rate and a one-off charge indistinguishable: 0, 1 and 2 prior claims, because 0 and 1 alone are equally consistent with a flat penalty for having any claim history, and the third row is what decides between them. And a row whose point is that an input does NOT move the outcome — two ages priced the same, a value set over every carrier against one cost — because an invariance is a rule of its own and the only way to state it is to vary the input and hold the expectation. Neither is a repeat of a direction: the first establishes a shape, the second establishes that there is no direction at all. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by 2.19-covers-every-tier and quantifier-covered-by-rows. Judge every @TableTest method in the class; your evidence must name each method with PASS or FAIL.",
       "passed": true,
-      "evidence": "parsesSupportedDateFormats: PASS (3 distinct formats, no repeats); handlesAbsentInput: PASS (null vs empty string are distinct cases)"
+      "evidence": "parsesSupportedDateFormats: 3 distinct format rows; handlesAbsentInput: null vs empty string, no repeats"
     },
     {
       "id": "no-table-reproves-another",
       "text": "Judge the class as a whole, and only its @TableTest methods: a plain @Test method is not a table and can never fail this assertion, however much of an earlier table it re-proves. The assertion FAILS if a whole @TableTest re-proves rules that earlier tables already established — an integration or end-to-end table whose rows re-prove established rules is the common case, and it fails however clean the other tables are. Sibling tables that each isolate one rule are NOT duplication merely because they share a baseline row: four surcharge tables that each show 'no surcharge' then 'surcharge applied' are four legitimate tables, not one duplicated four times. Collapsing several same-fixture tables into one, as concern-not-over-split requires, is likewise not a failure here. Rows you think are missing are never a failure here. Your evidence must name the re-proving table and the table it duplicates, or state that no @TableTest re-proves another.",
       "passed": true,
-      "evidence": "No @TableTest re-proves another; parsesSupportedDateFormats and handlesAbsentInput cover disjoint scenarios"
+      "evidence": "No @TableTest re-proves another; only two tables covering distinct scenarios"
     },
     {
       "id": "separates-valid-and-invalid",
       "text": "Valid parsing cases and error/exception cases are in separate @TableTest methods",
       "passed": false,
-      "evidence": "'Null input' (valid, blank cell) and 'Empty string' (error, throws IllegalArgumentException) share one table 'handlesAbsentInput' with a combined Parsed?/Throws? column"
+      "evidence": "handlesAbsentInput mixes 'Null input' (valid, Parsed? null) with 'Empty string' (error, Throws?) in same table"
     },
     {
       "id": "has-tabletest-dependency",
@@ -101,11 +101,11 @@
   "assertions_total": 16,
   "pass_rate": 0.9375,
   "grading_usage": {
-    "input_tokens": 4372,
-    "output_tokens": 2239,
-    "total_tokens": 6611,
+    "input_tokens": 4621,
+    "output_tokens": 1686,
+    "total_tokens": 6307,
     "calls": 1,
-    "cost_usd": 0.046701,
+    "cost_usd": 0.039153,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

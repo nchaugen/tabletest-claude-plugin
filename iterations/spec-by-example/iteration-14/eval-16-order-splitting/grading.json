@@ -34,96 +34,96 @@
       "id": "3.2-depth-fulfillment-scenarios",
       "text": "Fulfillment table covers at least: all items for home delivery, all items for store pickup, and a mix of delivery and pickup items.",
       "passed": true,
-      "evidence": "Both items for pickup / Both items for delivery / One pickup, one delivery"
+      "evidence": "Both items for pickup | ... | Both items for delivery | ... | One pickup, one delivery"
     },
     {
       "id": "3.3-depth-delivery-address-scenarios",
       "text": "Delivery address table covers at least: all items to the same address, and items to different addresses.",
       "passed": true,
-      "evidence": "Both items to the same address / Gift item and personal item to different addresses"
+      "evidence": "Both items to the same address | ... | Gift item and personal item to different addresses"
     },
     {
       "id": "3.4-depth-availability-scenarios",
       "text": "Availability table covers at least: all items in stock, a mix of in-stock and pre-order/backorder, and two backordered/pre-ordered items with different dates. Pre-order and backorder are recognised as equivalent for splitting semantics — either by comment, note, or by including both with the same rules.",
       "passed": true,
-      "evidence": "Both items in stock / One in stock, one not yet available / Both not yet available / Backorder item and pre-order item with different ETAs"
+      "evidence": "Both items in stock ... One in stock, one not yet available ... Backorder item and pre-order item with different ETAs"
     },
     {
       "id": "3.5-depth-warehouse-scenarios",
       "text": "Warehouse allocation table covers at least: single warehouse has full quantity, multi-warehouse split needed, fewer-warehouse split preferred over more warehouses, and cannot fulfill (insufficient total stock).",
       "passed": true,
-      "evidence": "Single warehouse covers it / Two-warehouse combo beats a worse three-way split / No two-warehouse combo suffices / Network stock falls one short (just past boundary) ... Quantity Backordered? 1"
+      "evidence": "Single warehouse covers it ... Two-warehouse combo beats a worse three-way split ... Network stock falls one short (just past boundary)"
     },
     {
       "id": "3.6-depth-companion-scenarios",
       "text": "Companion table covers at least: single warehouse has both companions, unavoidable split (no warehouse has both but both are available), and fulfillment not possible (one companion not available anywhere).",
       "passed": false,
-      "evidence": "Table 5 lacks a scenario where one companion is unavailable anywhere (only 'no warehouse has both' split scenario is present)"
+      "evidence": "No row in Table 5 shows a companion missing from all warehouses (fulfillment not possible)"
     },
     {
       "id": "3.7-readability-scenario-names",
       "text": "Scenario names describe the business situation (e.g. 'Consolidate: two beats three', 'Everything at one warehouse') — not 'Test case 2'.",
       "passed": true,
-      "evidence": "\"One pickup, one delivery\", \"Gift item and personal item to different addresses\""
+      "evidence": "Scenario names like 'Two-warehouse combo beats a worse three-way split' and 'Companions already at the sole warehouse needed'"
     },
     {
       "id": "3.8-readability-item-property-mapping",
       "text": "Trigger tables represent multi-item orders where each item has its own fulfillment type, address, and availability. The notation makes the item-to-property mapping unambiguous — not value sets like {delivery, pickup} which lose which item has which property.",
       "passed": true,
-      "evidence": "Columns like 'Item A Method' / 'Item B Method' keep per-item properties unambiguous"
+      "evidence": "Uses separate 'Item A Method'/'Item B Method' columns rather than ambiguous value sets for per-item properties"
     },
     {
       "id": "3.9-readability-scalar-column",
       "text": "Warehouse allocation table uses a scalar count column (e.g. 'Qty ordered') not item lists, when product identity doesn't matter for the logic.",
       "passed": true,
-      "evidence": "Table 4 uses 'Quantity Ordered' scalar column rather than item lists"
+      "evidence": "Table 4 uses 'Quantity Ordered' as a scalar count column rather than item lists"
     },
     {
       "id": "3.10-readability-business-language",
       "text": "Column names use business/domain language (e.g. 'Shipments?' not 'Result?', 'Warehouse stock' not 'inventory_map'). The tables read as a specification a product person could review.",
       "passed": true,
-      "evidence": "'Shipment Count?', 'Companions Shipped Together?', 'Quantity Backordered?'"
+      "evidence": "Columns named 'Shipment Count?', 'Warehouse Stock', 'Companions Shipped Together?' use business language"
     },
     {
       "id": "3.11-readability-output-column-question-mark",
       "text": "Output/expected columns end with '?' (e.g. 'Shipments?', 'Groups?') to distinguish them from input columns.",
       "passed": true,
-      "evidence": "'Same Shipment Group?', 'Warehouses Used?', 'Minimum Shipment Count?'"
+      "evidence": "'Same Shipment Group?', 'Shipment Count?', 'Quantity Backordered?', 'Companions Shipped Together?' all end with '?'"
     },
     {
       "id": "3.12-correctness-valid-assignments",
       "text": "Inventory assignments are physically valid: items are only assigned to locations that have them. Shipment counts match the assignments shown.",
       "passed": true,
-      "evidence": "'Philadelphia: 3, Washington: 3' matches stock exactly, sums correctly to 6"
+      "evidence": "Row: 'Warehouse Stock [Chicago: 4, LA: 1] | Warehouses Used [Chicago: 4, LA: 1]' sums correctly to order qty"
     },
     {
       "id": "3.13-depth-open-questions",
       "text": "Multiple open questions are surfaced across the tables — ambiguities, edge cases, or product decisions that the requirements don't fully specify.",
       "passed": true,
-      "evidence": "'Open questions to resolve before implementation' lists 4 distinct ambiguities"
+      "evidence": "'Open questions to resolve before implementation' lists four distinct ambiguities across tables"
     },
     {
       "id": "concerns-decomposed",
       "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
       "passed": true,
-      "evidence": "Tables 1-6 each address fulfillment, address, availability, allocation, companion grouping, precedence"
+      "evidence": "Six tables each address a distinct concern: fulfillment, address, availability, quantity split, warehouse allocation, companion grouping, hard-split precedence"
     },
     {
       "id": "no-duplicate-rows-within-a-table",
-      "text": "Judge each table in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a linear premium sampled at 0, 2 and 4 claims: two samples state the effect and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by this eval's own coverage assertions. Judge every table in the response; your evidence must name each table with PASS or FAIL.",
+      "text": "Judge each table in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a premium sampled at 0, 2, 4 and 6 claims once the charge is already known to be per claim: two samples state a difference, a third states its shape, and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. Two further cases are NOT excess, and both are commonly mistaken for it. A third consecutive value of a count, where two would leave a per-unit rate and a one-off charge indistinguishable: 0, 1 and 2 prior claims, because 0 and 1 alone are equally consistent with a flat penalty for having any claim history, and the third row is what decides between them. And a row whose point is that an input does NOT move the outcome — two ages priced the same, a value set over every carrier against one cost — because an invariance is a rule of its own and the only way to state it is to vary the input and hold the expectation. Neither is a repeat of a direction: the first establishes a shape, the second establishes that there is no direction at all. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by this eval's own coverage assertions. Judge every table in the response; your evidence must name each table with PASS or FAIL.",
       "passed": true,
-      "evidence": "Table1 PASS, Table2 PASS, Table3a PASS, Table3b PASS, Table4 PASS, Table5 PASS, Table6 PASS - each row discharges a distinct branch/boundary, no redundant walk-ups"
+      "evidence": "Table1 PASS (3 distinct method branches); Table2 PASS (2 branches); Table3a PASS (4 distinct availability branches); Table3b PASS (4 distinct qty boundary cases); Table4 PASS (6 distinct minimization/boundary/tie cases); Table5 PASS (4 distinct companion-tradeoff scenarios); Table6 PASS (4 distinct hard-constraint overrides)"
     }
   ],
   "assertions_passed": 18,
   "assertions_total": 19,
   "pass_rate": 0.9473684210526315,
   "grading_usage": {
-    "input_tokens": 9982,
-    "output_tokens": 5427,
-    "total_tokens": 15409,
+    "input_tokens": 10231,
+    "output_tokens": 7965,
+    "total_tokens": 18196,
     "calls": 2,
-    "cost_usd": 0.111351,
+    "cost_usd": 0.150168,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

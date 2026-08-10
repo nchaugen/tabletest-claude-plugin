@@ -16,13 +16,13 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names name the variation the row exercises, not the result it produces. The decidable test: FAILS when a scenario name states or paraphrases a value that appears in an expectation column of that same row — 'User cannot delete' beside an Allowed? cell of false, 'No discount applies' beside a Discount? cell of 0.00, 'Contractor gets no bonus' beside a Bonus? cell of 0. Also FAILS on generic labels ('Test 1', 'Test case 2'), which name no variation at all. PASSES otherwise. Naming the rule or the situation is correct even when it makes the outcome inferable — 'Delivery and pickup items always split', 'At the standard threshold, not above it', 'EU express, light package', 'Renewal with no claims', 'Missing name' all PASS. The failure this catches is a name echoing its own expectation cell, not a name that describes what the row is about, and not a name from which a reader who knows the rule could predict the outcome. A single offending name fails the assertion. Judge every table in the response.",
       "passed": true,
-      "evidence": "Names like 'Zero hourly rate' (Weekly Pay 0) and 'No hours worked' (0) describe input conditions, not echoed outcomes."
+      "evidence": "'Below the overtime threshold', 'At the overtime threshold', 'Just past the overtime threshold' describe conditions, not outcomes"
     },
     {
       "id": "business-language-columns",
       "text": "Column names use domain/business language (e.g. 'Weekday hours', 'Sunday hours', 'Hourly rate', 'Weekly pay?') — not code identifiers.",
       "passed": true,
-      "evidence": "Columns: 'Weekday Hours', 'Overtime Threshold (hrs)', 'Hourly Rate ($)', 'Weekly Pay ($)?', 'Rejection Reason?'"
+      "evidence": "Columns like 'Weekday Hours', 'Hourly Rate ($)', 'Weekly Pay ($)?', 'Valid?' use business language"
     },
     {
       "id": "scenario-column-present",
@@ -34,7 +34,7 @@
       "id": "overtime-boundary-covered",
       "text": "The overtime threshold boundary (40 hours) is covered with at least a value at the threshold and one above.",
       "passed": true,
-      "evidence": "'At the overtime threshold | 40' and 'Just past the overtime threshold | 41' rows in Table 1."
+      "evidence": "'At the overtime threshold | 40 | 40 | 40 | 0' and 'Just past the overtime threshold | 41 | 40 | 40 | 1'"
     },
     {
       "id": "concerns-decomposed",
@@ -44,26 +44,26 @@
     },
     {
       "id": "no-duplicate-rows-within-a-table",
-      "text": "Judge each table in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a linear premium sampled at 0, 2 and 4 claims: two samples state the effect and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by this eval's own coverage assertions. Judge every table in the response; your evidence must name each table with PASS or FAIL.",
+      "text": "Judge each table in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a premium sampled at 0, 2, 4 and 6 claims once the charge is already known to be per claim: two samples state a difference, a third states its shape, and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. Two further cases are NOT excess, and both are commonly mistaken for it. A third consecutive value of a count, where two would leave a per-unit rate and a one-off charge indistinguishable: 0, 1 and 2 prior claims, because 0 and 1 alone are equally consistent with a flat penalty for having any claim history, and the third row is what decides between them. And a row whose point is that an input does NOT move the outcome — two ages priced the same, a value set over every carrier against one cost — because an invariance is a rule of its own and the only way to state it is to vary the input and hold the expectation. Neither is a repeat of a direction: the first establishes a shape, the second establishes that there is no direction at all. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by this eval's own coverage assertions. Judge every table in the response; your evidence must name each table with PASS or FAIL.",
       "passed": true,
-      "evidence": "Table 1: 4 boundary rows (0/32/40/41) each distinct; Table 2: 8 rows each a distinct hour-type/rate combo; Table 3: 3 boundary rows (20/0/-0.01) each distinct — all PASS, no re-covered obligations."
+      "evidence": "Table 1 PASS (0/32/40/41 boundaries), Table 2 PASS (distinct hour-type combos), Table 3 PASS (positive/zero/negative boundary)"
     },
     {
       "id": "separates-classification-and-calculation",
       "text": "Payable hours categorisation (1x regular, 1.5x overtime, 2x Sunday/holiday) and pay calculation (hours × rate) are in separate tables",
       "passed": true,
-      "evidence": "Table 1 — Splits Weekday Hours Into Regular and Overtime; Table 2 — Computes Weekly Pay From Classified Hours and Rate"
+      "evidence": "'Table 1 — Splits Weekday Hours Into Regular and Overtime' vs 'Table 2 — Computes Weekly Pay From Classified Hours and Rate'"
     }
   ],
   "assertions_passed": 9,
   "assertions_total": 9,
   "pass_rate": 1,
   "grading_usage": {
-    "input_tokens": 3395,
-    "output_tokens": 1724,
-    "total_tokens": 5119,
+    "input_tokens": 3644,
+    "output_tokens": 1385,
+    "total_tokens": 5029,
     "calls": 1,
-    "cost_usd": 0.036045,
+    "cost_usd": 0.031707,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

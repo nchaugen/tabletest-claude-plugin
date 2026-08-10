@@ -8,33 +8,34 @@
   "skill_commit": "58c8dfb1a317b68fcde56134f691284a6bb38ca1",
   "skill_digest": "7115bc8ee9ee46fd",
   "generation_auth": "subscription",
-  "timestamp": "2026-08-08T22:16:18.670Z",
+  "timestamp": "2026-08-10T11:20:29.668Z",
   "evals": [
     {
       "id": "eval-30-order-splitting-tt",
       "name": "order splitting tt",
       "skill": "tabletest",
-      "fingerprint": "a38b95cf8502",
+      "fingerprint": "a1eb4c68e002",
       "results": {
         "model": "claude-sonnet-5",
         "assertions_passed": 22,
-        "assertions_total": 26,
-        "pass_rate": 0.8461538461538461,
+        "assertions_total": 27,
+        "pass_rate": 0.8148148148148148,
         "failed_assertions": [
           "rule-falsifiable-by-a-row",
           "no-table-reproves-another",
           "all-outputs-same-table",
-          "native-collection-output"
+          "native-collection-output",
+          "scenario-names-describe-conditions"
         ],
         "total_tokens": 1696466,
         "duration_ms": 374997,
         "cost_usd": 1.6334936999999998,
         "grading_usage": {
-          "input_tokens": 25707,
-          "output_tokens": 10070,
-          "total_tokens": 35777,
+          "input_tokens": 26478,
+          "output_tokens": 11802,
+          "total_tokens": 38280,
           "calls": 2,
-          "cost_usd": 0.228171,
+          "cost_usd": 0.256464,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -45,19 +46,19 @@
   ],
   "summary": {
     "assertions_passed": 22,
-    "assertions_total": 26,
-    "pass_rate": 0.8461538461538461,
+    "assertions_total": 27,
+    "pass_rate": 0.8148148148148148,
     "errored_evals": [],
     "truncated_evals": [],
     "total_tokens": 1696466,
     "total_duration_ms": 374997,
     "total_cost_usd": 1.6334936999999998,
     "grading": {
-      "input_tokens": 25707,
-      "output_tokens": 10070,
-      "total_tokens": 35777,
+      "input_tokens": 26478,
+      "output_tokens": 11802,
+      "total_tokens": 38280,
       "calls": 2,
-      "cost_usd": 0.228171,
+      "cost_usd": 0.256464,
       "evals_measured": 1,
       "rates_usd_per_mtok": {
         "input": 3,

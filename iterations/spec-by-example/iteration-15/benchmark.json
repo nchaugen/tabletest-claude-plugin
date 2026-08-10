@@ -8,13 +8,13 @@
   "skill_commit": "eafaf70f341da25d525c2f8852b3c5126efa204c",
   "skill_digest": "0cda7b072d8031f5",
   "generation_auth": "subscription",
-  "timestamp": "2026-08-08T22:28:10.789Z",
+  "timestamp": "2026-08-10T11:20:29.789Z",
   "evals": [
     {
       "id": "eval-13-shipping-partial-applicability",
       "name": "shipping partial applicability",
       "skill": "spec-by-example",
-      "fingerprint": "1eb119bbe7d1",
+      "fingerprint": "7cb0f85be263",
       "results": {
         "model": "claude-sonnet-5",
         "assertions_passed": 9,
@@ -29,11 +29,11 @@
         "duration_ms": 96331,
         "cost_usd": 0.3362711,
         "grading_usage": {
-          "input_tokens": 3699,
-          "output_tokens": 2584,
-          "total_tokens": 6283,
+          "input_tokens": 3948,
+          "output_tokens": 2739,
+          "total_tokens": 6687,
           "calls": 1,
-          "cost_usd": 0.049857,
+          "cost_usd": 0.052929,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -52,11 +52,11 @@
     "total_duration_ms": 96331,
     "total_cost_usd": 0.3362711,
     "grading": {
-      "input_tokens": 3699,
-      "output_tokens": 2584,
-      "total_tokens": 6283,
+      "input_tokens": 3948,
+      "output_tokens": 2739,
+      "total_tokens": 6687,
       "calls": 1,
-      "cost_usd": 0.049857,
+      "cost_usd": 0.052929,
       "evals_measured": 1,
       "rates_usd_per_mtok": {
         "input": 3,

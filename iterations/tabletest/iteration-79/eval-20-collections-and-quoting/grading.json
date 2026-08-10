@@ -94,24 +94,30 @@
       "id": "empty-tag-case-covered",
       "text": "The prompt's rule \"an empty tag string is never kept, whatever the category\" is exercised by a row. FAILS when no row anywhere feeds an empty tag into the input — the rule is then stated by the prompt and tested by nothing. The empty tag must appear as a quoted empty string ('' or \"\") inside a tag list, or as an equivalent explicit representation such as a dedicated column; a blank element inside a collection does NOT count, because a collection cannot express one at all. Judge COVERAGE, not syntax: whether such a row exists, not how many do and not how the rest of the table is punctuated. The syntax question — whether any collection holds a blank element — belongs to no-blank-collection-elements and must not be re-judged here.",
       "passed": true,
-      "evidence": "[\"tech:java\", \"biz:sales\", \"sports:football\", '']  ->  [\"tech:java\", \"biz:sales\", \"sports:football\"]"
+      "evidence": "Row includes tag '' alongside others, with Filtered? excluding it: [\"tech:java\", \"biz:sales\", \"sports:football\", '']"
     },
     {
       "id": "compiles",
       "text": "The generated test code compiles successfully against the project scaffolding",
       "passed": true,
       "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "rule-traceable-to-requirement",
+      "text": "Every rule the rows assert is traceable to the requirement. The requirement is the prompt plus the source the prompt points at — the class under test, the existing test file. Enumerate before you decide: for each @TableTest, state in one sentence the rule its rows establish, then name the requirement text that decides that point, or write \"requirement silent\". A verdict reached without that list is not a verdict. FAILS when the requirement states a rule without a qualifier and the rows only hold under a qualifier the requirement does not attach — the rows narrow a rule the requirement states plainly. Worked example of a failure: the requirement says a count is \"the number of single tickets you have purchased in the last 30 days\", and a table whose rows exclude a past purchase because its traveller category differs from the new purchase's has added a matching condition the requirement never states. PASSES when the requirement is silent on the point. Resolving something the requirement leaves open is what is being asked for here, and EITHER reading passes: an inclusive-versus-exclusive boundary, behaviour for an input the requirement never mentions, which of two colliding requirement rules wins, what an operation does to an entry that is already there. Naming the rule an assumption on `@Description` neither creates a failure nor discharges one — the test is whether the requirement already decided the point, not how the solution described its choice, and whether an assumption is published is graded elsewhere. Rules you think are MISSING are never a failure here: this assertion judges rules the rows add, and coverage is judged by the depth and concern assertions. Judge every @TableTest method in the class.",
+      "passed": true,
+      "evidence": "Each @TableTest row (e.g. tech/dev/biz prefix keeping, optional additive set, pipe/bracket/newline preservation) directly implements stated prompt rules without adding unstated qualifiers."
     }
   ],
-  "assertions_passed": 17,
-  "assertions_total": 17,
+  "assertions_passed": 18,
+  "assertions_total": 18,
   "pass_rate": 1,
   "grading_usage": {
-    "input_tokens": 5890,
-    "output_tokens": 231,
-    "total_tokens": 6121,
+    "input_tokens": 6412,
+    "output_tokens": 974,
+    "total_tokens": 7386,
     "calls": 1,
-    "cost_usd": 0.021135,
+    "cost_usd": 0.033846,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15
