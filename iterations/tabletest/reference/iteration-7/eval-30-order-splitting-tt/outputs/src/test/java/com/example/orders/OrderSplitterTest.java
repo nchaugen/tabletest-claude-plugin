@@ -23,20 +23,19 @@ public class OrderSplitterTest {
 
     @DisplayName("Groups items by fulfillment type and delivery address")
     @Description("""
-        An item is written as product/type/address. The third row gives the pickup the same address
-        as the delivery, so that it is the fulfillment type alone that splits them — with a pickup
-        left unaddressed, an implementation reading only the address would produce the same answer
-        and the type rule would go untested. The last row keeps the unaddressed case, where two
-        pickups still group. Every item is in stock at one warehouse, so nothing here turns on stock
-        or warehouse choice. A shipment is a set of products and the result a set of shipments, so
-        neither the order of shipments nor the order within one is part of the rule.
+        An item is written as product/type/address, and a pickup carries no address, because there is
+        nowhere to deliver it. Type and address are therefore two halves of one key rather than two
+        rules that can be varied apart: an order in which they disagree does not exist, so these rows
+        exercise them together. Every item is in stock at one warehouse, so nothing here turns on
+        stock or warehouse choice. A shipment is a set of products and the result a set of shipments,
+        so neither the order of shipments nor the order within one is part of the rule.
         """)
     @TableTest("""
-        Scenario                        | Items                                           | Shipments?
-        Same type and same address      | [camera/DELIVERY/Addr-A, lens/DELIVERY/Addr-A]  | {{camera, lens}}
-        Two delivery addresses          | [camera/DELIVERY/Addr-A, watch/DELIVERY/Addr-B] | {{camera}, {watch}}
-        Same address, delivery a pickup | [camera/DELIVERY/Addr-A, mug/PICKUP/Addr-A]     | {{camera}, {mug}}
-        Two pickups, neither addressed  | [mug/PICKUP, candle/PICKUP]                     | {{mug, candle}}
+        Scenario                       | Items                                           | Shipments?
+        Same type and same address     | [camera/DELIVERY/Addr-A, lens/DELIVERY/Addr-A]  | {{camera, lens}}
+        Two delivery addresses         | [camera/DELIVERY/Addr-A, watch/DELIVERY/Addr-B] | {{camera}, {watch}}
+        Delivery beside pickup         | [camera/DELIVERY/Addr-A, mug/PICKUP]            | {{camera}, {mug}}
+        Two pickups, neither addressed | [mug/PICKUP, candle/PICKUP]                     | {{mug, candle}}
         """)
     void groupsItemsByFulfillmentTypeAndDeliveryAddress(List<OrderItem> items, Set<Set<String>> shipments) {
         List<Shipment> result = splitter.splitOrder(new Order(items), everythingInStock(items));

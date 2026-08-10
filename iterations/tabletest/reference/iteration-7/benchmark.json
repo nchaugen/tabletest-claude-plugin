@@ -8,13 +8,13 @@
   "skill_commit": "unknown",
   "skill_digest": "unknown",
   "generation_auth": "unknown",
-  "timestamp": "2026-08-10T22:32:58.730Z",
+  "timestamp": "2026-08-10T22:50:30.938Z",
   "evals": [
     {
       "id": "eval-30-order-splitting-tt",
       "name": "order splitting tt",
       "skill": "tabletest",
-      "fingerprint": "dad4b58bc824",
+      "fingerprint": "ca7e3d8994ac",
       "results": {
         "model": null,
         "assertions_passed": 27,
@@ -25,11 +25,11 @@
         "duration_ms": 0,
         "cost_usd": 0,
         "grading_usage": {
-          "input_tokens": 28228,
-          "output_tokens": 6007,
-          "total_tokens": 34235,
+          "input_tokens": 29024,
+          "output_tokens": 6546,
+          "total_tokens": 35570,
           "calls": 2,
-          "cost_usd": 0.174789,
+          "cost_usd": 0.185262,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -48,11 +48,11 @@
     "total_duration_ms": 0,
     "total_cost_usd": 0,
     "grading": {
-      "input_tokens": 28228,
-      "output_tokens": 6007,
-      "total_tokens": 34235,
+      "input_tokens": 29024,
+      "output_tokens": 6546,
+      "total_tokens": 35570,
       "calls": 2,
-      "cost_usd": 0.174789,
+      "cost_usd": 0.185262,
       "evals_measured": 1,
       "rates_usd_per_mtok": {
         "input": 3,
