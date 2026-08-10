@@ -445,8 +445,8 @@ at once. Those rows belong to that table, which owns the combining rule; they ar
 table run end to end — see *A Combining Table Needs Its Own Rule*.
 
 Hold the inputs belonging to *other* concerns at one obviously-valid value. An input **this** rule
-claims not to affect the outcome is the opposite situation and has to vary — see *Value Sets for
-"Regardless Of" Relationships*.
+claims not to affect the outcome is the opposite situation and has to vary — see *Show That an
+Input Does Not Change the Outcome*.
 
 Separate tables reduce rows by avoiding unnecessary permutations, and the table count guides the
 implementation: five concern tables suggest five functions.
@@ -810,17 +810,34 @@ First value of the high band   | 160         | REVIEW
 
 Both middle boundaries appear from both sides; outer edges alone would not locate them.
 
-### Use Value Sets for "Regardless Of" Relationships
+### Show That an Input Does Not Change the Outcome
 
-When an input exists but does not affect the outcome of a row, say so with data rather than prose:
-put every value the rule ignores in the cell.
+**You have just concluded that some input does not affect this rule. That conclusion is a rule too,
+and it needs a row that could contradict it**: put every value the rule ignores in the cell, as
+a value set.
 
-A blank would wrongly suggest the field is absent. The value set makes the claim explicit — *this rule
-holds for all these values* — and one row states it more precisely than two near-identical ones.
+**Dropping the input states nothing.** Leaving the column out reads exactly like having forgotten it
+— nothing on the page tells a reader which happened, and no row can contradict a claim the table
+never makes. A blank is no better and wrongly suggests the field is absent. The value set makes the
+claim explicit — *this rule holds for all these values* — and one row states it more precisely
+than two near-identical ones.
 
 **The clearest sign you want one: a column that could carry every one of its values on every
 row without changing anything.** That is the rule saying, in data, that it does not read the
 column.
+
+**If the operation does not take the input, fix that before the table.** A rule cannot say it ignores
+what never reaches it, and leaving the parameter out publishes nothing: the reader sees an operation
+that was never offered the value, which is silence rather than a claim. **A column the code never
+receives will not do instead** — that route is open to a threshold, which only has to be readable
+(*Make Thresholds Visible*), and closed to this rule, whose claim has to be exercised to be
+contradictable. Decide it by asking who supplies the value: **if a caller hands it over with the
+request it is an input, so keep it and let the table vary it**, even where the code will not read it.
+
+**If the ignored value sits inside a composite cell, reshape the column first** — a value set varies
+a whole cell, never one part of one, so `{a, b}` written inside a cell adds no rows. Give the
+value its own column when this table reads nothing else in that cell (*Give Each Obligation Exactly
+One Row*). Holding it at one value instead abandons the claim.
 
 **A value set cannot vary an expectation.** It expands the row into one case per value, and every
 expanded case keeps the same expectation cells. Where the answer differs per value, those are
@@ -915,7 +932,7 @@ to absorb the rule that produces it.
 **If the declaration says the value does not matter, declaring it is not enough.** *"Held empty
 throughout, and it makes no difference"* is not apparatus — it is a claim about the rule, and a claim
 no row can contradict is not stated in the table at all. Vary it instead, across the values it
-ignores; see *Use Value Sets for "Regardless Of" Relationships*. Write a fixture into the
+ignores; see *Show That an Input Does Not Change the Outcome*. Write a fixture into the
 `@Description` only for what the rule genuinely reads and the rows cannot show.
 
 **Making a value a column does not force everything measured from it into the same form.** Once a

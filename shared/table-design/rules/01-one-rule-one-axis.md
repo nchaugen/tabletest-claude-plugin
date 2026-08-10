@@ -24,8 +24,8 @@ at once. Those {{rows}} belong to that table, which owns the combining rule; the
 table run end to end — see *A Combining Table Needs Its Own Rule*.
 
 Hold the inputs belonging to *other* concerns at one obviously-valid value. An input **this** rule
-claims not to affect the outcome is the opposite situation and has to vary — see *Value Sets for
-"Regardless Of" Relationships*.
+claims not to affect the outcome is the opposite situation and has to vary — see *Show That an
+Input Does Not Change the Outcome*.
 
 Separate tables reduce {{rows}} by avoiding unnecessary permutations, and the table count guides the
 implementation: five concern tables suggest five functions.
