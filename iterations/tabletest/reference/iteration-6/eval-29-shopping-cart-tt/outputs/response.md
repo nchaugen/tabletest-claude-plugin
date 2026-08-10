@@ -9,9 +9,12 @@ single column in readable shorthand.
 - `addsItemsAtCataloguePrices` — six rows: the three accepting shapes, plus unknown product, zero
   quantity and negative quantity.
 - `removesItemsAlreadyInTheCart` — four rows, including removal from an empty cart.
-- `keepsOneCouponActiveAtATime` — validity and replacement only, never discount size. `Active Coupon
-  Before` / `Active Coupon After?` with blank meaning none active, so the two invalid-code rows prove
-  the previous coupon survives.
+- `keepsOneCouponActiveAtATime` — validity and replacement only, never discount size. The cart
+  carries its active coupon under a `coupon` key, so this table uses the same `Cart Before` /
+  `Cart After?` columns and the same three-field assertion as add and remove, and the two
+  invalid-code rows prove the previous coupon survives. The store column records only a code's
+  standing — `valid` or `expired` — because what a valid coupon is worth belongs to the totalling
+  table.
 - `totalsTheCartNetOfTheActiveCoupon` — the money, including the floor, in **one** table. The
   fixed-amount rows walk below / equal to / above the subtotal, and the empty-cart row carries a
   value set over all three coupon types so its "whatever the coupon" claim is discharged by rows.

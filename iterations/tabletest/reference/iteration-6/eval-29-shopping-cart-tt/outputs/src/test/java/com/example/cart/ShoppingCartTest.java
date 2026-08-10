@@ -17,6 +17,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ShoppingCartTest {
 
+    private static final String ACTIVE_COUPON_KEY = "coupon";
+    private static final String EXPIRED = "expired";
+    private static final Coupon COUPON_OF_IMMATERIAL_WORTH = Coupon.percentage(10);
+
     @DisplayName("Adds items at catalogue prices")
     @Description("""
         Prices come from the catalogue, so the product column carries a name the catalogue knows.
@@ -76,35 +80,33 @@ public class ShoppingCartTest {
 
     @DisplayName("Keeps one coupon active at a time")
     @Description("""
-        This table decides which coupon is active, never what a coupon is worth — the discount sizes
-        belong to the totalling table. A blank coupon cell means no coupon is active, and the store
-        column holds what the store knows for the code offered: a coupon, the word expired, or
-        nothing at all. That an invalid code leaves the previous coupon untouched is a rule the
-        requirement implies and the after column makes falsifiable.
+        This table decides which coupon is active, never what a coupon is worth — discount sizes are
+        the totalling table's business, so the store column records only whether a code is known and
+        current. The cart carries its active coupon, so the before and after columns show the
+        replacement rule directly: a valid code takes over, and an expired or unrecognised one leaves
+        the previous coupon exactly where it was.
         """)
     @TableTest("""
-        Scenario                            | Active Coupon Before | Coupon Code | Coupon Store          | Active Coupon After? | Success? | Message?
-        No coupon active, code valid        |                      | SAVE10      | [SAVE10: 10% off cart]| SAVE10               | true     | Coupon applied: SAVE10
-        Coupon active, new code valid       | SAVE10               | FIVEOFF     | [FIVEOFF: $5 off]     | FIVEOFF              | true     | Coupon applied: FIVEOFF
-        Coupon active, code expired         | SAVE10               | OLD         | [OLD: expired]        | SAVE10               | false    | Coupon expired
-        Coupon active, code unrecognised    | SAVE10               | FAKE        | [:]                   | SAVE10               | false    | Unknown coupon: FAKE
-        No coupon active, code expired      |                      | OLD         | [OLD: expired]        |                      | false    | Coupon expired
-        No coupon active, code unrecognised |                      | FAKE        | [:]                   |                      | false    | Unknown coupon: FAKE
+        Scenario                            | Cart Before      | Coupon Code | Coupon Store                  | Success? | Message?               | Cart After?
+        No coupon active, code valid        | [:]              | SAVE10      | [SAVE10: valid]               | true     | Coupon applied: SAVE10 | [coupon: SAVE10]
+        Coupon active, new code valid       | [coupon: OLD5]   | SAVE10      | [OLD5: valid, SAVE10: valid]  | true     | Coupon applied: SAVE10 | [coupon: SAVE10]
+        Coupon active, code expired         | [coupon: SAVE10] | LAPSED      | [SAVE10: valid, LAPSED: expired] | false | Coupon expired         | [coupon: SAVE10]
+        Coupon active, code unrecognised    | [coupon: SAVE10] | FAKE        | [SAVE10: valid]               | false    | Unknown coupon: FAKE   | [coupon: SAVE10]
+        No coupon active, code expired      | [:]              | LAPSED      | [LAPSED: expired]             | false    | Coupon expired         | [:]
+        No coupon active, code unrecognised | [:]              | FAKE        | [:]                           | false    | Unknown coupon: FAKE   | [:]
         """)
     void keepsOneCouponActiveAtATime(
-            String activeCouponBefore,
+            Cart cartBefore,
             String couponCode,
             CouponStore couponStore,
-            String activeCouponAfter,
             boolean success,
-            String message) {
-        Cart cart = Cart.empty().withActiveCouponCode(activeCouponBefore);
-
-        CartResult result = CartService.applyCoupon(cart, couponCode, couponStore);
+            String message,
+            Cart cartAfter) {
+        CartResult result = CartService.applyCoupon(cartBefore, couponCode, couponStore);
 
         assertEquals(success, result.success());
         assertEquals(message, result.message());
-        assertEquals(activeCouponAfter, result.cart().activeCouponCode());
+        assertEquals(cartAfter, result.cart());
     }
 
     @DisplayName("Totals the cart net of the active coupon")
@@ -163,9 +165,19 @@ public class ShoppingCartTest {
         assertTrue(messageMentions.stream().allMatch(result.message()::contains));
     }
 
+    /**
+     * The cart cell carries its line quantities and, under the key {@code coupon}, the code that is
+     * active on it — so one column shows the whole cart state a row starts or ends with.
+     */
     @TypeConverter
-    public static Cart parseCart(Map<String, Integer> items) {
-        return Cart.withItems(items);
+    public static Cart parseCart(Map<String, String> cartState) {
+        Map<String, Integer> lines = new LinkedHashMap<>();
+        cartState.forEach((key, value) -> {
+            if (!ACTIVE_COUPON_KEY.equals(key)) {
+                lines.put(key, Integer.valueOf(value));
+            }
+        });
+        return Cart.withItems(lines).withActiveCouponCode(cartState.get(ACTIVE_COUPON_KEY));
     }
 
     @TypeConverter
@@ -178,18 +190,22 @@ public class ShoppingCartTest {
         return productId -> quantities.getOrDefault(productId, 0);
     }
 
+    /**
+     * What the store holds against each code. Only the standing of a code matters to the coupon
+     * table, so a current code maps to a coupon whose worth is immaterial there.
+     */
     @TypeConverter
-    public static CouponStore parseCouponStore(Map<String, String> byCode) {
-        Map<String, Coupon> available = new LinkedHashMap<>();
+    public static CouponStore parseCouponStore(Map<String, String> standingByCode) {
+        Map<String, Coupon> current = new LinkedHashMap<>();
         Set<String> expired = new LinkedHashSet<>();
-        byCode.forEach((code, held) -> {
-            if ("expired".equals(held)) {
+        standingByCode.forEach((code, standing) -> {
+            if (EXPIRED.equals(standing)) {
                 expired.add(code);
             } else {
-                available.put(code, parseCoupon(held));
+                current.put(code, COUPON_OF_IMMATERIAL_WORTH);
             }
         });
-        return CouponStore.of(available, expired);
+        return CouponStore.of(current, expired);
     }
 
     @TypeConverter
