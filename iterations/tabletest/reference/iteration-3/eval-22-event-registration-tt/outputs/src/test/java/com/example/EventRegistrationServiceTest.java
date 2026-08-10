@@ -18,17 +18,19 @@ public class EventRegistrationServiceTest {
     @Description("""
         Registration date and group size are held at 2025-01-01 and a group of one, because pricing
         is a separate concern. A blank cell means the field was not supplied, rather than supplied
-        empty. The prompt fixes no error-message text, so a rejection is scored by the fact that a
-        message is reported and never by its wording.
+        empty — for an optional field that is accepted, and an accepted registration reports no
+        message at all. The prompt fixes no wording for the rejection messages, so the two in the
+        rows are this table's assumption: what it holds the implementation to is that a rejection
+        says which rule it failed, and that the two rules are told apart.
         """)
     @TableTest("""
-        Scenario                  | Name      | Email            | Dietary Requirements | Accessibility Needs | Accepted? | Error Reported?
-        Both optionals given      | Ann Blake | ann@example.com  | Vegan                | Step-free access    | true      | false
-        Neither optional given    | Ben Cole  | ben@example.com  |                      |                     | true      | false
-        Only one optional given   | Cara Dunn | cara@example.com | Halal                |                     | true      | false
-        Email without an at sign  | Dan Ellis | dan.example.com  |                      |                     | false     | true
-        Email without a domain    | Eve Frost | eve@             |                      |                     | false     | true
-        No name given             |           | fay@example.com  |                      |                     | false     | true
+        Scenario                  | Name      | Email            | Dietary Requirements | Accessibility Needs | Accepted? | Error Message?
+        Both optionals given      | Ann Blake | ann@example.com  | Vegan                | Step-free access    | true      |
+        Neither optional given    | Ben Cole  | ben@example.com  |                      |                     | true      |
+        Only one optional given   | Cara Dunn | cara@example.com | Halal                |                     | true      |
+        Email without an at sign  | Dan Ellis | dan.example.com  |                      |                     | false     | Email format is invalid
+        Email without a domain    | Eve Frost | eve@             |                      |                     | false     | Email format is invalid
+        No name given             |           | fay@example.com  |                      |                     | false     | Name is required
         """)
     void acceptsRegistrationWhenNamePresentAndEmailWellFormed(
             String name,
@@ -36,12 +38,12 @@ public class EventRegistrationServiceTest {
             String dietaryRequirements,
             String accessibilityNeeds,
             boolean accepted,
-            boolean errorReported) {
+            String errorMessage) {
         RegistrationResult result = service.register(
                 name, email, dietaryRequirements, accessibilityNeeds, LocalDate.of(2025, 1, 1), 1);
 
         assertEquals(accepted, result.accepted());
-        assertEquals(errorReported, result.errorMessage() != null);
+        assertEquals(errorMessage, result.errorMessage());
     }
 
     @DisplayName("Applies the larger of the early-bird and group discounts to the base price")
