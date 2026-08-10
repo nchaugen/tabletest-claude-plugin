@@ -23,19 +23,20 @@ public class OrderSplitterTest {
 
     @DisplayName("Groups items by fulfillment type and delivery address")
     @Description("""
-        An item is written as product/type/address, and a pickup carries no address, because there is
-        nowhere to deliver it. Type and address are therefore two halves of one key rather than two
-        rules that can be varied apart: an order in which they disagree does not exist, so these rows
-        exercise them together. Every item is in stock at one warehouse, so nothing here turns on
-        stock or warehouse choice. A shipment is a set of products and the result a set of shipments,
-        so neither the order of shipments nor the order within one is part of the rule.
+        Items are keyed by product, each carrying how it is fulfilled: delivery carries the address
+        it goes to, and pickup carries nothing, because there is nowhere to send it. Fulfilment is
+        one value with two shapes rather than a type beside an optional address, which is why no
+        order can make the two disagree and why these rows exercise them together. Every item is in
+        stock at one warehouse, so nothing here turns on stock or warehouse choice. A shipment is a
+        set of products and the result a set of shipments, so neither the order of shipments nor the
+        order within one is part of the rule.
         """)
     @TableTest("""
-        Scenario                       | Items                                           | Shipments?
-        Same type and same address     | [camera/DELIVERY/Addr-A, lens/DELIVERY/Addr-A]  | {{camera, lens}}
-        Two delivery addresses         | [camera/DELIVERY/Addr-A, watch/DELIVERY/Addr-B] | {{camera}, {watch}}
-        Delivery beside pickup         | [camera/DELIVERY/Addr-A, mug/PICKUP]            | {{camera}, {mug}}
-        Two pickups, neither addressed | [mug/PICKUP, candle/PICKUP]                     | {{mug, candle}}
+        Scenario                    | Items                                             | Shipments?
+        One address, both delivered | [camera: delivery@Addr-A, lens: delivery@Addr-A]  | {{camera, lens}}
+        Two addresses               | [camera: delivery@Addr-A, watch: delivery@Addr-B] | {{camera}, {watch}}
+        Delivery beside pickup      | [camera: delivery@Addr-A, mug: pickup]            | {{camera}, {mug}}
+        Both collected in store     | [mug: pickup, candle: pickup]                     | {{mug, candle}}
         """)
     void groupsItemsByFulfillmentTypeAndDeliveryAddress(List<OrderItem> items, Set<Set<String>> shipments) {
         List<Shipment> result = splitter.splitOrder(new Order(items), everythingInStock(items));
@@ -123,11 +124,25 @@ public class OrderSplitterTest {
         assertEquals(shipmentsByWarehouse, productSetPerWarehouse(result));
     }
 
+    /**
+     * The order's items, keyed by product: {@code [camera: delivery@Addr-A, mug: pickup]}. The
+     * address belongs to delivery rather than sitting beside it, since there is no address a
+     * collected item could carry.
+     */
     @TypeConverter
-    public static OrderItem parseItem(String shorthand) {
-        String[] parts = shorthand.split("/");
-        FulfillmentType type = FulfillmentType.valueOf(parts[1]);
-        return new OrderItem(parts[0], 1, type, parts.length > 2 ? parts[2] : null);
+    public static List<OrderItem> parseItems(Map<String, String> fulfilmentByProduct) {
+        return fulfilmentByProduct.entrySet().stream()
+                .map(entry -> itemFulfilledBy(entry.getKey(), entry.getValue()))
+                .toList();
+    }
+
+    private static OrderItem itemFulfilledBy(String productId, String fulfilment) {
+        String[] parts = fulfilment.split("@");
+        return new OrderItem(
+                productId,
+                1,
+                FulfillmentType.valueOf(parts[0].toUpperCase()),
+                parts.length > 1 ? parts[1] : null);
     }
 
     private static OrderItem delivered(String productId) {
