@@ -1,0 +1,6 @@
+{
+  "compiles": true,
+  "tests_pass": false,
+  "compile_output": "",
+  "test_output": "\n33 tests completed, 33 failed\n\nAll 33 failures are UnsupportedOperationException from the supplied ShoppingCart stub, which the prompt asks to leave unimplemented. Every row parsed and every converter resolved: 33 test cases from 31 rows, the coupon value set expanding into three named cases (PERCENT, FIXED, PRODUCT).\n"
+}
