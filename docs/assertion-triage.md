@@ -103,7 +103,7 @@ So:
 
 | Bucket | Fix | Residual variance |
 |---|---|---|
-| **Mechanical** — countable from the source | Move to a checker in `scripts/assertions.js` | **None.** 36 checkers over 162 slots have never flipped |
+| **Mechanical** — countable from the source | Move to a checker in `scripts/assertions.js` — **but see the 2026-08-17 reassessment below before acting on this** | **None.** 36 checkers over 162 slots have never flipped |
 | **Bounded judgement** — a real judgement with a locatable cut | Narrow the criterion to its decidable core | Reduced |
 | **Irreducible** — "could a reader state the rule?" | Accept; `--grade-runs 3` | Unchanged |
 
@@ -116,6 +116,39 @@ to something decidable over adding more demonstrations.
 property; when the proxy is wrong it is wrong every time, with a confident 0% instability around the
 wrong answer — harder to spot than noise. **Every new checker needs answer-key entries covering at
 least one PASS and one FAIL case before it is trusted** (`docs/grader-answer-key.json`).
+
+## Do not convert for stability — reassessed 2026-08-17
+
+**This bucket was written when the flip rate looked like the instrument's limiting factor. It no
+longer does, and the four candidates below should not be picked up on the original rationale.**
+Four reasons, in the order they bite:
+
+- **The stability motivation is largely gone.** The bucket's warrant was "checkers have never
+  flipped". But the reference probe showed the *LLM* assertions do not flip either where the answer
+  is clear — **0 of 331 slots over three passes**. The residue sits on borderline answers, and a
+  checker does not resolve a borderline case; it forces one through a syntactic proxy. That is the
+  bias trade stated two paragraphs above, taken deliberately on exactly the cases where the
+  judgement is hardest.
+- **The flagship candidate's record is inflated.** `rule-statable-from-table`'s recorded flips are on
+  evals 15, 25, **27 and 28** — and 27 and 28 are retired. Half its measured instability is from
+  evals that no longer exist, so "unstable in four separate probes" overstates its live behaviour.
+- **A clause cannot be converted on its own.** `runDeterministicAssertions` looks up
+  `checkers[a.id]`, so an assertion is mechanical or LLM and never both. Converting
+  `rule-statable-from-table` clause (1) means **splitting the assertion into two ids** — a new slot,
+  moved fingerprints, a re-baseline, and each half needing its own PASS and FAIL cases. That is a far
+  bigger job than "move it to a checker" implies.
+- **Two of the four cannot be trusted yet regardless.** `titles-form-a-family` and
+  `business-language-columns` have no FAIL case anywhere in the live suite, so the PASS/FAIL
+  precondition above is unmet until a counter-reference is authored.
+
+**What survives, and for a different reason.** `business-language-columns` is still worth converting
+**for maintenance, not variance**: it has 11 hosts and 11 distinct texts, no unification has ever
+happened, and a checker dissolves that problem outright because a checker has no text to unify. It
+is not urgent, and it still needs a counter-reference first.
+
+**The standing rule, then: convert to remove duplicated prose, never to remove variance.** Today's
+yield came from coverage, missing discriminators and self-contradicting ground truths — not from
+grader noise, which the reference probe measured at zero where it can be measured at all.
 
 ## Mechanical — convert to checkers
 
