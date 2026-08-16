@@ -328,3 +328,6 @@ The correction lives only in the forward-looking baseline copy.
 | 2026-08-16 | `reference/iteration-10 [probeE]` | regrade | 1 | — | claude-sonnet-5/default | `c40a89d7` | 17/17 | — | $0.04 | — | vs iteration 9: 0/1 comparable, 0 moved. |
 | 2026-08-16 | `iteration-81` | regrade | 7 | `1d5b863abf` | claude-sonnet-5/default | `7c26f4c8` | 112/121 | — | $0.39 | — | vs iteration 80: 0/7 comparable, 0 moved. |
 | 2026-08-16 | `iteration-81` | rebuild | 7 | `1d5b863abf` | claude-sonnet-5/default | `7c26f4c8` | 112/121 | — | — | — | vs iteration 80: 0/7 comparable, 0 moved. |
+| 2026-08-16 | `reference/iteration-9 [probeF]` | regrade | 1 | — | claude-sonnet-5/default | `4c8469ca` | 20/20 | — | $0.04 | — | vs iteration 8: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `iteration-79 [probeF]` | regrade | 1 | `1d5b863abf` | claude-sonnet-5/default | `4c8469ca` | 19/20 | — | $0.05 | — | vs iteration 78: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `iteration-79` | rebuild | 3 | `1d5b863abf` | claude-sonnet-5/default | `3e79cf06` | 75/82 | — | — | — | vs iteration 78: 0/3 comparable, 0 moved. |

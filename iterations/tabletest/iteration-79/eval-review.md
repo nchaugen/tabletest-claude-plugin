@@ -1,6 +1,6 @@
 # Eval Review — tabletest, Iteration 79
 
-**Model:** sonnet (claude-sonnet-5) · **Grading:** claude-sonnet-5 · **Date:** 2026-08-10 · **Evals:** 3
+**Model:** sonnet (claude-sonnet-5) · **Grading:** claude-sonnet-5 · **Date:** 2026-08-16 · **Evals:** 3
 
 ## Summary
 

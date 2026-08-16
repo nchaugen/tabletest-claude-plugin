@@ -8,13 +8,13 @@
   "skill_commit": "8dcc1266a813d4f1ac4ab5f29369b417d9d51d40",
   "skill_digest": "1d5b863abf1c4a0b",
   "generation_auth": "subscription",
-  "timestamp": "2026-08-10T23:25:44.293Z",
+  "timestamp": "2026-08-16T19:46:19.869Z",
   "evals": [
     {
       "id": "eval-20-collections-and-quoting",
       "name": "collections and quoting",
       "skill": "tabletest",
-      "fingerprint": "53fca6c0a68b",
+      "fingerprint": "d32a9e3442a9",
       "results": {
         "model": "claude-sonnet-5",
         "assertions_passed": 19,
