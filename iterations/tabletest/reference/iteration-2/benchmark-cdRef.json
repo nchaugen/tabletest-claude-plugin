@@ -1,0 +1,68 @@
+{
+  "skill_name": "tabletest (reference)",
+  "iteration": 2,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "unknown",
+  "skill_digest": "unknown",
+  "generation_auth": "unknown",
+  "timestamp": "2026-08-16T22:39:59.231Z",
+  "evals": [
+    {
+      "id": "eval-15-reis-discount",
+      "name": "reis discount",
+      "skill": "tabletest",
+      "fingerprint": "9ff0fb3b4b29",
+      "results": {
+        "model": null,
+        "assertions_passed": 33,
+        "assertions_total": 34,
+        "pass_rate": 0.9705882352941176,
+        "failed_assertions": [
+          "held-constants-declared"
+        ],
+        "total_tokens": 0,
+        "duration_ms": 0,
+        "cost_usd": 0,
+        "grading_usage": {
+          "input_tokens": 29457,
+          "output_tokens": 12442,
+          "total_tokens": 41899,
+          "calls": 3,
+          "cost_usd": 0.275001,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 33,
+    "assertions_total": 34,
+    "pass_rate": 0.9705882352941176,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 0,
+    "total_duration_ms": 0,
+    "total_cost_usd": 0,
+    "grading": {
+      "input_tokens": 29457,
+      "output_tokens": 12442,
+      "total_tokens": 41899,
+      "calls": 3,
+      "cost_usd": 0.275001,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": [],
+  "cost_basis": "cli-list-price-estimate"
+}

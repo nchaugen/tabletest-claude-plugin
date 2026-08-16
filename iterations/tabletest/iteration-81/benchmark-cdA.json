@@ -1,0 +1,66 @@
+{
+  "skill_name": "tabletest",
+  "iteration": 81,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "f61342183c5e23bb9c7acc2b4d521666a99bc7ca",
+  "skill_digest": "1d5b863abf1c4a0b",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-16T22:27:01.659Z",
+  "evals": [
+    {
+      "id": "eval-23-loan-approval-tt",
+      "name": "loan approval tt",
+      "skill": "tabletest",
+      "fingerprint": "27b490b60937",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 25,
+        "assertions_total": 25,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 703352,
+        "duration_ms": 279233,
+        "cost_usd": 0.9552674000000002,
+        "grading_usage": {
+          "input_tokens": 14218,
+          "output_tokens": 5195,
+          "total_tokens": 19413,
+          "calls": 2,
+          "cost_usd": 0.120579,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 25,
+    "assertions_total": 25,
+    "pass_rate": 1,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 703352,
+    "total_duration_ms": 279233,
+    "total_cost_usd": 0.9552674000000002,
+    "grading": {
+      "input_tokens": 14218,
+      "output_tokens": 5195,
+      "total_tokens": 19413,
+      "calls": 2,
+      "cost_usd": 0.120579,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}

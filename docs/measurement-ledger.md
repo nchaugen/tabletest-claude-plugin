@@ -407,3 +407,22 @@ The correction lives only in the forward-looking baseline copy.
 | 2026-08-16 | `reference/iteration-11 [v3]` | regrade | 1 | — | claude-sonnet-5/default | `f932fd31` | 17/17 | — | $0.05 | — | vs iteration 10: 0/1 comparable, 0 moved. |
 | 2026-08-16 | `reference/iteration-12 [v3]` | regrade | 1 | — | claude-sonnet-5/default | `68d9fe06` | 13/13 | — | $0.02 | — | vs iteration 11: 0/1 comparable, 0 moved. |
 | 2026-08-16 | `reference/iteration-13 [v3]` | regrade | 2 | — | claude-sonnet-5/default | `fc0d8f43` | 25/25 | — | $0.02 | — | vs iteration 12: 0/2 comparable, 0 moved. |
+| 2026-08-16 | `iteration-60 [cdA]` | regrade | 1 | `964a8dba7a` | claude-sonnet-5/default | `96e6dea7` | 31/34 | — | $0.28 | — | vs iteration 59: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `iteration-70 [cdA]` | regrade | 1 | `e316002b84` | claude-sonnet-5/default | `8851c92e` | 26/28 | — | $0.14 | — | vs iteration 69: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `iteration-81 [cdA]` | regrade | 1 | `1d5b863abf` | claude-sonnet-5/default | `1b5c96e4` | 25/25 | — | $0.12 | — | vs iteration 80: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `iteration-60 [cdB]` | regrade | 1 | `964a8dba7a` | claude-sonnet-5/default | `f985f93f` | 31/34 | — | $0.31 | — | vs iteration 59: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `iteration-70 [cdB]` | regrade | 1 | `e316002b84` | claude-sonnet-5/default | `2b662f6a` | 26/28 | — | $0.13 | — | vs iteration 69: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `iteration-81 [cdB]` | regrade | 1 | `1d5b863abf` | claude-sonnet-5/default | `6ceafa16` | 24/25 | — | $0.12 | — | vs iteration 80: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `iteration-60 [cdC]` | regrade | 1 | `964a8dba7a` | claude-sonnet-5/default | `d6326c38` | 31/34 | — | $0.30 | — | vs iteration 59: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `iteration-70 [cdC]` | regrade | 1 | `e316002b84` | claude-sonnet-5/default | `c3b92568` | 26/28 | — | $0.14 | — | vs iteration 69: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `iteration-81 [cdC]` | regrade | 1 | `1d5b863abf` | claude-sonnet-5/default | `36a211e6` | 25/25 | — | $0.15 | — | vs iteration 80: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `reference/iteration-1 [cdRef]` | regrade | 1 | — | claude-sonnet-5/default | `9fc2d27f` | 34/34 | — | $0.17 | — | |
+| 2026-08-16 | `reference/iteration-2 [cdRef]` | regrade | 1 | — | claude-sonnet-5/default | `d6326c38` | 33/34 | — | $0.28 | — | vs iteration 1: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `reference/iteration-3 [cdRef]` | regrade | 1 | — | claude-sonnet-5/default | `e445e864` | 30/30 | — | $0.12 | — | vs iteration 2: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `reference/iteration-4 [cdRef]` | regrade | 1 | — | claude-sonnet-5/default | `0b34aa27` | 24/24 | — | $0.12 | — | vs iteration 3: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `reference/iteration-5 [cdRef]` | regrade | 1 | — | claude-sonnet-5/default | `36a211e6` | 25/25 | — | $0.09 | — | vs iteration 4: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `reference/iteration-6 [cdRef]` | regrade | 1 | — | claude-sonnet-5/default | `5d09ef67` | 36/36 | — | $0.47 | — | vs iteration 5: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `reference/iteration-7 [cdRef]` | regrade | 1 | — | claude-sonnet-5/default | `432584bf` | 28/28 | — | $0.24 | — | vs iteration 6: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `reference/iteration-8 [cdRef]` | regrade | 1 | — | claude-sonnet-5/default | `c3b92568` | 28/28 | — | $0.13 | — | vs iteration 7: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `reference/iteration-10 [cdRef]` | regrade | 1 | — | claude-sonnet-5/default | `8996b8d1` | 17/17 | — | $0.04 | — | vs iteration 9: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `reference/iteration-11 [cdRef]` | regrade | 1 | — | claude-sonnet-5/default | `1159e579` | 17/17 | — | $0.04 | — | vs iteration 10: 0/1 comparable, 0 moved. |

@@ -1,0 +1,66 @@
+{
+  "skill_name": "tabletest (reference)",
+  "iteration": 8,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "unknown",
+  "skill_digest": "unknown",
+  "generation_auth": "unknown",
+  "timestamp": "2026-08-16T22:49:24.248Z",
+  "evals": [
+    {
+      "id": "eval-25-convert-from-spock",
+      "name": "convert from spock",
+      "skill": "tabletest",
+      "fingerprint": "c1d2be86b5a4",
+      "results": {
+        "model": null,
+        "assertions_passed": 28,
+        "assertions_total": 28,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 0,
+        "duration_ms": 0,
+        "cost_usd": 0,
+        "grading_usage": {
+          "input_tokens": 22237,
+          "output_tokens": 4263,
+          "total_tokens": 26500,
+          "calls": 2,
+          "cost_usd": 0.130656,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 28,
+    "assertions_total": 28,
+    "pass_rate": 1,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 0,
+    "total_duration_ms": 0,
+    "total_cost_usd": 0,
+    "grading": {
+      "input_tokens": 22237,
+      "output_tokens": 4263,
+      "total_tokens": 26500,
+      "calls": 2,
+      "cost_usd": 0.130656,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": [],
+  "cost_basis": "cli-list-price-estimate"
+}
