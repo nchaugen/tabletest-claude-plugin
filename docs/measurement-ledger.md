@@ -319,3 +319,12 @@ The correction lives only in the forward-looking baseline copy.
 | 2026-08-16 | `reference/iteration-12` | regrade | 1 | — | claude-sonnet-5/default | `68d9fe06` | 13/13 | — | $0.02 | — | vs iteration 11: 0/1 comparable, 0 moved. |
 | 2026-08-16 | `reference/iteration-13` | regrade | 2 | — | claude-sonnet-5/default | `fc0d8f43` | 24/25 | — | $0.03 | — | vs iteration 12: 0/2 comparable, 0 moved. |
 | 2026-08-16 | `reference/iteration-13 [fixed]` | regrade | 1 | — | claude-sonnet-5/default | `b9295b85` | 12/12 | — | $0.01 | — | vs iteration 12: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `reference/iteration-10 [probeD]` | regrade | 1 | — | claude-sonnet-5/default | `d8a58de4` | 17/17 | — | $0.04 | — | vs iteration 9: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `reference/iteration-11 [probeD]` | regrade | 1 | — | claude-sonnet-5/default | `1d487bd4` | 16/17 | — | $0.06 | — | vs iteration 10: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `iteration-50 [probeD]` | regrade | 1 | `c3248d8659` | claude-sonnet-5/default | `d8a58de4` | 16/17 | — | $0.04 | — | vs iteration 49: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `iteration-81 [probeD]` | regrade | 1 | `1d5b863abf` | claude-sonnet-5/default | `1d487bd4` | 16/17 | — | $0.03 | — | vs iteration 80: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `reference/iteration-11 [probeE]` | regrade | 1 | — | claude-sonnet-5/default | `70942b09` | 17/17 | — | $0.03 | — | vs iteration 10: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `iteration-81 [probeE]` | regrade | 1 | `1d5b863abf` | claude-sonnet-5/default | `70942b09` | 16/17 | — | $0.03 | — | vs iteration 80: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `reference/iteration-10 [probeE]` | regrade | 1 | — | claude-sonnet-5/default | `c40a89d7` | 17/17 | — | $0.04 | — | vs iteration 9: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `iteration-81` | regrade | 7 | `1d5b863abf` | claude-sonnet-5/default | `7c26f4c8` | 112/121 | — | $0.39 | — | vs iteration 80: 0/7 comparable, 0 moved. |
+| 2026-08-16 | `iteration-81` | rebuild | 7 | `1d5b863abf` | claude-sonnet-5/default | `7c26f4c8` | 112/121 | — | — | — | vs iteration 80: 0/7 comparable, 0 moved. |
