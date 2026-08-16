@@ -32,16 +32,25 @@ The spec is a first cut and cannot be clarified interactively, so the expected m
 interpretation and **show it in a row a reviewer can challenge**, rather than deciding it
 silently in the parser stub:
 
-- **Decimal places / scale.** Is `5` (no fraction) valid? `10.5` (one place)? `10.005` (three)?
-  What scale does `10` parse to — `10` or `10.00`? Each is a row.
+Two points must be shown by a row, because the parser cannot avoid deciding either:
+
+- **The scale that comes out.** `Money` wraps a `BigDecimal` and `new BigDecimal("5")` does not
+  `.equals` `new BigDecimal("5.00")`, so every consumer depends on the answer — and both given
+  examples carry two decimal places, so neither states it. **One** row whose input carries a
+  different number of places (`5`, or `10.5`) fixes it, beside one of the given two-place rows.
+  One such row is enough: walking 0, 1, 2 and 3 places re-states a rule the first pair settles,
+  and is the excess `no-duplicate-rows-within-a-table` cuts.
 - **Zero.** Negative is rejected and positive is fine, but `0.00` sits on the boundary and the
   prompt never places it. A zero row states whether zero is a valid amount.
-- **Alternative formats.** Comma fraction separator (`10,00`), leading `+`, currency symbol
-  (`$10.00`), thousands separators, surrounding whitespace — all plausible, none specified. A
-  solution that accepts or rejects any of these should have a row saying so.
 
-Omitting a foreseeable case is not penalised; silently baking a choice into the stub with no row
-to expose it is the miss.
+One point is latitude, judged only where the solution takes a position on it:
+
+- **Alternative formats.** Comma fraction separator (`10,00`), leading `+`, currency symbol
+  (`$10.00`), thousands separators, surrounding whitespace — all plausible, none specified.
+  **Omitting every one of them is not penalised**; a solution that accepts or rejects any of them
+  should have a row saying so.
+
+Silently baking a choice into the parser stub with no row to expose it is the miss.
 
 ## Mechanics
 
