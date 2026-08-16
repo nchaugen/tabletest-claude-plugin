@@ -31,6 +31,27 @@ current texts, now shown reproducible, for every host of three of the four conve
 `business-language-columns` 8/11 (the three uncovered hosts are `spec-by-example`, which has no
 reference answers — slice 7's work).
 
+**A population flip probe was considered and declined (user, 2026-08-17).** Three reasons, and the
+third is decisive. Its only output is a refreshed flip list, and the standing protocol — confirm any
+moved verdict with a re-grade of the same stored outputs before attributing — is reactive and needs
+no list in advance. Any stabilisation edit it pointed at would then owe a fresh reference re-probe to
+prove the PASS side survived, so the probe is the cheap half of a dear job. And **a flip probe
+re-grades existing outputs, so it cannot manufacture a FAIL case**: two of the four conversion
+candidates have none anywhere in the live suite, so the probe cannot unblock them.
+
+**FAIL-case availability, measured the same day** — this is what gates each conversion, not stability:
+
+| candidate | PASS (references) | FAIL (live baseline) |
+|---|---|---|
+| `rule-statable-from-table` | 7/7 | **eval-25 — live. Fully unblocked.** |
+| `consistent-quantity-naming` | 2/2 | evals 26/27/28 only, all retired; outputs still stored, so usable as historical fixtures |
+| `titles-form-a-family` | 4/4 | none |
+| `business-language-columns` | 8/11 | none |
+
+**For the two with no FAIL case, the cheap route is a counter-reference** — a small hand-authored
+answer that deliberately commits the defect, graded once to confirm the checker fires. Cents, and the
+natural complement to a reference answer: one artefact pins each side of the cut.
+
 **What this does NOT measure.** Only the PASS side, and only on unambiguous answers. It says nothing
 about a weak answer wrongly passing, nor about the flip rate on borderline answers, which is what a
 population probe still buys. It does say where to point one.
