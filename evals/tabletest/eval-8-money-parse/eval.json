@@ -41,7 +41,7 @@
     },
     {
       "id": "description-if-present-adds-information",
-      "text": "PASSES when no @Description is present anywhere in the class — omitting it is always acceptable, and this assertion NEVER penalises its absence. Do not fail it for a missing @Description, and do not treat a @DisplayName as a substitute. When a @Description IS present, it must provide context beyond what the table rows already express — such as the expected currency format, or open questions — and FAILS when it merely restates the column names or summarises what the rows already show.",
+      "text": "PASSES when no @Description is present anywhere in the class — omitting it is always acceptable, and this assertion NEVER penalises its absence. Do not fail it for a missing @Description, and do not treat a @DisplayName as a substitute. When a @Description IS present, it must provide context beyond what the table rows already express — such as the expected currency format, or open questions — and FAILS when it merely restates the column names or summarises what the rows already show. Judge every sentence it contains, not its best one: a @Description that supplies real context and ALSO restates a rule the rows already demonstrate FAILS on the restatement, because duplicating the table is the defect this exists to catch. Naming a value the rows carry in order to say something the rows cannot — that it is the one value at which two readings coincide, or that it is held fixed throughout — is context, not restatement.",
       "type": "llm"
     },
     {
