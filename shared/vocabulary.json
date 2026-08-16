@@ -10,7 +10,7 @@
     "table_noun": "method",
     "each_table": "each @TableTest",
     "every_table": "every @TableTest method in the class",
-    "coverage_assertions": "2.19-covers-every-tier and quantifier-covered-by-rows",
+    "coverage_assertions": "this eval's own coverage assertions where it has them",
     "empty_value_notation": "`''` for a string, `[]` `{}` `[:]` for a collection",
     "title_surface": "`@DisplayName`, or the method name when there is none",
     "description_surface": "`@Description`",

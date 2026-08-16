@@ -88,13 +88,19 @@ part: they pin the `≤` brackets, which a sampled table alone leaves ambiguous.
 | Hazmat handling | [30, 20, 15] | [handling: hazmat] | 15.50 |
 | Fragile multiplier | [30, 20, 15] | [fragile: true] | 8.625 |
 | Insured below floor → $3 min | [30, 20, 15] | [insuredValue: 200] | 10.50 |
-| Insured at floor exactly | [30, 20, 15] | [insuredValue: 500] | 10.50 |
+| Insured where the premium meets the floor | [30, 20, 15] | [insuredValue: 500] | 10.50 |
 | Insured above floor → 0.6% | [30, 20, 15] | [insuredValue: 1000] | 13.50 |
 | Fragile + insured (order proof) | [30, 20, 15] | [fragile: true, insuredValue: 200] | 11.625 |
 
 Arithmetic on base 7.50: oversize +10 → 17.50; hazmat +8 → 15.50; fragile ×1.15 → 8.625; insurance is
-`max(value×0.006, 3.00)` so 200 and 500 both floor to +3.00 → 10.50 while 1000 → +6.00 → 13.50. The last
-row proves **order**: fragile multiplies the base (7.50×1.15 = 8.625) and insurance is added *after*,
+`max(value×0.006, 3.00)` so 200 and 500 both floor to +3.00 → 10.50 while 1000 → +6.00 → 13.50. Note what the 500 row does
+and does not do: at 500 the premium and the floor are *equal*, so it cannot separate `max(premium,
+3.00)` from any other reading of the floor — 200 already does that. What it fixes is how far the
+floor reaches, ruling out a crossover below 500. That is a real obligation, but it is a boundary of
+two published constants rather than one the requirement names, so a solution omitting it has not
+missed a stated rule.
+
+The last row proves **order**: fragile multiplies the base (7.50×1.15 = 8.625) and insurance is added *after*,
 un-multiplied (+3.00) → 11.625. A `fragile + hazmat` row (`(7.50+8)×1.15 = 17.825`) optionally completes
 the order proof by showing the flat fee *is* inside the multiplier.
 
