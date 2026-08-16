@@ -1,5 +1,24 @@
 ### Give Each Obligation Exactly One {{Row}}
 
+**The obligation list comes from the inputs, and producing it is the step most often skipped.**
+Before counting {{rows}}, take each input the rule reads and ask three questions of it. Where an
+answer is not obvious from the requirement, it names {{rows}} nothing else will.
+
+- **Counted, or read in bands?** A rule reading an input in bands gives two different values the same
+  answer, and the only way to state that is two {{rows}} differing in that input and agreeing in the
+  expectation. A table whose every value of it carries a different expectation has stated "the answer
+  rises with this input", which is a different rule from the one you meant.
+- **Per unit of it, or once for having any?** Two {{rows}} — none and one — show a difference and are
+  equally consistent with both readings, because a flat charge for having any at all is an ordinary
+  rule. **A third consecutive value is what decides between them.** Without it the table leaves
+  ambiguous the very rule it was written to state.
+- **Does its effect depend on another input?** Where it does, the pair showing that effect has to
+  appear on **both sides** of the other input's boundary. One pair, however well chosen, states an
+  effect that is wrong wherever the other input differs.
+
+Answer all three before writing {{rows}}. The questions cost nothing, and the {{rows}} they produce
+are exactly the ones a reader cannot infer from the others.
+
 The right number of {{rows}} is a covering problem. List the concern's **obligations** — the distinct
 behaviours the rule must demonstrate — then write the smallest set of {{rows}} that covers all of
 them. Both errors are real and they do not read alike: a missing obligation lets a wrong

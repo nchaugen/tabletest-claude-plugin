@@ -409,6 +409,25 @@ Table 2 — the arithmetic (extended hours earn rest credit at double rate):
 
 ### Give Each Obligation Exactly One Row
 
+**The obligation list comes from the inputs, and producing it is the step most often skipped.**
+Before counting rows, take each input the rule reads and ask three questions of it. Where an
+answer is not obvious from the requirement, it names rows nothing else will.
+
+- **Counted, or read in bands?** A rule reading an input in bands gives two different values the same
+  answer, and the only way to state that is two rows differing in that input and agreeing in the
+  expectation. A table whose every value of it carries a different expectation has stated "the answer
+  rises with this input", which is a different rule from the one you meant.
+- **Per unit of it, or once for having any?** Two rows — none and one — show a difference and are
+  equally consistent with both readings, because a flat charge for having any at all is an ordinary
+  rule. **A third consecutive value is what decides between them.** Without it the table leaves
+  ambiguous the very rule it was written to state.
+- **Does its effect depend on another input?** Where it does, the pair showing that effect has to
+  appear on **both sides** of the other input's boundary. One pair, however well chosen, states an
+  effect that is wrong wherever the other input differs.
+
+Answer all three before writing rows. The questions cost nothing, and the rows they produce
+are exactly the ones a reader cannot infer from the others.
+
 The right number of rows is a covering problem. List the concern's **obligations** — the distinct
 behaviours the rule must demonstrate — then write the smallest set of rows that covers all of
 them. Both errors are real and they do not read alike: a missing obligation lets a wrong
@@ -996,6 +1015,14 @@ to the band, and the band to the dose.
 
 Use a blank cell when a value is genuinely absent. Blank means **absent** — not zero, not a default,
 and not irrelevant.
+
+**Reach for this while you are choosing columns, not after the rows are written.** The trigger is
+a column that will be empty on most rows — a quantity the domain records only when there is
+something to record, so most cases simply have none of it. The reflex is to write `0` and move on,
+and it is wrong twice: it says the quantity was measured and came to nothing, and it leaves no
+row able to show what an absent quantity does. **A quantity whose domain records only non-zero
+entries is absent, not zero.** The guard against over-applying it is narrow and decidable: a row
+that exists to say something *about* that input writes the value, zero included.
 
 Three meanings the notation has to keep apart:
 
