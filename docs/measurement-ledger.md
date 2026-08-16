@@ -314,3 +314,4 @@ The correction lives only in the forward-looking baseline copy.
 | 2026-08-16 | `reference/iteration-8` | regrade | 1 | — | claude-sonnet-5/default | `61962f0a` | 28/28 | — | $0.14 | — | vs iteration 7: 0/1 comparable, 0 moved. |
 | 2026-08-16 | `reference/iteration-8` | regrade | 1 | — | claude-sonnet-5/default | `61962f0a` | 28/28 | — | $0.15 | — | vs iteration 7: 0/1 comparable, 0 moved. |
 | 2026-08-16 | `reference/iteration-9` | regrade | 1 | — | claude-sonnet-5/default | `4e1080a6` | 19/19 | — | $0.03 | — | vs iteration 8: 0/1 comparable, 0 moved. |
+| 2026-08-16 | `reference/iteration-10` | regrade | 1 | — | claude-sonnet-5/default | `731180bf` | 16/16 | — | $0.03 | — | vs iteration 9: 0/1 comparable, 0 moved. |

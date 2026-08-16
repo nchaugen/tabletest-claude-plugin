@@ -1,0 +1,6 @@
+{
+  "compiles": true,
+  "tests_pass": false,
+  "compile_output": "",
+  "test_output": "\n7 tests completed, 7 failed\n"
+}

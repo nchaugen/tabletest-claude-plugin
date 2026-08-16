@@ -1,0 +1,66 @@
+{
+  "skill_name": "tabletest (reference)",
+  "iteration": 10,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "unknown",
+  "skill_digest": "unknown",
+  "generation_auth": "unknown",
+  "timestamp": "2026-08-16T19:12:54.035Z",
+  "evals": [
+    {
+      "id": "eval-2-parse-dates",
+      "name": "parse dates",
+      "skill": "tabletest",
+      "fingerprint": "544e37c7da08",
+      "results": {
+        "model": null,
+        "assertions_passed": 16,
+        "assertions_total": 16,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 0,
+        "duration_ms": 0,
+        "cost_usd": 0,
+        "grading_usage": {
+          "input_tokens": 5039,
+          "output_tokens": 1251,
+          "total_tokens": 6290,
+          "calls": 1,
+          "cost_usd": 0.033882,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 16,
+    "assertions_total": 16,
+    "pass_rate": 1,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 0,
+    "total_duration_ms": 0,
+    "total_cost_usd": 0,
+    "grading": {
+      "input_tokens": 5039,
+      "output_tokens": 1251,
+      "total_tokens": 6290,
+      "calls": 1,
+      "cost_usd": 0.033882,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": [],
+  "cost_basis": "cli-list-price-estimate"
+}
