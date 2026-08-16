@@ -1,0 +1,93 @@
+{
+  "skill_name": "tabletest (reference)",
+  "iteration": 13,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "unknown",
+  "skill_digest": "unknown",
+  "generation_auth": "unknown",
+  "timestamp": "2026-08-16T21:51:36.909Z",
+  "evals": [
+    {
+      "id": "eval-1-convert-repetitive-tests",
+      "name": "convert repetitive tests",
+      "skill": "tabletest",
+      "fingerprint": "653f374b717e",
+      "results": {
+        "model": null,
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 0,
+        "duration_ms": 0,
+        "cost_usd": 0,
+        "grading_usage": {
+          "input_tokens": 2770,
+          "output_tokens": 101,
+          "total_tokens": 2871,
+          "calls": 1,
+          "cost_usd": 0.009825,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-7-permission-check",
+      "name": "permission check",
+      "skill": "tabletest",
+      "fingerprint": "6c059b23d636",
+      "results": {
+        "model": null,
+        "assertions_passed": 12,
+        "assertions_total": 12,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 0,
+        "duration_ms": 0,
+        "cost_usd": 0,
+        "grading_usage": {
+          "input_tokens": 3148,
+          "output_tokens": 360,
+          "total_tokens": 3508,
+          "calls": 1,
+          "cost_usd": 0.014844,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 25,
+    "assertions_total": 25,
+    "pass_rate": 1,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 0,
+    "total_duration_ms": 0,
+    "total_cost_usd": 0,
+    "grading": {
+      "input_tokens": 5918,
+      "output_tokens": 461,
+      "total_tokens": 6379,
+      "calls": 2,
+      "cost_usd": 0.024669,
+      "evals_measured": 2,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": [],
+  "cost_basis": "cli-list-price-estimate"
+}

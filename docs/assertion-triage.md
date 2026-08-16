@@ -4,6 +4,44 @@ Instability is not one problem. Sorting the unstable assertions by *what kind of
 ask for* points each at a different fix, and one of those fixes removes variance rather than
 averaging it.
 
+## Reference probe, 2026-08-17 — **0 of 331 slots flip**
+
+Three independent gradings of the fourteen hand-authored reference answers
+(`iterations/tabletest/reference/`, suffixes `v1`/`v2`/`v3`, ~$5.00, regrade only). **Every one of
+331 slots returned the same verdict in all three passes, and every slot passed.** The gradings are
+genuinely independent — different checksums, visibly different evidence prose for the same slot —
+so this is reproducibility, not a cached read.
+
+**Read against the 12-of-378 population flip rate, this locates the variance.** The same assertion
+texts that flip on agent answers are perfectly stable here. So a flip is **a property of the answer,
+not of the assertion text**: slots flip when the answer sits near the grader's cut, and a reference
+is deliberately far from the cut on every slot.
+
+**The consequence is a lever question.** Rewording an assertion cannot stabilise a judgement about a
+genuinely borderline table — the wording is already stable wherever the answer is clear. That is
+consistent with the one measured stabilisation attempt in this file: the enumeration clause added to
+`rule-statable-from-table` kept its 3 flips *and* lost accuracy. **Prefer conversion to a checker,
+which removes the judgement, over narrowing prose, which only moves the cut.**
+
+**It also unblocks conversion.** § Mechanical requires "answer-key entries covering at least one PASS
+and one FAIL case before [a checker] is trusted", and `docs/grader-answer-key.json` cannot supply
+them — it is bound to `iteration-40` and pre-repair texts. The references supply the **PASS** half on
+current texts, now shown reproducible, for every host of three of the four conversion candidates:
+`rule-statable-from-table` 7/7, `titles-form-a-family` 4/4, `consistent-quantity-naming` 2/2, and
+`business-language-columns` 8/11 (the three uncovered hosts are `spec-by-example`, which has no
+reference answers — slice 7's work).
+
+**What this does NOT measure.** Only the PASS side, and only on unambiguous answers. It says nothing
+about a weak answer wrongly passing, nor about the flip rate on borderline answers, which is what a
+population probe still buys. It does say where to point one.
+
+**Correction while here:** `scenario-names-describe-conditions` is listed below under *Bounded —
+narrow the criterion* with the narrowing still to do. **That narrowing has landed** — the current
+text carries the decidable test verbatim, and on 2026-08-16 it failed a reference draft whose names
+paraphrased an `Allowed?` cell and passed the fix one edit later. Treat that entry as done.
+
+---
+
 Source: three independent gradings of byte-identical iteration-40 outputs, sonnet grader,
 2026-07-25. **18 of 365 slots unstable = 4.9%**, level ranging 320–327 (a 7-slot spread on the same
 bytes). Single-run MDE is therefore ~7–8 slots, which is why `--grade-runs 3` is now required for any
