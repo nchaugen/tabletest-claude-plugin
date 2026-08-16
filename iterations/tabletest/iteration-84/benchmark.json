@@ -8,13 +8,13 @@
   "skill_commit": "b9d4ba5b3b64c78b33439e675b01accc0f411d70",
   "skill_digest": "46117e268179fda8",
   "generation_auth": "subscription",
-  "timestamp": "2026-08-16T21:08:17.267Z",
+  "timestamp": "2026-08-16T23:15:01.997Z",
   "evals": [
     {
       "id": "eval-14-weekly-pay",
       "name": "weekly pay",
       "skill": "tabletest",
-      "fingerprint": "ac67e0ecfafd",
+      "fingerprint": "e41631b4ed84",
       "results": {
         "model": "claude-sonnet-5",
         "assertions_passed": 21,
@@ -29,11 +29,11 @@
         "duration_ms": 148827,
         "cost_usd": 0.7480157,
         "grading_usage": {
-          "input_tokens": 14537,
-          "output_tokens": 7723,
-          "total_tokens": 22260,
+          "input_tokens": 15029,
+          "output_tokens": 9091,
+          "total_tokens": 24120,
           "calls": 2,
-          "cost_usd": 0.159456,
+          "cost_usd": 0.181452,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -52,11 +52,11 @@
     "total_duration_ms": 148827,
     "total_cost_usd": 0.7480157,
     "grading": {
-      "input_tokens": 14537,
-      "output_tokens": 7723,
-      "total_tokens": 22260,
+      "input_tokens": 15029,
+      "output_tokens": 9091,
+      "total_tokens": 24120,
       "calls": 2,
-      "cost_usd": 0.159456,
+      "cost_usd": 0.181452,
       "evals_measured": 1,
       "rates_usd_per_mtok": {
         "input": 3,

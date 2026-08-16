@@ -2,7 +2,12 @@
 
 Compared against **iteration 14**, grading claude-sonnet-5/default.
 
-**1 of 1 evals comparable.**
+## ⛔ Nothing was compared
 
-No assertion verdicts moved among the evals that could be compared, so there is nothing
-to attribute.
+**0 of 1 evals comparable.** Every eval was excluded from the deltas in this file:
+
+- `eval-13-shipping-partial-applicability` — definition changed since the baseline; the two verdicts are not commensurable
+
+**Nothing below is evidence.** This run measured nothing against this baseline; an empty
+moved list here is the shape of a void comparison, not of a clean one. Re-baseline, or
+compare against a benchmark whose definitions match, before reading this run at all.

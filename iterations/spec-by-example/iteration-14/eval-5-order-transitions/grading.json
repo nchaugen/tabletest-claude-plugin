@@ -10,19 +10,19 @@
       "id": "cancellation-coverage",
       "text": "Table covers cancellation rules — includes rows for states where cancellation is allowed and where it is not",
       "passed": true,
-      "evidence": "Rows: 'Cancel a pending order' yes, 'Cancel a confirmed order' yes, 'Cancel an order that has already shipped' no, 'Cancel an already-cancelled order' no"
+      "evidence": "Cancel a pending order ... yes; Cancel an order that has already shipped ... no"
     },
     {
       "id": "return-window-addressed",
       "text": "The 30-day return window rule is addressed — either as a threshold column, a separate table, or flagged as an open question",
       "passed": true,
-      "evidence": "Table 2 includes 'Return Window (Policy, days)' column and boundary rows at 30 and 31 days"
+      "evidence": "At the return window boundary | DELIVERED | 30 | 30 | no | yes"
     },
     {
       "id": "value-set-or-multiple-states",
       "text": "Uses value sets {PENDING, CONFIRMED} or equivalent to express 'regardless of which starting state' for cases where a rule holds across states",
       "passed": true,
-      "evidence": "{CONFIRMED, SHIPPED, DELIVERED, CANCELLED} used for 'Confirm from any non-pending status' row"
+      "evidence": "{CONFIRMED, SHIPPED, DELIVERED, CANCELLED} | confirm | no"
     },
     {
       "id": "output-column-has-question-mark",
@@ -40,36 +40,36 @@
       "id": "row-independence",
       "text": "Each row is independently verifiable — no row references a prior row's outcome. Each row specifies its own starting state and expected result.",
       "passed": true,
-      "evidence": "Each row like 'Ship a confirmed order' specifies its own starting status and expected outcome, no reference to other rows"
+      "evidence": "Each row specifies Order Status (Before)/Order Status and Action independently, e.g. 'Ship a confirmed order | CONFIRMED | ship | yes | SHIPPED'"
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "text": "Distinct concerns are addressed by distinct tables, rather than crammed into one monolithic table mixing unrelated rules. **What counts as a distinct concern is the Expected Output Description's own list wherever it gives one** — take its dimensions as written and do not regroup them into something you find more cohesive; where it gives no list, derive the concerns from the requirement. FAILS when one table carries concerns that answer different rules — whether it is the only table delivered or one of several, since a class can decompose most of its concerns correctly and still cram three unrelated ones into a fourth table. PASSES when every table delivered is focused on one concern, or on concerns related as the exemptions below describe. Three things are NOT failures here, and each is commonly mistaken for one. **Closely-related concerns may share one table** where they answer the same rule — a fulfillment type and a delivery address both deciding \"same shipment iff same type and address\" are two facets of one question, so four tables covering five named concerns is correct, not under-decomposed. **A single table is right** where the concerns share the same input columns and each is discharged by one row or two: the compact one-table form and a multi-table split are then equally correct, and a domain with genuinely one concern needs only one. **Repeated or redundant rows are not this assertion's subject at all** — whether one row re-covers ground an earlier one already discharged, and whether a whole table re-proves another, are judged elsewhere; do not fail decomposition for them. Judge the delivered tables and nothing else. Any claim the response's prose makes about how many concerns or tables it produced is irrelevant — an inaccurate summary standing beside correctly decomposed tables PASSES, and an accurate summary standing beside one monolithic table FAILS.",
       "passed": true,
-      "evidence": "'Here are two example tables — one for the core state machine, one for the return-eligibility rule.'"
+      "evidence": "one for the core state machine, one for the return-eligibility rule... genuinely different concerns"
     },
     {
       "id": "no-duplicate-rows-within-a-table",
       "text": "Judge each table in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a premium sampled at 0, 2, 4 and 6 claims once the charge is already known to be per claim: two samples state a difference, a third states its shape, and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. Two further cases are NOT excess, and both are commonly mistaken for it. A third consecutive value of a count, where two would leave a per-unit rate and a one-off charge indistinguishable: 0, 1 and 2 prior claims, because 0 and 1 alone are equally consistent with a flat penalty for having any claim history, and the third row is what decides between them. And a row whose point is that an input does NOT move the outcome — two ages priced the same, a value set over every carrier against one cost — because an invariance is a rule of its own and the only way to state it is to vary the input and hold the expectation. Neither is a repeat of a direction: the first establishes a shape, the second establishes that there is no direction at all. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by this eval's own coverage assertions. Judge every table in the response; your evidence must name each table with PASS or FAIL.",
       "passed": true,
-      "evidence": "Table 1: PASS - each row covers distinct action/state branch (e.g. two cancel-allowed rows are distinct states, not repeats). Table 2: PASS - day0/day30/day31 are boundary values (before/at/after threshold), not excess repeats; 'not yet delivered' and 'already requested' are distinct branches."
+      "evidence": "Table 1: each action has an allowed row and a value-set denial row, plus two distinct cancel-allowed branches; Table 2: boundary (30), past-window (31), not-yet-delivered, and already-requested rows are all distinct branches"
     },
     {
       "id": "separates-transitions-and-returns",
       "text": "Status transition rules and return eligibility rules are in separate tables",
       "passed": true,
-      "evidence": "'Table 1 — Determines the Result of an Order Status Transition' and 'Table 2 — Determines Return Eligibility for a Delivered Order' are separate tables"
+      "evidence": "Table 1 — Determines the Result of an Order Status Transition ... Table 2 — Determines Return Eligibility for a Delivered Order"
     }
   ],
   "assertions_passed": 10,
   "assertions_total": 10,
   "pass_rate": 1,
   "grading_usage": {
-    "input_tokens": 3346,
-    "output_tokens": 1282,
-    "total_tokens": 4628,
+    "input_tokens": 3838,
+    "output_tokens": 1484,
+    "total_tokens": 5322,
     "calls": 1,
-    "cost_usd": 0.029268,
+    "cost_usd": 0.033774,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

@@ -8,7 +8,7 @@
   "skill_commit": "107e9a86966b95cce40f055a588fda95f1602b30",
   "skill_digest": "1d5b863abf1c4a0b",
   "generation_auth": "subscription",
-  "timestamp": "2026-08-16T21:08:17.527Z",
+  "timestamp": "2026-08-16T23:15:02.186Z",
   "evals": [
     {
       "id": "eval-15-reis-discount",
@@ -47,13 +47,14 @@
       "id": "eval-18-convert-from-code",
       "name": "convert from code",
       "skill": "tabletest",
-      "fingerprint": "94fb0e2e0518",
+      "fingerprint": "c9ea8e1ad891",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 25,
+        "assertions_passed": 24,
         "assertions_total": 34,
-        "pass_rate": 0.7352941176470589,
+        "pass_rate": 0.7058823529411765,
         "failed_assertions": [
+          "concerns-decomposed",
           "separates-decision-and-premium",
           "description-no-internals",
           "decision-claim-cliff",
@@ -68,11 +69,11 @@
         "duration_ms": 238322,
         "cost_usd": 0.9891714999999999,
         "grading_usage": {
-          "input_tokens": 25205,
-          "output_tokens": 22102,
-          "total_tokens": 47307,
+          "input_tokens": 25697,
+          "output_tokens": 25821,
+          "total_tokens": 51518,
           "calls": 3,
-          "cost_usd": 0.407145,
+          "cost_usd": 0.464406,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -113,20 +114,20 @@
     }
   ],
   "summary": {
-    "assertions_passed": 80,
+    "assertions_passed": 79,
     "assertions_total": 97,
-    "pass_rate": 0.8247422680412371,
+    "pass_rate": 0.8144329896907216,
     "errored_evals": [],
     "truncated_evals": [],
     "total_tokens": 3918876,
     "total_duration_ms": 924309,
     "total_cost_usd": 3.7192415999999993,
     "grading": {
-      "input_tokens": 73941,
-      "output_tokens": 51010,
-      "total_tokens": 124951,
+      "input_tokens": 74433,
+      "output_tokens": 54729,
+      "total_tokens": 129162,
       "calls": 8,
-      "cost_usd": 0.9869729999999999,
+      "cost_usd": 1.0442339999999999,
       "evals_measured": 3,
       "rates_usd_per_mtok": {
         "input": 3,

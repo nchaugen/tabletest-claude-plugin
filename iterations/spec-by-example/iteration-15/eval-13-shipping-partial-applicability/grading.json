@@ -10,25 +10,25 @@
       "id": "express-split-by-uk-free-tier",
       "text": "Express shipping is split into at least two cases distinguishing the UK free tier (UK, order £50+, free) from the paid tier. The split is driven by the UK-only free threshold rule.",
       "passed": true,
-      "evidence": "Rows: 'Below the free-shipping threshold' (9.99), 'At or above the threshold, UK destination' (0.00), 'At or above the threshold, outside the UK' (9.99)"
+      "evidence": "Rows: 'Below the free-shipping threshold' (9.99), 'At or above threshold, UK' (0.00), 'At or above threshold, outside UK' (9.99)"
     },
     {
       "id": "express-uses-value-sets",
       "text": "Express rows use value sets to consolidate cases with the same outcome — e.g. non-UK destinations at/above threshold in one row (such as {Ireland, Other} or {Ireland, International}), or UK at/above threshold in one row ({£50, £75}). Not enumerated as separate rows per destination or per order value when the result is identical. Any reasonable label for non-UK/Ireland destinations is acceptable (International, Other, Rest of World, etc.).",
       "passed": true,
-      "evidence": "{50.00, 500.00} | UK | 0.00' and '{50.00, 500.00} | {Ireland, France, USA} | 9.99'"
+      "evidence": "'{50.00, 500.00}' and '{Ireland, France, USA}' used to consolidate non-UK/above-threshold cases"
     },
     {
       "id": "overnight-grouped",
       "text": "Overnight UK and Ireland are in one row using a value set ({UK, Ireland}) — not separate rows, since both have the same cost and availability.",
       "passed": false,
-      "evidence": "'UK destination | UK | ... | yes | 14.99' and 'Ireland destination | Ireland | ... | yes | 14.99' are separate rows, not merged into {UK, Ireland}"
+      "evidence": "Overnight table has separate rows 'UK destination' and 'Ireland destination', not a combined {UK, Ireland} row"
     },
     {
       "id": "standard-destination-value-set-or-blank",
       "text": "Standard shipping destination uses a value set covering all options (e.g. {UK, Ireland, International} or {UK, Ireland, Other}) or is blank/absent — either approach is valid since destination is irrelevant to the cost. Any reasonable label for non-UK/Ireland destinations is acceptable.",
       "passed": true,
-      "evidence": "'Destination varies, order value fixed | 50.00 | {UK, Ireland, France, USA} | 3.99'"
+      "evidence": "Row: 'Destination varies, order value fixed | 50.00 | {UK, Ireland, France, USA} | 3.99'"
     },
     {
       "id": "output-column-has-question-mark",
@@ -40,25 +40,25 @@
       "id": "concrete-domain-values",
       "text": "Cell values use concrete domain terms (e.g. 'Standard', 'Express', 'UK', '£3.99') — not abstract codes or raw booleans like 'true', 'false', 'TYPE_1', '1'.",
       "passed": true,
-      "evidence": "Cells use 'UK', 'Ireland', 'France', 'USA', '3.99', '9.99', '14.99' rather than codes/booleans"
+      "evidence": "Cells use 'UK', 'Ireland', 'France', 'USA', '3.99', '9.99', 'yes'/'no' — concrete domain terms"
     },
     {
       "id": "blank-vs-value-set-correct",
       "text": "Value sets (not blanks) are used for irrelevant inputs — e.g. Standard shipping destination uses a value set like {UK, Ireland, International} because destination exists but doesn't affect the cost. Blanks are reserved for genuinely absent/N/A inputs. The distinction between 'irrelevant to this rule' (value set) and 'not applicable' (blank) is correct.",
       "passed": true,
-      "evidence": "'Overnight Cost?' is blank (not £0.00) when unavailable — absent, not free."
+      "evidence": "'Order value never affects Overnight, so it's a value set on every row' vs blank cost when unavailable"
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "text": "Distinct concerns are addressed by distinct tables, rather than crammed into one monolithic table mixing unrelated rules. **What counts as a distinct concern is the Expected Output Description's own list wherever it gives one** — take its dimensions as written and do not regroup them into something you find more cohesive; where it gives no list, derive the concerns from the requirement. FAILS when one table carries concerns that answer different rules — whether it is the only table delivered or one of several, since a class can decompose most of its concerns correctly and still cram three unrelated ones into a fourth table. PASSES when every table delivered is focused on one concern, or on concerns related as the exemptions below describe. Three things are NOT failures here, and each is commonly mistaken for one. **Closely-related concerns may share one table** where they answer the same rule — a fulfillment type and a delivery address both deciding \"same shipment iff same type and address\" are two facets of one question, so four tables covering five named concerns is correct, not under-decomposed. **A single table is right** where the concerns share the same input columns and each is discharged by one row or two: the compact one-table form and a multi-table split are then equally correct, and a domain with genuinely one concern needs only one. **Repeated or redundant rows are not this assertion's subject at all** — whether one row re-covers ground an earlier one already discharged, and whether a whole table re-proves another, are judged elsewhere; do not fail decomposition for them. Judge the delivered tables and nothing else. Any claim the response's prose makes about how many concerns or tables it produced is irrelevant — an inaccurate summary standing beside correctly decomposed tables PASSES, and an accurate summary standing beside one monolithic table FAILS.",
       "passed": true,
-      "evidence": "three example tables — one per shipping method, since each has a genuinely distinct eligibility/cost rule"
+      "evidence": "Three tables: '1. Sets the standard shipping cost...', '2. Calculates the express...', '3. Determines overnight...'"
     },
     {
       "id": "no-duplicate-rows-within-a-table",
       "text": "Judge each table in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a premium sampled at 0, 2, 4 and 6 claims once the charge is already known to be per claim: two samples state a difference, a third states its shape, and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. Two further cases are NOT excess, and both are commonly mistaken for it. A third consecutive value of a count, where two would leave a per-unit rate and a one-off charge indistinguishable: 0, 1 and 2 prior claims, because 0 and 1 alone are equally consistent with a flat penalty for having any claim history, and the third row is what decides between them. And a row whose point is that an input does NOT move the outcome — two ages priced the same, a value set over every carrier against one cost — because an invariance is a rule of its own and the only way to state it is to vary the input and hold the expectation. Neither is a repeat of a direction: the first establishes a shape, the second establishes that there is no direction at all. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by this eval's own coverage assertions. Judge every table in the response; your evidence must name each table with PASS or FAIL.",
-      "passed": false,
-      "evidence": "Table 1 PASS (two distinct invariance rows); Table 2 PASS (three distinct branches); Table 3 FAIL — UK and Ireland rows both show 'yes | 14.99', a duplicate obligation not merged into a value set."
+      "passed": true,
+      "evidence": "Table1 PASS (two invariance dims); Table2 PASS (distinct threshold rows); Table3 PASS (UK/Ireland rows show destination invariance, protected exemption)"
     },
     {
       "id": "separates-availability-and-cost",
@@ -70,18 +70,18 @@
       "id": "blank-output-for-na",
       "text": "When a shipping method is unavailable (e.g. Overnight outside UK/Ireland), the output clearly indicates non-applicability — either via a blank cost cell in a combined table, or by the availability table showing 'No'/unavailable and the cost table omitting those combinations entirely. Filler text like 'N/A', '-', or '0' is not used for unavailable outcomes.",
       "passed": true,
-      "evidence": "'Overnight Cost?` is blank (not £0.00) when unavailable — absent, not free.'"
+      "evidence": "'`Overnight Cost?` is blank (not £0.00) when unavailable — absent, not free.'"
     }
   ],
-  "assertions_passed": 9,
+  "assertions_passed": 10,
   "assertions_total": 12,
-  "pass_rate": 0.75,
+  "pass_rate": 0.8333333333333334,
   "grading_usage": {
-    "input_tokens": 3948,
-    "output_tokens": 2739,
-    "total_tokens": 6687,
+    "input_tokens": 4440,
+    "output_tokens": 6367,
+    "total_tokens": 10807,
     "calls": 1,
-    "cost_usd": 0.052929,
+    "cost_usd": 0.108825,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

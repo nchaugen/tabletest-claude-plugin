@@ -8,30 +8,30 @@
   "skill_commit": "0019d10b0ed64b20831a77f4c2d7327316fe8d77",
   "skill_digest": "8c48d55601403f10",
   "generation_auth": "subscription",
-  "timestamp": "2026-08-10T11:20:29.850Z",
+  "timestamp": "2026-08-16T23:15:02.488Z",
   "evals": [
     {
       "id": "eval-31-travel-insurance-py",
       "name": "travel insurance py",
       "skill": "table-driven-testing",
-      "fingerprint": "532329f8afc0",
+      "fingerprint": "a4a1f70c2a3b",
       "results": {
         "model": "claude-sonnet-5",
         "assertions_passed": 12,
         "assertions_total": 13,
         "pass_rate": 0.9230769230769231,
         "failed_assertions": [
-          "precedence-visible"
+          "threshold-as-column"
         ],
         "total_tokens": 521762,
         "duration_ms": 89117,
         "cost_usd": 0.51358,
         "grading_usage": {
-          "input_tokens": 4176,
-          "output_tokens": 4706,
-          "total_tokens": 8882,
+          "input_tokens": 4738,
+          "output_tokens": 5832,
+          "total_tokens": 10570,
           "calls": 1,
-          "cost_usd": 0.083118,
+          "cost_usd": 0.101694,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -160,11 +160,11 @@
     "total_duration_ms": 554017,
     "total_cost_usd": 2.7872984,
     "grading": {
-      "input_tokens": 11670,
-      "output_tokens": 7435,
-      "total_tokens": 19105,
+      "input_tokens": 12232,
+      "output_tokens": 8561,
+      "total_tokens": 20793,
       "calls": 4,
-      "cost_usd": 0.146535,
+      "cost_usd": 0.16511100000000004,
       "evals_measured": 5,
       "rates_usd_per_mtok": {
         "input": 3,

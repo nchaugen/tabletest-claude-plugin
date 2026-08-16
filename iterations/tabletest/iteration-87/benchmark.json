@@ -8,13 +8,13 @@
   "skill_commit": "4e70b9a6ce7faf7fa14b77b66819d4adbfa179b7",
   "skill_digest": "388d424938317f3a",
   "generation_auth": "subscription",
-  "timestamp": "2026-08-16T21:08:17.139Z",
+  "timestamp": "2026-08-16T23:15:01.874Z",
   "evals": [
     {
       "id": "eval-15-reis-discount",
       "name": "reis discount",
       "skill": "tabletest",
-      "fingerprint": "c6e61c63d234",
+      "fingerprint": "9ff0fb3b4b29",
       "results": {
         "model": "claude-sonnet-5",
         "assertions_passed": 27,
@@ -23,21 +23,21 @@
         "failed_assertions": [
           "window-boundary-uses-purchase-time",
           "count-derived-from-raw-history",
-          "2.11-format-description",
           "zone-independent-counting",
           "2.18-adult-senior-value-set",
           "2.20-readability-one-row-per-tier",
+          "concerns-decomposed",
           "quantifier-covered-by-rows"
         ],
         "total_tokens": 1049903,
         "duration_ms": 586060,
         "cost_usd": 1.4494569000000002,
         "grading_usage": {
-          "input_tokens": 31152,
-          "output_tokens": 15963,
-          "total_tokens": 47115,
+          "input_tokens": 31644,
+          "output_tokens": 15854,
+          "total_tokens": 47498,
           "calls": 3,
-          "cost_usd": 0.332901,
+          "cost_usd": 0.332742,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -56,11 +56,11 @@
     "total_duration_ms": 586060,
     "total_cost_usd": 1.4494569000000002,
     "grading": {
-      "input_tokens": 31152,
-      "output_tokens": 15963,
-      "total_tokens": 47115,
+      "input_tokens": 31644,
+      "output_tokens": 15854,
+      "total_tokens": 47498,
       "calls": 3,
-      "cost_usd": 0.332901,
+      "cost_usd": 0.332742,
       "evals_measured": 1,
       "rates_usd_per_mtok": {
         "input": 3,

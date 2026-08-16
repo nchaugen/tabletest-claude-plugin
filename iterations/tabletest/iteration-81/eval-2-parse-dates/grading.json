@@ -16,7 +16,7 @@
       "id": "exception-handled-cleanly",
       "text": "The empty string / exception case is handled — either via a Throws? column, assertThrows inside the method, or a separate @TableTest — rather than being silently omitted",
       "passed": true,
-      "evidence": "Empty string | '' | | java.lang.IllegalArgumentException"
+      "evidence": "Empty string | '' |  | java.lang.IllegalArgumentException"
     },
     {
       "id": "localdate-result-column",
@@ -28,7 +28,7 @@
       "id": "type-conversion-addressed",
       "text": "The response addresses type conversion for non-trivial column types — either by providing a @TypeConverter/converter method, or by using a cell representation that TableTest's built-in conversion handles (e.g. ISO-8601 date strings for LocalDate — relying on built-in conversion counts as addressed).",
       "passed": true,
-      "evidence": "ISO date strings ... relies on built-in conversion; that counts as addressing type conversion (per expected description, and cells like 2024-01-15 used directly)"
+      "evidence": "Parsed? column uses ISO date strings mapped to LocalDate via built-in conversion"
     },
     {
       "id": "has-descriptive-title",
@@ -62,33 +62,33 @@
     },
     {
       "id": "concerns-decomposed",
-      "text": "Multiple tables (or @TableTest methods) are used, each addressing a distinct concern — not one monolithic table mixing unrelated rules. Acceptable to use a single table only when the domain genuinely has a single concern.",
+      "text": "Distinct concerns are addressed by distinct methods, rather than crammed into one monolithic method mixing unrelated rules. **What counts as a distinct concern is the Expected Output Description's own list wherever it gives one** — take its dimensions as written and do not regroup them into something you find more cohesive; where it gives no list, derive the concerns from the requirement. FAILS when one method carries concerns that answer different rules — whether it is the only method delivered or one of several, since a class can decompose most of its concerns correctly and still cram three unrelated ones into a fourth method. PASSES when every method delivered is focused on one concern, or on concerns related as the exemptions below describe. Three things are NOT failures here, and each is commonly mistaken for one. **Closely-related concerns may share one method** where they answer the same rule — a fulfillment type and a delivery address both deciding \"same shipment iff same type and address\" are two facets of one question, so four methods covering five named concerns is correct, not under-decomposed. **A single method is right** where the concerns share the same input columns and each is discharged by one row or two: the compact one-method form and a multi-method split are then equally correct, and a domain with genuinely one concern needs only one. **Repeated or redundant rows are not this assertion's subject at all** — whether one row re-covers ground an earlier one already discharged, and whether a whole method re-proves another, are judged elsewhere; do not fail decomposition for them. Judge the delivered methods and nothing else. Any claim the response's prose makes about how many concerns or methods it produced is irrelevant — an inaccurate summary standing beside correctly decomposed methods PASSES, and an accurate summary standing beside one monolithic method FAILS.",
       "passed": true,
-      "evidence": "parsesSupportedDateFormats and handlesAbsentInput are two distinct @TableTest methods"
+      "evidence": "parsesSupportedDateFormats and handlesAbsentInput are separate, focused methods"
     },
     {
       "id": "assumption-surfaced-as-row",
       "text": "Where the requirement leaves a point open and the answer must commit to a reading anyway, a row states the commitment. Judge ONLY the points the Expected Output Description names as underspecified — normally a section headed \"Underspecified\" — and of those, only the ones it says should become a row. **If it names no such point, or says the requirement leaves nothing open, this assertion PASSES**, and your evidence must quote the sentence that says so. Do not go looking for open points of your own: that description is the only list, and a point it does not name is not judged here. Enumerate before you decide: list each named point, and beside it the row that fixes it — its method, its scenario name, and the cells carrying the choice — or write \"no row\". A verdict reached without that list is not a verdict. The decidable test for a named point is whether the reading NOT taken would move a cell: name that reading and the cell it would change. PASSES when every named point has such a row. One row can fix several points, and one point can need a pair — the row taking the reading and the row just past it. FAILS when a named point is fixed only in prose: in `@Description`, in a comment, in the response text, or in a name with no cell behind it. A sentence saying which reading was taken is not the row this asks for, and publishing it neither creates nor discharges the failure — whether an assumption is *published* is another assertion's subject, and whether the reading chosen is the better one is nobody's. FAILS when a named point is fixed nowhere. Follow the Expected Output Description's own words on what each point needs, never your own sense of what would be worth testing. Where it prescribes something other than a row — stating the choice in `@Description`, or constructing the rows so the case cannot arise — that is the resolution, and the point PASSES when the answer does it. Where it marks a point out of scope, or foreseeable-but-omitted, or says omitting it is not penalised, the point is NOT judged. Where it makes a point conditional on a choice the answer did not make — \"if the answer rejects these, a row should show it\" — the point is NOT judged. And rows you think are missing for any other reason are never a failure here: this assertion judges the named points and nothing else.",
       "passed": false,
-      "evidence": "No row like '99-01-15' exists; century-window assumption only mentioned in prose: 'short year 24-01-15 is yy-MM-dd interpreted in the 2000s'"
+      "evidence": "No row like '99-01-15 -> ...' exists; only ISO, Slash, Short year (24-01-15) rows given"
     },
     {
       "id": "no-duplicate-rows-within-a-table",
       "text": "Judge each @TableTest in isolation. The assertion FAILS if a row re-covers an obligation an earlier row in the SAME table already discharged (e.g. a full region x speed x weight cross-product where one row per rate band would state the same rule). Judge each table against its concern's coverage obligations — the distinct behaviours the rule must demonstrate. Where the expected output states those obligations for a concern, judge against that list and do not invent a stricter one; where it does not, derive them from the concern itself. A row that discharges an obligation no other row reaches earns its place however simple it looks, and a value set that covers several values in one row is the preferred discharge, never a failure. Rows that walk one input up while everything else is held are excess when the third and later ones only re-show a direction the first two already established — 'standard applicant, no claims' at ages 30, 40 and 50, or a premium sampled at 0, 2, 4 and 6 claims once the charge is already known to be per claim: two samples state a difference, a third states its shape, and the rest exercise the same arithmetic. They are NOT excess when each value is a boundary, a band, or a distinct branch of the rule — 40 against 41 hours, below/at/above a threshold, one row per rate band — because each then discharges an obligation of its own. Two further cases are NOT excess, and both are commonly mistaken for it. A third consecutive value of a count, where two would leave a per-unit rate and a one-off charge indistinguishable: 0, 1 and 2 prior claims, because 0 and 1 alone are equally consistent with a flat penalty for having any claim history, and the third row is what decides between them. And a row whose point is that an input does NOT move the outcome — two ages priced the same, a value set over every carrier against one cost — because an invariance is a rule of its own and the only way to state it is to vary the input and hold the expectation. Neither is a repeat of a direction: the first establishes a shape, the second establishes that there is no direction at all. ROWS YOU THINK ARE MISSING ARE NEVER A FAILURE HERE — this assertion judges excess rows only, and coverage is judged by this eval's own coverage assertions where it has them. Judge every @TableTest method in the class; your evidence must name each method with PASS or FAIL.",
       "passed": true,
-      "evidence": "parsesSupportedDateFormats: PASS (3 distinct formats, no repeats); handlesAbsentInput: PASS (2 distinct branches: null vs empty string)"
+      "evidence": "parsesSupportedDateFormats: PASS (3 distinct formats); handlesAbsentInput: PASS (null vs empty string, no repeats)"
     },
     {
       "id": "no-table-reproves-another",
       "text": "Judge the class as a whole, and only its @TableTest methods: a plain @Test method is not a table and can never fail this assertion, however much of an earlier table it re-proves. The assertion FAILS if a whole @TableTest re-proves rules that earlier tables already established — an integration or end-to-end table whose rows re-prove established rules is the common case, and it fails however clean the other tables are. Sibling tables that each isolate one rule are NOT duplication merely because they share a baseline row: four surcharge tables that each show 'no surcharge' then 'surcharge applied' are four legitimate tables, not one duplicated four times. Collapsing several same-fixture tables into one, as concern-not-over-split requires, is likewise not a failure here. Rows you think are missing are never a failure here. Your evidence must name the re-proving table and the table it duplicates, or state that no @TableTest re-proves another.",
       "passed": true,
-      "evidence": "Only two @TableTest methods exist, each covering distinct scenarios; no re-proving detected"
+      "evidence": "Only two @TableTest methods, each covering a distinct concern; no re-proving found"
     },
     {
       "id": "separates-valid-and-invalid",
       "text": "Valid parsing cases and error/exception cases are in separate @TableTest methods",
-      "passed": false,
-      "evidence": "handlesAbsentInput mixes null (valid) and empty string (error) with a shared Throws? column: 'Null input | | |' and 'Empty string | '' | | java.lang.IllegalArgumentException'"
+      "passed": true,
+      "evidence": "parsesSupportedDateFormats ... handlesAbsentInput ... Empty string ... Throws?"
     },
     {
       "id": "has-tabletest-dependency",
@@ -103,15 +103,15 @@
       "evidence": "Compilation succeeded"
     }
   ],
-  "assertions_passed": 15,
+  "assertions_passed": 16,
   "assertions_total": 17,
-  "pass_rate": 0.8823529411764706,
+  "pass_rate": 0.9411764705882353,
   "grading_usage": {
-    "input_tokens": 5312,
-    "output_tokens": 1641,
-    "total_tokens": 6953,
+    "input_tokens": 5804,
+    "output_tokens": 1316,
+    "total_tokens": 7120,
     "calls": 1,
-    "cost_usd": 0.040551,
+    "cost_usd": 0.037152,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

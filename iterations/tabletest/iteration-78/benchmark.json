@@ -8,21 +8,20 @@
   "skill_commit": "5cf57edfcb356cfc40ff2c634de383920b7c6757",
   "skill_digest": "1d5b863abf1c4a0b",
   "generation_auth": "subscription",
-  "timestamp": "2026-08-16T21:08:17.656Z",
+  "timestamp": "2026-08-16T23:15:02.310Z",
   "evals": [
     {
       "id": "eval-25-convert-from-spock",
       "name": "convert from spock",
       "skill": "tabletest",
-      "fingerprint": "11fb97289411",
+      "fingerprint": "c1d2be86b5a4",
       "results": {
         "model": null,
-        "assertions_passed": 23,
+        "assertions_passed": 24,
         "assertions_total": 28,
-        "pass_rate": 0.8214285714285714,
+        "pass_rate": 0.8571428571428571,
         "failed_assertions": [
           "concern-not-over-split",
-          "rule-statable-from-table",
           "has-tabletest-dependency",
           "compiles",
           "spock-dependency-removed"
@@ -31,11 +30,11 @@
         "duration_ms": 901626,
         "cost_usd": 0,
         "grading_usage": {
-          "input_tokens": 20934,
-          "output_tokens": 6144,
-          "total_tokens": 27078,
+          "input_tokens": 21439,
+          "output_tokens": 5731,
+          "total_tokens": 27170,
           "calls": 2,
-          "cost_usd": 0.154962,
+          "cost_usd": 0.150282,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -47,9 +46,9 @@
     }
   ],
   "summary": {
-    "assertions_passed": 23,
+    "assertions_passed": 24,
     "assertions_total": 28,
-    "pass_rate": 0.8214285714285714,
+    "pass_rate": 0.8571428571428571,
     "errored_evals": [],
     "truncated_evals": [
       "eval-25-convert-from-spock"
@@ -58,11 +57,11 @@
     "total_duration_ms": 901626,
     "total_cost_usd": 0,
     "grading": {
-      "input_tokens": 20934,
-      "output_tokens": 6144,
-      "total_tokens": 27078,
+      "input_tokens": 21439,
+      "output_tokens": 5731,
+      "total_tokens": 27170,
       "calls": 2,
-      "cost_usd": 0.154962,
+      "cost_usd": 0.150282,
       "evals_measured": 1,
       "rates_usd_per_mtok": {
         "input": 3,
