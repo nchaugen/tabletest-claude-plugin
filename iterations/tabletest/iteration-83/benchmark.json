@@ -8,13 +8,13 @@
   "skill_commit": "501c4d058b25facdc96a1698d3e5d6490dd4c069",
   "skill_digest": "1a587c9bf7c69511",
   "generation_auth": "subscription",
-  "timestamp": "2026-08-10T17:47:01.509Z",
+  "timestamp": "2026-08-16T21:08:17.332Z",
   "evals": [
     {
       "id": "eval-22-event-registration-tt",
       "name": "event registration tt",
       "skill": "tabletest",
-      "fingerprint": "1c9ef62b1946",
+      "fingerprint": "31876641c206",
       "results": {
         "model": "claude-sonnet-5",
         "assertions_passed": 28,
@@ -28,11 +28,11 @@
         "duration_ms": 219599,
         "cost_usd": 1.0144958999999998,
         "grading_usage": {
-          "input_tokens": 17277,
-          "output_tokens": 11171,
-          "total_tokens": 28448,
+          "input_tokens": 17267,
+          "output_tokens": 9866,
+          "total_tokens": 27133,
           "calls": 2,
-          "cost_usd": 0.219396,
+          "cost_usd": 0.199791,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -51,11 +51,11 @@
     "total_duration_ms": 219599,
     "total_cost_usd": 1.0144958999999998,
     "grading": {
-      "input_tokens": 17277,
-      "output_tokens": 11171,
-      "total_tokens": 28448,
+      "input_tokens": 17267,
+      "output_tokens": 9866,
+      "total_tokens": 27133,
       "calls": 2,
-      "cost_usd": 0.219396,
+      "cost_usd": 0.199791,
       "evals_measured": 1,
       "rates_usd_per_mtok": {
         "input": 3,

@@ -1,6 +1,6 @@
 # Eval Review — tabletest, Iteration 82
 
-**Model:** sonnet (claude-sonnet-5) · **Grading:** claude-sonnet-5 · **Date:** 2026-08-08 · **Evals:** 2
+**Model:** sonnet (claude-sonnet-5) · **Grading:** claude-sonnet-5 · **Date:** 2026-08-16 · **Evals:** 2
 
 ## Summary
 
@@ -8,14 +8,12 @@
 
 _Cost figures are Claude Code list-price estimates; actual billing may differ (e.g. promotional pricing). Timed-out evals score 0 with unrecorded token usage._
 
-> ⚠️ **1 assertion verdict moved** vs iteration 81 (over 1 of 2 evals — the rest were not comparable). These are deltas, not attributions: read each eval's `outputs/` and `narration.md` before explaining any of them, and do not start the next iteration until every entry in `analysis-todo.md` has a cause.
+> ⛔ **Void comparison — none of the 2 evals could be compared** vs iteration 81. Every delta below is computed over nothing; an absence of movement here is not evidence that nothing moved. See `analysis-todo.md`.
 
 ## Delta vs Iteration 81
 
-**Improvements (1):**
-- ✅ eval-1-convert-repetitive-tests: `has-three-data-rows`
-
-**Not comparable (1) — excluded from the deltas above:**
+**Not comparable (2) — excluded from the deltas above:**
+- ⚠️ eval-1-convert-repetitive-tests: fingerprint differs from iteration 81; re-baseline to compare
 - ⚠️ eval-22-event-registration-tt: iteration 81 did not run this eval; nothing to compare against
 
 ## Resource Comparison vs Iteration 81

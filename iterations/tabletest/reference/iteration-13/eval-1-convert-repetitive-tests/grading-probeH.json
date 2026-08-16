@@ -40,25 +40,25 @@
       "id": "has-descriptive-title",
       "text": "Test method has either a @DisplayName annotation or a method name that reads as a clear, descriptive title when converted from camelCase/snake_case (e.g. 'discountByCustomerTier' → 'Discount By Customer Tier'). Not a generic name like 'test1' or 'testMethod'.",
       "passed": true,
-      "evidence": "1 @TableTest method name(s) read as descriptive titles (no @DisplayName needed)"
+      "evidence": "@DisplayName annotation present"
     },
     {
       "id": "description-if-present-adds-information",
-      "text": "PASSES when no @Description is present anywhere in the class — omitting it is always acceptable, and this assertion NEVER penalises its absence. Do not fail it for a missing @Description, and do not treat a @DisplayName as a substitute. When a @Description IS present, it must provide context beyond what the table rows already express — such as fixed values shared by all rows, or where/when the rule applies — and FAILS when it merely restates the column names or summarises what the rows already show.",
+      "text": "PASSES when no @Description is present anywhere in the class — omitting it is always acceptable, and this assertion NEVER penalises its absence. Do not fail it for a missing @Description, and do not treat a @DisplayName as a substitute. When a @Description IS present, it must provide context beyond what the table rows already express — such as fixed values shared by all rows, or where/when the rule applies — and FAILS when it merely restates the column names or summarises what the rows already show. Judge every sentence it contains, not its best one: a @Description that supplies real context and ALSO restates a rule the rows already demonstrate FAILS on the restatement, because duplicating the table is the defect this exists to catch. Naming a value the rows carry in order to say something the rows cannot — that it is the one value at which two readings coincide, or that it is held fixed throughout — is context, not restatement.",
       "passed": true,
-      "evidence": "No @Description annotation present in the @TableTest; only a scenario table string is used."
+      "evidence": "Discount is an amount off the order, not a rate... so the table cannot tell them apart on its own."
     },
     {
       "id": "annotation-order",
       "text": "Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.",
       "passed": true,
-      "evidence": "VACUOUS: no @TableTest method carries a @DisplayName or @Description, so there was no ordering to check. This pass is not evidence that ordering improved — do not read a move onto it as a win."
+      "evidence": "Annotations in correct order (@DisplayName, @Description, @TableTest) across 1 annotated method(s)"
     },
     {
       "id": "description-uses-textblock",
       "text": "If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string \"\"\"), not string concatenation with +. Passes if @Description is absent.",
       "passed": true,
-      "evidence": "No @Description present — passes by default"
+      "evidence": "@Description uses text block or is short single-line"
     },
     {
       "id": "has-tabletest-dependency",
@@ -83,11 +83,11 @@
   "assertions_total": 13,
   "pass_rate": 1,
   "grading_usage": {
-    "input_tokens": 2576,
-    "output_tokens": 65,
-    "total_tokens": 2641,
+    "input_tokens": 2900,
+    "output_tokens": 70,
+    "total_tokens": 2970,
     "calls": 1,
-    "cost_usd": 0.008703,
+    "cost_usd": 0.00975,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15
