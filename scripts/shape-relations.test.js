@@ -6,6 +6,20 @@ const { storedDraws, evaluateDraw } = require("./shape-report.js");
 const {
   EVAL_14_RELATIONS,
   EVAL_15_RELATIONS,
+  EVAL_2_RELATIONS,
+  EVAL_8_RELATIONS,
+  centuryWindowRow,
+  decimalPlaces,
+  descriptionsOf,
+  duplicateFormatRows,
+  emptyStringHandling,
+  localDateColumns,
+  mixedTables,
+  namedRejections,
+  rejectionTables,
+  scaleFixingRow,
+  tableReprovingAnother,
+  zeroAmountRow,
   EVAL_22_RELATIONS,
   EVAL_23_RELATIONS,
   EVAL_25_RELATIONS,
@@ -365,6 +379,16 @@ describe("the reference answers", () => {
     const rows = evaluateDraw(referenceOf("eval-23-loan-approval-tt"), EVAL_23_RELATIONS, { sutParameters: [] });
     const failed = rows.filter((row) => !row.holds && !row.advisory).map((row) => `${row.id}: ${row.evidence}`);
     assert.deepEqual(failed, []);
+  });
+
+  test("eval-2's reference satisfies every one of its relations", () => {
+    const rows = evaluateDraw(referenceOf("eval-2-parse-dates"), EVAL_2_RELATIONS, { sutParameters: [] });
+    assert.deepEqual(rows.filter((row) => !row.holds).map((row) => `${row.id}: ${row.evidence}`), []);
+  });
+
+  test("eval-8's reference satisfies every one of its relations", () => {
+    const rows = evaluateDraw(referenceOf("eval-8-money-parse"), EVAL_8_RELATIONS, { sutParameters: [] });
+    assert.deepEqual(rows.filter((row) => !row.holds).map((row) => `${row.id}: ${row.evidence}`), []);
   });
 
   test("every authored eval declares relations with an id and an evaluate", () => {
@@ -1829,5 +1853,239 @@ describe("rowsRediscarging", () => {
       ]),
     );
     assert.deepEqual(found, []);
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// eval-2 parse-dates and eval-8 money-parse — one parser, a value or a rejection
+// ---------------------------------------------------------------------------
+
+/**
+ * A class of parser tables, each given as its header, rows and the assertion its body makes.
+ *
+ * The signature is generated from the header so the scenario column is detected: TableTest reads
+ * a leading scenario column as the one column with no parameter behind it, and a fixture whose
+ * counts disagree shifts every column onto the wrong parameter.
+ */
+const parserClass = (tables) =>
+  answerShape(
+    tables
+      .map(({ name, header, rows, body = "assertEquals(expected0, parser.parse(input));", description = "" }) => {
+        const columns = header.split("|").length;
+        const params = ["String input", ...Array.from({ length: columns - 2 }, (_, i) => `Object expected${i}`)];
+        return `
+${description ? `    @Description("""\n        ${description}\n        """)` : ""}
+    @TableTest("""
+        ${header}
+${rows.map((row) => `        ${row}`).join("\n")}
+        """)
+    void ${name}(${params.join(", ")}) {
+        ${body}
+    }
+`;
+      })
+      .join("\n"),
+  );
+
+const parseVerdict = (relations, id, shape) => relations.find((one) => one.id === id).evaluate(shape, {});
+
+describe("mixedTables", () => {
+  test("names a table carrying both a parsed value and a rejection", () => {
+    const shape = parserClass([
+      {
+        name: "parses",
+        header: "Scenario | Input | Parsed? | Throws?",
+        rows: ["ISO | 2024-01-15 | 2024-01-15 | ", "Empty | '' |  | java.lang.IllegalArgumentException"],
+      },
+    ]);
+    assert.deepEqual(mixedTables(shape).map((one) => one.method), ["parses"]);
+  });
+
+  test("says nothing about a table asserting a date for no row, however it is headed", () => {
+    // iteration-81's second table pairs the null input with the empty string and expects a date
+    // for neither, which is a table about absent input rather than a mixed one.
+    const shape = parserClass([
+      {
+        name: "handlesAbsentInput",
+        header: "Scenario | Input | Parsed? | Throws?",
+        rows: ["Null |  |  | ", "Empty | '' |  | java.lang.IllegalArgumentException"],
+      },
+    ]);
+    assert.deepEqual(mixedTables(shape), []);
+  });
+
+  test("counts a body-level assertThrows as rejecting every row of its table", () => {
+    const shape = parserClass([
+      {
+        name: "parses",
+        header: "Scenario | Input | Parsed?",
+        rows: ["ISO | 2024-01-15 | 2024-01-15"],
+        body: "assertThrows(expected, () -> parser.parse(input));",
+      },
+    ]);
+    assert.deepEqual(mixedTables(shape).map((one) => one.method), ["parses"]);
+  });
+});
+
+describe("tableReprovingAnother", () => {
+  test("names a table making no claim another does not already make", () => {
+    const shape = parserClass([
+      { name: "parses", header: "Scenario | Input | Parsed?", rows: ["A | 2024-01-15 | 2024-01-15", "B | 24-01-15 | 2024-01-15"] },
+      { name: "endToEnd", header: "Scenario | Input | Parsed?", rows: ["A | 2024-01-15 | 2024-01-15"] },
+    ]);
+    assert.equal(tableReprovingAnother(shape).method, "endToEnd");
+  });
+
+  test("says nothing about two tables that each claim something of their own", () => {
+    const shape = parserClass([
+      { name: "parses", header: "Scenario | Input | Parsed?", rows: ["A | 2024-01-15 | 2024-01-15"] },
+      { name: "rejects", header: "Scenario | Input | Throws?", rows: ["A | '' | java.lang.IllegalArgumentException"] },
+    ]);
+    assert.equal(tableReprovingAnother(shape), null);
+  });
+});
+
+describe("centuryWindowRow", () => {
+  const valid = (rows) => parserClass([{ name: "parses", header: "Scenario | Input | Parsed?", rows }]);
+
+  test("finds a two-digit year the prompt does not fix", () => {
+    const found = centuryWindowRow(valid(["Short year | 24-01-15 | 2024-01-15", "Open century | 99-01-15 | 2099-01-15"]));
+    assert.equal(found.row, 2);
+  });
+
+  test("does not read the 24 the prompt itself gives as fixing anything", () => {
+    assert.equal(centuryWindowRow(valid(["Short year | 24-01-15 | 2024-01-15"])), null);
+  });
+
+  test("does not mistake the slash format's leading day for a two-digit year", () => {
+    assert.equal(centuryWindowRow(valid(["Slash | 15/01/2024 | 2024-01-15"])), null);
+  });
+});
+
+describe("duplicateFormatRows and localDateColumns", () => {
+  const valid = (rows) => parserClass([{ name: "parses", header: "Scenario | Input | Parsed?", rows }]);
+
+  test("names a row re-parsing a format to the same date", () => {
+    const found = duplicateFormatRows(valid(["ISO | 2024-01-15 | 2024-01-15", "ISO again | 2024-03-02 | 2024-01-15"]));
+    assert.deepEqual(found.map((one) => one.row), [2]);
+  });
+
+  test("keeps two short-year rows landing on different dates, which is the century pair", () => {
+    assert.deepEqual(duplicateFormatRows(valid(["Given | 24-01-15 | 2024-01-15", "Open | 99-01-15 | 2099-01-15"])), []);
+  });
+
+  test("reads ISO cells as reaching LocalDate even where the parameter is not typed so", () => {
+    assert.deepEqual(
+      localDateColumns(valid(["ISO | 2024-01-15 | 2024-01-15"])).map((one) => one.iso),
+      [true],
+    );
+  });
+});
+
+describe("emptyStringHandling", () => {
+  test("accepts a quoted empty string whose row states the exception", () => {
+    const shape = parserClass([
+      { name: "rejects", header: "Scenario | Input | Throws?", rows: ["Empty | '' | java.lang.IllegalArgumentException"] },
+    ]);
+    assert.equal(emptyStringHandling(shape).handled, true);
+  });
+
+  test("accepts an assertThrows in the body where no column names the type", () => {
+    const shape = parserClass([
+      {
+        name: "rejects",
+        header: "Scenario | Input",
+        rows: ["Empty | ''"],
+        body: "assertThrows(IllegalArgumentException.class, () -> parser.parse(input));",
+      },
+    ]);
+    assert.equal(emptyStringHandling(shape).handled, true);
+  });
+
+  test("does not read a blank cell as the empty string", () => {
+    const shape = parserClass([{ name: "parses", header: "Scenario | Input | Parsed?", rows: ["Null |  | "] }]);
+    assert.equal(emptyStringHandling(shape), null);
+  });
+});
+
+describe("decimalPlaces, scaleFixingRow and zeroAmountRow", () => {
+  const amounts = (rows) => parserClass([{ name: "parses", header: "Scenario | Input | Money?", rows }]);
+
+  test("counts the places an amount is written with", () => {
+    assert.deepEqual([decimalPlaces("10.00"), decimalPlaces("5"), decimalPlaces("abc")], [2, 0, null]);
+  });
+
+  test("finds the row written with other than two places, which is what fixes the scale", () => {
+    const found = scaleFixingRow(amounts(["Given | 10.00 | 10.00", "No fraction | 5 | 5"]));
+    assert.equal(found.row, 2);
+  });
+
+  test("says nothing where every amount carries the two places the prompt gives", () => {
+    assert.equal(scaleFixingRow(amounts(["Given | 10.00 | 10.00", "Smallest | 0.01 | 0.01"])), null);
+  });
+
+  test("finds zero however many places it is written with", () => {
+    assert.equal(zeroAmountRow(amounts(["Zero | 0.00 | 0.00"])).row, 1);
+    assert.equal(zeroAmountRow(amounts(["Zero | 0 | 0"])).row, 1);
+    assert.equal(zeroAmountRow(amounts(["Smallest | 0.01 | 0.01"])), null);
+  });
+});
+
+describe("namedRejections and rejectionTables", () => {
+  const errors = (rows, header = "Scenario | Input | Throws?") => parserClass([{ name: "rejects", header, rows }]);
+
+  test("finds each of the three rejections the prompt names", () => {
+    const found = namedRejections(
+      errors([
+        "Empty | '' | java.lang.IllegalArgumentException",
+        "Letters | abc | java.lang.IllegalArgumentException",
+        "Negative | -5.00 | java.lang.IllegalArgumentException",
+      ]),
+    );
+    assert.deepEqual([...found.keys()], ["empty string", "letters only", "negative amount"]);
+  });
+
+  test("names a rejecting table whose exception column is blank on a row", () => {
+    const found = rejectionTables(
+      errors(["Empty | '' | java.lang.IllegalArgumentException", "Letters | abc | "]),
+    );
+    assert.deepEqual(found.map((one) => one.stated), [false]);
+  });
+
+  test("names a table rejecting in its body with no column carrying the type", () => {
+    const found = rejectionTables(
+      parserClass([
+        {
+          name: "rejects",
+          header: "Scenario | Input",
+          rows: ["Empty | ''"],
+          body: "assertThrows(IllegalArgumentException.class, () -> parser.parse(input));",
+        },
+      ]),
+    );
+    assert.deepEqual(found.map((one) => [one.header, one.stated]), [[null, false]]);
+  });
+});
+
+describe("description-if-present-adds-information", () => {
+  test("passes outright where the class carries no @Description, which the text never penalises", () => {
+    const shape = parserClass([{ name: "parses", header: "Scenario | Input | Money?", rows: ["A | 10.00 | 10.00"] }]);
+    assert.deepEqual(descriptionsOf(shape), []);
+    const verdict = parseVerdict(EVAL_8_RELATIONS, "description-if-present-adds-information", shape);
+    assert.deepEqual([verdict.holds, Boolean(verdict.advisory)], [true, false]);
+  });
+
+  test("abstains where one is present, since whether it adds context is a reading", () => {
+    const shape = parserClass([
+      {
+        name: "parses",
+        header: "Scenario | Input | Money?",
+        rows: ["A | 10.00 | 10.00"],
+        description: "The scale that comes back is the scale the amount was written with.",
+      },
+    ]);
+    const verdict = parseVerdict(EVAL_8_RELATIONS, "description-if-present-adds-information", shape);
+    assert.equal(verdict.advisory, true);
   });
 });

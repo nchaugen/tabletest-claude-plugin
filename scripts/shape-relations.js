@@ -3708,8 +3708,549 @@ const EVAL_23_RELATIONS = [
   falsifiabilityRelation(),
 ];
 
+// ---------------------------------------------------------------------------
+// The parser evals — eval-2 parse-dates and eval-8 money-parse
+//
+// Both hand one string to one parser and expect either a value or a rejection, and both are
+// judged by `separates-valid-and-invalid`, `concerns-decomposed` and `no-table-reproves-another`.
+// The shape helpers those three need are shared; everything about dates or about money belongs to
+// its own eval's block below.
+// ---------------------------------------------------------------------------
+
+/** An expectation column carrying the rejection rather than the parsed value. */
+const REJECTION_COLUMN = /throws|exception|error|rejected|fails/i;
+
+/** The three formats the prompt names. Anything else an input cell holds is unsupported text. */
+const EVAL_2_FORMATS = [
+  { kind: "ISO", pattern: /^\d{4}-\d{2}-\d{2}$/ },
+  { kind: "slash", pattern: /^\d{1,2}\/\d{1,2}\/\d{4}$/ },
+  { kind: "short year", pattern: /^\d{2}-\d{1,2}-\d{1,2}$/ },
+];
+
+/** The century the prompt itself fixes, and therefore the one two-digit year that assumes nothing. */
+const EVAL_2_GIVEN_SHORT_YEAR = "24";
+
+/**
+ * The column the parser is handed. It is the only input this eval has, so it is found by
+ * position rather than by name: draws head it `Input`, `Date String` and `Raw` alike.
+ */
+function parserInputColumn(table) {
+  return table.columns.find((column) => !column.isScenario && !column.isExpectation) || null;
+}
+
+/** The column stating what the parse threw, or null where the table asserts no rejection. */
+function rejectionColumn(table) {
+  return table.expectationColumns.find((column) => REJECTION_COLUMN.test(column.header)) || null;
+}
+
+/** The column stating the parsed date, or null where the table only rejects. */
+function parsedValueColumn(table) {
+  return table.expectationColumns.find((column) => !REJECTION_COLUMN.test(column.header)) || null;
+}
+
+// --- eval-2 parse-dates ------------------------------------------------------
+
+/** The method under test. */
+const EVAL_2_CALL = "parseDate";
+
+/** What an input cell is: one of the three formats, one of the two notations for absence, or junk. */
+function formatOf(cell) {
+  const text = String(cell ?? "").trim();
+  if (text === "") return "null input";
+  if (/^(''|"")$/.test(text)) return "empty string";
+  const found = EVAL_2_FORMATS.find((one) => one.pattern.test(text));
+  return found ? found.kind : "unsupported text";
+}
+
+/**
+ * Tables that both parse something and reject something.
+ *
+ * A row with a blank result is not a parse: iteration-81's second table pairs the null input with
+ * the empty string and asserts a date for neither, which is a table about absent input rather than
+ * a valid table with an error row bolted on. What the assertion is about is the shape that forces
+ * every good row to carry an empty exception cell.
+ */
+function mixedTables(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    const parsed = parsedValueColumn(table);
+    const thrown = rejectionColumn(table);
+    const parses = parsed
+      ? table.rows.filter((row) => String(row.cells[parsed.index] ?? "").trim() !== "").length
+      : 0;
+    const rejects = thrown
+      ? table.rows.filter((row) => String(row.cells[thrown.index] ?? "").trim() !== "").length
+      : 0;
+    // A rejection can be asserted in the body instead of in a column, and then it is every row's.
+    const inBody = /assertThrows|assertFailsWith/.test(table.body || "");
+    if (parses > 0 && (rejects > 0 || inBody)) {
+      found.push({ method: table.method, parses, rejects: rejects || table.rows.length });
+    }
+  }
+  return found;
+}
+
+/**
+ * The row fixing which century a two-digit year belongs to.
+ *
+ * This is the one point the expected output names as underspecified *and* says should become a
+ * row: the prompt gives `24 → 2024` and says nothing about `99`, so a row carrying any two-digit
+ * year other than 24 is where a reviewer who wants 1999 changes one cell. The other two points it
+ * names are marked conditional and out of scope, so neither is judged.
+ */
+function centuryWindowRow(shape) {
+  for (const table of shape.tables) {
+    const input = parserInputColumn(table);
+    if (!input) continue;
+    const found = table.rows.findIndex((row) => {
+      const match = String(row.cells[input.index] ?? "").trim().match(/^(\d{2})[-/]\d{1,2}[-/]\d{1,2}$/);
+      return Boolean(match) && match[1] !== EVAL_2_GIVEN_SHORT_YEAR;
+    });
+    if (found !== -1) {
+      return { method: table.method, row: found + 1, cells: table.rows[found].cells.join(" | ") };
+    }
+  }
+  return null;
+}
+
+/** Rows re-covering a format an earlier row of the same table already parsed the same way. */
+function duplicateFormatRows(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    const input = parserInputColumn(table);
+    if (!input) continue;
+    const seen = new Map();
+    table.rows.forEach((row, index) => {
+      const kind = formatOf(row.cells[input.index]);
+      // Two short-year rows landing on different dates discharge different obligations — that is
+      // how the reference states the century window — so the expectation is part of the key.
+      const expectation = table.expectationColumns
+        .map((column) => String(row.cells[column.index] ?? "").trim())
+        .join(" | ");
+      const key = `${kind} ${expectation}`;
+      if (seen.has(key)) found.push({ method: table.method, row: index + 1, kind, first: seen.get(key) });
+      else seen.set(key, index + 1);
+    });
+  }
+  return found;
+}
+
+/** One row as the claim it makes: this input against these expectations. */
+function rowClaims(table) {
+  const input = parserInputColumn(table);
+  if (!input) return [];
+  return table.rows.map((row) =>
+    [String(row.cells[input.index] ?? "").trim(), ...table.expectationColumns.map((column) => String(row.cells[column.index] ?? "").trim())].join(
+      " ",
+    ),
+  );
+}
+
+/** A table every one of whose claims another table already makes. */
+function tableReprovingAnother(shape) {
+  for (const table of shape.tables) {
+    const keys = rowClaims(table);
+    if (keys.length === 0) continue;
+    for (const other of shape.tables) {
+      if (other === table) continue;
+      const otherKeys = rowClaims(other);
+      if (otherKeys.length === 0) continue;
+      if (keys.every((key) => otherKeys.includes(key))) return { method: table.method, duplicates: other.method };
+    }
+  }
+  return null;
+}
+
+/** Where the empty string is exercised, and whether anything asserts that it is rejected. */
+function emptyStringHandling(shape) {
+  for (const table of shape.tables) {
+    const input = parserInputColumn(table);
+    if (!input) continue;
+    const index = table.rows.findIndex((row) => /^(''|"")$/.test(String(row.cells[input.index] ?? "").trim()));
+    if (index === -1) continue;
+    const thrown = rejectionColumn(table);
+    const stated = Boolean(thrown && String(table.rows[index].cells[thrown.index] ?? "").trim() !== "");
+    const asserted = /assertThrows|assertFailsWith/.test(table.body || "");
+    return {
+      method: table.method,
+      row: index + 1,
+      handled: stated || asserted,
+      cells: table.rows[index].cells.join(" | "),
+    };
+  }
+  return null;
+}
+
+/** Each table's result column, and how it reaches `LocalDate` — by its type or by its cells. */
+function localDateColumns(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    const parsed = parsedValueColumn(table);
+    if (!parsed) continue;
+    const dates = table.rows
+      .map((row) => String(row.cells[parsed.index] ?? "").trim())
+      .filter((cell) => cell !== "");
+    found.push({
+      method: table.method,
+      header: parsed.header,
+      typed: Boolean(parsed.param && /LocalDate/.test(String(parsed.param.type))),
+      // Built-in conversion handles an ISO-8601 date, which the assertion counts as addressed.
+      iso: dates.length > 0 && dates.every((cell) => /^\d{4}-\d{2}-\d{2}$/.test(cell)),
+    });
+  }
+  return found;
+}
+
+const EVAL_2_RELATIONS = [
+  {
+    id: "separates-valid-and-invalid",
+    label: "no table both parses and rejects",
+    evaluate: (shape) => {
+      const mixed = mixedTables(shape);
+      return {
+        holds: mixed.length === 0,
+        evidence:
+          mixed.length === 0
+            ? `${shape.tables.map((table) => table.method).join(", ")}: no table carries both a parsed date and a rejection`
+            : mixed
+                .map((one) => `${one.method} parses ${one.parses} row(s) and rejects ${one.rejects} in one table`)
+                .join("; "),
+      };
+    },
+  },
+  {
+    id: "concerns-decomposed",
+    label: "valid parsing and rejection are separate methods",
+    evaluate: (shape) => {
+      // The expected output names exactly two concerns, so the decomposition question here is the
+      // same computation as the separation one, asked of the concern list rather than of the shape.
+      const mixed = mixedTables(shape);
+      return {
+        holds: mixed.length === 0,
+        evidence:
+          mixed.length === 0
+            ? `${shape.tables.length} method(s), each on one of the expected output's two concerns`
+            : `${mixed.map((one) => one.method).join(", ")} carries both concerns`,
+      };
+    },
+  },
+  {
+    id: "assumption-surfaced-as-row",
+    label: "a row fixes the century a two-digit year belongs to",
+    evaluate: (shape) => {
+      const row = centuryWindowRow(shape);
+      return {
+        holds: Boolean(row),
+        evidence: row
+          ? `${row.method} row ${row.row}: ${row.cells}`
+          : "the century window is the one named point needing a row, and no row carries a two-digit year other than 24",
+      };
+    },
+  },
+  {
+    id: "exception-handled-cleanly",
+    label: "the empty string is exercised and its rejection asserted",
+    evaluate: (shape) => {
+      const found = emptyStringHandling(shape);
+      if (!found) return { holds: false, evidence: "no row carries the empty string" };
+      return {
+        holds: found.handled,
+        evidence: found.handled
+          ? `${found.method} row ${found.row}: ${found.cells}`
+          : `${found.method} row ${found.row} carries '' with nothing asserting a rejection`,
+      };
+    },
+  },
+  {
+    id: "localdate-result-column",
+    label: "a result column reaches LocalDate",
+    evaluate: (shape) => {
+      const columns = localDateColumns(shape);
+      const reaching = columns.filter((one) => one.typed || one.iso);
+      return {
+        holds: reaching.length > 0,
+        evidence:
+          reaching.length > 0
+            ? reaching
+                .map((one) => `${one.method}: ${one.header} ${one.typed ? "is typed LocalDate" : "holds ISO dates"}`)
+                .join("; ")
+            : "no table has a result column typed LocalDate or holding ISO dates",
+      };
+    },
+  },
+  {
+    id: "type-conversion-addressed",
+    label: "a converter, or cells the built-in conversion handles",
+    evaluate: (shape) => {
+      const converter = /@TypeConverter/.test(shape.source);
+      const iso = localDateColumns(shape).filter((one) => one.iso);
+      return {
+        holds: converter || iso.length > 0,
+        evidence: converter
+          ? "the class declares a @TypeConverter"
+          : iso.length > 0
+            ? `${iso.map((one) => `${one.method}: ${one.header}`).join("; ")} in ISO-8601, which built-in conversion handles`
+            : "no converter, and no result column written in a form built-in conversion reads",
+      };
+    },
+  },
+  {
+    id: "no-duplicate-rows-within-a-table",
+    label: "no row re-parses a format an earlier row already did",
+    evaluate: (shape) => {
+      const found = duplicateFormatRows(shape);
+      return {
+        holds: found.length === 0,
+        evidence:
+          found.length === 0
+            ? "every row carries a format, or an expectation, no earlier row in its table reached"
+            : found.map((one) => `${one.method} row ${one.row} repeats row ${one.first}'s ${one.kind}`).join("; "),
+      };
+    },
+  },
+  {
+    id: "no-table-reproves-another",
+    label: "no table restates another's claims",
+    evaluate: (shape) => {
+      const found = tableReprovingAnother(shape);
+      return {
+        holds: !found,
+        evidence: found
+          ? `${found.method} makes no claim ${found.duplicates} does not already make`
+          : "no @TableTest re-proves another",
+      };
+    },
+  },
+];
+
+// --- eval-8 money-parse ------------------------------------------------------
+
+/** The method under test. */
+const EVAL_8_CALL = "parse";
+
+/** The three rejections the prompt names, as the input each is exercised by. */
+const EVAL_8_REJECTIONS = [
+  { kind: "empty string", pattern: /^(''|"")$/ },
+  { kind: "letters only", pattern: /^[A-Za-z]+$/ },
+  { kind: "negative amount", pattern: /^-\d+(?:\.\d+)?$/ },
+];
+
+/** The number of decimal places an amount is written with, or null where it is not an amount. */
+function decimalPlaces(cell) {
+  const text = String(cell ?? "").trim();
+  if (!/^-?\d+(?:\.\d+)?$/.test(text)) return null;
+  const fraction = text.split(".")[1];
+  return fraction ? fraction.length : 0;
+}
+
+/**
+ * The row fixing what scale comes out of the parser.
+ *
+ * Both amounts the prompt gives carry two decimal places, so neither states whether the parser
+ * normalises. `new BigDecimal("5")` does not equal `new BigDecimal("5.00")`, so a row whose input
+ * carries a different number of places — and whose expected amount is written the same way — is
+ * where a reviewer who wants normalising changes one cell.
+ */
+function scaleFixingRow(shape) {
+  for (const table of shape.tables) {
+    const input = parserInputColumn(table);
+    const parsed = parsedValueColumn(table);
+    if (!input || !parsed) continue;
+    const found = table.rows.findIndex((row) => {
+      const places = decimalPlaces(row.cells[input.index]);
+      const expected = String(row.cells[parsed.index] ?? "").trim();
+      return places !== null && places !== 2 && expected !== "";
+    });
+    if (found !== -1) {
+      return { method: table.method, row: found + 1, cells: table.rows[found].cells.join(" | ") };
+    }
+  }
+  return null;
+}
+
+/** The row placing zero on one side of the line the negative rule draws. */
+function zeroAmountRow(shape) {
+  for (const table of shape.tables) {
+    const input = parserInputColumn(table);
+    if (!input) continue;
+    const found = table.rows.findIndex((row) => {
+      const text = String(row.cells[input.index] ?? "").trim();
+      return /^0(?:\.0+)?$/.test(text);
+    });
+    if (found !== -1) {
+      const rejects = Boolean(rejectionColumn(table));
+      return { method: table.method, row: found + 1, rejects, cells: table.rows[found].cells.join(" | ") };
+    }
+  }
+  return null;
+}
+
+/** Which of the three named rejections a class exercises, and where. */
+function namedRejections(shape) {
+  const found = new Map();
+  for (const table of shape.tables) {
+    const input = parserInputColumn(table);
+    if (!input) continue;
+    table.rows.forEach((row, index) => {
+      const cell = String(row.cells[input.index] ?? "").trim();
+      const kind = EVAL_8_REJECTIONS.find((one) => one.pattern.test(cell));
+      if (kind && !found.has(kind.kind)) found.set(kind.kind, { method: table.method, row: index + 1, cell });
+    });
+  }
+  return found;
+}
+
+/** Tables whose rows assert a rejection, and whether a column states the type for every one. */
+function rejectionTables(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    const thrown = rejectionColumn(table);
+    const inBody = /assertThrows|assertFailsWith/.test(table.body || "");
+    const rejects = thrown
+      ? table.rows.filter((row) => String(row.cells[thrown.index] ?? "").trim() !== "").length
+      : inBody
+        ? table.rows.length
+        : 0;
+    if (rejects === 0) continue;
+    // The assertion asks for the type per row, so a table asserting rejections with no column
+    // naming them is carrying the type somewhere the row cannot show it.
+    const stated = thrown
+      ? table.rows.every((row) => String(row.cells[thrown.index] ?? "").trim() !== "")
+      : false;
+    found.push({ method: table.method, header: thrown ? thrown.header : null, rejects, stated });
+  }
+  return found;
+}
+
+/** Every `@Description` the class carries, with the method it sits on. */
+function descriptionsOf(shape) {
+  return shape.tables
+    .filter((table) => (table.description || "").trim() !== "")
+    .map((table) => ({ method: table.method, text: table.description.trim() }));
+}
+
+const EVAL_8_RELATIONS = [
+  {
+    id: "assumption-surfaced-as-row",
+    label: "a row fixes the scale, and a row places zero",
+    evaluate: (shape) => {
+      const scale = scaleFixingRow(shape);
+      const zero = zeroAmountRow(shape);
+      const missing = [];
+      if (!scale) missing.push("no row carries an amount written with other than two decimal places");
+      if (!zero) missing.push("no row carries zero");
+      return {
+        holds: missing.length === 0,
+        evidence:
+          missing.length === 0
+            ? `scale: ${scale.method} row ${scale.row}, ${scale.cells}; zero: ${zero.method} row ${zero.row}, ${zero.cells}`
+            : `${missing.join("; ")} — the two points the expected output says must be a row`,
+      };
+    },
+  },
+  {
+    id: "separates-valid-and-invalid",
+    label: "no table both parses and rejects",
+    evaluate: (shape) => {
+      const mixed = mixedTables(shape);
+      return {
+        holds: mixed.length === 0,
+        evidence:
+          mixed.length === 0
+            ? `${shape.tables.map((table) => table.method).join(", ")}: no table carries both a parsed amount and a rejection`
+            : mixed
+                .map((one) => `${one.method} parses ${one.parses} row(s) and rejects ${one.rejects} in one table`)
+                .join("; "),
+      };
+    },
+  },
+  {
+    id: "concerns-decomposed",
+    label: "valid parsing and rejection are separate methods",
+    evaluate: (shape) => {
+      const mixed = mixedTables(shape);
+      return {
+        holds: mixed.length === 0,
+        evidence:
+          mixed.length === 0
+            ? `${shape.tables.length} method(s), each on one of the expected output's two concerns`
+            : `${mixed.map((one) => one.method).join(", ")} carries both concerns`,
+      };
+    },
+  },
+  {
+    id: "exception-has-expected-column",
+    label: "the error table names the exception type per row",
+    evaluate: (shape) => {
+      const tables = rejectionTables(shape);
+      if (tables.length === 0) return { holds: false, evidence: "no table asserts a rejection" };
+      const bare = tables.filter((one) => !one.stated);
+      return {
+        holds: bare.length === 0,
+        evidence:
+          bare.length === 0
+            ? tables.map((one) => `${one.method}: ${one.header} on all ${one.rejects} row(s)`).join("; ")
+            : bare
+                .map((one) =>
+                  one.header
+                    ? `${one.method}: ${one.header} is blank on some rejecting row`
+                    : `${one.method} rejects with no column naming the exception`,
+                )
+                .join("; "),
+      };
+    },
+  },
+  {
+    id: "exception-cases-handled",
+    label: "the empty string, letters and a negative are each exercised",
+    evaluate: (shape) => {
+      const found = namedRejections(shape);
+      const missing = EVAL_8_REJECTIONS.filter((one) => !found.has(one.kind)).map((one) => one.kind);
+      return {
+        holds: missing.length === 0,
+        evidence:
+          missing.length === 0
+            ? [...found.entries()].map(([kind, one]) => `${kind}: ${one.method} row ${one.row} (${one.cell})`).join("; ")
+            : `no row carries ${missing.join(" or ")}`,
+      };
+    },
+  },
+  {
+    id: "description-if-present-adds-information",
+    label: "absent, which the assertion always passes",
+    evaluate: (shape) => {
+      const descriptions = descriptionsOf(shape);
+      if (descriptions.length === 0) {
+        // The assertion's own first clause, and the only half of it that is decidable: it "NEVER
+        // penalises its absence". A class with no @Description anywhere passes outright.
+        return { holds: true, evidence: "no @Description anywhere in the class" };
+      }
+      return {
+        holds: true,
+        advisory: true,
+        evidence: `ADVISORY: ${descriptions.map((one) => one.method).join(", ")} carry a @Description, and whether it adds context beyond the rows is a reading`,
+      };
+    },
+  },
+  {
+    id: "no-table-reproves-another",
+    label: "no table restates another's claims",
+    evaluate: (shape) => {
+      const found = tableReprovingAnother(shape);
+      return {
+        holds: !found,
+        evidence: found
+          ? `${found.method} makes no claim ${found.duplicates} does not already make`
+          : "no @TableTest re-proves another",
+      };
+    },
+  },
+];
+
 /** Every eval this module can read, by eval number. */
 const EVALS = {
+  2: { call: EVAL_2_CALL, relations: EVAL_2_RELATIONS },
+  8: { call: EVAL_8_CALL, relations: EVAL_8_RELATIONS },
   14: { call: null, relations: EVAL_14_RELATIONS },
   15: { call: null, relations: EVAL_15_RELATIONS },
   18: { call: EVAL_18_CALL, relations: EVAL_18_RELATIONS },
@@ -3731,6 +4272,24 @@ function authoredEvals() {
 }
 
 module.exports = {
+  EVAL_2_RELATIONS,
+  EVAL_8_RELATIONS,
+  decimalPlaces,
+  descriptionsOf,
+  namedRejections,
+  rejectionTables,
+  scaleFixingRow,
+  zeroAmountRow,
+  centuryWindowRow,
+  duplicateFormatRows,
+  emptyStringHandling,
+  parserInputColumn,
+  parsedValueColumn,
+  rejectionColumn,
+  formatOf,
+  localDateColumns,
+  mixedTables,
+  tableReprovingAnother,
   EVAL_14_RELATIONS,
   EVAL_22_RELATIONS,
   EVAL_23_RELATIONS,
