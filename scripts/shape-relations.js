@@ -4134,6 +4134,30 @@ function rejectionTables(shape) {
   return found;
 }
 
+/**
+ * `description-if-present-adds-information`, shared by every eval that carries it.
+ *
+ * Only the first clause is decidable, and it is the one graders get wrong: the text says the
+ * assertion "NEVER penalises its absence", so a class with no `@Description` anywhere passes
+ * outright. Where one is present, whether it adds context beyond the rows is a reading, and this
+ * abstains rather than guessing.
+ */
+function descriptionPresenceRelation() {
+  return {
+    id: "description-if-present-adds-information",
+    label: "absent, which the assertion always passes",
+    evaluate: (shape) => {
+      const descriptions = descriptionsOf(shape);
+      if (descriptions.length === 0) return { holds: true, evidence: "no @Description anywhere in the class" };
+      return {
+        holds: true,
+        advisory: true,
+        evidence: `ADVISORY: ${descriptions.map((one) => one.method).join(", ")} carry a @Description, and whether it adds context beyond the rows is a reading`,
+      };
+    },
+  };
+}
+
 /** Every `@Description` the class carries, with the method it sits on. */
 function descriptionsOf(shape) {
   return shape.tables
@@ -4227,23 +4251,7 @@ const EVAL_8_RELATIONS = [
       };
     },
   },
-  {
-    id: "description-if-present-adds-information",
-    label: "absent, which the assertion always passes",
-    evaluate: (shape) => {
-      const descriptions = descriptionsOf(shape);
-      if (descriptions.length === 0) {
-        // The assertion's own first clause, and the only half of it that is decidable: it "NEVER
-        // penalises its absence". A class with no @Description anywhere passes outright.
-        return { holds: true, evidence: "no @Description anywhere in the class" };
-      }
-      return {
-        holds: true,
-        advisory: true,
-        evidence: `ADVISORY: ${descriptions.map((one) => one.method).join(", ")} carry a @Description, and whether it adds context beyond the rows is a reading`,
-      };
-    },
-  },
+  descriptionPresenceRelation(),
   {
     id: "no-table-reproves-another",
     label: "no table restates another's claims",
@@ -4885,6 +4893,7 @@ module.exports = {
   untraceableRows,
   EVAL_8_RELATIONS,
   decimalPlaces,
+  descriptionPresenceRelation,
   descriptionsOf,
   namedRejections,
   rejectionTables,
