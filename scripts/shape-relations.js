@@ -1343,11 +1343,490 @@ const EVAL_15_RELATIONS = [
   },
 ];
 
+
+// ---------------------------------------------------------------------------
+// eval-30 order-splitting
+// ---------------------------------------------------------------------------
+
+/**
+ * The five splitting rules eval-30 asks each to have its own exercised table, and the tokens that
+ * identify each in a header or a cell.
+ *
+ * A facet is often carried inside a compact item shorthand rather than in a column of its own —
+ * the reference writes `[camera: DELIVERY@Addr-A, mug: PICKUP]` in one Items column — so a facet
+ * is looked for in the cells as much as in the headers.
+ */
+const EVAL_30_FACETS = {
+  fulfillment: { header: /fulfil?ment|pickup|delivery/i, token: /\bDELIVERY\b|\bPICKUP\b/i },
+  address: { header: /address|\baddr/i, token: /\bAddr[-\w]*\b|address/i },
+  availability: {
+    header: /stock|availab/i,
+    token: /\bIN_STOCK\b|\bBACKORDER\w*\b|\bPRE_ORDER\w*\b|\bIMMEDIATE\b|\bWHEN_AVAILABLE\b/i,
+  },
+  // `wh1`, `warehouse-1` and `W1` all name a warehouse; iteration-45 writes `wh1` and reading only
+  // `W\d` found no warehouse facet in a table plainly about warehouses.
+  warehouse: {
+    header: /warehouse|\bw(?:h|arehouse)?[-_ ]?\d+\b/i,
+    token: /\bw(?:h|arehouse)?[-_ ]?\d+\b/i,
+    surface: /warehouse|fewest|minimis|minimiz/i,
+  },
+  companion: { header: /companion/i, token: /companion/i, surface: /companion|together|co-locat/i },
+};
+
+/**
+ * True where the table's published surface says it is about this facet.
+ *
+ * A concern is often named only in the method name — `keepsCompanionsTogetherWhenPossible` over
+ * `Items | Stock` columns — so a facet that no cell and no header carries can still be the table's
+ * declared subject. Four of eval-30's draws identify companions this way and nowhere else.
+ */
+function facetOnSurface(table, facet) {
+  if (!facet.surface) return false;
+  return facet.surface.test(`${table.method || ""} ${table.displayName || ""} ${table.description || ""}`);
+}
+
+/** A cell carries a facet when its own text names it or its column header does. */
+function bearsFacet(table, column, cell, facet) {
+  if (column.isExpectation || column.isScenario) return false;
+  return facet.header.test(column.header) || facet.token.test(String(cell ?? ""));
+}
+
+/** The facet-bearing input cells of a row, joined — the row's value for that facet. */
+function facetSignature(table, row, facet) {
+  return table.columns
+    .filter((column) => bearsFacet(table, column, row.cells[column.index], facet))
+    .map((column) => String(row.cells[column.index] ?? ""))
+    .join(" | ");
+}
+
+/** The expectation cells of a row, joined — the row's answer. */
+function outcomeSignature(table, row) {
+  return table.expectationColumns.map((column) => String(row.cells[column.index] ?? "")).join(" | ");
+}
+
+/**
+ * The table that exercises `facet`, or null.
+ *
+ * Being *about* a rule is not enough: the assertion asks that at least one row's outcome depend on
+ * it, so two rows must differ in the facet and differ in their answer. A companion table whose
+ * companions already sit in one warehouse by the minimal-cover rule exercises nothing, and this is
+ * what catches that.
+ */
+function exercisingTable(shape, facet) {
+  for (const table of shape.tables) {
+    const rows = table.rows;
+    if (rows.length < 2 || table.expectationColumns.length === 0) continue;
+    const signatures = rows.map((row) => facetSignature(table, row, facet));
+    const inCells = signatures.some((signature) => signature !== "");
+    const facetVaries = new Set(signatures).size > 1;
+    const onSurface = facetOnSurface(table, facet);
+    if (!inCells && !onSurface) continue;
+    // A facet the table holds constant is not absent: the reference declares the same companion
+    // pair on every row and creates the situation through the stock columns instead. Where the
+    // facet does not vary, the table's declared subject is what identifies the concern.
+    if (!facetVaries && !onSurface) continue;
+
+    for (let i = 0; i < rows.length; i++) {
+      for (let j = i + 1; j < rows.length; j++) {
+        const outcomeDiffers = outcomeSignature(table, rows[i]) !== outcomeSignature(table, rows[j]);
+        if (!outcomeDiffers) continue;
+        if (!facetVaries) return { table, rows: [i + 1, j + 1], viaSurface: true };
+        if (signatures[i] !== signatures[j]) return { table, rows: [i + 1, j + 1], viaSurface: false };
+      }
+    }
+  }
+  return null;
+}
+
+
+/** The members of a set-valued cell: `{camera, lens}` is two products, `{}` is none. */
+function setMembers(cell) {
+  const elements = parseCollectionElements(String(cell ?? "").trim());
+  return elements === null ? [] : elements.map((element) => element.trim()).filter(Boolean);
+}
+
+/** Every subset of `items` of exactly `size`, as index lists. */
+function subsetsOfSize(items, size) {
+  if (size === 0) return [[]];
+  if (items.length < size) return [];
+  const [first, ...rest] = items;
+  return [...subsetsOfSize(rest, size - 1).map((tail) => [first, ...tail]), ...subsetsOfSize(rest, size)];
+}
+
+/**
+ * The smallest sets of warehouses that cover the order, all of them.
+ *
+ * Two or more means a tie, and a tie is what the companion rule exists to break. The search is
+ * exhaustive because the domain is tiny — a handful of products across three or four warehouses.
+ */
+function minimalCovers(order, stock) {
+  const names = Object.keys(stock);
+  for (let size = 1; size <= names.length; size++) {
+    const covers = subsetsOfSize(names, size).filter((chosen) =>
+      order.every((product) => chosen.some((name) => stock[name].includes(product))),
+    );
+    if (covers.length > 0) return covers;
+  }
+  return [];
+}
+
+/**
+ * Whether a row's companion rule decides anything, and why.
+ *
+ * The assertion's own failure case is "a companion table whose companions already sit in one
+ * warehouse by the minimal-cover rule tests nothing". So the rule is exercised only where the
+ * minimal covers *tie* and the companions can be kept together in some of those covers but not
+ * all — which is a computation over the row's own cells, not a property of the facet varying. The
+ * reference holds its Companions column constant and exercises the rule through the stock columns,
+ * which is why the generic facet test cannot see it.
+ */
+function companionBreaksATie(order, stock, companions) {
+  if (companions.length < 2 || order.length === 0) return null;
+  const covers = minimalCovers(order, stock);
+  if (covers.length < 2) return null;
+  const together = covers.filter((cover) =>
+    cover.some((name) => companions.every((product) => stock[name].includes(product))),
+  );
+  if (together.length === 0 || together.length === covers.length) return null;
+  return { covers: covers.map((cover) => cover.join("+")), kept: together[0].join("+") };
+}
+
+/** The warehouse-stock columns of a table, by warehouse name. */
+function stockColumns(table) {
+  const found = {};
+  for (const column of table.columns) {
+    if (column.isScenario || column.isExpectation) continue;
+    const name = column.header.match(/\b(W\d+)\b/i);
+    if (name) found[name[1].toUpperCase()] = column;
+  }
+  return found;
+}
+
+/**
+ * A row where the companion rule breaks a tie between equally minimal covers, or null.
+ *
+ * Needs the table to expose the order and the per-warehouse stock as columns. Where it does not,
+ * the caller falls back to the generic facet test and says so.
+ */
+function companionTieRow(shape) {
+  for (const table of shape.tables) {
+    const companions = eval30Column(table, /companion/i);
+    const order = eval30Column(table, /^order|items|products/i);
+    const stock = stockColumns(table);
+    if (!companions || !order || Object.keys(stock).length < 2) continue;
+
+    for (const [index, row] of table.rows.entries()) {
+      const stocked = {};
+      for (const [name, column] of Object.entries(stock)) {
+        stocked[name] = setMembers(row.cells[column.index]);
+      }
+      const found = companionBreaksATie(
+        setMembers(row.cells[order.index]),
+        stocked,
+        setMembers(row.cells[companions.index]),
+      );
+      if (found) return { table, row: index + 1, ...found };
+    }
+  }
+  return null;
+}
+
+/** True where some table exposes the order and per-warehouse stock, so covers can be computed. */
+function tieComputable(shape) {
+  return shape.tables.some(
+    (table) =>
+      eval30Column(table, /companion/i) &&
+      eval30Column(table, /^order|items|products/i) &&
+      Object.keys(stockColumns(table)).length >= 2,
+  );
+}
+
+/** An input column of a table matching `pattern`. */
+function eval30Column(table, pattern) {
+  return (
+    table.columns.find(
+      (column) => !column.isScenario && !column.isExpectation && pattern.test(column.header),
+    ) || null
+  );
+}
+
+/** A relation asking that one splitting rule have a table whose rows turn on it. */
+function concernRelation(id, name, facetKey) {
+  return {
+    id,
+    label: `${name} is exercised by a row`,
+    evaluate: (shape) => {
+      const found = exercisingTable(shape, EVAL_30_FACETS[facetKey]);
+      return {
+        holds: found !== null,
+        evidence: found
+          ? `${found.table.method}: rows ${found.rows.join(" and ")} differ in ${name} and in their outcome`
+          : `no table varies ${name} with the outcome following`,
+      };
+    },
+  };
+}
+
+/**
+ * A native TableTest collection: a list, set or map written in the table's own notation.
+ *
+ * `[W1: {camera, lens}]` is native; `"W1:[camera,lens]"` is a quoted scalar that encodes the same
+ * structure in a string a helper has to build and parse. The quotes are what separate them.
+ */
+function isNativeCollection(cell) {
+  const text = String(cell ?? "").trim();
+  if (text.startsWith('"') || text.startsWith("'")) return false;
+  return (text.startsWith("[") && text.endsWith("]")) || (text.startsWith("{") && text.endsWith("}"));
+}
+
+/** A scalar output — a number, an enum, a single word or a blank — which the assertion exempts. */
+function isScalarOutput(cell) {
+  const text = String(cell ?? "").trim();
+  if (text === "") return true;
+  return /^[-\w.]+$/.test(text);
+}
+
+/**
+ * Expectation cells that encode a structure inside a scalar.
+ *
+ * The assertion judges expectation columns only, and exempts scalars. What fails is a cell packing
+ * several values into one quoted scalar — structural punctuation inside quotes, or outside them
+ * with no bracket to make it a collection.
+ */
+function stringEncodedOutputs(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    for (const column of table.expectationColumns) {
+      for (const row of table.rows) {
+        const cell = String(row.cells[column.index] ?? "").trim();
+        const quoted = quotedStructureIn(cell);
+        if (quoted) {
+          found.push({ method: table.method, header: column.header, cell, quoted });
+          break;
+        }
+        if (isNativeCollection(cell) || isScalarOutput(cell)) continue;
+        if (!/[:,\[\]{}]/.test(cell)) continue;
+        found.push({ method: table.method, header: column.header, cell, quoted: cell });
+        break;
+      }
+    }
+  }
+  return found;
+}
+
+/**
+ * A quoted scalar inside a cell that encodes a structure, or null.
+ *
+ * A native list whose *elements* are strings encoding the structure is the same defect one level
+ * down: `["W1:[camera,lens]"]` is a list of one hand-rolled string, and iteration-40 wrote every
+ * expectation that way while the outer brackets made it look native.
+ */
+function quotedStructureIn(cell) {
+  for (const match of String(cell ?? "").matchAll(/"([^"]*)"|'([^']*)'/g)) {
+    const inner = match[1] ?? match[2] ?? "";
+    if (/[:\[\]{}]/.test(inner) || inner.includes(",")) return match[0];
+  }
+  return null;
+}
+
+/**
+ * Map keys built by joining several independent facets, with how many parts each has.
+ *
+ * Reported, never decided. The reference's `DELIVERY@Addr-A` joins two parts and passes — its own
+ * description argues the fulfilment is "one value with two shapes" — while iteration-85's
+ * `DELIVERY@addr-1@W1@IMMEDIATE` joins four and fails. Whether a joined key names one thing or
+ * several is a domain reading, not a parse, so this hands the count to a human.
+ */
+function compoundKeys(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    for (const column of table.expectationColumns) {
+      for (const row of table.rows) {
+        const cell = String(row.cells[column.index] ?? "");
+        for (const key of cell.matchAll(/[\[{,]\s*([^,\[\]{}:]+?)\s*:/g)) {
+          const parts = key[1].trim().split(/[@|\/]/).filter(Boolean);
+          if (parts.length >= 3) {
+            found.push({ method: table.method, header: column.header, key: key[1].trim(), parts: parts.length });
+          }
+        }
+      }
+    }
+  }
+  return found;
+}
+
+/** Comparison criteria a body can apply, each a rule the test enforces while no table claims it. */
+const COMPARISON_CRITERIA = [
+  // The surface pattern must name *comparison* order. A bare /order/ matches the domain noun —
+  // this eval splits customer orders and its cells say BACKORDERED — so iteration-40's three
+  // `.sorted()` helpers read as declared by any description that mentioned an order at all.
+  {
+    name: "ordering",
+    // Not TreeSet/TreeMap: choosing a sorted collection inside a helper is a data-structure choice,
+    // not "sorting either side before comparing" — iteration-45 builds a TreeSet of addresses and
+    // asserts with plain equality on a map, which the grader correctly passes.
+    body: /\bsorted\s*\(|\.sort\s*\(|Comparator\.|sortedBy/,
+    surface: /regardless of order|without regard to order|order[- ]?independent|unordered|in any order|any order|sorted|sort order|canonical/i,
+  },
+  // Wrapping either side of an assert in a Set makes the comparison order-insensitive, which is a
+  // rule the test enforces and no table claims. Building a Set an input column names is not this,
+  // so the pattern requires the call to sit inside the assertion — iteration-63 writes
+  // `assertEquals(Set.copyOf(shipments), groupsOf(actual))`.
+  {
+    name: "unordered comparison",
+    // The call must wrap something: `Set.of()` with no argument is an empty-set default for a
+    // `getOrDefault`, which iteration-85 uses and which normalises nothing.
+    body: /assert\w*\(\s*[^;]{0,200}?\b(?:Set\.(?:copyOf|of)|new\s+(?:Hash|LinkedHash)Set)\s*\(\s*[^)\s]/,
+    surface: /regardless of order|without regard to order|order[- ]?independent|unordered|in any order|any order|as a set|set of/i,
+  },
+  { name: "subset or contains matching", body: /containsAll|\.contains\s*\(|containsExactlyInAnyOrder|assertTrue\s*\(\s*\w+\.contains/, surface: /contain|substring|subset/i },
+  { name: "normalisation", body: /toLowerCase\s*\(|toUpperCase\s*\(|\.strip\s*\(|replaceAll\s*\(/, surface: /normalis|case|whitespace|trim/i },
+];
+
+/** Criteria a table's body applies without its published surface naming them. */
+function undeclaredCriteria(shape) {
+  // The criterion is usually applied in a private helper, not in the table's own body —
+  // iteration-40's three `describeBy…` helpers each call `.sorted()` — so the whole class is the
+  // scope, and the published surface it is checked against is every title and description in it.
+  const surface = shape.tables
+    .map((table) => `${table.displayName || ""} ${table.description || ""}`)
+    .join(" ");
+  return COMPARISON_CRITERIA.filter(
+    (criterion) => criterion.body.test(shape.source || "") && !criterion.surface.test(surface),
+  ).map((criterion) => ({ criterion: criterion.name }));
+}
+
+/**
+ * Tables sharing a concern but splitting its outputs, keyed by their input signature.
+ *
+ * `all-outputs-same-table` asks that all outputs of one concern sit together. Two methods taking
+ * the same inputs and asserting different outputs is that failure in its decidable form.
+ */
+function splitOutputs(shape) {
+  const byInputs = new Map();
+  for (const table of shape.tables) {
+    const inputs = table.columns
+      .filter((column) => !column.isScenario && !column.isExpectation)
+      .map((column) => column.header.toLowerCase())
+      .sort()
+      .join("|");
+    if (inputs === "") continue;
+    if (!byInputs.has(inputs)) byInputs.set(inputs, []);
+    byInputs.get(inputs).push(table);
+  }
+  const found = [];
+  for (const [inputs, tables] of byInputs) {
+    if (tables.length < 2) continue;
+    const outputs = new Set(
+      tables.map((table) => table.expectationColumns.map((column) => column.header.toLowerCase()).sort().join("|")),
+    );
+    if (outputs.size > 1) found.push({ inputs, methods: tables.map((table) => table.method) });
+  }
+  return found;
+}
+
+const EVAL_30_RELATIONS = [
+  {
+    id: "native-collection-output",
+    label: "no expectation encodes a structure in a string",
+    evaluate: (shape) => {
+      const encoded = stringEncodedOutputs(shape);
+      if (shape.tables.every((table) => table.expectationColumns.length === 0)) {
+        return { holds: false, evidence: "no expectation column to judge" };
+      }
+      if (encoded.length > 0) {
+        return {
+          holds: false,
+          evidence: encoded.map((one) => `${one.method}: ${one.header} packs ${one.quoted}`).join("; "),
+        };
+      }
+      const compound = compoundKeys(shape);
+      if (compound.length > 0) {
+        const first = compound[0];
+        return {
+          holds: false,
+          advisory: true,
+          evidence: `ADVISORY: ${first.method}: ${first.header} keys on ${first.key} — ${first.parts} facets joined into one key; whether that names one thing is a domain reading`,
+        };
+      }
+      return { holds: true, evidence: "every expectation column is a native collection or a scalar" };
+    },
+  },
+  concernRelation("concern-fulfillment-method", "the fulfillment split", "fulfillment"),
+  concernRelation("concern-delivery-address", "the delivery-address split", "address"),
+  concernRelation("concern-availability", "the availability split", "availability"),
+  concernRelation("concern-warehouse-allocation", "warehouse allocation", "warehouse"),
+  {
+    id: "concern-companion-products",
+    label: "companion grouping decides a tie",
+    evaluate: (shape) => {
+      const tie = companionTieRow(shape);
+      if (tie) {
+        return {
+          holds: true,
+          evidence: `${tie.table.method} row ${tie.row}: covers ${tie.covers.join(" and ")} tie, ${tie.kept} keeps the companions together`,
+        };
+      }
+      // The assertion's own test is whether the rule decides between equally minimal covers, and
+      // that is only computable where a table exposes the order and the per-warehouse stock as
+      // columns. Where one does and no row ties, the verdict is decided — that is the failure the
+      // assertion names. Where none does, any verdict is a candidate, so it is advisory.
+      const generic = exercisingTable(shape, EVAL_30_FACETS.companion);
+      const declares = shape.tables.some((table) => eval30Column(table, /companion/i));
+      if (tieComputable(shape)) {
+        return {
+          holds: false,
+          evidence: "a table exposes the order and per-warehouse stock, and no row's covers tie — the rule decides nothing",
+        };
+      }
+      return {
+        holds: generic !== null,
+        advisory: true,
+        evidence: generic
+          ? `ADVISORY: ${generic.table.method} rows ${generic.rows.join(" and ")} differ in their outcome, but no table exposes the order and per-warehouse stock, so no tie can be computed`
+          : declares
+            ? "ADVISORY: companions are declared, no row's outcome varies, and no tie is computable"
+            : "ADVISORY: no table declares companions, and no tie is computable",
+      };
+    },
+  },
+  {
+    id: "assertion-criteria-declared",
+    label: "a comparison criterion is named on the surface",
+    evaluate: (shape) => {
+      const undeclared = undeclaredCriteria(shape);
+      return {
+        holds: undeclared.length === 0,
+        evidence:
+          undeclared.length === 0
+            ? "no body applies an unnamed ordering, subset or normalisation rule"
+            : undeclared.map((one) => `the class applies ${one.criterion} and no title or description names it`).join("; "),
+      };
+    },
+  },
+  {
+    id: "rule-falsifiable-by-a-row",
+    label: "no constant expectation column",
+    advisory: true,
+    judgement: "the stated-invariance exemption is a reading of the title and description",
+    evaluate: (shape) => {
+      const constant = shape.tables.flatMap((table) =>
+        constantExpectationColumns(table).map((column) => `${table.method}: ${column.header}=${column.value}`),
+      );
+      return {
+        holds: constant.length === 0,
+        evidence: constant.length === 0 ? "every expectation column varies" : constant.join("; "),
+      };
+    },
+  },
+];
+
 /** Every eval this module can read, by eval number. */
 const EVALS = {
   14: { call: null, relations: EVAL_14_RELATIONS },
   15: { call: null, relations: EVAL_15_RELATIONS },
   18: { call: EVAL_18_CALL, relations: EVAL_18_RELATIONS },
+  30: { call: null, relations: EVAL_30_RELATIONS },
 };
 
 /** The relations and call name for an eval number, or null where none are authored. */
@@ -1362,6 +1841,7 @@ function authoredEvals() {
 
 module.exports = {
   EVAL_14_RELATIONS,
+  EVAL_30_RELATIONS,
   EVAL_15_RELATIONS,
   EVAL_18_RELATIONS,
   ageBoundaryPair,
@@ -1374,7 +1854,20 @@ module.exports = {
   combinedScenario,
   countingTables,
   eval15Input,
+  bearsFacet,
+  companionBreaksATie,
+  companionTieRow,
+  exercisingTable,
+  minimalCovers,
+  setMembers,
+  tieComputable,
   historyEntries,
+  compoundKeys,
+  facetOnSurface,
+  isNativeCollection,
+  quotedStructureIn,
+  stringEncodedOutputs,
+  undeclaredCriteria,
   historyMixesKinds,
   ladderTable,
   ladderTables,

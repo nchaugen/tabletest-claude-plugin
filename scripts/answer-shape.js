@@ -73,7 +73,29 @@ function splitCells(line) {
 }
 
 /**
- * Every `@TableTest` in the source as `{text, method, params}`, in order.
+ * The text of the annotation `name` closing immediately before `index`, or "".
+ *
+ * `@DisplayName` and `@Description` are the *published surface* several assertions judge against —
+ * whether a comparison criterion is stated, whether an invariance is claimed — so a relation needs
+ * them beside the rows rather than only the rows.
+ */
+function annotationBefore(source, name, index) {
+  const region = String(source).slice(0, index);
+  const at = region.lastIndexOf(`@${name}`);
+  if (at === -1) return "";
+  // Only an annotation on this same method counts: anything with an intervening `@TableTest` or a
+  // closing brace belongs to an earlier one.
+  const between = region.slice(at);
+  if (/@TableTest|\}\s*$/.test(between.replace(new RegExp(`^@${name}`), ""))) return "";
+  const opened = region.indexOf("(", at);
+  if (opened === -1) return "";
+  const args = argumentList(region, opened);
+  if (!args || args.length === 0) return "";
+  return args[0].replace(/^"{3}|"{3}$/g, "").replace(/^"|"$/g, "").trim();
+}
+
+/**
+ * Every `@TableTest` in the source as `{text, method, params, displayName, description}`, in order.
  *
  * The literal and the signature are found with the same shapes `assertions.js` uses; only the
  * splitting of the literal into cells is this module's own.
@@ -89,6 +111,8 @@ function tableLiterals(source) {
       text: match[1],
       method: signature ? signature[1] : null,
       params: signature ? parseParameterList(signature[2]) : [],
+      displayName: annotationBefore(source, "DisplayName", match.index),
+      description: annotationBefore(source, "Description", match.index),
     });
   }
   return found;
@@ -300,6 +324,8 @@ function answerShape(source) {
       method: table.method,
       params: table.params,
       headers: table.headers,
+      displayName: literal.displayName,
+      description: literal.description,
       body: owner ? owner.body : "",
       columns,
       expectationColumns: columns.filter((column) => column.isExpectation),
@@ -308,7 +334,9 @@ function answerShape(source) {
       cases: wellFormed.flatMap((cells) => rowCases(columns, cells)),
     };
   });
-  return { tables };
+  // The whole source travels with the shape: some assertions judge what a *helper* does — sorting
+  // before comparing, normalising a value — and a helper is not inside any table's own body.
+  return { tables, source: String(source) };
 }
 
 /**
@@ -354,6 +382,7 @@ function numericValue(cell) {
 
 module.exports = {
   actCallArguments,
+  annotationBefore,
   // Re-exported so the relations layer has one parsing import, not two.
   parseCollectionElements,
   answerShape,

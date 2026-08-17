@@ -126,13 +126,15 @@ function readDraw(label, dir, iterationDir, isReference) {
 function evaluateDraw(draw, relations, context = { sutParameters: [] }) {
   const shape = answerShape(draw.source);
   return relations.map((relation) => {
-    const { holds, evidence } = relation.evaluate(shape, context);
+    const { holds, evidence, advisory } = relation.evaluate(shape, context);
     const graded = draw.graded.has(relation.id) ? draw.graded.get(relation.id) : null;
     return {
       id: relation.id,
       label: relation.label,
       judgement: relation.judgement || null,
-      advisory: Boolean(relation.advisory),
+      // A relation may be advisory outright, or a single verdict may be — where the decidable half
+      // of an assertion is satisfied and only a judgement half is in question.
+      advisory: Boolean(relation.advisory || advisory),
       holds,
       evidence,
       graded,

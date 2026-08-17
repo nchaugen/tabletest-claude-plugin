@@ -6,6 +6,17 @@ const { storedDraws, evaluateDraw } = require("./shape-report.js");
 const {
   EVAL_14_RELATIONS,
   EVAL_15_RELATIONS,
+  EVAL_30_RELATIONS,
+  companionBreaksATie,
+  compoundKeys,
+  exercisingTable,
+  isNativeCollection,
+  minimalCovers,
+  quotedStructureIn,
+  setMembers,
+  stringEncodedOutputs,
+  tieComputable,
+  undeclaredCriteria,
   EVAL_18_RELATIONS,
   historyEntries,
   historyMixesKinds,
@@ -290,6 +301,11 @@ describe("the reference answers", () => {
 
   test("eval-15's reference satisfies every one of its relations", () => {
     const rows = evaluateDraw(referenceOf("eval-15-reis-discount"), EVAL_15_RELATIONS, { sutParameters: [] });
+    assert.deepEqual(rows.filter((row) => !row.holds).map((row) => `${row.id}: ${row.evidence}`), []);
+  });
+
+  test("eval-30's reference satisfies every one of its relations", () => {
+    const rows = evaluateDraw(referenceOf("eval-30-order-splitting-tt"), EVAL_30_RELATIONS, { sutParameters: [] });
     assert.deepEqual(rows.filter((row) => !row.holds).map((row) => `${row.id}: ${row.evidence}`), []);
   });
 
@@ -812,5 +828,186 @@ describe("the eval-15 tier relations", () => {
   test("2.15 refuses a table that enumerates boundaries with one exception", () => {
     const rows = ["A | 4 | 0", "B | 5 | 5", "C | 9 | 5", "D | 10 | 10", "E | {15, 19} | 15"];
     assert.equal(verdict("2.15-ticket-count-uses-value-sets", ladderOf(rows)).holds, false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// eval-30 order-splitting
+// ---------------------------------------------------------------------------
+
+describe("minimalCovers and companionBreaksATie", () => {
+  test("finds the single smallest cover where one warehouse holds everything", () => {
+    const covers = minimalCovers(["camera", "lens"], { W1: ["camera", "lens"], W2: ["camera"] });
+    assert.deepEqual(covers, [["W1"]]);
+  });
+
+  test("finds every smallest cover where two tie", () => {
+    const covers = minimalCovers(["camera", "lens", "mic"], {
+      W1: ["camera", "lens"],
+      W2: ["camera", "mic"],
+      W3: ["lens"],
+    });
+    assert.deepEqual(covers.map((cover) => cover.join("+")).sort(), ["W1+W2", "W2+W3"]);
+  });
+
+  test("says the companion rule decides a tie where one cover keeps the pair together", () => {
+    const found = companionBreaksATie(
+      ["camera", "lens", "mic"],
+      { W1: ["camera", "lens"], W2: ["camera", "mic"], W3: ["lens"] },
+      ["camera", "lens"],
+    );
+    assert.equal(found.kept, "W1+W2");
+  });
+
+  test("decides nothing where only one cover is minimal", () => {
+    assert.equal(
+      companionBreaksATie(["camera", "lens"], { W1: ["camera"], W2: ["lens"] }, ["camera", "lens"]),
+      null,
+    );
+  });
+
+  test("decides nothing where every minimal cover already keeps the pair together", () => {
+    assert.equal(
+      companionBreaksATie(["camera", "lens"], { W1: ["camera", "lens"], W2: ["camera", "lens"] }, ["camera", "lens"]),
+      null,
+    );
+  });
+});
+
+describe("setMembers", () => {
+  test("reads a set cell's members and an empty set", () => {
+    assert.deepEqual(setMembers("{camera, lens}"), ["camera", "lens"]);
+    assert.deepEqual(setMembers("{}"), []);
+  });
+});
+
+describe("native collection outputs", () => {
+  const expectationOf = (cell, header = "Shipments?") => answerShape(`
+    @TableTest("""
+        Scenario | Items | ${header}
+        A row    | [x]   | ${cell}
+        Another  | [y]   | ${cell === "1" ? "2" : "[W9: {z}]"}
+        """)
+    void splits(List<String> items, Object result) {}
+  `);
+
+  test("a native map of sets is native", () => {
+    assert.equal(isNativeCollection("[W1: {camera, lens}]"), true);
+  });
+
+  test("a quoted scalar that encodes structure is not", () => {
+    assert.equal(isNativeCollection('"W1:[camera,lens]"'), false);
+  });
+
+  test("finds a quoted string encoding a structure inside a native list", () => {
+    assert.equal(quotedStructureIn('["W1:[camera,lens]"]'), '"W1:[camera,lens]"');
+  });
+
+  test("finds nothing to complain about in a native map of sets", () => {
+    assert.equal(quotedStructureIn("[W1: {camera, lens}]"), null);
+  });
+
+  test("fails an expectation whose elements are hand-rolled strings", () => {
+    const found = stringEncodedOutputs(expectationOf('["W1:[camera,lens]"]'));
+    assert.equal(found.length, 1);
+    assert.match(found[0].quoted, /W1:\[camera,lens\]/);
+  });
+
+  test("passes a native expectation", () => {
+    assert.deepEqual(stringEncodedOutputs(expectationOf("[W1: {camera, lens}]")), []);
+  });
+
+  test("passes a scalar expectation", () => {
+    assert.deepEqual(stringEncodedOutputs(expectationOf("1", "Shipment Count?")), []);
+  });
+
+  test("counts the facets a map key joins, for a human to judge", () => {
+    const found = compoundKeys(expectationOf("[DELIVERY@addr-1@W1@IMMEDIATE: {p1}]"));
+    assert.equal(found[0].parts, 4);
+  });
+
+  test("says nothing about a two-part key, which the reference uses and the grader passes", () => {
+    assert.deepEqual(compoundKeys(expectationOf("[DELIVERY@Addr-A: {camera}]")), []);
+  });
+});
+
+describe("exercisingTable", () => {
+  const facet = { header: /companion/i, token: /companion/i, surface: /companion|together/i };
+
+  test("accepts a facet held constant where the table declares the concern", () => {
+    const shape = answerShape(`
+      @DisplayName("Keeps companions together when possible")
+      @TableTest("""
+          Scenario  | Items    | Companions     | Shipments?
+          A tie     | [a, b]   | {a, b}         | [W1: {a, b}]
+          No shared | [a, b]   | {a, b}         | [W1: {a}, W2: {b}]
+          """)
+      void keeps(List<String> items, Set<String> companions, Object shipments) {}
+    `);
+    const found = exercisingTable(shape, facet);
+    assert.ok(found);
+    assert.equal(found.viaSurface, true);
+  });
+
+  test("refuses a table whose outcome never varies", () => {
+    const shape = answerShape(`
+      @DisplayName("Keeps companions together when possible")
+      @TableTest("""
+          Scenario | Items  | Companions | Shipments?
+          One      | [a, b] | {a, b}     | [W1: {a, b}]
+          Two      | [a, b] | {a, b}     | [W1: {a, b}]
+          """)
+      void keeps(List<String> items, Set<String> companions, Object shipments) {}
+    `);
+    assert.equal(exercisingTable(shape, facet), null);
+  });
+});
+
+describe("undeclaredCriteria", () => {
+  const classWith = (body, description = "") => answerShape(`
+      @DisplayName("Splits the order")
+      ${description ? `@Description("""\n        ${description}\n        """)` : ""}
+      @TableTest("""
+          Scenario | Items | Shipments?
+          A row    | [x]   | [W1: {x}]
+          Another  | [y]   | [W2: {y}]
+          """)
+      void splits(List<String> items, Object shipments) {
+          ${body}
+      }
+  `);
+
+  test("names an unordered comparison the surface does not declare", () => {
+    const found = undeclaredCriteria(classWith("assertEquals(Set.copyOf(shipments), groupsOf(actual));"));
+    assert.deepEqual(found.map((one) => one.criterion), ["unordered comparison"]);
+  });
+
+  test("accepts it once a description says order is not part of the rule", () => {
+    const found = undeclaredCriteria(
+      classWith("assertEquals(Set.copyOf(shipments), groupsOf(actual));", "Shipments are compared regardless of order."),
+    );
+    assert.deepEqual(found, []);
+  });
+
+  test("does not read an empty-set default as a criterion", () => {
+    const found = undeclaredCriteria(classWith("assertEquals(shipments, actual.getOrDefault(IMMEDIATE, Set.of()));"));
+    assert.deepEqual(found, []);
+  });
+
+  test("does not read a TreeSet built inside a helper as sorting before comparing", () => {
+    const found = undeclaredCriteria(classWith("Set<String> addresses = new TreeSet<>();\n assertEquals(shipments, actual);"));
+    assert.deepEqual(found, []);
+  });
+
+  test("names sorting applied before the comparison, wherever the helper lives", () => {
+    const found = undeclaredCriteria(classWith("assertEquals(shipments, actual.stream().sorted().toList());"));
+    assert.deepEqual(found.map((one) => one.criterion), ["ordering"]);
+  });
+
+  test("is not fooled by the domain noun — a description mentioning an order declares nothing", () => {
+    const found = undeclaredCriteria(
+      classWith("assertEquals(shipments, actual.stream().sorted().toList());", "The order is split across warehouses."),
+    );
+    assert.deepEqual(found.map((one) => one.criterion), ["ordering"]);
   });
 });
