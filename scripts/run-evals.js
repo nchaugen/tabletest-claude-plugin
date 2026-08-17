@@ -2429,14 +2429,17 @@ function loadPreviousBenchmark(repoRoot, args) {
   return JSON.parse(fs.readFileSync(prevPath, "utf-8"));
 }
 
-function loadOfficialBenchmark(repoRoot, skill) {
+function loadOfficialBenchmark(repoRoot, skill, { excludeIteration } = {}) {
   // Merge evals from all official iterations, using the latest result for each eval.
   // This handles partial runs (e.g. iteration-28 with only 2 evals) by filling in
   // older results for evals not present in the latest iteration.
+  // `excludeIteration` leaves one iteration out, so a run can be compared against the
+  // baseline it is about to become rather than against itself.
   const officialDir = path.join(repoRoot, iterationsDir(skill));
   if (!fs.existsSync(officialDir)) return null;
 
   const iterations = fs.readdirSync(officialDir)
+    .filter(e => e !== `iteration-${excludeIteration}`)
     .filter(e => e.startsWith("iteration-") && fs.statSync(path.join(officialDir, e)).isDirectory())
     .sort((a, b) => {
       const numA = parseInt(a.split("-")[1], 10);
