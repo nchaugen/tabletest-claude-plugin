@@ -8,6 +8,15 @@ const {
   EVAL_15_RELATIONS,
   EVAL_2_RELATIONS,
   EVAL_8_RELATIONS,
+  EVAL_20_RELATIONS,
+  collectionElements,
+  emptyTagRows,
+  eval20Inputs,
+  keptAsString,
+  openPrefixPoints,
+  permittedKeptLists,
+  prefixesFor,
+  untraceableRows,
   centuryWindowRow,
   decimalPlaces,
   descriptionsOf,
@@ -388,6 +397,11 @@ describe("the reference answers", () => {
 
   test("eval-8's reference satisfies every one of its relations", () => {
     const rows = evaluateDraw(referenceOf("eval-8-money-parse"), EVAL_8_RELATIONS, { sutParameters: [] });
+    assert.deepEqual(rows.filter((row) => !row.holds).map((row) => `${row.id}: ${row.evidence}`), []);
+  });
+
+  test("eval-20's reference satisfies every one of its relations", () => {
+    const rows = evaluateDraw(referenceOf("eval-20-collections-and-quoting"), EVAL_20_RELATIONS, { sutParameters: [] });
     assert.deepEqual(rows.filter((row) => !row.holds).map((row) => `${row.id}: ${row.evidence}`), []);
   });
 
@@ -2087,5 +2101,166 @@ describe("description-if-present-adds-information", () => {
     ]);
     const verdict = parseVerdict(EVAL_8_RELATIONS, "description-if-present-adds-information", shape);
     assert.equal(verdict.advisory, true);
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// eval-20 collections-and-quoting
+// ---------------------------------------------------------------------------
+
+/** A tag-filter table, with the call its body makes given as written. */
+const tagClass = (tables) =>
+  answerShape(
+    tables
+      .map(({ name, header, rows, call = "filter.filterTags(tags, category, null)", params }) => `
+    @TableTest("""
+        ${header}
+${rows.map((row) => `        ${row}`).join("\n")}
+        """)
+    void ${name}(${params}) {
+        assertEquals(kept, ${call});
+    }
+`)
+      .join("\n"),
+  );
+
+const filtering = (rows, header = "Scenario | Tags | Category | Kept?") =>
+  tagClass([{ name: "filters", header, rows, params: "List<String> tags, String category, List<String> kept" }]);
+
+const tagVerdict = (id, shape) => EVAL_20_RELATIONS.find((one) => one.id === id).evaluate(shape, {});
+
+describe("eval20Inputs", () => {
+  test("matches an argument that wraps a column rather than being one", () => {
+    const shape = tagClass([
+      {
+        name: "preserves",
+        header: "Scenario | Tags | Category | Kept?",
+        rows: ['A | ["tech:a"] | tech | ["tech:a"]'],
+        call: "filter.filterTags(withRealNewlines(tags), category, null)",
+        params: "List<String> tags, String category, List<String> kept",
+      },
+    ]);
+    const inputs = eval20Inputs(shape.tables[0]);
+    assert.equal(inputs.tags.column.header, "Tags");
+    assert.equal(inputs.optional.held, null);
+  });
+
+  test("reads a category the body holds as a literal", () => {
+    const shape = tagClass([
+      {
+        name: "addsOptional",
+        header: "Scenario | Tags | Optional | Kept?",
+        rows: ['A | ["tech:a"] | {biz} | ["tech:a"]'],
+        call: 'filter.filterTags(tags, "tech", optional)',
+        params: "List<String> tags, Set<String> optional, List<String> kept",
+      },
+    ]);
+    assert.equal(eval20Inputs(shape.tables[0]).category.held, "tech");
+  });
+});
+
+describe("collectionElements and prefixesFor", () => {
+  test("unquotes the elements a tag list protects", () => {
+    assert.deepEqual(collectionElements('["tech:a|b", "tech:[c]", \'\']'), ["tech:a|b", "tech:[c]", ""]);
+  });
+
+  test("says nothing about a cell that is not a collection", () => {
+    assert.equal(collectionElements("true"), null);
+  });
+
+  test("gives each named category the prefixes the requirement names, not its own", () => {
+    assert.deepEqual(prefixesFor("tech", []), ["tech", "dev"]);
+    assert.deepEqual(prefixesFor("business", []), ["biz"]);
+    assert.deepEqual(prefixesFor("sports", ["biz"]), ["sports", "biz"]);
+  });
+});
+
+describe("rule-traceable-to-requirement", () => {
+  test("accepts a row whose kept list the category rules produce", () => {
+    const shape = filtering(['Tech | ["tech:java", "dev:ci", "biz:sales"] | tech | ["tech:java", "dev:ci"]']);
+    assert.deepEqual(untraceableRows(shape), []);
+  });
+
+  test("does not let a prefix reach a longer name sharing its first letters", () => {
+    const shape = filtering(['Longer | ["tech:java", "technology:node"] | tech | ["tech:java", "technology:node"]']);
+    assert.deepEqual(untraceableRows(shape).map((one) => one.row), [1]);
+  });
+
+  test("accepts either reading of a tag carrying no category prefix", () => {
+    const excluded = filtering(['Bare | ["dev", "dev:ci"] | tech | ["dev:ci"]']);
+    const included = filtering(['Bare | ["dev", "dev:ci"] | tech | ["dev", "dev:ci"]']);
+    assert.deepEqual([untraceableRows(excluded), untraceableRows(included)], [[], []]);
+  });
+
+  test("accepts either resolution of the empty tag meeting a null category", () => {
+    const dropped = filtering(["Null | [\"tech:a\", ''] |  | [\"tech:a\"]"]);
+    const kept = filtering(["Null | [\"tech:a\", ''] |  | [\"tech:a\", '']"]);
+    assert.deepEqual([untraceableRows(dropped), untraceableRows(kept)], [[], []]);
+  });
+
+  test("keeps an empty tag out whatever the optional set says, which the prompt states plainly", () => {
+    assert.deepEqual(permittedKeptLists(["tech:a", ""], "tech", []), [["tech:a"], ["tech:a"], ["tech:a"], ["tech:a"]]);
+  });
+});
+
+describe("openPrefixPoints", () => {
+  test("finds both points the expected output names", () => {
+    const points = openPrefixPoints(
+      filtering(['Bare | ["dev", "dev:ci"] | tech | ["dev:ci"]', 'Colon | [":java", "tech:java"] | tech | ["tech:java"]']),
+    );
+    assert.deepEqual(Object.values(points).map((one) => one && one.tag), ["dev", ":java"]);
+  });
+
+  test("does not count a bare tag under a null category, where the reading moves no cell", () => {
+    const points = openPrefixPoints(filtering(['All | ["tech:java", "random"] |  | ["tech:java", "random"]']));
+    assert.deepEqual(Object.values(points), [null, null]);
+  });
+});
+
+describe("empty-tag-case-covered", () => {
+  test("accepts a quoted empty string inside the tag list", () => {
+    assert.equal(tagVerdict("empty-tag-case-covered", filtering(["Empty | [\"tech:a\", ''] | tech | [\"tech:a\"]"])).holds, true);
+  });
+
+  test("accepts a dedicated scalar tag column, which the assertion calls equivalent", () => {
+    const shape = tagClass([
+      {
+        name: "preserves",
+        header: "Scenario | Tag | Category | Kept?",
+        rows: ["Empty | '' | tech | []"],
+        call: "filter.filterTags(List.of(tag), category, null)",
+        params: "String tag, String category, List<String> kept",
+      },
+    ]);
+    assert.deepEqual(emptyTagRows(shape).map((one) => one.header), ["Tag"]);
+  });
+
+  test("does not read a blank element as an empty tag, which a collection cannot express", () => {
+    assert.deepEqual(emptyTagRows(filtering(['Blank | ["tech:a"] | tech | ["tech:a"]'])), []);
+  });
+});
+
+describe("native-collection-output on eval-20", () => {
+  test("accepts a quoted tag carrying a bracket, which is the notation the eval measures", () => {
+    assert.deepEqual(keptAsString(filtering(['Brackets | ["tech:array[]"] | tech | ["tech:array[]"]'])), []);
+  });
+
+  test("accepts a scalar expectation, which the assertion exempts", () => {
+    const shape = tagClass([
+      {
+        name: "preserves",
+        header: "Scenario | Tag | Category | Kept?",
+        rows: ['Newline | "tech:java" | tech | true'],
+        call: "filter.filterTags(List.of(tag), category, null)",
+        params: "String tag, String category, boolean kept",
+      },
+    ]);
+    assert.deepEqual(keptAsString(shape), []);
+  });
+
+  test("names a kept cell packing the list into one quoted string", () => {
+    const shape = filtering(['Joined | ["tech:a", "dev:b"] | tech | "tech:a, dev:b"']);
+    assert.deepEqual(keptAsString(shape).map((one) => one.header), ["Kept?"]);
   });
 });

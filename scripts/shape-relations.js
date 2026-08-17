@@ -4247,10 +4247,316 @@ const EVAL_8_RELATIONS = [
   },
 ];
 
+// ---------------------------------------------------------------------------
+// eval-20 collections-and-quoting
+// ---------------------------------------------------------------------------
+
+/** The method under test. Its parameters are `(tags, category, optional)`, in that order. */
+const EVAL_20_CALL = "filterTags";
+
+/** The prefixes the requirement gives each named category. Any other category keeps its own name. */
+const EVAL_20_NAMED_CATEGORIES = { tech: ["tech", "dev"], business: ["biz"] };
+
+/**
+ * What supplies each of the three arguments for one table: a column, or a value the body holds.
+ *
+ * A draw wraps the tags argument as often as it passes it plainly —
+ * `filterTags(withRealNewlines(tags), category, null)` — so an argument is matched to a column by
+ * whether it *mentions* that column's parameter, not by being it. Holding the category at `"tech"`
+ * or the optional set at `null` is as much a part of every row as a cell is.
+ */
+function eval20Inputs(table) {
+  const order = ["tags", "category", "optional"];
+  const inputs = { tags: null, category: null, optional: null };
+  const call = callArguments(table.body, EVAL_20_CALL);
+  if (!call || call.length !== order.length) return inputs;
+  order.forEach((role, index) => {
+    const argument = String(call[index] ?? "");
+    const held = literalArgument(argument);
+    if (held !== null) {
+      inputs[role] = { held: held === "null" ? null : held };
+      return;
+    }
+    const named = table.columns.find(
+      (column) =>
+        !column.isScenario &&
+        column.param &&
+        new RegExp(`\\b${column.param.name}\\b`).test(argument),
+    );
+    if (named) inputs[role] = { column: named };
+  });
+  return inputs;
+}
+
+/** The expectation column holding the kept tags. */
+function keptColumn(table) {
+  return table.expectationColumns[0] || null;
+}
+
+/** A cell's text without the quotes TableTest uses to protect its punctuation. */
+function unquote(value) {
+  const text = String(value ?? "").trim();
+  const match = text.match(/^(['"])([\s\S]*)\1$/);
+  return match ? match[2] : text;
+}
+
+/** The elements of a list or set cell, unquoted, or null where the cell is not a collection. */
+function collectionElements(cell) {
+  const text = String(cell ?? "").trim();
+  if (!isNativeCollection(text)) return null;
+  const elements = parseCollectionElements(text);
+  return elements === null ? null : elements.map(unquote);
+}
+
+/** The prefixes a category keeps, read literally off the requirement. */
+function prefixesFor(category, optional) {
+  const named = EVAL_20_NAMED_CATEGORIES[String(category).toLowerCase()];
+  return [...(named || [category]), ...optional];
+}
+
+/**
+ * Every kept list the requirement permits for one row.
+ *
+ * Two points are genuinely open and `rule-traceable-to-requirement` passes either reading of each:
+ * whether a tag with no category prefix is kept — the expected output's two named points, a bare
+ * token and a leading colon — and which of two colliding rules wins when an empty tag meets a null
+ * category ("never kept, whatever the category" against "returns all tags unfiltered"). A row is
+ * traceable when it matches any combination, and adds a rule when it matches none.
+ */
+function permittedKeptLists(tags, category, optional) {
+  const lists = [];
+  for (const dropsEmptyWithoutCategory of [true, false]) {
+    for (const keepsPrefixless of [false, true]) {
+      lists.push(
+        tags.filter((tag) => {
+          if (tag === "") return category === null && !dropsEmptyWithoutCategory;
+          if (category === null) return true;
+          if (prefixesFor(category, optional).some((prefix) => tag.startsWith(`${prefix}:`))) return true;
+          return keepsPrefixless && (!tag.includes(":") || tag.startsWith(":"));
+        }),
+      );
+    }
+  }
+  return lists;
+}
+
+/** Rows whose kept list no reading of the requirement produces. */
+function untraceableRows(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    const inputs = eval20Inputs(table);
+    const kept = keptColumn(table);
+    if (!kept || !inputs.tags || !inputs.tags.column) continue;
+    table.rows.forEach((row, index) => {
+      for (const one of rowCases(table.columns, row.cells)) {
+        const tags = collectionElements(one[inputs.tags.column.header]);
+        const expected = collectionElements(one[kept.header]);
+        // A row this cannot resolve is counted unresolved rather than wrong: an expectation that is
+        // not a collection is `native-collection-output`'s subject, not this one's.
+        if (tags === null || expected === null) continue;
+        const category = eval20Held(inputs.category, one);
+        const optional = eval20Optional(inputs.optional, one);
+        if (category === undefined || optional === undefined) continue;
+        const permitted = permittedKeptLists(tags, category, optional);
+        if (permitted.some((list) => list.join(" ") === expected.join(" "))) continue;
+        found.push({
+          method: table.method,
+          row: index + 1,
+          expected,
+          nearest: permitted[0],
+        });
+        return;
+      }
+    });
+  }
+  return found;
+}
+
+/** The category a case runs at: a held literal, a cell, or null for the blank cell that means none. */
+function eval20Held(input, one) {
+  if (!input) return null;
+  if (input.held !== undefined) return input.held;
+  const text = String(one[input.column.header] ?? "").trim();
+  return text === "" ? null : unquote(text);
+}
+
+/** The optional set a case runs at, as its members — a blank cell and an absent one are both none. */
+function eval20Optional(input, one) {
+  if (!input || input.held !== undefined) return [];
+  const text = String(one[input.column.header] ?? "").trim();
+  if (text === "") return [];
+  const members = collectionElements(text);
+  // A cell that is neither blank nor a collection is something this cannot read, and says so.
+  return members === null ? undefined : members;
+}
+
+/**
+ * Rows feeding an empty tag in, written as the quoted empty string the notation requires.
+ *
+ * A list element is one way and a dedicated scalar column is the other, which the assertion names
+ * as equivalent — iteration-40 heads a column `Tag`, writes `''` in it and wraps it in a
+ * `List.of(...)` at the call. A blank cell is neither: a collection cannot express one at all.
+ */
+function emptyTagRows(shape) {
+  const found = [];
+  const quotedEmpty = /^(''|"")$/;
+  for (const table of shape.tables) {
+    const resolved = eval20Inputs(table).tags;
+    const columns = table.columns.filter(
+      (column) =>
+        !column.isScenario &&
+        !column.isExpectation &&
+        ((resolved && resolved.column === column) || /tag/i.test(column.header)),
+    );
+    for (const column of columns) {
+      table.rows.forEach((row, index) => {
+        const cell = String(row.cells[column.index] ?? "").trim();
+        const elements = parseCollectionElements(cell);
+        const carries = elements
+          ? elements.some((element) => quotedEmpty.test(element.trim()))
+          : quotedEmpty.test(cell);
+        if (carries) found.push({ method: table.method, row: index + 1, header: column.header, cell });
+      });
+    }
+  }
+  return found;
+}
+
+/**
+ * Kept cells that encode the list in a string instead of writing it as one.
+ *
+ * A native collection is checked *first*, which is the whole difference from the shared reading: a
+ * tag carrying a bracket or a pipe must be quoted, so `["tech:array[]"]` is one properly quoted
+ * element of a native list rather than a packed scalar. A scalar output is exempt by the
+ * assertion's own words — iteration-47 asserts a boolean `Kept?` beside a single tag column.
+ */
+function keptAsString(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    const kept = keptColumn(table);
+    if (!kept) continue;
+    for (const row of table.rows) {
+      const cell = String(row.cells[kept.index] ?? "").trim();
+      if (isNativeCollection(cell)) continue;
+      const packed = quotedStructureIn(cell);
+      if (!packed && isScalarOutput(cell)) continue;
+      found.push({ method: table.method, header: kept.header, cell: packed || cell });
+      break;
+    }
+  }
+  return found;
+}
+
+/**
+ * Where each of the two open points the expected output names is fixed by a row.
+ *
+ * Both are about a tag carrying no category prefix: `dev` with no colon after it, and `:java` with
+ * nothing before it. The requirement's rules exclude each only if a prefix is read as the text
+ * before a colon, which it never says, so a row is where a reviewer who reads it the other way
+ * changes one cell.
+ */
+function openPrefixPoints(shape) {
+  const points = { "a tag with no colon after its name": null, "a tag whose colon has nothing before it": null };
+  for (const table of shape.tables) {
+    const inputs = eval20Inputs(table);
+    if (!inputs.tags || !inputs.tags.column) continue;
+    table.rows.forEach((row, index) => {
+      for (const one of rowCases(table.columns, row.cells)) {
+        // Only a row filtering under a real category fixes the point. With no category every tag
+        // is kept regardless, so the reading not taken would move no cell — which is the
+        // assertion's own decidable test for whether a row fixes a point.
+        if (eval20Held(inputs.category, one) === null) continue;
+        for (const element of collectionElements(one[inputs.tags.column.header]) || []) {
+          if (element === "") continue;
+          const where = { method: table.method, row: index + 1, tag: element };
+          if (element.startsWith(":")) points["a tag whose colon has nothing before it"] ||= where;
+          else if (!element.includes(":")) points["a tag with no colon after its name"] ||= where;
+        }
+      }
+    });
+  }
+  return points;
+}
+
+const EVAL_20_RELATIONS = [
+  {
+    id: "assumption-surfaced-as-row",
+    label: "a row for each tag the category rules do not reach",
+    evaluate: (shape) => {
+      const points = openPrefixPoints(shape);
+      const missing = Object.entries(points).filter(([, where]) => !where).map(([point]) => point);
+      return {
+        holds: missing.length === 0,
+        evidence:
+          missing.length === 0
+            ? Object.entries(points)
+                .map(([point, where]) => `${point}: ${where.method} row ${where.row} (${where.tag})`)
+                .join("; ")
+            : `no row carries ${missing.join(", nor ")} — the points the expected output names`,
+      };
+    },
+  },
+  {
+    id: "empty-tag-case-covered",
+    label: "an empty tag is fed in as a quoted empty string",
+    evaluate: (shape) => {
+      const found = emptyTagRows(shape);
+      return {
+        holds: found.length > 0,
+        evidence:
+          found.length > 0
+            ? `${found[0].method} row ${found[0].row}: ${found[0].header} = ${found[0].cell}`
+            : "no row feeds an empty tag into the input",
+      };
+    },
+  },
+  {
+    id: "rule-traceable-to-requirement",
+    label: "every kept list is one the requirement produces",
+    evaluate: (shape) => {
+      const found = untraceableRows(shape);
+      return {
+        holds: found.length === 0,
+        evidence:
+          found.length === 0
+            ? `every row's kept list follows from the category rules${shape.tables.length > 1 ? ` across ${shape.tables.length} tables` : ""}`
+            : found
+                .slice(0, 3)
+                .map(
+                  (one) =>
+                    `${one.method} row ${one.row} keeps [${one.expected.join(", ")}] where the rules keep [${one.nearest.join(", ")}]`,
+                )
+                .join("; "),
+      };
+    },
+  },
+  {
+    id: "native-collection-output",
+    label: "the kept tags are a list, not a joined string",
+    evaluate: (shape) => {
+      // The shared relation is not reused here. It reads a quoted region carrying structural
+      // punctuation as a packed scalar, and on this eval a quoted tag carrying a bracket or a pipe
+      // is the correct notation the whole eval exists to measure — `["tech:array[]"]` is a native
+      // list of one properly quoted tag, and the shared reading fails the reference for it.
+      const columns = shape.tables.filter((table) => keptColumn(table));
+      if (columns.length === 0) return { holds: false, evidence: "no expectation column to judge" };
+      const encoded = keptAsString(shape);
+      return {
+        holds: encoded.length === 0,
+        evidence:
+          encoded.length === 0
+            ? `${columns.map((table) => `${table.method}: ${keptColumn(table).header}`).join("; ")} — each a native list`
+            : encoded.map((one) => `${one.method}: ${one.header} holds ${one.cell}`).join("; "),
+      };
+    },
+  },
+];
+
 /** Every eval this module can read, by eval number. */
 const EVALS = {
   2: { call: EVAL_2_CALL, relations: EVAL_2_RELATIONS },
   8: { call: EVAL_8_CALL, relations: EVAL_8_RELATIONS },
+  20: { call: EVAL_20_CALL, relations: EVAL_20_RELATIONS },
   14: { call: null, relations: EVAL_14_RELATIONS },
   15: { call: null, relations: EVAL_15_RELATIONS },
   18: { call: EVAL_18_CALL, relations: EVAL_18_RELATIONS },
@@ -4273,6 +4579,16 @@ function authoredEvals() {
 
 module.exports = {
   EVAL_2_RELATIONS,
+  EVAL_20_RELATIONS,
+  collectionElements,
+  emptyTagRows,
+  keptAsString,
+  eval20Inputs,
+  openPrefixPoints,
+  permittedKeptLists,
+  prefixesFor,
+  unquote,
+  untraceableRows,
   EVAL_8_RELATIONS,
   decimalPlaces,
   descriptionsOf,
