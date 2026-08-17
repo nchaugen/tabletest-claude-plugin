@@ -11,12 +11,17 @@
  * the shape (`shape-report.js`), so that widening to a second eval adds relations rather than
  * touching extraction.
  *
- * Extraction is deliberately built on `assertions.js`'s parser, not a second one. A shape that
- * disagreed with the checkers about where a column ends would make every comparison between
- * them unreadable.
+ * Extraction shares `assertions.js`'s parsing everywhere it can, because a shape that disagreed
+ * with the checkers about where a column ends would make every comparison between them
+ * unreadable. **It splits cells itself, and only for this reason:** `splitRowCells` opens a quoted
+ * region at any `'`, while TableTest gives a quote meaning *only at the start of a value*
+ * (USERGUIDE § quoting), so `Adult's discount | ADULT | 5` collapses into one cell there. That
+ * drops 11 rows across the stored corpus, including one in eval-15's iteration-91. The shared
+ * splitter is not fixed here because it grades runs and the closing run must measure one
+ * instrument; when it is fixed, delete `splitCells` and go back to sharing.
  */
 
-const { tableTestTables, parseCollectionElements, extractTableTestMethodBodies } = require("./assertions.js");
+const { parseCollectionElements, extractTableTestMethodBodies, parseParameterList } = require("./assertions.js");
 
 /**
  * Parameter types whose cell braces are the value itself. Everything else with braces is a
@@ -27,6 +32,99 @@ const SET_TYPE = /^(?:java\.util\.)?(?:Set|HashSet|LinkedHashSet|MutableSet)\b/;
 /** A header ending in `?` is an expectation column — TableTest's own convention. */
 function isExpectationHeader(header) {
   return /\?$/.test(String(header).trim());
+}
+
+/**
+ * The cells of one table line, split on the pipes that separate values.
+ *
+ * A quote opens a quoted region only at the start of a value, which is TableTest's own rule: an
+ * apostrophe inside a scenario name is an ordinary character, so `Adult's discount | ADULT | 5`
+ * is three cells. Brackets and braces still nest, so a pipe inside a collection is not a
+ * separator.
+ */
+function splitCells(line) {
+  const cells = [];
+  let current = "";
+  let depth = 0;
+  let quote = null;
+
+  for (const character of String(line)) {
+    if (quote) {
+      current += character;
+      if (character === quote) quote = null;
+      continue;
+    }
+    if ((character === '"' || character === "'") && current.trim() === "") {
+      quote = character;
+      current += character;
+      continue;
+    }
+    if (character === "[" || character === "{") depth++;
+    else if (character === "]" || character === "}") depth--;
+    if (character === "|" && depth === 0) {
+      cells.push(current.trim());
+      current = "";
+      continue;
+    }
+    current += character;
+  }
+  cells.push(current.trim());
+  return cells;
+}
+
+/**
+ * Every `@TableTest` in the source as `{text, method, params}`, in order.
+ *
+ * The literal and the signature are found with the same shapes `assertions.js` uses; only the
+ * splitting of the literal into cells is this module's own.
+ */
+function tableLiterals(source) {
+  const tableRegex = /@TableTest\s*\(\s*(?:value\s*=\s*)?"{3}([\s\S]*?)"{3}\s*\)/g;
+  const found = [];
+  let match;
+  while ((match = tableRegex.exec(String(source))) !== null) {
+    const after = String(source).slice(match.index + match[0].length);
+    const signature = after.match(/(?:fun|void|[A-Za-z_$][\w<>,\[\].\s]*?)\s+(\w+|`[^`]+`)\s*\(([^)]*)\)/);
+    found.push({
+      text: match[1],
+      method: signature ? signature[1] : null,
+      params: signature ? parseParameterList(signature[2]) : [],
+    });
+  }
+  return found;
+}
+
+/**
+ * The header and data rows of one table literal, with edge pipes removed.
+ *
+ * Whether a row carries leading and trailing pipes is a property of the table's style, so it is
+ * decided from the header and applied to every row — deciding per row cannot tell `a | b | `
+ * (a blank last cell) from `| a | b |` (edge pipes), and guessing shifts every column off its
+ * parameter.
+ */
+function tableRows(text) {
+  const lines = String(text)
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && line.includes("|"));
+  if (lines.length === 0) return { headers: [], rows: [] };
+
+  let headers = splitCells(lines[0]);
+  let rows = lines.slice(1).map(splitCells);
+  const dropLeading = headers.length > 1 && headers[0] === "" && lines[0].trimStart().startsWith("|");
+  const dropTrailing =
+    headers.length > 1 && headers[headers.length - 1] === "" && lines[0].trimEnd().endsWith("|");
+  const trim = (cells) => {
+    const out = cells.slice();
+    if (dropLeading && out[0] === "") out.shift();
+    if (dropTrailing && out[out.length - 1] === "") out.pop();
+    return out;
+  };
+  if (dropLeading || dropTrailing) {
+    headers = trim(headers);
+    rows = rows.map(trim);
+  }
+  return { headers, rows };
 }
 
 /**
@@ -86,14 +184,21 @@ function rowCases(columns, cells) {
 function callArguments(body, callName) {
   const opening = String(body ?? "").indexOf(`${callName}(`);
   if (opening === -1) return null;
-  const start = opening + callName.length + 1;
+  return argumentList(String(body), opening + callName.length);
+}
 
+/**
+ * The arguments of the call whose parenthesis opens at `openIndex`, or null when it never closes.
+ *
+ * Splits on the commas at the call's own depth, so a nested call or collection stays one argument.
+ */
+function argumentList(text, openIndex) {
   let depth = 1;
   let quote = null;
   let current = "";
   const args = [];
-  for (let i = start; i < body.length; i++) {
-    const character = body[i];
+  for (let i = openIndex + 1; i < text.length; i++) {
+    const character = text[i];
     if (quote) {
       current += character;
       if (character === quote) quote = null;
@@ -121,6 +226,29 @@ function callArguments(body, callName) {
     current += character;
   }
   return null;
+}
+
+/**
+ * The arguments of the call that consumes the table's parameters — the act step of the test.
+ *
+ * A method body holds several calls (an assertion, a helper, a lambda), and the one that matters
+ * is whichever passes the table's own columns on. Scoring candidates by how many parameter names
+ * they mention finds it without the caller having to know the method's name, which varies per
+ * answer whenever the eval ships no implementation to call.
+ */
+function actCallArguments(body, parameterNames) {
+  const names = new Set(parameterNames);
+  const callRegex = /([A-Za-z_$][\w.$]*)\s*\(/g;
+  let best = null;
+  let match;
+  while ((match = callRegex.exec(String(body))) !== null) {
+    const args = argumentList(String(body), match.index + match[0].length - 1);
+    if (!args) continue;
+    const mentioned = args.filter((argument) => names.has(argument.trim())).length;
+    if (mentioned === 0) continue;
+    if (!best || mentioned > best.mentioned) best = { name: match[1], args, mentioned };
+  }
+  return best;
 }
 
 /** The value a literal argument states, or null where the argument names or computes something. */
@@ -155,9 +283,18 @@ function tableColumns(table) {
  */
 function answerShape(source) {
   const bodies = extractTableTestMethodBodies(String(source));
-  const tables = tableTestTables(String(source)).map((table, index) => {
+  const tables = tableLiterals(source).map((literal, index) => {
+    const { headers, rows } = tableRows(literal.text);
+    const table = {
+      method: literal.method,
+      params: literal.params,
+      headers,
+      // The scenario column is optional, so column-to-parameter mapping cannot assume it. One
+      // more column than the method has parameters means a scenario column, which feeds nothing.
+      hasScenarioColumn: headers.length === literal.params.length + 1,
+    };
     const columns = tableColumns(table);
-    const wellFormed = table.rows.filter((row) => row.length === table.headers.length);
+    const wellFormed = rows.filter((row) => row.length === headers.length);
     const owner = bodies.find((one) => one.name === table.method) || bodies[index] || null;
     return {
       method: table.method,
@@ -167,7 +304,7 @@ function answerShape(source) {
       columns,
       expectationColumns: columns.filter((column) => column.isExpectation),
       rows: wellFormed.map((cells) => ({ cells })),
-      malformedRows: table.rows.length - wellFormed.length,
+      malformedRows: rows.length - wellFormed.length,
       cases: wellFormed.flatMap((cells) => rowCases(columns, cells)),
     };
   });
@@ -216,7 +353,12 @@ function numericValue(cell) {
 }
 
 module.exports = {
+  actCallArguments,
   answerShape,
+  argumentList,
+  splitCells,
+  tableLiterals,
+  tableRows,
   callArguments,
   cellValues,
   literalArgument,
