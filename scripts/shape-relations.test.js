@@ -6,8 +6,16 @@ const { storedDraws, evaluateDraw } = require("./shape-report.js");
 const {
   EVAL_14_RELATIONS,
   EVAL_15_RELATIONS,
+  EVAL_29_RELATIONS,
   EVAL_30_RELATIONS,
+  bespokeMapCells,
   companionBreaksATie,
+  enumeratingMessages,
+  eval29Concerns,
+  isStandardMap,
+  quantityCore,
+  sharedMutableState,
+  spreadCouponColumns,
   compoundKeys,
   exercisingTable,
   isNativeCollection,
@@ -302,6 +310,14 @@ describe("the reference answers", () => {
   test("eval-15's reference satisfies every one of its relations", () => {
     const rows = evaluateDraw(referenceOf("eval-15-reis-discount"), EVAL_15_RELATIONS, { sutParameters: [] });
     assert.deepEqual(rows.filter((row) => !row.holds).map((row) => `${row.id}: ${row.evidence}`), []);
+  });
+
+  test("eval-29's reference satisfies every one of its relations", () => {
+    const rows = evaluateDraw(referenceOf("eval-29-shopping-cart-tt"), EVAL_29_RELATIONS, { sutParameters: [] });
+    // `consistent-quantity-naming` is advisory: whether `Message?` and `Message Mentions?` are one
+    // quantity is a domain reading, and the reference treats them as two.
+    const failed = rows.filter((row) => !row.holds && !row.advisory).map((row) => `${row.id}: ${row.evidence}`);
+    assert.deepEqual(failed, []);
   });
 
   test("eval-30's reference satisfies every one of its relations", () => {
@@ -1009,5 +1025,162 @@ describe("undeclaredCriteria", () => {
       classWith("assertEquals(shipments, actual.stream().sorted().toList());", "The order is split across warehouses."),
     );
     assert.deepEqual(found.map((one) => one.criterion), ["ordering"]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// eval-29 shopping-cart
+// ---------------------------------------------------------------------------
+
+const cartClass = (tables) => answerShape(tables.map(({ name, header, rows, body = "" }) => `
+    @TableTest("""
+        ${header}
+${rows.map((row) => `        ${row}`).join("\n")}
+        """)
+    void ${name}(Object a, Object b, Object c, Object d) { ${body} }
+`).join("\n"));
+
+describe("quantityCore", () => {
+  test("reduces a before/after pair to the quantity it names", () => {
+    assert.equal(quantityCore("Cart Before"), "cart");
+    assert.equal(quantityCore("Cart After?"), "cart");
+    assert.equal(quantityCore("Cart"), "cart");
+  });
+
+  test("keeps a qualified name distinct, since it may be a different quantity", () => {
+    assert.equal(quantityCore("Message Mentions?"), "message mentions");
+  });
+});
+
+describe("eval29Concerns", () => {
+  test("classifies the four concerns from the columns each table carries", () => {
+    const shape = cartClass([
+      { name: "adds", header: "Scenario | Cart Before | Product Id | Quantity | Cart After?", rows: ["A | [:] | widget | 1 | [widget: 1]"] },
+      { name: "applies", header: "Scenario | Active Coupon Before | Coupon Code | Active Coupon After?", rows: ["A | | SAVE10 | SAVE10"] },
+      { name: "totals", header: "Scenario | Cart | Catalogue | Total?", rows: ["A | [widget: 1] | [widget: 2.50] | 2.50"] },
+      { name: "checksOut", header: "Scenario | Cart | Stock | Success?", rows: ["A | [widget: 1] | [widget: 5] | true"] },
+    ]);
+    const concerns = eval29Concerns(shape);
+    assert.deepEqual(
+      Object.entries(concerns).map(([name, tables]) => [name, tables.map((one) => one.method)]),
+      [["item", ["adds"]], ["coupon", ["applies"]], ["total", ["totals"]], ["checkout", ["checksOut"]]],
+    );
+  });
+
+  test("finds the coupon concern where the post-state is the coupon, not the cart", () => {
+    const shape = cartClass([
+      { name: "applies", header: "Scenario | Active Coupon Before | Coupon Code | Active Coupon After?", rows: ["A | | SAVE10 | SAVE10"] },
+    ]);
+    assert.deepEqual(eval29Concerns(shape).coupon.map((one) => one.method), ["applies"]);
+  });
+
+  test("reads a cart headed plainly Items as the cart", () => {
+    const shape = cartClass([
+      { name: "adds", header: "Scenario | Items Before | Product Id | Quantity | Items After?", rows: ["A | [:] | widget | 1 | [widget: 1]"] },
+    ]);
+    assert.deepEqual(eval29Concerns(shape).item.map((one) => one.method), ["adds"]);
+  });
+});
+
+describe("isStandardMap", () => {
+  test("accepts TableTest's own map notation and the empty map", () => {
+    assert.equal(isStandardMap("[widget: 2, gadget: 1]"), true);
+    assert.equal(isStandardMap("[:]"), true);
+  });
+
+  test("accepts a value set over maps, which runs the row once per map", () => {
+    assert.equal(isStandardMap("{[:], [widget: 5]}"), true);
+  });
+
+  test("refuses a bespoke grammar", () => {
+    assert.equal(isStandardMap("{widget=2}"), false);
+    assert.equal(isStandardMap("widget:2;gadget:1"), false);
+  });
+});
+
+describe("bespokeMapCells", () => {
+  test("names a map-valued cell written outside TableTest's notation", () => {
+    const shape = cartClass([
+      { name: "totals", header: "Scenario | Cart | Total?", rows: ["A | {widget=2} | 5.00"] },
+    ]);
+    assert.deepEqual(bespokeMapCells(shape).map((one) => one.cell), ["{widget=2}"]);
+  });
+
+  test("passes over a column of scalars, whatever it is called", () => {
+    const shape = cartClass([
+      { name: "totals", header: "Scenario | Cart Total? | Total?", rows: ["A | 5.00 | 5.00"] },
+    ]);
+    assert.deepEqual(bespokeMapCells(shape), []);
+  });
+});
+
+describe("spreadCouponColumns", () => {
+  test("names a table spreading a coupon across facet columns", () => {
+    const shape = cartClass([
+      { name: "totals", header: "Scenario | Coupon Type | Coupon Amount | Total?", rows: ["A | PERCENTAGE | 10 | 9.00"] },
+    ]);
+    assert.equal(spreadCouponColumns(shape).length, 1);
+  });
+
+  test("says nothing about one converted coupon column", () => {
+    const shape = cartClass([
+      { name: "totals", header: "Scenario | Coupon | Total?", rows: ["A | 10% off | 9.00"] },
+    ]);
+    assert.deepEqual(spreadCouponColumns(shape), []);
+  });
+});
+
+describe("sharedMutableState", () => {
+  test("names a static field a table body writes to", () => {
+    const shape = answerShape(`
+      class CartTest {
+          private static Cart cart = new Cart();
+          @TableTest("""
+              Scenario | Product | Cart After?
+              A row    | widget  | [widget: 1]
+              """)
+          void adds(String product, Object after) {
+              cart.add(product);
+              assertEquals(after, cart);
+          }
+      }
+    `);
+    assert.deepEqual(sharedMutableState(shape).map((one) => one.field), ["cart"]);
+  });
+
+  test("says nothing where the table builds its own state each row", () => {
+    const shape = answerShape(`
+      class CartTest {
+          @TableTest("""
+              Scenario | Product | Cart After?
+              A row    | widget  | [widget: 1]
+              """)
+          void adds(String product, Object after) {
+              Cart cart = new Cart();
+              assertEquals(after, CartService.addItem(cart, product));
+          }
+      }
+    `);
+    assert.deepEqual(sharedMutableState(shape), []);
+  });
+});
+
+describe("enumeratingMessages", () => {
+  test("reports a message listing several entities, without deciding it", () => {
+    const shape = cartClass([
+      {
+        name: "checksOut",
+        header: "Scenario | Cart | Stock | Message?",
+        rows: ["Short | [w: 5] | [w: 2] | Insufficient stock for widget: requested 5, available 2; gadget: requested 4, available 1"],
+      },
+    ]);
+    assert.equal(enumeratingMessages(shape).length, 1);
+  });
+
+  test("says nothing about an ordinary message carrying a colon", () => {
+    const shape = cartClass([
+      { name: "adds", header: "Scenario | Product | Message?", rows: ["A | gadget | Unknown product: gadget"] },
+    ]);
+    assert.deepEqual(enumeratingMessages(shape), []);
   });
 });

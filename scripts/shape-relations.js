@@ -302,20 +302,7 @@ const EVAL_18_RELATIONS = [
       };
     },
   },
-  {
-    id: "rule-falsifiable-by-a-row",
-    label: "no constant expectation column",
-    judgement: "the stated-invariance exemption is a reading of the title and description",
-    evaluate: (shape) => {
-      const constant = shape.tables.flatMap((table) =>
-        constantExpectationColumns(table).map((column) => `${table.method}: ${column.header}=${column.value}`),
-      );
-      return {
-        holds: constant.length === 0,
-        evidence: constant.length === 0 ? "every expectation column varies" : constant.join("; "),
-      };
-    },
-  },
+  falsifiabilityRelation(),
   {
     id: "separates-decision-and-premium",
     label: "no table asserts decision and premium",
@@ -1323,24 +1310,7 @@ const EVAL_15_RELATIONS = [
       };
     },
   },
-  {
-    id: "rule-falsifiable-by-a-row",
-    label: "no constant expectation column",
-    // Advisory here, unlike on eval-18: this eval's whole subject is invariance — zone does not
-    // affect the discount, a child's rate does not move with travel — so a constant expectation
-    // column is the *claim* in several tables and the exemption applies more often than not.
-    advisory: true,
-    judgement: "the stated-invariance exemption is a reading of the title and description",
-    evaluate: (shape) => {
-      const constant = shape.tables.flatMap((table) =>
-        constantExpectationColumns(table).map((column) => `${table.method}: ${column.header}=${column.value}`),
-      );
-      return {
-        holds: constant.length === 0,
-        evidence: constant.length === 0 ? "every expectation column varies" : constant.join("; "),
-      };
-    },
-  },
+  falsifiabilityRelation(),
 ];
 
 
@@ -1579,11 +1549,19 @@ function isNativeCollection(cell) {
   return (text.startsWith("[") && text.endsWith("]")) || (text.startsWith("{") && text.endsWith("}"));
 }
 
-/** A scalar output — a number, an enum, a single word or a blank — which the assertion exempts. */
+/**
+ * A scalar output, which the assertion exempts: a number, an enum, or **a single message**.
+ *
+ * A message is prose and may well contain a colon — `Unknown product: gadget`, `Coupon applied:
+ * SAVE10`. Requiring a scalar to be one bare word failed every message column in eval-29's
+ * reference. What makes a cell a collection is a bracket opening it, not punctuation inside it.
+ */
 function isScalarOutput(cell) {
   const text = String(cell ?? "").trim();
   if (text === "") return true;
-  return /^[-\w.]+$/.test(text);
+  if (text.startsWith("[") || text.startsWith("{")) return false;
+  // Prose is scalar; an ad-hoc encoding that reaches for a bracket mid-cell is not.
+  return !/[\[\]{}]/.test(text);
 }
 
 /**
@@ -1605,7 +1583,6 @@ function stringEncodedOutputs(shape) {
           break;
         }
         if (isNativeCollection(cell) || isScalarOutput(cell)) continue;
-        if (!/[:,\[\]{}]/.test(cell)) continue;
         found.push({ method: table.method, header: column.header, cell, quoted: cell });
         break;
       }
@@ -1725,8 +1702,43 @@ function splitOutputs(shape) {
   return found;
 }
 
-const EVAL_30_RELATIONS = [
-  {
+
+/**
+ * Scalar expectation cells that enumerate several entities in prose.
+ *
+ * `Insufficient stock for widget: requested 5, available 2; gadget: requested 4, available 1` is one
+ * message and also a list of two shortfalls. The assertion exempts "a single message" and fails "a
+ * scalar packing multiple values", and says nothing about where one becomes the other — so this is
+ * reported and never decided.
+ */
+function enumeratingMessages(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    for (const column of table.expectationColumns) {
+      for (const row of table.rows) {
+        const cell = String(row.cells[column.index] ?? "").trim();
+        if (!isScalarOutput(cell) || cell === "") continue;
+        const segments = cell.split(";").map((one) => one.trim()).filter(Boolean);
+        if (segments.length >= 2 && segments.every((segment) => segment.includes(":"))) {
+          found.push({ method: table.method, header: column.header, cell });
+          break;
+        }
+      }
+    }
+  }
+  return found;
+}
+
+/**
+ * `native-collection-output`, shared by every eval that carries it.
+ *
+ * The decidable half is the quoted scalar: a cell — or an element inside a native collection — that
+ * encodes structure in a string a helper builds and parses. The compound-key half is a domain
+ * reading and is reported as advisory, because eval-30's own reference answer keys on a two-part
+ * `DELIVERY@Addr-A` and passes while a four-part key fails.
+ */
+function nativeCollectionRelation() {
+  return {
     id: "native-collection-output",
     label: "no expectation encodes a structure in a string",
     evaluate: (shape) => {
@@ -1740,6 +1752,15 @@ const EVAL_30_RELATIONS = [
           evidence: encoded.map((one) => `${one.method}: ${one.header} packs ${one.quoted}`).join("; "),
         };
       }
+      const enumerating = enumeratingMessages(shape);
+      if (enumerating.length > 0) {
+        const first = enumerating[0];
+        return {
+          holds: false,
+          advisory: true,
+          evidence: `ADVISORY: ${first.method}: ${first.header} = "${first.cell}" — a message enumerating several entities; the assertion exempts "a single message" and does not say where a message stops being one`,
+        };
+      }
       const compound = compoundKeys(shape);
       if (compound.length > 0) {
         const first = compound[0];
@@ -1751,7 +1772,36 @@ const EVAL_30_RELATIONS = [
       }
       return { holds: true, evidence: "every expectation column is a native collection or a scalar" };
     },
-  },
+  };
+}
+
+/**
+ * `rule-falsifiable-by-a-row` condition (1) — a constant expectation column.
+ *
+ * Advisory on every host, because it decides **one of the assertion's three conditions** and cannot
+ * read the exemption for a table whose claim *is* an invariance. It agreed with the grader on all 12
+ * of eval-18's draws, which is a useful observation rather than a verdict.
+ */
+function falsifiabilityRelation() {
+  return {
+    id: "rule-falsifiable-by-a-row",
+    label: "no constant expectation column",
+    advisory: true,
+    judgement: "the stated-invariance exemption is a reading of the title and description",
+    evaluate: (shape) => {
+      const constant = shape.tables.flatMap((table) =>
+        constantExpectationColumns(table).map((column) => `${table.method}: ${column.header}=${column.value}`),
+      );
+      return {
+        holds: constant.length === 0,
+        evidence: constant.length === 0 ? "every expectation column varies" : constant.join("; "),
+      };
+    },
+  };
+}
+
+const EVAL_30_RELATIONS = [
+  nativeCollectionRelation(),
   concernRelation("concern-fulfillment-method", "the fulfillment split", "fulfillment"),
   concernRelation("concern-delivery-address", "the delivery-address split", "address"),
   concernRelation("concern-availability", "the availability split", "availability"),
@@ -1804,21 +1854,372 @@ const EVAL_30_RELATIONS = [
       };
     },
   },
+  falsifiabilityRelation(),
+];
+
+
+// ---------------------------------------------------------------------------
+// eval-29 shopping-cart
+// ---------------------------------------------------------------------------
+
+/**
+ * The quantities eval-29's tables recur over, and how their columns name them.
+ *
+ * `consistent-quantity-naming` asks that one observable quantity carry one name across sibling
+ * tables, which means a relation has to know which columns are the same quantity before it can see
+ * a second name for it. That knowledge is per-eval and lives here.
+ */
+const EVAL_29_QUANTITIES = {
+  // The cart's contents are headed `Cart`, `Basket` or plain `Items` — iteration-59 writes
+  // `Items Before`/`Items After?` throughout — while the single product acted on is headed
+  // `Product Id` or `Item Id`. Plural names the collection, singular names the one product.
+  cart: /\bcart\b|\bbasket\b|\bitems\b/i,
+  total: /\btotal\b|amount due|\bnet\b/i,
+  message: /\bmessage\b|\bfeedback\b/i,
+  product: /\bproduct\b|\bsku\b|\bitem id\b/i,
+  quantity: /\bquantity\b|\bqty\b/i,
+  coupon: /\bcoupon\b|\bpromo\b|\bdiscount code\b/i,
+  stock: /\bstock\b|\binventory\b/i,
+  catalogue: /\bcatalogue\b|\bcatalog\b|\bprices?\b/i,
+};
+
+/** Words that mark a column as one side of a before/after pair rather than a second name. */
+const BEFORE_AFTER = /\b(before|after|prior|resulting|initial|final|pre|post)\b/i;
+
+/** A header reduced to the quantity it names: `Cart After?` and `Cart Before` are both `cart`. */
+function quantityCore(header) {
+  return String(header)
+    .replace(/\?+\s*$/, "")
+    .replace(BEFORE_AFTER, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+/** Every non-scenario column of the class, with the table it belongs to. */
+function allColumns(shape) {
+  return shape.tables.flatMap((table) =>
+    table.columns.filter((column) => !column.isScenario).map((column) => ({ table, column })),
+  );
+}
+
+/**
+ * A quantity named more than one way across sibling tables.
+ *
+ * A before/after pair is explicitly not a second name: the assertion says `Cart Before`/`Cart After?`
+ * beside a plain `Cart` in a read-only table is one naming rule. So the check is on the core the
+ * header reduces to once a before/after word and the `?` are stripped — a genuine second name shows
+ * up as a different core, like `Cart Items` beside `Cart`.
+ */
+function inconsistentNames(shape) {
+  const found = [];
+  for (const [quantity, pattern] of Object.entries(EVAL_29_QUANTITIES)) {
+    const cores = new Map();
+    // Output quantities only. The assertion is about "one output quantity under two or more names",
+    // and an input word covers several distinct quantities: `Coupon Code`, `Coupon Store` and
+    // `Coupon` are the code entered, the catalogue of codes, and the coupon itself.
+    for (const { table, column } of allColumns(shape).filter(({ column }) => column.isExpectation)) {
+      if (!pattern.test(column.header)) continue;
+      const core = quantityCore(column.header);
+      if (core === "") continue;
+      if (!cores.has(core)) cores.set(core, []);
+      cores.get(core).push(`${table.method}: ${column.header}`);
+    }
+    if (cores.size > 1) {
+      found.push({ quantity, names: [...cores.keys()], where: [...cores.values()].map((one) => one[0]) });
+    }
+  }
+  return found;
+}
+
+/**
+ * A `Before` column in a table with no matching `After?` expectation.
+ *
+ * The assertion names this as the other way the pair fails: a before name only earns its keep where
+ * the table mutates the quantity and states the post-state.
+ */
+function beforeWithoutAfter(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    for (const column of table.columns) {
+      if (column.isScenario || column.isExpectation) continue;
+      if (!/\b(before|prior|initial|pre)\b/i.test(column.header)) continue;
+      const core = quantityCore(column.header);
+      const paired = table.expectationColumns.some((one) => quantityCore(one.header) === core);
+      if (!paired) found.push({ method: table.method, header: column.header });
+    }
+  }
+  return found;
+}
+
+/** An input column of a table matching `pattern`, policy columns included. */
+function eval29Input(table, pattern) {
+  return table.columns.find((column) => !column.isScenario && !column.isExpectation && pattern.test(column.header)) || null;
+}
+
+/** An expectation column of a table matching `pattern`. */
+function eval29Expectation(table, pattern) {
+  return table.expectationColumns.find((column) => pattern.test(column.header)) || null;
+}
+
+/**
+ * Which of eval-29's four concerns each table serves, by the columns it carries.
+ *
+ * The concerns are the requirement's own operations: adding or removing items, deciding which coupon
+ * is active, totalling, and checking stock at checkout.
+ */
+function eval29Concerns(shape) {
+  const concerns = { item: [], coupon: [], total: [], checkout: [] };
+  for (const table of shape.tables) {
+    const hasTotal = Boolean(eval29Expectation(table, EVAL_29_QUANTITIES.total));
+    const hasStock = Boolean(eval29Input(table, EVAL_29_QUANTITIES.stock));
+    const hasCouponCode = Boolean(eval29Input(table, /coupon code|\bcode\b|coupon/i));
+    const hasProduct = Boolean(eval29Input(table, EVAL_29_QUANTITIES.product));
+
+    // Most draws state the coupon concern's post-state as the coupon itself — `Active Coupon After?`
+    // — rather than as the cart that carries it. Requiring a cart expectation classified eight of
+    // twelve draws as having no coupon table at all, and cascaded into three relations each.
+    if (hasTotal) concerns.total.push(table);
+    else if (hasStock) concerns.checkout.push(table);
+    else if (hasCouponCode) concerns.coupon.push(table);
+    else if (hasProduct) concerns.item.push(table);
+  }
+  return concerns;
+}
+
+/**
+ * Static mutable fields a table body writes to — the only way one row can inherit another's state.
+ *
+ * JUnit creates a fresh test instance per invocation, so an instance field cannot carry state from
+ * row to row; a static one can.
+ */
+function sharedMutableState(shape) {
+  const fields = [...String(shape.source || "").matchAll(/\bstatic\s+(?!final\b)[\w<>,\[\].]+\s+(\w+)\s*[=;]/g)].map(
+    (match) => match[1],
+  );
+  const found = [];
+  for (const table of shape.tables) {
+    for (const field of fields) {
+      const writes = new RegExp(`\\b${field}\\s*(?:=[^=]|\\.(?:add|remove|put|clear|set)\\w*\\s*\\()`);
+      if (writes.test(table.body || "")) found.push({ method: table.method, field });
+    }
+  }
+  return found;
+}
+
+/** Map-valued columns — the cart, the catalogue and the stock levels the assertion names. */
+const MAP_VALUED = /\bcart\b|\bbasket\b|catalogue|catalog|\bstock\b|inventory|\bprices?\b|coupon store/i;
+
+/** TableTest's own map notation: `[k: v, k2: v2]`, or `[:]` for the empty map. */
+function isStandardMap(cell) {
+  const text = String(cell ?? "").trim();
+  if (text === "" || text === "[:]") return true;
+  // A value set over maps is still standard notation: `{[:], [widget: 5]}` runs the row twice, once
+  // per map, and each member is what this judges.
+  if (text.startsWith("{") && text.endsWith("}")) {
+    const members = parseCollectionElements(text);
+    return members !== null && members.length > 0 && members.every((member) => isStandardMap(member));
+  }
+  if (!text.startsWith("[") || !text.endsWith("]")) return false;
+  const elements = parseCollectionElements(text);
+  if (elements === null) return false;
+  return elements.every((element) => /:/.test(element));
+}
+
+/** Map-valued cells written in a bespoke grammar rather than TableTest's. */
+function bespokeMapCells(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    for (const column of table.columns) {
+      if (column.isScenario) continue;
+      if (!MAP_VALUED.test(column.header)) continue;
+      // A column of scalars is not a map-valued column, whatever it is called: `Cart Total?` holds
+      // a number and `Product` holds a name.
+      const cells = table.rows.map((row) => String(row.cells[column.index] ?? "").trim()).filter((cell) => cell !== "");
+      if (cells.length === 0 || cells.every((cell) => !/[\[\]{}:=;]/.test(cell))) continue;
+      const bad = cells.find((cell) => !isStandardMap(cell));
+      if (bad) found.push({ method: table.method, header: column.header, cell: bad });
+    }
+  }
+  return found;
+}
+
+/** Coupon facets spread across sparse columns instead of one converted column. */
+function spreadCouponColumns(shape) {
+  const facets = [/coupon type|\btype\b/i, /coupon (value|amount)|\bamount\b|\bpercent/i, /coupon (target|product)|target product/i];
+  const found = [];
+  for (const table of shape.tables) {
+    const hit = facets
+      .map((facet) => table.columns.find((column) => !column.isScenario && !column.isExpectation && facet.test(column.header)))
+      .filter(Boolean);
+    if (hit.length >= 2) found.push({ method: table.method, headers: hit.map((column) => column.header) });
+  }
+  return found;
+}
+
+const EVAL_29_RELATIONS = [
   {
-    id: "rule-falsifiable-by-a-row",
-    label: "no constant expectation column",
-    advisory: true,
-    judgement: "the stated-invariance exemption is a reading of the title and description",
+    id: "separates-item-coupon-total-checkout",
+    label: "four concerns, four methods",
     evaluate: (shape) => {
-      const constant = shape.tables.flatMap((table) =>
-        constantExpectationColumns(table).map((column) => `${table.method}: ${column.header}=${column.value}`),
+      const concerns = eval29Concerns(shape);
+      const missing = Object.entries(concerns)
+        .filter(([, tables]) => tables.length === 0)
+        .map(([name]) => name);
+      if (missing.length > 0) {
+        return { holds: false, evidence: `no table serves: ${missing.join(", ")}` };
+      }
+      const shared = Object.entries(concerns).flatMap(([name, tables]) =>
+        tables.map((table) => ({ name, method: table.method })),
       );
+      const byMethod = new Map();
+      for (const one of shared) {
+        if (!byMethod.has(one.method)) byMethod.set(one.method, []);
+        byMethod.get(one.method).push(one.name);
+      }
+      const doubled = [...byMethod].filter(([, names]) => names.length > 1);
       return {
-        holds: constant.length === 0,
-        evidence: constant.length === 0 ? "every expectation column varies" : constant.join("; "),
+        holds: doubled.length === 0,
+        evidence:
+          doubled.length === 0
+            ? [...byMethod].map(([method, names]) => `${names[0]}: ${method}`).join("; ")
+            : doubled.map(([method, names]) => `${method} serves ${names.join(" and ")}`).join("; "),
       };
     },
   },
+  {
+    id: "coupon-before-after-columns",
+    label: "the coupon table states the state change",
+    evaluate: (shape) => {
+      const [coupon] = eval29Concerns(shape).coupon;
+      if (!coupon) return { holds: false, evidence: "no table decides which coupon is active" };
+      const before = eval29Input(coupon, /\b(before|prior|initial|pre)\b/i);
+      const after = eval29Expectation(coupon, /\b(after|resulting|final|post)\b/i);
+      return {
+        holds: Boolean(before && after),
+        evidence:
+          before && after
+            ? `${coupon.method}: ${before.header} → ${after.header}`
+            : `${coupon.method}: ${before ? "no after column" : "no before column"}`,
+      };
+    },
+  },
+  {
+    id: "coupon-validity-not-coupon-types",
+    label: "the coupon table judges validity, not worth",
+    evaluate: (shape) => {
+      // The concern is often spread over two sibling tables — one for activation and replacement,
+      // one for rejection — so the union of them is what carries validity, not the first alone.
+      const coupons = eval29Concerns(shape).coupon;
+      if (coupons.length === 0) return { holds: false, evidence: "no table decides which coupon is active" };
+      const priced = coupons.map((table) => eval29Expectation(table, EVAL_29_QUANTITIES.total)).find(Boolean);
+      const cells = coupons.flatMap((table) => table.rows.flatMap((row) => row.cells.map((cell) => String(cell ?? ""))));
+      const surface = coupons.map((table) => `${table.displayName || ""} ${table.method || ""}`).join(" ");
+      const expired = cells.some((cell) => /expir|lapsed|stale/i.test(cell));
+      const unknown = cells.some((cell) => /unknown|unrecognis|nonexistent|not found|invalid|bogus|ghost|fake/i.test(cell)) ||
+        /invalid|not found|unknown/i.test(surface);
+      const missing = [];
+      if (priced) missing.push(`it also asserts ${priced.header}`);
+      if (!expired) missing.push("no row carries an expired code");
+      if (!unknown) missing.push("no row carries an unrecognised code");
+      const where = coupons.map((table) => table.method).join(" + ");
+      return {
+        holds: missing.length === 0,
+        evidence: missing.length === 0 ? `${where}: expired and unrecognised codes, no price asserted` : `${where}: ${missing.join("; ")}`,
+      };
+    },
+  },
+  {
+    id: "coupon-as-single-column",
+    label: "one coupon column, not sparse facets",
+    evaluate: (shape) => {
+      const spread = spreadCouponColumns(shape);
+      return {
+        holds: spread.length === 0,
+        evidence:
+          spread.length === 0
+            ? "no table spreads a coupon across separate facet columns"
+            : spread.map((one) => `${one.method}: ${one.headers.join(", ")}`).join("; "),
+      };
+    },
+  },
+  {
+    id: "uses-standard-map-syntax",
+    label: "map cells use TableTest's own notation",
+    evaluate: (shape) => {
+      const bespoke = bespokeMapCells(shape);
+      return {
+        holds: bespoke.length === 0,
+        evidence:
+          bespoke.length === 0
+            ? "every map-valued cell is written [k: v] or [:]"
+            : bespoke.map((one) => `${one.method}: ${one.header} = ${one.cell}`).join("; "),
+      };
+    },
+  },
+  {
+    id: "consistent-quantity-naming",
+    label: "one quantity, one name",
+    // Advisory: whether two names denote one observable quantity is a domain reading, not a parse.
+    // `Message?` beside `Message Mentions?` is the full message beside the substrings it must
+    // contain — two quantities — while the assertion's own example, `Base Rate?` beside `Rate?`, is
+    // one quantity under two names. Nothing in the headers separates those two cases.
+    advisory: true,
+    judgement: "whether two names denote one quantity is a domain reading",
+    evaluate: (shape) => {
+      if (shape.tables.length < 2) return { holds: true, evidence: "a single table cannot disagree with itself" };
+      const inconsistent = inconsistentNames(shape);
+      const unpaired = beforeWithoutAfter(shape);
+      if (inconsistent.length === 0 && unpaired.length === 0) {
+        return { holds: true, evidence: "each recurring quantity carries one name throughout" };
+      }
+      return {
+        holds: false,
+        evidence: [
+          ...inconsistent.map((one) => `${one.quantity} appears as ${one.names.join(" and ")} (${one.where.join(", ")})`),
+          ...unpaired.map((one) => `${one.method}: ${one.header} with no matching after column`),
+        ].join("; "),
+      };
+    },
+  },
+  {
+    id: "rows-independently-executable",
+    label: "no row inherits state from another",
+    evaluate: (shape) => {
+      // A post-state expectation with no pre-state column is NOT the defect: a table that adds to a
+      // fresh empty cart on every row is independent, and iteration-65 does exactly that. Row
+      // dependence needs state that survives between invocations, and JUnit builds a new test
+      // instance per invocation — so the mechanism is a *static* mutable field a body writes to.
+      const shared = sharedMutableState(shape);
+      return {
+        holds: shared.length === 0,
+        evidence:
+          shared.length === 0
+            ? "no table writes to static mutable state between rows"
+            : shared.map((one) => `${one.method} writes to static ${one.field}`).join("; "),
+      };
+    },
+  },
+  {
+    id: "test-data-visible",
+    label: "prices reach the totalling table",
+    evaluate: (shape) => {
+      const [total] = eval29Concerns(shape).total;
+      if (!total) return { holds: false, evidence: "no table totals the cart" };
+      const priced = eval29Input(total, EVAL_29_QUANTITIES.catalogue);
+      const inSurface = /price|catalogue|catalog|costs?\b/i.test(`${total.displayName || ""} ${total.description || ""}`);
+      return {
+        holds: Boolean(priced || inSurface),
+        evidence: priced
+          ? `${total.method}: ${priced.header}`
+          : inSurface
+            ? `${total.method}: prices named in the title or description`
+            : `${total.method}: prices reach the total from nowhere the reader can see`,
+      };
+    },
+  },
+  nativeCollectionRelation(),
+  falsifiabilityRelation(),
 ];
 
 /** Every eval this module can read, by eval number. */
@@ -1826,6 +2227,7 @@ const EVALS = {
   14: { call: null, relations: EVAL_14_RELATIONS },
   15: { call: null, relations: EVAL_15_RELATIONS },
   18: { call: EVAL_18_CALL, relations: EVAL_18_RELATIONS },
+  29: { call: null, relations: EVAL_29_RELATIONS },
   30: { call: null, relations: EVAL_30_RELATIONS },
 };
 
@@ -1841,6 +2243,7 @@ function authoredEvals() {
 
 module.exports = {
   EVAL_14_RELATIONS,
+  EVAL_29_RELATIONS,
   EVAL_30_RELATIONS,
   EVAL_15_RELATIONS,
   EVAL_18_RELATIONS,
@@ -1862,7 +2265,16 @@ module.exports = {
   setMembers,
   tieComputable,
   historyEntries,
+  bespokeMapCells,
+  beforeWithoutAfter,
   compoundKeys,
+  enumeratingMessages,
+  eval29Concerns,
+  sharedMutableState,
+  inconsistentNames,
+  isStandardMap,
+  quantityCore,
+  spreadCouponColumns,
   facetOnSurface,
   isNativeCollection,
   quotedStructureIn,
