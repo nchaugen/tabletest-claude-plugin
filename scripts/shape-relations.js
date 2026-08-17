@@ -3394,38 +3394,63 @@ function heldValuesNamedInDescriptions(shape) {
   return found;
 }
 
+/** A label naming no variation at all, which the assertion fails outright, whatever the eval. */
+const GENERIC_SCENARIO_NAME = /^(test|case|scenario|row|example)\s*\d*$/i;
+
 /** How a decision reads when a scenario name paraphrases it instead of naming the variation. */
 const EVAL_23_DECISION_ECHOES = [
-  { decision: /^APPROVED?$/, echo: /\bapprov(e|es|ed|al)\b/i },
-  { decision: /^REJECTED?$/, echo: /\breject(s|ed|ion)?\b|\bdeclin(e|es|ed)\b|\bturn(s|ed)? down\b|\bdenie[ds]\b/i },
-  { decision: /^PENDING_?REVIEW$/, echo: /\bpending\b|\bfor review\b|\bneeds review\b|\bmanual review\b/i },
+  { expectation: /^APPROVED?$/, echo: /\bapprov(e|es|ed|al)\b/i },
+  { expectation: /^REJECTED?$/, echo: /\breject(s|ed|ion)?\b|\bdeclin(e|es|ed)\b|\bturn(s|ed)? down\b|\bdenie[ds]\b/i },
+  { expectation: /^PENDING_?REVIEW$/, echo: /\bpending\b|\bfor review\b|\bneeds review\b|\bmanual review\b/i },
 ];
 
-/** A label naming no variation at all, which the assertion fails outright. */
-const EVAL_23_GENERIC_NAME = /^(test|case|scenario|row|example)\s*\d*$/i;
-
-/** Scenario names stating the outcome their own row expects, or naming nothing at all. */
-function namesStatingTheOutcome(shape) {
+/**
+ * Scenario names stating the outcome their own row expects, or naming nothing at all.
+ *
+ * `echoes` is the eval's own vocabulary: which expectation cells this domain has, and how a name
+ * paraphrases each. It is per-eval rather than derived, because paraphrase is a language question
+ * — `REJECTED` is echoed by "rejects" and a bonus of `0` by "gets no bonus" — and a stemmer that
+ * guessed would fail in the direction that makes the agreement figure meaningless.
+ */
+function namesStatingTheOutcome(shape, echoes) {
   const found = [];
   for (const table of shape.tables) {
     const scenario = table.columns.find((column) => column.isScenario);
     if (!scenario) continue;
     table.rows.forEach((row, index) => {
       const name = String(row.cells[scenario.index] ?? "").trim();
-      if (EVAL_23_GENERIC_NAME.test(name)) {
+      if (GENERIC_SCENARIO_NAME.test(name)) {
         found.push({ method: table.method, row: index + 1, name, why: "names no variation" });
         return;
       }
       for (const column of table.expectationColumns) {
         const cell = String(row.cells[column.index] ?? "").trim().toUpperCase();
-        const echo = EVAL_23_DECISION_ECHOES.find((one) => one.decision.test(cell));
+        const echo = echoes.find((one) => one.expectation.test(cell));
         if (echo && echo.echo.test(name)) {
-          found.push({ method: table.method, row: index + 1, name, why: `paraphrases ${cell}` });
+          found.push({ method: table.method, row: index + 1, name, why: `paraphrases ${column.header} = ${cell}` });
         }
       }
     });
   }
   return found;
+}
+
+/** `scenario-names-describe-conditions`, over one eval's paraphrase vocabulary. */
+function scenarioNamesRelation(echoes) {
+  return {
+    id: "scenario-names-describe-conditions",
+    label: "no scenario name states its own row's outcome",
+    evaluate: (shape) => {
+      const found = namesStatingTheOutcome(shape, echoes);
+      return {
+        holds: found.length === 0,
+        evidence:
+          found.length === 0
+            ? "every scenario name states the variation, not the outcome"
+            : found.slice(0, 3).map((one) => `${one.method} row ${one.row}: "${one.name}" ${one.why}`).join("; "),
+      };
+    },
+  };
 }
 
 /**
@@ -3659,20 +3684,7 @@ const EVAL_23_RELATIONS = [
       };
     },
   },
-  {
-    id: "scenario-names-describe-conditions",
-    label: "no scenario name states its own row's decision",
-    evaluate: (shape) => {
-      const found = namesStatingTheOutcome(shape);
-      return {
-        holds: found.length === 0,
-        evidence:
-          found.length === 0
-            ? "every scenario name states the variation, not the outcome"
-            : found.slice(0, 3).map((one) => `${one.method} row ${one.row}: "${one.name}" ${one.why}`).join("; "),
-      };
-    },
-  },
+  scenarioNamesRelation(EVAL_23_DECISION_ECHOES),
   {
     id: "no-duplicate-rows-within-a-table",
     label: "no row re-discharges an obligation an earlier row already did",
@@ -4619,6 +4631,7 @@ module.exports = {
   incomeEffectCases,
   loanCases,
   namesStatingTheOutcome,
+  scenarioNamesRelation,
   obligationOf,
   rowsRediscarging,
   splitIncomeColumns,

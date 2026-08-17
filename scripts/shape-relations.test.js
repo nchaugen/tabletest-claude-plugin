@@ -40,7 +40,6 @@ const {
   heldConstantIncomePair,
   incomeEffectCases,
   loanCases,
-  namesStatingTheOutcome,
   rowsRediscarging,
   splitIncomeColumns,
   undeclaredHeldValues,
@@ -1811,18 +1810,22 @@ describe("description-no-redundant-field-values", () => {
 
 describe("scenario-names-describe-conditions", () => {
   test("fires on a name paraphrasing its own row's decision", () => {
-    const found = namesStatingTheOutcome(loanShape(["Below threshold rejects regardless of income | 40 | 500 | true | REJECTED"]));
-    assert.deepEqual(found.map((one) => one.why), ["paraphrases REJECTED"]);
+    const verdict = loanVerdict(
+      "scenario-names-describe-conditions",
+      loanShape(["Below threshold rejects regardless of income | 40 | 500 | true | REJECTED"]),
+    );
+    assert.equal(verdict.holds, false);
+    assert.match(verdict.evidence, /paraphrases Decision\? = REJECTED/);
   });
 
   test("says nothing about a name describing an input, however close it sounds", () => {
-    assert.deepEqual(namesStatingTheOutcome(loanShape(["Qualifying score, income not stable | 64 | 651 | false | REJECTED"])), []);
+    const shape = loanShape(["Qualifying score, income not stable | 64 | 651 | false | REJECTED"]);
+    assert.equal(loanVerdict("scenario-names-describe-conditions", shape).holds, true);
   });
 
   test("fires on a label naming no variation at all", () => {
-    assert.deepEqual(namesStatingTheOutcome(loanShape(["Test 1 | 64 | 651 | true | APPROVED"])).map((one) => one.why), [
-      "names no variation",
-    ]);
+    const verdict = loanVerdict("scenario-names-describe-conditions", loanShape(["Test 1 | 64 | 651 | true | APPROVED"]));
+    assert.match(verdict.evidence, /names no variation/);
   });
 });
 
