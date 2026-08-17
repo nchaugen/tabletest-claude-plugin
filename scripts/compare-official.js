@@ -61,6 +61,41 @@ function baselinePairs(skill, benchmark, baseline) {
   });
 }
 
+/**
+ * Every stored verdict for one slot, oldest first, over the draws that used the same eval definition
+ * the run did — a moved slot means nothing until you know how often it moves by itself. Draws at
+ * other fingerprints are left out because their verdicts answer a different question.
+ */
+function priorVerdicts(skill, evalId, fingerprint, assertion, excludeIteration) {
+  const officialDir = path.join(repoRoot, "iterations", skill);
+  if (!fs.existsSync(officialDir)) return [];
+  const iterationNumber = (name) => parseInt(name.split("-")[1], 10);
+  return fs.readdirSync(officialDir)
+    .filter((name) => name.startsWith("iteration-") && name !== `iteration-${excludeIteration}`)
+    .filter((name) => fs.existsSync(path.join(officialDir, name, "benchmark.json")))
+    .sort((a, b) => iterationNumber(a) - iterationNumber(b))
+    .flatMap((name) => {
+      const benchmark = JSON.parse(fs.readFileSync(path.join(officialDir, name, "benchmark.json"), "utf-8"));
+      const entry = benchmark.evals.find((candidate) => candidate.id === evalId);
+      if (!entry || entry.fingerprint !== fingerprint) return [];
+      const results = entry.results || {};
+      if (!results.failed_assertions || results.assertions_total === 0) return [];
+      return [results.failed_assertions.includes(assertion) ? "F" : "P"];
+    });
+}
+
+/**
+ * How a moved slot reads against its own record: one that has gone both ways before moves on its
+ * own, and a single draw cannot be credited to a skill change. Both of this batch's headline
+ * "confirmations" were slots of exactly this kind.
+ */
+function baseRateNote(prior) {
+  if (prior.length === 0) return "no prior draw at this fingerprint — a single observation";
+  const pattern = prior.join("");
+  const moves = pattern.includes("P") && pattern.includes("F");
+  return `prior ${pattern}${moves ? " — moves on its own, one draw settles nothing" : ""}`;
+}
+
 function scoreOf(entry) {
   const results = entry && entry.results;
   if (!results || results.assertions_passed === undefined) return null;
@@ -93,8 +128,12 @@ function report(skill, iteration) {
     const movedHere = moved.filter((slot) => slot.eval === entry.id);
     const state = pair.baselineDigest === runDigest ? "same skill state" : `skill ${pair.baselineDigest}`;
     lines.push(`${entry.id}  ${scoreOf(before) || "—"} → ${scoreOf(entry) || "—"}   before: ${pair.from || "none"}, ${state}`);
-    for (const slot of movedHere.filter((slot) => slot.direction === "won")) lines.push(`   won   ${slot.assertion}`);
-    for (const slot of movedHere.filter((slot) => slot.direction === "lost")) lines.push(`   lost  ${slot.assertion}`);
+    const withBaseRate = (slot) => {
+      const prior = priorVerdicts(skill, entry.id, entry.fingerprint, slot.assertion, iteration);
+      return `${slot.assertion}  (${baseRateNote(prior)})`;
+    };
+    for (const slot of movedHere.filter((slot) => slot.direction === "won")) lines.push(`   won   ${withBaseRate(slot)}`);
+    for (const slot of movedHere.filter((slot) => slot.direction === "lost")) lines.push(`   lost  ${withBaseRate(slot)}`);
     if (movedHere.length === 0 && pair.from) lines.push(`   (no slot moved)`);
   }
 
@@ -126,4 +165,4 @@ if (require.main === module) {
   console.log(report(args.skill, args.iteration));
 }
 
-module.exports = { confoundedEvals, baselinePairs, scoreOf, parseArgs };
+module.exports = { confoundedEvals, baselinePairs, scoreOf, parseArgs, priorVerdicts, baseRateNote };

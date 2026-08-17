@@ -1,7 +1,7 @@
 const { test, describe } = require("node:test");
 const assert = require("node:assert/strict");
 
-const { confoundedEvals, scoreOf, parseArgs } = require("./compare-official.js");
+const { confoundedEvals, scoreOf, parseArgs, priorVerdicts, baseRateNote } = require("./compare-official.js");
 const { loadOfficialBenchmark } = require("./run-evals.js");
 const path = require("path");
 
@@ -39,17 +39,48 @@ describe("scoreOf", () => {
 
 describe("loadOfficialBenchmark with excludeIteration", () => {
   test("leaves the named iteration out, so a run is not compared against itself", () => {
-    const withAll = loadOfficialBenchmark(repoRoot, "tabletest");
-    const without88 = loadOfficialBenchmark(repoRoot, "tabletest", { excludeIteration: 88 });
-    const from = (benchmark, id) => benchmark.evals.find((e) => e.id === id)._fromIteration;
-    assert.equal(from(withAll, "eval-18-convert-from-code"), "iteration-88");
-    assert.notEqual(from(without88, "eval-18-convert-from-code"), "iteration-88");
+    const newest = loadOfficialBenchmark(repoRoot, "tabletest");
+    const source = newest.evals.find((e) => e.id === "eval-18-convert-from-code")._fromIteration;
+    const excluded = loadOfficialBenchmark(repoRoot, "tabletest", {
+      excludeIteration: parseInt(source.split("-")[1], 10),
+    });
+    assert.notEqual(excluded.evals.find((e) => e.id === "eval-18-convert-from-code")._fromIteration, source);
   });
 
   test("is unchanged when no iteration is excluded", () => {
     const explicit = loadOfficialBenchmark(repoRoot, "tabletest", {});
     const implicit = loadOfficialBenchmark(repoRoot, "tabletest");
     assert.deepEqual(explicit.evals.map((e) => e._fromIteration), implicit.evals.map((e) => e._fromIteration));
+  });
+});
+
+describe("baseRateNote", () => {
+  test("warns where the slot has gone both ways before", () => {
+    assert.match(baseRateNote(["F", "P", "F"]), /prior FPF — moves on its own/);
+  });
+
+  test("states the record plainly where every prior draw agrees", () => {
+    assert.equal(baseRateNote(["F", "F", "F"]), "prior FFF");
+  });
+
+  test("says so when the slot has no prior draw to judge against", () => {
+    assert.match(baseRateNote([]), /no prior draw/);
+  });
+});
+
+describe("priorVerdicts", () => {
+  test("reads a real slot's record, excluding the run being judged", () => {
+    const prior = priorVerdicts(
+      "tabletest", "eval-18-convert-from-code", "c9ea8e1ad891", "premium-charge-is-per-claim", 89
+    );
+    assert.deepEqual(prior, ["F", "P"]);
+  });
+
+  test("ignores draws that used a different eval definition", () => {
+    const prior = priorVerdicts(
+      "tabletest", "eval-18-convert-from-code", "c9ea8e1ad891", "rule-falsifiable-by-a-row", 89
+    );
+    assert.ok(prior.length < 8, `expected only same-fingerprint draws, got ${prior.length}`);
   });
 });
 
