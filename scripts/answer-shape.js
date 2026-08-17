@@ -354,6 +354,8 @@ function numericValue(cell) {
 
 module.exports = {
   actCallArguments,
+  // Re-exported so the relations layer has one parsing import, not two.
+  parseCollectionElements,
   answerShape,
   argumentList,
   splitCells,

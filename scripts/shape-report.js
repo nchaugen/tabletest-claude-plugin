@@ -132,6 +132,7 @@ function evaluateDraw(draw, relations, context = { sutParameters: [] }) {
       id: relation.id,
       label: relation.label,
       judgement: relation.judgement || null,
+      advisory: Boolean(relation.advisory),
       holds,
       evidence,
       graded,
@@ -160,12 +161,29 @@ function renderPanel(draws, evaluations, relations) {
   return lines.join("\n");
 }
 
-/** Where the mechanical verdict and the grader disagree — the only rows worth a human read. */
+/**
+ * Where the mechanical verdict and the grader disagree — the only rows worth a human read.
+ *
+ * An advisory relation is excluded: it decides one condition of an assertion that has an exemption
+ * this cannot read, so a divergence there says nothing about either side. They are reported
+ * separately by `advisoryDivergences` rather than counted.
+ */
 function disagreements(draws, evaluations) {
   const found = [];
   draws.forEach((draw, index) => {
     for (const row of evaluations[index]) {
-      if (row.agrees === false) found.push({ draw: draw.label, ...row });
+      if (row.agrees === false && !row.advisory) found.push({ draw: draw.label, ...row });
+    }
+  });
+  return found;
+}
+
+/** Divergences on advisory relations, reported without being counted against either side. */
+function advisoryDivergences(draws, evaluations) {
+  const found = [];
+  draws.forEach((draw, index) => {
+    for (const row of evaluations[index]) {
+      if (row.agrees === false && row.advisory) found.push({ draw: draw.label, ...row });
     }
   });
   return found;
@@ -228,9 +246,22 @@ function main() {
   });
 
   const conflicts = disagreements(draws, evaluations);
-  console.log(`\n${conflicts.length} disagreement(s) between the mechanical read and the grader.`);
+  const counted = evaluations.flat().filter((row) => row.graded !== null && !row.advisory);
+  const agreed = counted.filter((row) => row.agrees).length;
+  console.log(
+    `\n${agreed} of ${counted.length} graded comparisons agree (${Math.round((100 * agreed) / Math.max(counted.length, 1))}%),` +
+      ` ${conflicts.length} disagreement(s):`,
+  );
   for (const one of conflicts) {
     console.log(`  ${one.draw} ${one.id}: mechanical ${mark(one.holds)}, grader ${mark(one.graded)} — ${one.evidence}`);
+  }
+
+  const advisory = advisoryDivergences(draws, evaluations);
+  if (advisory.length > 0) {
+    console.log(`\n${advisory.length} divergence(s) on advisory relations, not counted above:`);
+    for (const one of advisory) {
+      console.log(`  ${one.draw} ${one.id}: mechanical ${mark(one.holds)}, grader ${mark(one.graded)} — ${one.evidence}`);
+    }
   }
 
   const judged = relations.filter((relation) => relation.judgement);
@@ -243,6 +274,7 @@ function main() {
 if (require.main === module) main();
 
 module.exports = {
+  advisoryDivergences,
   disagreements,
   evalDir,
   evaluateDraw,

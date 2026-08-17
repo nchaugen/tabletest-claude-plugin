@@ -5,7 +5,15 @@ const { answerShape } = require("./answer-shape.js");
 const { storedDraws, evaluateDraw } = require("./shape-report.js");
 const {
   EVAL_14_RELATIONS,
+  EVAL_15_RELATIONS,
   EVAL_18_RELATIONS,
+  historyEntries,
+  historyMixesKinds,
+  ladderTable,
+  ladderTables,
+  percentValue,
+  reisTier,
+  zonesMentioned,
   authoredEvals,
   blankHourColumns,
   combinedScenario,
@@ -277,6 +285,11 @@ describe("the reference answers", () => {
 
   test("eval-14's reference satisfies every one of its relations", () => {
     const rows = evaluateDraw(referenceOf("eval-14-weekly-pay"), EVAL_14_RELATIONS, { sutParameters: [] });
+    assert.deepEqual(rows.filter((row) => !row.holds).map((row) => `${row.id}: ${row.evidence}`), []);
+  });
+
+  test("eval-15's reference satisfies every one of its relations", () => {
+    const rows = evaluateDraw(referenceOf("eval-15-reis-discount"), EVAL_15_RELATIONS, { sutParameters: [] });
     assert.deepEqual(rows.filter((row) => !row.holds).map((row) => `${row.id}: ${row.evidence}`), []);
   });
 
@@ -633,5 +646,171 @@ describe("heldBandValue", () => {
       }
     `);
     assert.deepEqual(heldBandValue(table, hourColumns(table)), { band: null, value: 0, ambiguous: false });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// eval-15 reis-discount
+// ---------------------------------------------------------------------------
+
+const ladderOf = (rows, header = "Scenario | Ticket Number | Discount %?") => answerShape(`
+    @TableTest("""
+        ${header}
+${rows.map((row) => `        ${row}`).join("\n")}
+        """)
+    void climbsTheLadder(int ticketNumber, int discount) {}
+`);
+
+describe("reisTier", () => {
+  test("pays nothing below the fifth ticket", () => {
+    assert.equal(reisTier(1), 0);
+    assert.equal(reisTier(4), 0);
+  });
+
+  test("raises a rung every fifth ticket", () => {
+    assert.deepEqual([5, 9, 10, 14, 15, 39].map(reisTier), [5, 5, 10, 10, 15, 35]);
+  });
+
+  test("stops at forty per cent however far the count runs", () => {
+    assert.equal(reisTier(40), 40);
+    assert.equal(reisTier(400), 40);
+  });
+});
+
+describe("percentValue", () => {
+  test("reads a percentage with or without its sign", () => {
+    assert.equal(percentValue("20"), 20);
+    assert.equal(percentValue("20%"), 20);
+    assert.equal(percentValue("20 %"), 20);
+  });
+});
+
+describe("ladderTables", () => {
+  test("finds the table mapping the most rungs", () => {
+    const shape = ladderOf(["A | {1, 4} | 0", "B | {5, 9} | 5", "C | {10, 14} | 10"]);
+    assert.equal(ladderTables(shape).length, 1);
+    assert.equal(ladderTable(shape).rungs.size, 3);
+  });
+
+  test("is not a ladder below three rungs — a scheme table shows a representative rung", () => {
+    const shape = ladderOf(["A | 1 | 0", "B | 5 | 5"]);
+    assert.deepEqual(ladderTables(shape), []);
+  });
+
+  test("passes over a child's flat rate, which is not a rung of the ladder", () => {
+    const shape = answerShape(`
+      @TableTest("""
+          Scenario | Traveler Category | Ticket Number | Discount?
+          Child    | CHILD             | {1, 5, 40}    | 20
+          No Reis  | ADULT             | 1             | 0
+          First    | {ADULT, SENIOR}   | 5             | 5
+          """)
+      void routes(TravelerCategory category, int ticketNumber, int discount) {}
+    `);
+    assert.deepEqual(ladderTables(shape), [], "two adult rungs is a scheme table, not a ladder");
+  });
+});
+
+describe("historyEntries and historyMixesKinds", () => {
+  test("splits a compact history on its semicolons", () => {
+    assert.deepEqual(historyEntries("5d WEEKLY;10d MONTHLY;15d"), ["5d WEEKLY", "10d MONTHLY", "15d"]);
+  });
+
+  test("keeps a bracketed entry whole, commas inside it being its fields", () => {
+    assert.deepEqual(historyEntries("[[daysAgo: 5, type: WEEKLY], [daysAgo: 5, type: MONTHLY]]"), [
+      "[daysAgo: 5, type: WEEKLY]",
+      "[daysAgo: 5, type: MONTHLY]",
+    ]);
+  });
+
+  test("reads an entry naming no period type as the counting kind, since notations leave it implicit", () => {
+    assert.equal(historyMixesKinds("5d WEEKLY;10d MONTHLY;15d"), true);
+  });
+
+  test("is not mixed where a single bracketed entry names a period ticket", () => {
+    assert.equal(historyMixesKinds("[[purchasedAt: '2026-07-26T12:00:00', ticketType: WEEKLY]]"), false);
+  });
+
+  test("is not mixed where every entry is the same kind", () => {
+    assert.equal(historyMixesKinds("[[daysAgo: 5, type: WEEKLY], [daysAgo: 5, type: MONTHLY]]"), false);
+    assert.equal(historyMixesKinds("[[daysAgo: 5, type: SINGLE]]"), false);
+  });
+
+  test("reads an empty history as no entries", () => {
+    assert.deepEqual(historyEntries("[]"), []);
+  });
+});
+
+describe("zonesMentioned", () => {
+  test("finds zones written in a value set", () => {
+    const shape = answerShape(`
+      @TableTest("""
+          Scenario | Zone                     | Counts?
+          Any zone | {ZONE_1, ZONE_2, ZONE_3} | true
+          """)
+      void counts(ZoneValidity zone, boolean counts) {}
+    `);
+    assert.deepEqual([...zonesMentioned(shape.tables[0])].sort(), ["1", "2", "3"]);
+  });
+
+  test("finds zones buried inside a history cell", () => {
+    const shape = answerShape(`
+      @TableTest("""
+          Scenario | Purchase History                                          | Count?
+          Zones    | [[daysAgo: 5, zone: ZONE_1], [daysAgo: 6, zone: ZONE_3]]  | 2
+          """)
+      void counts(List<PastPurchase> history, int count) {}
+    `);
+    assert.deepEqual([...zonesMentioned(shape.tables[0])].sort(), ["1", "3"]);
+  });
+});
+
+describe("the eval-15 tier relations", () => {
+  const verdict = (id, shape) => EVAL_15_RELATIONS.find((one) => one.id === id).evaluate(shape, {});
+
+  test("2.19 names the rungs a ladder is missing", () => {
+    const shape = ladderOf(["A | {1, 4} | 0", "B | {5, 9} | 5", "C | {10, 14} | 10"]);
+    const result = verdict("2.19-depth-all-tiers", shape);
+    assert.equal(result.holds, false);
+    assert.match(result.evidence, /missing 15, 20, 25, 30, 35, 40/);
+  });
+
+  test("2.9 is vacuous where the ladder carries no value set — that is 2.15's question", () => {
+    const shape = ladderOf(["A | 4 | 0", "B | 5 | 5", "C | 9 | 5", "D | 10 | 10"]);
+    const result = verdict("2.9-correctness-value-set-tier-semantics", shape);
+    assert.equal(result.holds, true);
+    assert.match(result.evidence, /VACUOUS/);
+  });
+
+  test("2.9 catches a value set spanning two tiers", () => {
+    const shape = ladderOf(["A | {1, 4} | 0", "B | {5, 12} | 5", "C | {15, 19} | 15"]);
+    assert.equal(verdict("2.9-correctness-value-set-tier-semantics", shape).holds, false);
+  });
+
+  test("2.9 accepts a table counting prior purchases rather than including this one", () => {
+    const shape = ladderOf(["A | {0, 3} | 0", "B | {4, 8} | 5", "C | {9, 13} | 10"]);
+    const result = verdict("2.9-correctness-value-set-tier-semantics", shape);
+    assert.equal(result.holds, true);
+    assert.match(result.evidence, /prior purchases only/);
+  });
+
+  test("2.20 fails a tier split over two rows", () => {
+    const shape = ladderOf(["Kicks in | 5 | 5", "Holds | 9 | 5", "Next | {10, 14} | 10", "Third | {15, 19} | 15"]);
+    const result = verdict("2.20-readability-one-row-per-tier", shape);
+    assert.equal(result.holds, false);
+    assert.match(result.evidence, /5% over 2 rows/);
+  });
+
+  test("2.15 accepts one bare rung among nine grouped ones", () => {
+    const rows = [
+      "A | {1, 4} | 0", "B | {5, 9} | 5", "C | {10, 14} | 10", "D | {15, 19} | 15", "E | {20, 24} | 20",
+      "F | {25, 29} | 25", "G | {30, 34} | 30", "H | {35, 39} | 35", "I | 40 | 40",
+    ];
+    assert.equal(verdict("2.15-ticket-count-uses-value-sets", ladderOf(rows)).holds, true);
+  });
+
+  test("2.15 refuses a table that enumerates boundaries with one exception", () => {
+    const rows = ["A | 4 | 0", "B | 5 | 5", "C | 9 | 5", "D | 10 | 10", "E | {15, 19} | 15"];
+    assert.equal(verdict("2.15-ticket-count-uses-value-sets", ladderOf(rows)).holds, false);
   });
 });

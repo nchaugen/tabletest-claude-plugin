@@ -21,6 +21,7 @@
 const {
   actCallArguments,
   callArguments,
+  parseCollectionElements,
   constantExpectationColumns,
   findColumn,
   literalArgument,
@@ -863,9 +864,489 @@ const EVAL_14_RELATIONS = [
   },
 ];
 
+
+// ---------------------------------------------------------------------------
+// eval-15 reis-discount
+// ---------------------------------------------------------------------------
+
+/**
+ * How eval-15's answers name the quantities its assertions are about.
+ *
+ * This is the widest vocabulary in the suite: eighteen draws name the travel count `Trips In
+ * Window`, `Ticket Number`, `Purchase Number`, `Prior Single Tickets (30 Days)`, `Trailing Single
+ * Count` and eleven other ways. A role therefore matches on what the column *is*, and the survey
+ * behind these patterns is `node scripts/shape-report.js --eval 15`, which prints every header.
+ */
+const EVAL_15_ROLES = {
+  count: /\b(counts?|number|trips?|tickets)\b/i,
+  discount: /discount/i,
+  category: /travell?er|category|passenger/i,
+  zone: /zone/i,
+  ticketType: /ticket type|^type\??$/i,
+  history: /history|past purchases|^purchases\??$/i,
+  time: /purchased|purchase time|days? ago|\bwhen\b/i,
+};
+
+/** A column stating a constant the code owns rather than a quantity a row varies. */
+const EVAL_15_POLICY = /\(policy\)|\bmax(imum)?\b|window \(days\)/i;
+
+/** Reis raises the discount five points every fifth ticket and stops at forty. */
+const REIS_STEP = 5;
+const REIS_MAX = 40;
+
+/** The tier a ticket number earns: nothing below the fifth, then a rung every five, capped. */
+function reisTier(number) {
+  if (number < REIS_STEP) return 0;
+  return Math.min(Math.floor(number / REIS_STEP) * REIS_STEP, REIS_MAX);
+}
+
+/**
+ * The two readings of the count the ladder consumes.
+ *
+ * "The first discount applies to ticket number five" can be counted with the ticket being bought
+ * included (five tickets means 5%) or as prior purchases only (four behind you plus this one).
+ * Both are defensible readings of the prompt and `new-purchase-inclusion-published` exists because
+ * the prompt leaves it open, so a relation about the ladder's *internal consistency* must not
+ * quietly pick one. Every such relation tries both and reports which fits.
+ */
+const COUNT_READINGS = [
+  { name: "count includes this ticket", tier: (count) => reisTier(count) },
+  { name: "count is prior purchases only", tier: (count) => reisTier(count + 1) },
+];
+
+/** A percentage cell, with or without its sign: `20`, `20%`, `20 %`. */
+function percentValue(cell) {
+  return numericValue(String(cell ?? "").replace(/\s*%\s*$/, ""));
+}
+
+/** An input column for `role`, never an expectation and never a declared policy constant. */
+function eval15Input(table, role) {
+  const column = table.columns.find(
+    (one) => !one.isScenario && !one.isExpectation && role.test(one.header) && !EVAL_15_POLICY.test(one.header),
+  );
+  return column || null;
+}
+
+/** An expectation column for `role`. */
+function eval15Expectation(table, role) {
+  return table.expectationColumns.find((one) => role.test(one.header)) || null;
+}
+
+/** The travel-count column of a table, input side, excluding the ticket *type*. */
+function countInput(table) {
+  const column = eval15Input(table, EVAL_15_ROLES.count);
+  return column && !EVAL_15_ROLES.ticketType.test(column.header) ? column : null;
+}
+
+/**
+ * The one table stating the count-to-percentage ladder, or null.
+ *
+ * The ladder is whichever table maps the most distinct percentages from a travel count. Three is
+ * the floor for calling it an enumeration of tiers: iteration-60 splits children and adults into
+ * two tables and only the adult one is a ladder, while the reference's scheme table maps two
+ * percentages and is not.
+ */
+function ladderTables(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    const count = countInput(table);
+    const discount = eval15Expectation(table, EVAL_15_ROLES.discount);
+    if (!count || !discount) continue;
+    const category = eval15Input(table, EVAL_15_ROLES.category);
+    const rungs = new Map();
+    for (const one of table.cases) {
+      // A child's flat rate is not a rung: children do not follow the ladder, so counting their
+      // row makes `{0, 5, 40} → 20` look like three tiers contaminating each other. That read
+      // failed iterations 44 and 50 for a table the grader was right to pass.
+      if (category && /CHILD/i.test(String(one[category.header] ?? ""))) continue;
+      const number = numericValue(one[count.header]);
+      const percent = percentValue(one[discount.header]);
+      if (number === null || percent === null) continue;
+      if (!rungs.has(percent)) rungs.set(percent, []);
+      rungs.get(percent).push(number);
+    }
+    if (rungs.size >= 3) found.push({ table, count, discount, category, rungs });
+  }
+  return found.sort((a, b) => b.rungs.size - a.rungs.size);
+}
+
+/** The rows of a table that state a rung, child rows excluded as `ladderTables` excludes them. */
+function rungRows(ladder) {
+  return ladder.table.rows.filter(
+    (row) => !ladder.category || !/CHILD/i.test(String(row.cells[ladder.category.index] ?? "")),
+  );
+}
+
+/**
+ * The entries of a purchase-history cell.
+ *
+ * Notations vary and most leave the single ticket implicit — `5d WEEKLY;10d MONTHLY;15d` is one
+ * period entry, another period entry and one single. So an entry naming no period type *is* the
+ * counting kind, which is why this splits rather than searching for the word SINGLE.
+ */
+function historyEntries(cell) {
+  const text = String(cell ?? "").trim();
+  if (text === "") return [];
+  // A bracketed history nests: `[[purchasedAt: ..., ticketType: WEEKLY, ...]]` is ONE entry whose
+  // own commas separate fields. Splitting on every comma read it as four entries of which one
+  // named a period ticket, and called a single-entry history mixed — iterations 71 and 87.
+  const elements = parseCollectionElements(text);
+  if (elements !== null) return elements.map((entry) => entry.trim()).filter(Boolean);
+  return text
+    .split(";")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+/** True where a history cell holds both a counting and a non-counting purchase. */
+function historyMixesKinds(cell) {
+  const entries = historyEntries(cell);
+  const period = entries.filter((entry) => /WEEKLY|MONTHLY/i.test(entry));
+  return period.length > 0 && period.length < entries.length;
+}
+
+/** The ladder, or null where no table enumerates three rungs. */
+function ladderTable(shape) {
+  return ladderTables(shape)[0] || null;
+}
+
+/** Tables deciding a discount from the traveller category. */
+function schemeTables(shape) {
+  return shape.tables
+    .filter((table) => eval15Input(table, EVAL_15_ROLES.category))
+    .filter((table) => eval15Expectation(table, EVAL_15_ROLES.discount));
+}
+
+/**
+ * Tables deciding countability or a travel count — the rolling-window concern.
+ *
+ * Both shapes belong to it: a boolean saying whether one past purchase counts, and an integer
+ * saying how many of a history do. Neither is the discount concern, which is what separates
+ * `zone-independent-counting` from `zone-irrelevance-visible`.
+ */
+function countingTables(shape) {
+  return shape.tables.filter((table) => {
+    const expectation = eval15Expectation(table, EVAL_15_ROLES.count);
+    return Boolean(expectation) && !eval15Expectation(table, EVAL_15_ROLES.discount);
+  });
+}
+
+/** Every cell of a table, as text — history cells included, for scanning their elements. */
+function cellTexts(table) {
+  return table.rows.flatMap((row) => row.cells.map((cell) => String(cell ?? "")));
+}
+
+/** The distinct zone names a table's rows mention anywhere, cells and value sets alike. */
+function zonesMentioned(table) {
+  const zones = new Set();
+  for (const text of cellTexts(table)) {
+    for (const match of text.matchAll(/ZONE[_\s]?(\d+)/gi)) zones.add(match[1]);
+  }
+  return zones;
+}
+
+/** True where a cell is a value set — braces at the top level of the cell. */
+function isValueSet(cell) {
+  const text = String(cell ?? "").trim();
+  return text.startsWith("{") && text.endsWith("}");
+}
+
+/** An ISO-style absolute date or date-time, which a relative-time table must not carry. */
+const ABSOLUTE_DATE = /\d{4}-\d{2}-\d{2}/;
+
+const EVAL_15_RELATIONS = [
+  {
+    id: "2.19-depth-all-tiers",
+    label: "all nine rungs of the ladder",
+    evaluate: (shape) => {
+      const ladder = ladderTable(shape);
+      if (!ladder) return { holds: false, evidence: "no table enumerates three or more rungs" };
+      const expected = [0, 5, 10, 15, 20, 25, 30, 35, 40];
+      const present = new Set([...ladder.rungs.keys()]);
+      const missing = expected.filter((percent) => !present.has(percent));
+      return {
+        holds: missing.length === 0,
+        evidence:
+          missing.length === 0
+            ? `${ladder.table.method}: all of ${expected.join(", ")}`
+            : `${ladder.table.method}: missing ${missing.join(", ")} (has ${[...present].sort((a, b) => a - b).join(", ")})`,
+      };
+    },
+  },
+  {
+    id: "2.3-depth-tier-boundaries",
+    label: "several tiers, and the maximum",
+    evaluate: (shape) => {
+      const ladder = ladderTable(shape);
+      if (!ladder) return { holds: false, evidence: "no table enumerates three or more rungs" };
+      const hasMax = ladder.rungs.has(REIS_MAX);
+      return {
+        holds: hasMax,
+        evidence: hasMax
+          ? `${ladder.rungs.size} rungs including the ${REIS_MAX}% maximum`
+          : `${ladder.rungs.size} rungs, none of them the ${REIS_MAX}% maximum`,
+      };
+    },
+  },
+  {
+    id: "2.20-readability-one-row-per-tier",
+    label: "one tier, one row",
+    evaluate: (shape) => {
+      const ladder = ladderTable(shape);
+      if (!ladder) return { holds: false, evidence: "no ladder table to read" };
+      const split = [];
+      for (const [percent] of ladder.rungs) {
+        const rows = rungRows(ladder).filter(
+          (row) => percentValue(row.cells[ladder.discount.index]) === percent,
+        );
+        if (rows.length > 1) split.push(`${percent}% over ${rows.length} rows`);
+      }
+      return {
+        holds: split.length === 0,
+        evidence: split.length === 0 ? `${ladder.rungs.size} rungs, one row each` : split.join("; "),
+      };
+    },
+  },
+  {
+    id: "2.15-ticket-count-uses-value-sets",
+    label: "the count column groups tiers in value sets",
+    evaluate: (shape) => {
+      const ladder = ladderTable(shape);
+      if (!ladder) return { holds: false, evidence: "no ladder table to read" };
+      // Whether a tier is *split* across rows is 2.20's question. This one is about notation: a
+      // ladder that never groups counts is enumerating boundary values. One bare row beside eight
+      // value sets is not that, and reading it as all-or-nothing failed iterations 40 and 80.
+      // Most rungs grouping their counts is the table expressing tiers; a lone value set among
+      // sixteen single counts is a table enumerating boundaries with one exception (iteration-86),
+      // and nine among ten is not (iteration-80).
+      const rows = rungRows(ladder);
+      const grouped = rows.filter((row) => isValueSet(row.cells[ladder.count.index]));
+      return {
+        holds: grouped.length * 2 >= rows.length && grouped.length > 0,
+        evidence: `${grouped.length} of ${rows.length} rungs group counts in a value set`,
+      };
+    },
+  },
+  {
+    id: "2.9-correctness-value-set-tier-semantics",
+    label: "no value set spans two tiers",
+    evaluate: (shape) => {
+      const ladder = ladderTable(shape);
+      if (!ladder) return { holds: false, evidence: "no ladder table to read" };
+      const anyValueSet = rungRows(ladder).some((row) => isValueSet(row.cells[ladder.count.index]));
+      if (!anyValueSet) {
+        return {
+          holds: true,
+          evidence: "VACUOUS: the ladder holds no value set, so none can span two tiers — this is 2.15's question, not this one",
+        };
+      }
+      const failures = COUNT_READINGS.map((reading) => {
+        const wrong = [];
+        for (const [percent, numbers] of ladder.rungs) {
+          for (const number of numbers) {
+            if (reading.tier(number) !== percent) wrong.push(`${number}→${percent}% (rule gives ${reading.tier(number)}%)`);
+          }
+        }
+        return { reading, wrong };
+      });
+      const clean = failures.find((one) => one.wrong.length === 0);
+      const best = failures.reduce((a, b) => (a.wrong.length <= b.wrong.length ? a : b));
+      return {
+        holds: Boolean(clean),
+        evidence: clean
+          ? `consistent under "${clean.reading.name}"`
+          : `no reading fits; closest is "${best.reading.name}" with ${best.wrong.slice(0, 4).join(", ")}`,
+      };
+    },
+  },
+  {
+    id: "2.16-no-duplicate-tier-mapping",
+    label: "the ladder is stated once",
+    evaluate: (shape) => {
+      const ladders = ladderTables(shape);
+      return {
+        holds: ladders.length <= 1,
+        evidence:
+          ladders.length <= 1
+            ? ladders.length === 1
+              ? `only ${ladders[0].table.method} maps counts to percentages`
+              : "no table enumerates rungs"
+            : `${ladders.length} tables enumerate rungs: ${ladders.map((one) => one.table.method).join(", ")}`,
+      };
+    },
+  },
+  {
+    id: "2.2-children-flat-discount",
+    label: "a child row states the flat 20%",
+    evaluate: (shape) => {
+      for (const table of schemeTables(shape)) {
+        const category = eval15Input(table, EVAL_15_ROLES.category);
+        const discount = eval15Expectation(table, EVAL_15_ROLES.discount);
+        for (const one of table.cases) {
+          if (!/CHILD/i.test(String(one[category.header]))) continue;
+          if (percentValue(one[discount.header]) === 20) {
+            return { holds: true, evidence: `${table.method}: CHILD → 20%` };
+          }
+        }
+      }
+      return { holds: false, evidence: "no row states a child's flat 20%" };
+    },
+  },
+  {
+    id: "2.18-adult-senior-value-set",
+    label: "{ADULT, SENIOR} in one row",
+    evaluate: (shape) => {
+      const withCategory = shape.tables.filter((table) => eval15Input(table, EVAL_15_ROLES.category));
+      if (withCategory.length === 0) {
+        return { holds: false, evidence: "no table carries a traveller category at all" };
+      }
+      for (const table of withCategory) {
+        const category = eval15Input(table, EVAL_15_ROLES.category);
+        for (const row of table.rows) {
+          const cell = String(row.cells[category.index] ?? "");
+          if (isValueSet(cell) && /ADULT/i.test(cell) && /SENIOR/i.test(cell)) {
+            return { holds: true, evidence: `${table.method}: ${cell}` };
+          }
+        }
+      }
+      return {
+        holds: false,
+        evidence: `adult and senior enumerated separately in ${withCategory.map((one) => one.method).join(", ")}`,
+      };
+    },
+  },
+  {
+    id: "2.17-zone-irrelevance-visible",
+    label: "a zone value set where the percentage is decided",
+    evaluate: (shape) => {
+      const deciding = shape.tables.filter((table) => eval15Expectation(table, EVAL_15_ROLES.discount));
+      if (deciding.length === 0) return { holds: false, evidence: "no table decides a discount" };
+      for (const table of deciding) {
+        const zone = eval15Input(table, EVAL_15_ROLES.zone);
+        if (!zone) continue;
+        const set = table.rows.find((row) => isValueSet(row.cells[zone.index]));
+        if (set) return { holds: true, evidence: `${table.method}: ${set.cells[zone.index]}` };
+        if (zonesMentioned(table).size > 1) {
+          return { holds: true, evidence: `${table.method}: zones ${[...zonesMentioned(table)].join(", ")} across rows` };
+        }
+      }
+      return {
+        holds: false,
+        evidence: `no zone value set where the discount is decided (${deciding.map((one) => one.method).join(", ")})`,
+      };
+    },
+  },
+  {
+    id: "zone-independent-counting",
+    label: "the counting concern varies zone by row",
+    evaluate: (shape) => {
+      const counting = countingTables(shape);
+      if (counting.length === 0) return { holds: false, evidence: "no table decides countability or a count" };
+      for (const table of counting) {
+        const zone = eval15Input(table, EVAL_15_ROLES.zone);
+        if (zone) {
+          const set = table.rows.find((row) => isValueSet(row.cells[zone.index]));
+          if (set) return { holds: true, evidence: `${table.method}: ${set.cells[zone.index]}` };
+        }
+        const zones = zonesMentioned(table);
+        if (zones.size > 1) {
+          return { holds: true, evidence: `${table.method}: zones ${[...zones].sort().join(", ")} in its rows` };
+        }
+      }
+      return {
+        holds: false,
+        evidence: `zone never varies in the counting concern (${counting.map((one) => one.method).join(", ")})`,
+      };
+    },
+  },
+  {
+    id: "period-ticket-excluded-from-count",
+    label: "a period ticket is refused by the counting rule",
+    evaluate: (shape) => {
+      const counting = countingTables(shape);
+      if (counting.length === 0) return { holds: false, evidence: "no table decides countability or a count" };
+      const hosts = counting.filter((table) => cellTexts(table).some((text) => /WEEKLY|MONTHLY/i.test(text)));
+      return {
+        holds: hosts.length > 0,
+        evidence:
+          hosts.length > 0
+            ? `${hosts.map((one) => one.method).join(", ")} carries a period ticket`
+            : `period tickets never reach the counting rule (${counting.map((one) => one.method).join(", ")})`,
+      };
+    },
+  },
+  {
+    id: "count-derived-from-raw-history",
+    label: "a history with both kinds produces a count",
+    evaluate: (shape) => {
+      for (const table of countingTables(shape)) {
+        const history = eval15Input(table, EVAL_15_ROLES.history);
+        if (!history) continue;
+        const mixed = table.rows.find((row) => historyMixesKinds(row.cells[history.index]));
+        if (mixed) {
+          return { holds: true, evidence: `${table.method}: ${mixed.cells[history.index]}` };
+        }
+      }
+      return {
+        holds: false,
+        evidence: "no history column carries a counting and a non-counting purchase together",
+      };
+    },
+  },
+  {
+    id: "2.21-readability-relative-time",
+    label: "the window table states time relatively",
+    evaluate: (shape) => {
+      const windowed = countingTables(shape).filter(
+        (table) => eval15Input(table, EVAL_15_ROLES.time) || eval15Input(table, EVAL_15_ROLES.history),
+      );
+      if (windowed.length === 0) return { holds: false, evidence: "no rolling-window table to read" };
+      // A column naming the purchase instant is the reference point itself, and stating it in the
+      // table is what makes the table readable without knowing it from elsewhere. The assertion is
+      // about the *history* entries being relative to that point.
+      const absolute = [];
+      for (const table of windowed) {
+        const dates = table.rows.flatMap((row) =>
+          row.cells
+            .map((cell, index) => ({ cell: String(cell ?? ""), column: table.columns[index] }))
+            .filter(({ cell, column }) => ABSOLUTE_DATE.test(cell) && !/purchase time|reference|now|\bat\b/i.test(column ? column.header : ""))
+            .map(({ cell }) => cell),
+        );
+        if (dates.length > 0) absolute.push(`${table.method}: ${dates[0]}`);
+      }
+      return {
+        holds: absolute.length === 0,
+        evidence:
+          absolute.length === 0
+            ? `${windowed.map((one) => one.method).join(", ")} carry no absolute date`
+            : absolute.slice(0, 3).join("; "),
+      };
+    },
+  },
+  {
+    id: "rule-falsifiable-by-a-row",
+    label: "no constant expectation column",
+    // Advisory here, unlike on eval-18: this eval's whole subject is invariance — zone does not
+    // affect the discount, a child's rate does not move with travel — so a constant expectation
+    // column is the *claim* in several tables and the exemption applies more often than not.
+    advisory: true,
+    judgement: "the stated-invariance exemption is a reading of the title and description",
+    evaluate: (shape) => {
+      const constant = shape.tables.flatMap((table) =>
+        constantExpectationColumns(table).map((column) => `${table.method}: ${column.header}=${column.value}`),
+      );
+      return {
+        holds: constant.length === 0,
+        evidence: constant.length === 0 ? "every expectation column varies" : constant.join("; "),
+      };
+    },
+  },
+];
+
 /** Every eval this module can read, by eval number. */
 const EVALS = {
   14: { call: null, relations: EVAL_14_RELATIONS },
+  15: { call: null, relations: EVAL_15_RELATIONS },
   18: { call: EVAL_18_CALL, relations: EVAL_18_RELATIONS },
 };
 
@@ -881,6 +1362,7 @@ function authoredEvals() {
 
 module.exports = {
   EVAL_14_RELATIONS,
+  EVAL_15_RELATIONS,
   EVAL_18_RELATIONS,
   ageBoundaryPair,
   authoredEvals,
@@ -890,6 +1372,17 @@ module.exports = {
   blankHourColumns,
   claimsByAge,
   combinedScenario,
+  countingTables,
+  eval15Input,
+  historyEntries,
+  historyMixesKinds,
+  ladderTable,
+  ladderTables,
+  rungRows,
+  percentValue,
+  reisTier,
+  schemeTables,
+  zonesMentioned,
   errorEdgeCases,
   implementationHeaders,
   internalColumns,
