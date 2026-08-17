@@ -6,8 +6,15 @@ const { storedDraws, evaluateDraw } = require("./shape-report.js");
 const {
   EVAL_14_RELATIONS,
   EVAL_15_RELATIONS,
+  EVAL_25_RELATIONS,
   EVAL_29_RELATIONS,
   EVAL_30_RELATIONS,
+  boundaryPairs,
+  dimensionsOf,
+  publishedSurface,
+  publishesValue,
+  unpublishedConstants,
+  volumetricWeight,
   bespokeMapCells,
   companionBreaksATie,
   enumeratingMessages,
@@ -310,6 +317,12 @@ describe("the reference answers", () => {
   test("eval-15's reference satisfies every one of its relations", () => {
     const rows = evaluateDraw(referenceOf("eval-15-reis-discount"), EVAL_15_RELATIONS, { sutParameters: [] });
     assert.deepEqual(rows.filter((row) => !row.holds).map((row) => `${row.id}: ${row.evidence}`), []);
+  });
+
+  test("eval-25's reference satisfies every one of its relations", () => {
+    const rows = evaluateDraw(referenceOf("eval-25-convert-from-spock"), EVAL_25_RELATIONS, { sutParameters: [] });
+    const failed = rows.filter((row) => !row.holds && !row.advisory).map((row) => `${row.id}: ${row.evidence}`);
+    assert.deepEqual(failed, []);
   });
 
   test("eval-29's reference satisfies every one of its relations", () => {
@@ -1196,5 +1209,145 @@ describe("quotedStructureIn", () => {
 
   test("does not fire on a quoted prose message carrying one colon", () => {
     assert.equal(quotedStructureIn('"Unknown product: bogus"'), null);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// eval-25 convert-from-spock
+// ---------------------------------------------------------------------------
+
+const shippingClass = (tables) => answerShape(tables.map(({ name, title = "", description = "", header, rows }) => `
+    ${title ? `@DisplayName("${title}")` : ""}
+    ${description ? `@Description("""\n        ${description}\n        """)` : ""}
+    @TableTest("""
+        ${header}
+${rows.map((row) => `        ${row}`).join("\n")}
+        """)
+    fun ${name}(a: String, b: List<Int>, c: BigDecimal) {
+        assertEquals(c, calculator.calculateShippingCost(ShippingZone("EU", "standard"), 3.0, b, PackageOptions(), Carrier.DHL))
+    }
+`).join("\n"));
+
+describe("volumetricWeight and dimensionsOf", () => {
+  test("divides the volume by the divisor", () => {
+    assert.equal(volumetricWeight([70, 50, 10], 5000), 7);
+  });
+
+  test("reads a three-number dimensions cell", () => {
+    const shape = shippingClass([
+      { name: "ships", header: "Scenario | Dimensions (cm) | Cost?", rows: ["A | [70, 50, 10] | 12.50"] },
+    ]);
+    assert.deepEqual(dimensionsOf(shape.tables[0], shape.tables[0].rows[0]), [70, 50, 10]);
+  });
+
+  test("returns nothing where the cell is not three numbers", () => {
+    const shape = shippingClass([
+      { name: "ships", header: "Scenario | Dimensions (cm) | Cost?", rows: ["A | big | 12.50"] },
+    ]);
+    assert.deepEqual(dimensionsOf(shape.tables[0], shape.tables[0].rows[0]), []);
+  });
+});
+
+describe("unpublishedConstants", () => {
+  test("names the divisor where a row's volumetric weight wins and nothing states it", () => {
+    const shape = shippingClass([
+      {
+        name: "override",
+        title: "Uses the greater of actual and dimensional weight",
+        header: "Scenario | Dimensions (cm) | Cost?",
+        rows: ["Bulky | [70, 50, 10] | 12.50"],
+      },
+    ]);
+    assert.deepEqual(unpublishedConstants(shape).map((one) => one.constant), ["the volumetric divisor"]);
+  });
+
+  test("accepts a column that names the divisor, since its cells carry the value", () => {
+    const shape = shippingClass([
+      {
+        name: "override",
+        header: "Scenario | Dimensions (cm) | Volumetric divisor (cm3 per kg) | Cost?",
+        rows: ["Bulky | [70, 50, 10] | 5000 | 12.50"],
+      },
+    ]);
+    assert.deepEqual(unpublishedConstants(shape), []);
+  });
+
+  test("does not read a description naming the concept as publishing the value", () => {
+    const shape = shippingClass([
+      {
+        name: "override",
+        description: "Dimensions are fixed at 10x10x10 cm (dimensional weight 0.2 kg).",
+        header: "Scenario | Dimensions (cm) | Cost?",
+        rows: ["Bulky | [70, 50, 10] | 12.50"],
+      },
+    ]);
+    assert.deepEqual(unpublishedConstants(shape).map((one) => one.constant), ["the volumetric divisor"]);
+  });
+
+  test("does not read a weight of 3 kg as publishing the 3.00 insurance minimum", () => {
+    const shape = shippingClass([
+      {
+        name: "insures",
+        description: "Every row ships a 3 kg package.",
+        header: "Scenario | Options | Cost?",
+        rows: ["Insured | [insuredValue: 200] | 10.50"],
+      },
+    ]);
+    const named = unpublishedConstants(shape).map((one) => one.constant);
+    assert.ok(named.includes("the minimum insurance premium"), `expected the minimum premium among ${named}`);
+  });
+
+  test("accepts the decimal forms a publishing description uses", () => {
+    const shape = shippingClass([
+      {
+        name: "insures",
+        description: "Insurance adds 0.6% of the insured value or 3.00, whichever is larger.",
+        header: "Scenario | Options | Cost?",
+        rows: ["Insured | [insuredValue: 200] | 10.50"],
+      },
+    ]);
+    assert.deepEqual(unpublishedConstants(shape), []);
+  });
+
+  test("says nothing about a table whose rows rely on no constant", () => {
+    const shape = shippingClass([
+      { name: "rates", header: "Scenario | Dimensions (cm) | Cost?", rows: ["Light | [10, 10, 10] | 7.50"] },
+    ]);
+    assert.deepEqual(unpublishedConstants(shape), []);
+  });
+});
+
+describe("boundaryPairs", () => {
+  const weights = (rows) => answerShape(`
+    @TableTest("""
+        Scenario | Weight (kg) | Cost?
+${rows.map((row) => `        ${row}`).join("\n")}
+        """)
+    fun rates(weight: Double, cost: BigDecimal) {}
+  `).tables[0];
+
+  test("pairs adjacent values that straddle a change of cost", () => {
+    const pairs = boundaryPairs(weights(["A | 1 | 5.00", "B | 1.01 | 7.50", "C | 5 | 7.50", "D | 5.01 | 12.50"]));
+    assert.deepEqual(pairs.map((one) => one.values), [[1, 1.01], [5, 5.01]]);
+  });
+
+  test("does not pair two ordinary rows far apart", () => {
+    const pairs = boundaryPairs(weights(["A | 1.01 | 7.50", "B | 5.01 | 12.50"]));
+    assert.deepEqual(pairs.map((one) => one.values), [[1.01, 5.01]], "adjacent in this table, so still a pair");
+  });
+
+  test("says nothing where the cost does not move", () => {
+    assert.deepEqual(boundaryPairs(weights(["A | 1.01 | 7.50", "B | 5 | 7.50"])), []);
+  });
+});
+
+describe("publishesValue", () => {
+  test("matches a numeral on a digit boundary", () => {
+    assert.equal(publishesValue("a flat 10.00 fee", "10.00"), true);
+    assert.equal(publishesValue("dimension 100 cm", "10.00"), false);
+  });
+
+  test("trims trailing zeros before matching, so 3.0 held in a body finds '3 kg'", () => {
+    assert.equal(publishesValue("a 3 kg package", "3.0"), true);
   });
 });

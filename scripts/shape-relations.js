@@ -2227,11 +2227,477 @@ const EVAL_29_RELATIONS = [
   falsifiabilityRelation(),
 ];
 
+
+// ---------------------------------------------------------------------------
+// eval-25 convert-from-spock
+// ---------------------------------------------------------------------------
+
+/** The Spock spec's own column names, which a good conversion collapses rather than copies. */
+const EVAL_25_SPARSE_OPTIONS = [/^fragile/i, /insured\s*value/i, /^handling/i];
+
+/** The three dimension columns a conversion should have collapsed into one list. */
+const EVAL_25_SPARSE_DIMENSIONS = [/^length/i, /^width/i, /^height/i];
+
+/** The method under test, whose held arguments a reader has to be able to find. */
+const EVAL_25_CALL = "calculateShippingCost";
+
+/** Everything the class publishes: every title, every description, every header and every cell. */
+function publishedSurface(shape) {
+  const parts = [];
+  for (const table of shape.tables) {
+    parts.push(table.displayName || "", table.description || "", table.method || "");
+    parts.push(table.headers.join(" "));
+    for (const row of table.rows) parts.push(row.cells.join(" "));
+  }
+  return parts.join(" \n ");
+}
+
+/**
+ * The literal arguments the class hands the method under test, with the table each comes from.
+ *
+ * These are the values a table holds constant for every row. `rule-statable-from-table` clause (1)
+ * fails a value needed to predict the expectation that appears *only* in the body, so each one has to
+ * be looked for on the published surface — and the assertion counts any title, description or column
+ * of any table in the class as published.
+ */
+function heldCallValues(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    const call = callArguments(table.body, EVAL_25_CALL);
+    if (!call) continue;
+    for (const argument of call) {
+      for (const literal of literalsIn(argument)) {
+        found.push({ method: table.method, literal, argument });
+      }
+    }
+  }
+  return found;
+}
+
+/** The literals inside one argument expression, constructor calls unwrapped. */
+function literalsIn(argument) {
+  const text = String(argument ?? "");
+  const found = [];
+  for (const match of text.matchAll(/"([^"]*)"|'([^']*)'|\b(\d+(?:\.\d+)?)\b|\b([A-Z][A-Z_]{2,})\b/g)) {
+    const value = match[1] ?? match[2] ?? match[3] ?? match[4] ?? "";
+    if (value === "" || value === "0") continue;
+    found.push(value);
+  }
+  return found;
+}
+
+/** A number stated in a cell, header, title or description anywhere in the class. */
+function publishesValue(surface, literal) {
+  const text = String(literal);
+  if (/^\d+(\.\d+)?$/.test(text)) {
+    // `3.0` held in the body is published by a description saying "a 3 kg package", so the numeral
+    // is matched with its trailing zeros trimmed and on a digit boundary.
+    const trimmed = text.replace(/\.0+$/, "").replace(/(\.\d*[1-9])0+$/, "$1");
+    return new RegExp(`(?<!\\d)${trimmed.replace(".", "\\.")}(?!\\d)`).test(surface);
+  }
+  return new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i").test(surface);
+}
+
+/** The shipping-cost expectation column of a table, or null. */
+function costColumn(table) {
+  return table.expectationColumns.find((column) => /cost|price|charge|total/i.test(column.header)) || null;
+}
+
+/**
+ * Pairs of rows differing in exactly one numeric input and disagreeing on the cost.
+ *
+ * `row-values-traceable-to-requirement` asks whether a column, a title or a description could say why
+ * *these* two values — so a boundary pair whose values appear nowhere on the published surface is the
+ * decidable half of it.
+ */
+function boundaryPairs(table) {
+  const cost = costColumn(table);
+  if (!cost) return [];
+  const inputs = table.columns.filter((column) => !column.isScenario && !column.isExpectation);
+  const pairs = [];
+
+  for (const column of inputs) {
+    // Rows that agree on everything else, so the one column is what moves. Grouping first is what
+    // makes "adjacent" meaningful.
+    const groups = new Map();
+    for (const row of table.rows) {
+      const others = inputs
+        .filter((one) => one !== column)
+        .map((one) => String(row.cells[one.index] ?? ""))
+        .join(" | ");
+      if (!groups.has(others)) groups.set(others, []);
+      groups.get(others).push(row);
+    }
+
+    for (const rows of groups.values()) {
+      const sampled = rows
+        .map((row) => ({ value: numericValue(row.cells[column.index]), cost: String(row.cells[cost.index] ?? "") }))
+        .filter((one) => one.value !== null)
+        .sort((a, b) => a.value - b.value);
+      // A threshold sits between *adjacent* samples. Pairing every two rows called 1.01 against
+      // 5.01 a boundary, which is two ordinary rows and not a boundary at all.
+      for (let i = 0; i + 1 < sampled.length; i++) {
+        if (sampled[i].cost === sampled[i + 1].cost) continue;
+        pairs.push({ method: table.method, header: column.header, values: [sampled[i].value, sampled[i + 1].value] });
+      }
+    }
+  }
+  return pairs;
+}
+
+
+/**
+ * The calculator's own constants, and what makes a row rely on each.
+ *
+ * `rule-statable-from-table` clause (1) fails a value needed to predict the expectation that appears
+ * in neither a column, a `@DisplayName` nor a `@Description`. The values that matter here are the
+ * calculator's, not the test's: a reader cannot predict 12.50 from `[70, 50, 10]` without the
+ * volumetric divisor, and the grader fails ten of eleven draws on exactly that. Values are read from
+ * the eval's own project so they cannot drift from the code under test.
+ *
+ * `relies` decides from a row's own cells whether the constant is load-bearing for it. The weight
+ * brackets are deliberately absent: a bracket bound is a boundary the table's own rows show, which
+ * the assertion treats as published.
+ *
+ * Money constants must appear in their decimal form. A bare `\b3\b` matched a description saying
+ * "a 3 kg package" and read the insurance minimum as published, which passed iteration-50 where the
+ * grader correctly failed it. The reference states each one as `10.00`, `3.00`, `8.00`, `1.15` and
+ * `0.6%`, so the decimal form is what a publishing description looks like.
+ */
+const EVAL_25_CONSTANTS = [
+  {
+    constant: "the volumetric divisor",
+    value: /\b5[,.]?000\b/,
+    name: /volumetric|dimensional/i,
+    why: "a row where volumetric weight beats the actual weight",
+    // Where the weight is nowhere to be found, whether volumetric weight wins is unknowable, so the
+    // constant is not claimed as relied on.
+    relies: ({ dimensions, weight, divisor }) =>
+      dimensions.length === 3 && weight !== null && volumetricWeight(dimensions, divisor) > weight,
+  },
+  {
+    constant: "the oversize threshold",
+    value: /\b100\b/,
+    name: /oversize|longest side/i,
+    why: "a row with a side past the oversize limit",
+    relies: ({ dimensions, oversize }) => dimensions.some((side) => side > oversize),
+  },
+  {
+    constant: "the oversize fee",
+    value: /\b10\.0+\b/,
+    name: /oversize fee/i,
+    why: "a row with a side past the oversize limit",
+    relies: ({ dimensions, oversize }) => dimensions.some((side) => side > oversize),
+  },
+  {
+    constant: "the fragile multiplier",
+    value: /\b1\.15\b|\b15\s*%/,
+    name: /fragile multiplier/i,
+    why: "a row marking the package fragile",
+    relies: ({ options }) => /fragile\s*[:=]\s*true|\bfragile\b/i.test(options),
+  },
+  {
+    constant: "the insurance rate",
+    value: /\b0\.006\b|\b0\.6\s*%/,
+    name: /insurance rate|premium rate/i,
+    why: "a row carrying an insured value",
+    relies: ({ options }) => /insur/i.test(options),
+  },
+  {
+    constant: "the minimum insurance premium",
+    value: /\b3\.0+\b/,
+    name: /minimum premium|insurance minimum/i,
+    why: "a row carrying an insured value",
+    relies: ({ options }) => /insur/i.test(options),
+  },
+  {
+    constant: "the hazmat fee",
+    value: /\b8\.0+\b/,
+    name: /hazmat fee/i,
+    why: "a row with hazmat handling",
+    relies: ({ options }) => /hazmat/i.test(options),
+  },
+];
+
+/** The first bare number a table hands the calculator — the weight it holds for every row. */
+function heldNumericArgument(table) {
+  const call = callArguments(table.body, EVAL_25_CALL);
+  if (!call) return null;
+  for (const argument of call) {
+    const literal = literalArgument(argument);
+    const value = literal === null ? null : numericValue(literal);
+    if (value !== null) return value;
+  }
+  return null;
+}
+
+/** Volumetric weight: the package's volume over the divisor. */
+function volumetricWeight(dimensions, divisor) {
+  return (dimensions[0] * dimensions[1] * dimensions[2]) / divisor;
+}
+
+/** The dimensions a row states, as three numbers, or an empty list. */
+function dimensionsOf(table, row) {
+  const column = table.columns.find(
+    (one) => !one.isScenario && /dimension|\bdims\b|\bl\s*x\s*w\s*x\s*h\b/i.test(one.header),
+  );
+  if (!column) return [];
+  const members = parseCollectionElements(String(row.cells[column.index] ?? "").trim());
+  if (members === null) return [];
+  const numbers = members.map((member) => numericValue(member)).filter((value) => value !== null);
+  return numbers.length === 3 ? numbers : [];
+}
+
+/** What a row states, as far as the constants care. */
+function rowFacts(table, row, constants) {
+  const weightColumn = table.columns.find((one) => !one.isScenario && /weight/i.test(one.header));
+  // A table varying dimensions usually holds the weight in the body. Reading it as absent made a
+  // 10x10x10 package's 0.2 kg volumetric weight "beat" a weight of zero, so every table relied on
+  // the divisor.
+  const heldWeight = heldNumericArgument(table);
+  const optionColumns = table.columns.filter(
+    (one) => !one.isScenario && /option|fragile|insur|handling|hazmat/i.test(one.header),
+  );
+  return {
+    dimensions: dimensionsOf(table, row),
+    weight: weightColumn ? numericValue(row.cells[weightColumn.index]) : heldWeight,
+    options: optionColumns.map((one) => `${one.header} ${row.cells[one.index] ?? ""}`).join(" "),
+    divisor: constants.divisor,
+    oversize: constants.oversize,
+  };
+}
+
+/**
+ * Constants a table's rows rely on that the class publishes nowhere.
+ *
+ * "Published" is as generous as the assertion says: the value in any title, description or header, or
+ * a header naming the constant — the reference publishes the divisor as a column called
+ * `Volumetric divisor (cm3 per kg)` and the surcharges in its descriptions.
+ */
+function unpublishedConstants(shape, sutConstants = { divisor: 5000, oversize: 100 }) {
+  const headers = shape.tables.flatMap((table) => table.headers).join(" \\n ");
+  const prose = shape.tables
+    .map((table) => `${table.displayName || ""} ${table.description || ""} ${table.method || ""}`)
+    .join(" \\n ");
+  const surface = `${prose} \\n ${headers}`;
+
+  const found = [];
+  for (const table of shape.tables) {
+    for (const definition of EVAL_25_CONSTANTS) {
+      const relied = table.rows.some((row) => {
+        try {
+          return definition.relies(rowFacts(table, row, sutConstants));
+        } catch {
+          return false;
+        }
+      });
+      if (!relied) continue;
+      // A column named for the constant carries its value in the cells, so naming it in a *header*
+      // publishes it. Prose naming the concept does not: iteration-50 says "dimensional weight
+      // 0.2 kg" and never states the divisor, which is the value a reader needs.
+      const published = definition.value.test(surface) || definition.name.test(headers);
+      if (!published) found.push({ method: table.method, constant: definition.constant, why: definition.why });
+    }
+  }
+  return found;
+}
+
+const EVAL_25_RELATIONS = [
+  {
+    id: "options-as-map",
+    label: "options are one map column, empty as [:]",
+    evaluate: (shape) => {
+      const sparse = [];
+      for (const table of shape.tables) {
+        const hit = EVAL_25_SPARSE_OPTIONS.map((pattern) =>
+          table.columns.find((column) => !column.isScenario && !column.isExpectation && pattern.test(column.header)),
+        ).filter(Boolean);
+        if (hit.length >= 2) sparse.push(`${table.method}: ${hit.map((column) => column.header).join(", ")}`);
+      }
+      if (sparse.length > 0) return { holds: false, evidence: `options kept as separate columns — ${sparse.join("; ")}` };
+
+      const optionColumns = shape.tables.flatMap((table) =>
+        table.columns
+          .filter((column) => !column.isScenario && !column.isExpectation && /^options|package options/i.test(column.header))
+          .map((column) => ({ table, column })),
+      );
+      if (optionColumns.length === 0) {
+        // The assertion names two failures: sparse columns, and an options column whose no-options
+        // row is blank. A class that holds options in the body has neither, and the grader passes it.
+        return { holds: true, evidence: "no options column and none of the sparse three — options are held in the bodies" };
+      }
+      // A blank no-options cell converts to null and bypasses the converter entirely, so the
+      // assertion fails it explicitly; `[:]` parses to an empty map and lets the converter default.
+      const blanks = optionColumns.flatMap(({ table, column }) =>
+        table.rows
+          .filter((row) => String(row.cells[column.index] ?? "").trim() === "")
+          .map(() => `${table.method}: ${column.header} blank where it should be [:]`),
+      );
+      return {
+        holds: blanks.length === 0,
+        evidence: blanks.length === 0 ? `one options column, empty rows written [:]` : blanks.slice(0, 3).join("; "),
+      };
+    },
+  },
+  {
+    id: "dimensions-as-list",
+    label: "dimensions are one [L, W, H] list",
+    evaluate: (shape) => {
+      const sparse = [];
+      for (const table of shape.tables) {
+        const hit = EVAL_25_SPARSE_DIMENSIONS.map((pattern) =>
+          table.columns.find((column) => !column.isScenario && pattern.test(column.header)),
+        ).filter(Boolean);
+        if (hit.length >= 2) sparse.push(`${table.method}: ${hit.map((column) => column.header).join(", ")}`);
+      }
+      if (sparse.length > 0) return { holds: false, evidence: `dimensions spread over columns — ${sparse.join("; ")}` };
+      const list = shape.tables.flatMap((table) =>
+        table.columns
+          .filter((column) => !column.isScenario && /dimension|^dims\b|\bsize\b/i.test(column.header))
+          .map((column) => ({ table, column })),
+      );
+      if (list.length === 0) {
+        return { holds: true, evidence: "no dimensions column, and none of the sparse three — dimensions are held in the body" };
+      }
+      const bad = list.filter(({ table, column }) =>
+        table.rows.some((row) => {
+          const cell = String(row.cells[column.index] ?? "").trim();
+          return cell !== "" && !cell.startsWith("[");
+        }),
+      );
+      return {
+        holds: bad.length === 0,
+        evidence: bad.length === 0 ? `${list.map((one) => one.column.header).join(", ")} written as lists` : `${bad[0].table.method}: ${bad[0].column.header} is not a list`,
+      };
+    },
+  },
+  {
+    id: "options-type-converter",
+    label: "a converter builds PackageOptions",
+    evaluate: (shape) => {
+      const source = String(shape.source || "");
+      const converters = [...source.matchAll(/@TypeConverter[\s\S]{0,400}?\bfun\s+(\w+)\s*\(([^)]*)\)\s*:\s*([\w<>,\s]+)/g)];
+      const found = converters.find((match) => /PackageOptions/.test(match[3]));
+      if (found) return { holds: true, evidence: `${found[1]}(${found[2].trim()}) : ${found[3].trim()}` };
+      const any = /@TypeConverter/.test(source);
+      return {
+        holds: false,
+        evidence: any ? "a @TypeConverter exists but none returns PackageOptions" : "no @TypeConverter in the class",
+      };
+    },
+  },
+  {
+    id: "numeric-types-correct",
+    label: "types follow the calculator's signature",
+    evaluate: (shape) => {
+      const wrong = [];
+      for (const table of shape.tables) {
+        for (const column of table.columns) {
+          if (!column.param) continue;
+          const type = column.param.type;
+          if (/weight/i.test(column.header) && !/Double|double/.test(type) && !/BigDecimal/.test(type) === false) {
+            wrong.push(`${table.method}: ${column.header} is ${type}, the signature takes a Double`);
+          }
+          if (/dimension|^dims/i.test(column.header) && !/List<\s*Int(eger)?\s*>/.test(type)) {
+            wrong.push(`${table.method}: ${column.header} is ${type}, the signature takes a List<Int>`);
+          }
+          if (column.isExpectation && /cost|price/i.test(column.header) && !/BigDecimal/.test(type)) {
+            wrong.push(`${table.method}: ${column.header} is ${type}, the calculator returns BigDecimal`);
+          }
+        }
+      }
+      return {
+        holds: wrong.length === 0,
+        evidence: wrong.length === 0 ? "weight, dimensions and cost match the signature" : wrong.slice(0, 3).join("; "),
+      };
+    },
+  },
+  {
+    id: "rule-statable-from-table",
+    label: "each constant a row relies on is published",
+    evaluate: (shape) => {
+      const unpublished = unpublishedConstants(shape);
+      return {
+        holds: unpublished.length === 0,
+        evidence:
+          unpublished.length === 0
+            ? "every constant the rows rely on is named in a column, a title or a description"
+            : unpublished
+                .slice(0, 4)
+                .map((one) => `${one.method} relies on ${one.constant} (${one.why}) and publishes it nowhere`)
+                .join("; "),
+      };
+    },
+  },
+  {
+    id: "row-values-traceable-to-requirement",
+    label: "each boundary pair's values are published",
+    evaluate: (shape) => {
+      const surface = publishedSurface(shape);
+      const unexplained = [];
+      for (const table of shape.tables) {
+        for (const pair of boundaryPairs(table)) {
+          // The pair's values are in cells, so they are trivially "on the surface". What the
+          // assertion asks is whether anything *says why these two* — a title or a description
+          // naming the boundary they bracket.
+          const prose = `${table.displayName || ""} ${table.description || ""} ${table.method || ""}`;
+          const named = pair.values.some((value) => publishesValue(prose, value));
+          if (!named) unexplained.push(`${pair.method}: ${pair.header} ${pair.values.join(" against ")} with no title or description naming the boundary`);
+        }
+      }
+      const distinct = [...new Set(unexplained)];
+      return {
+        holds: distinct.length === 0,
+        evidence:
+          distinct.length === 0
+            ? "every outcome-changing pair has its boundary named in prose"
+            : distinct.slice(0, 3).join("; "),
+        // Whether an unnamed pair is a defect depends on the rule the table states, which the
+        // assertion decides case by case ("a boundary of a rule the table's own columns show" passes).
+        advisory: distinct.length > 0,
+      };
+    },
+  },
+  {
+    id: "business-language-columns",
+    label: "no column header written in code",
+    evaluate: (shape) => {
+      const found = implementationHeaders(shape);
+      return {
+        holds: found.length === 0,
+        evidence:
+          found.length === 0
+            ? "every header reads as business language"
+            : found.map((one) => `${one.method}: ${one.header}`).join("; "),
+      };
+    },
+  },
+  {
+    id: "consistent-quantity-naming",
+    label: "one quantity, one name",
+    advisory: true,
+    judgement: "whether two names denote one quantity is a domain reading",
+    evaluate: (shape) => {
+      if (shape.tables.length < 2) return { holds: true, evidence: "a single table cannot disagree with itself" };
+      const unpaired = beforeWithoutAfter(shape);
+      return {
+        holds: unpaired.length === 0,
+        evidence:
+          unpaired.length === 0
+            ? "no before column without a matching after"
+            : unpaired.map((one) => `${one.method}: ${one.header} with no matching after column`).join("; "),
+      };
+    },
+  },
+  falsifiabilityRelation(),
+];
+
 /** Every eval this module can read, by eval number. */
 const EVALS = {
   14: { call: null, relations: EVAL_14_RELATIONS },
   15: { call: null, relations: EVAL_15_RELATIONS },
   18: { call: EVAL_18_CALL, relations: EVAL_18_RELATIONS },
+  25: { call: EVAL_25_CALL, relations: EVAL_25_RELATIONS },
   29: { call: null, relations: EVAL_29_RELATIONS },
   30: { call: null, relations: EVAL_30_RELATIONS },
 };
@@ -2248,6 +2714,7 @@ function authoredEvals() {
 
 module.exports = {
   EVAL_14_RELATIONS,
+  EVAL_25_RELATIONS,
   EVAL_29_RELATIONS,
   EVAL_30_RELATIONS,
   EVAL_15_RELATIONS,
@@ -2271,6 +2738,15 @@ module.exports = {
   tieComputable,
   historyEntries,
   bespokeMapCells,
+  boundaryPairs,
+  costColumn,
+  dimensionsOf,
+  unpublishedConstants,
+  volumetricWeight,
+  heldCallValues,
+  literalsIn,
+  publishedSurface,
+  publishesValue,
   beforeWithoutAfter,
   compoundKeys,
   enumeratingMessages,
