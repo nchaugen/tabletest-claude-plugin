@@ -4845,8 +4845,21 @@ const EVAL_7_RELATIONS = [
   scenarioNamesRelation(EVAL_7_ALLOWED_ECHOES),
 ];
 
+// ---------------------------------------------------------------------------
+// eval-1 convert-repetitive-tests
+// ---------------------------------------------------------------------------
+
+/**
+ * eval-1 carries one LLM assertion and twelve checkers, so it is a notation instrument rather than
+ * a design one. Its single relation is worth having anyway: nine of its eleven draws write no
+ * `@Description` at all, so the decidable clause reaches most of the corpus, and it is the clause
+ * eval-8's grader got wrong.
+ */
+const EVAL_1_RELATIONS = [descriptionPresenceRelation()];
+
 /** Every eval this module can read, by eval number. */
 const EVALS = {
+  1: { call: null, relations: EVAL_1_RELATIONS },
   2: { call: EVAL_2_CALL, relations: EVAL_2_RELATIONS },
   7: { call: "canPerform", relations: EVAL_7_RELATIONS },
   9: { call: "calculateBonusPercentage", relations: EVAL_9_RELATIONS },
@@ -4873,6 +4886,7 @@ function authoredEvals() {
 }
 
 module.exports = {
+  EVAL_1_RELATIONS,
   EVAL_2_RELATIONS,
   EVAL_7_RELATIONS,
   EVAL_9_RELATIONS,

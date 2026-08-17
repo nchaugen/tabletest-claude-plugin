@@ -6,6 +6,7 @@ const { storedDraws, evaluateDraw } = require("./shape-report.js");
 const {
   EVAL_14_RELATIONS,
   EVAL_15_RELATIONS,
+  EVAL_1_RELATIONS,
   EVAL_2_RELATIONS,
   EVAL_7_RELATIONS,
   EVAL_8_RELATIONS,
@@ -419,6 +420,20 @@ describe("the reference answers", () => {
   test("eval-7's reference satisfies every one of its relations", () => {
     const rows = evaluateDraw(referenceOf("eval-7-permission-check"), EVAL_7_RELATIONS, { sutParameters: [] });
     assert.deepEqual(rows.filter((row) => !row.holds).map((row) => `${row.id}: ${row.evidence}`), []);
+  });
+
+  test("eval-1's reference satisfies its one relation", () => {
+    const rows = evaluateDraw(referenceOf("eval-1-convert-repetitive-tests"), EVAL_1_RELATIONS, { sutParameters: [] });
+    assert.deepEqual(rows.filter((row) => !row.holds).map((row) => `${row.id}: ${row.evidence}`), []);
+  });
+
+  test("every tabletest eval with stored draws now has relations", () => {
+    // The sweep is complete: fourteen evals, each read by shape. A new eval added to the suite
+    // fails here until its relations are written, which is the reminder this test exists for.
+    assert.deepEqual(
+      authoredEvals().map(Number).sort((a, b) => a - b),
+      [1, 2, 7, 8, 9, 14, 15, 18, 20, 22, 23, 25, 29, 30],
+    );
   });
 
   test("every authored eval declares relations with an id and an evaluate", () => {
