@@ -1016,14 +1016,6 @@ to the band, and the band to the dose.
 Use a blank cell when a value is genuinely absent. Blank means **absent** — not zero, not a default,
 and not irrelevant.
 
-**Reach for this while you are choosing columns, not after the rows are written.** The trigger is
-a column that will be empty on most rows — a quantity the domain records only when there is
-something to record, so most cases simply have none of it. The reflex is to write `0` and move on,
-and it is wrong twice: it says the quantity was measured and came to nothing, and it leaves no
-row able to show what an absent quantity does. **A quantity whose domain records only non-zero
-entries is absent, not zero.** The guard against over-applying it is narrow and decidable: a row
-that exists to say something *about* that input writes the value, zero included.
-
 Three meanings the notation has to keep apart:
 
 | Meaning | Notation |
