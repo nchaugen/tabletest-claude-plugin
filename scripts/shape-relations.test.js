@@ -4,7 +4,22 @@ const assert = require("node:assert/strict");
 const { answerShape } = require("./answer-shape.js");
 const { storedDraws, evaluateDraw } = require("./shape-report.js");
 const {
+  EVAL_14_RELATIONS,
   EVAL_18_RELATIONS,
+  authoredEvals,
+  blankHourColumns,
+  combinedScenario,
+  errorEdgeCases,
+  implementationHeaders,
+  overtimeBoundary,
+  findInputColumn,
+  heldBandValue,
+  hourColumns,
+  payCases,
+  payColumn,
+  payForRow,
+  rejectionExpectationColumn,
+  zeroRateRow,
   ageBoundaryPair,
   bandedAgePair,
   claimBoundaryPair,
@@ -241,15 +256,382 @@ describe("internalColumns and policyColumns", () => {
   });
 });
 
-describe("the reference answer", () => {
-  test("satisfies every eval-18 relation — a relation it fails is transcribed wrongly", () => {
-    const draws = storedDraws("tabletest", "eval-18-convert-from-code");
-    const reference = draws.find((draw) => draw.isReference);
-    assert.ok(reference, "expected a stored reference answer for eval-18");
+describe("the reference answers", () => {
+  /**
+   * The cheapest check there is on a transcription. A relation the reference fails is either
+   * written wrongly or reading the answer wrongly — both times the relation is at fault, never
+   * the reference, so this runs for every eval relations are authored for.
+   */
+  const referenceOf = (slug) => {
+    const reference = storedDraws("tabletest", slug).find((draw) => draw.isReference);
+    assert.ok(reference, `expected a stored reference answer for ${slug}`);
+    return reference;
+  };
 
-    const rows = evaluateDraw(reference, EVAL_18_RELATIONS, { sutParameters: SUT });
-    const failed = rows.filter((row) => !row.holds).map((row) => `${row.id}: ${row.evidence}`);
-    assert.deepEqual(failed, []);
+  test("eval-18's reference satisfies every one of its relations", () => {
+    const rows = evaluateDraw(referenceOf("eval-18-convert-from-code"), EVAL_18_RELATIONS, {
+      sutParameters: SUT,
+    });
+    assert.deepEqual(rows.filter((row) => !row.holds).map((row) => `${row.id}: ${row.evidence}`), []);
+  });
+
+  test("eval-14's reference satisfies every one of its relations", () => {
+    const rows = evaluateDraw(referenceOf("eval-14-weekly-pay"), EVAL_14_RELATIONS, { sutParameters: [] });
+    assert.deepEqual(rows.filter((row) => !row.holds).map((row) => `${row.id}: ${row.evidence}`), []);
+  });
+
+  test("every authored eval declares relations with an id and an evaluate", () => {
+    for (const number of authoredEvals()) {
+      const { relations } = relationsFor(Number(number));
+      assert.ok(relations.length > 0, `eval ${number} has no relations`);
+      for (const relation of relations) {
+        assert.equal(typeof relation.id, "string", `eval ${number} relation without an id`);
+        assert.equal(typeof relation.evaluate, "function", `${relation.id} has no evaluate`);
+      }
+    }
   });
 });
 
+
+// ---------------------------------------------------------------------------
+// eval-14 weekly-pay
+// ---------------------------------------------------------------------------
+
+const payTable = (rows, header = "Scenario | Weekday Hours | Sunday Hours | Holiday Hours | Hourly Rate | Weekly Pay?") => `
+    @TableTest("""
+        ${header}
+${rows.map((row) => `        ${row}`).join("\n")}
+        """)
+    void paysTheWeek(Integer weekdayHours, Integer sundayHours, Integer holidayHours, int hourlyRate, int weeklyPay) {
+        assertEquals(weeklyPay, WeeklyPay.calculate(weekdayHours, sundayHours, holidayHours, hourlyRate));
+    }
+`;
+
+describe("payForRow", () => {
+  test("pays weekday hours up to forty at the base rate", () => {
+    assert.equal(payForRow({ weekday: 40, sunday: 0, holiday: 0, rate: 10 }), 400);
+  });
+
+  test("pays weekday hours beyond forty at time-and-a-half", () => {
+    assert.equal(payForRow({ weekday: 41, sunday: 0, holiday: 0, rate: 10 }), 415);
+  });
+
+  test("pays Sunday and holiday hours at double time", () => {
+    assert.equal(payForRow({ weekday: 0, sunday: 1, holiday: 1, rate: 10 }), 40);
+  });
+
+  test("floors the total at zero, however large the correction", () => {
+    assert.equal(payForRow({ weekday: 40, sunday: -21, holiday: 0, rate: 10 }), 0);
+  });
+
+  test("pays nothing at a zero rate, whatever the hours", () => {
+    assert.equal(payForRow({ weekday: 100, sunday: 8, holiday: 8, rate: 0 }), 0);
+  });
+});
+
+describe("payCases", () => {
+  test("reads a blank hours cell as no hours worked", () => {
+    const { cases, unresolved } = payCases(answerShape(payTable(["One weekday hour | 1 | | | 10 | 10"])));
+    assert.equal(unresolved, 0);
+    assert.deepEqual(cases.map((one) => [one.sunday, one.holiday, one.pay]), [[0, 0, 10]]);
+  });
+
+  test("counts a row as unresolved rather than assuming zero where the rate is held in the body", () => {
+    const source = `
+      @TableTest("""
+          Scenario | Weekday Hours | Weekly Pay?
+          A week   | 40            | 400
+          """)
+      void paysTheWeek(Integer weekdayHours, int weeklyPay) {
+          assertEquals(weeklyPay, WeeklyPay.calculate(weekdayHours, null, null, 10));
+      }
+    `;
+    const { cases, unresolved } = payCases(answerShape(source));
+    assert.deepEqual(cases, []);
+    assert.equal(unresolved, 1);
+  });
+
+  test("takes the total pay column rather than an intermediate one", () => {
+    const source = `
+      @TableTest("""
+          Scenario | Weekday Hours | Hourly Rate | Overtime Pay? | Weekly Pay?
+          Overtime | 41            | 10          | 15            | 415
+          """)
+      void paysTheWeek(Integer weekdayHours, int hourlyRate, int overtimePay, int weeklyPay) {}
+    `;
+    const { cases } = payCases(answerShape(source));
+    assert.deepEqual(cases.map((one) => one.stated), [415]);
+  });
+});
+
+describe("overtimeBoundary", () => {
+  test("finds forty beside forty-one in one column of one table", () => {
+    const found = overtimeBoundary(answerShape(payTable([
+      "At the threshold   | 40 | | | 10 | 400",
+      "Past the threshold | 41 | | | 10 | 415",
+    ])));
+    assert.equal(found.past, 41);
+  });
+
+  test("accepts a half hour past the threshold", () => {
+    const found = overtimeBoundary(answerShape(payTable([
+      "At the threshold | 40   | | | 10 | 400",
+      "Half an hour on  | 40.5 | | | 10 | 407.5",
+    ])));
+    assert.equal(found.past, 40.5);
+  });
+
+  test("rejects a jump well past the threshold, which pins nothing", () => {
+    assert.equal(
+      overtimeBoundary(answerShape(payTable([
+        "At the threshold | 40 | | | 10 | 400",
+        "A long week      | 50 | | | 10 | 550",
+      ]))),
+      null,
+    );
+  });
+});
+
+describe("combinedScenario", () => {
+  test("finds a row working all three hour types", () => {
+    const found = combinedScenario(answerShape(payTable(["Every band | 41 | 8 | 8 | 10 | 735"])));
+    assert.deepEqual(found.hours, [41, 8, 8]);
+  });
+
+  test("does not accept a row that zeroes two of the three", () => {
+    assert.equal(combinedScenario(answerShape(payTable(["Weekdays only | 41 | 0 | 0 | 10 | 415"]))), null);
+  });
+});
+
+describe("blankHourColumns", () => {
+  test("names a blank column and the boxed parameter it feeds", () => {
+    const found = blankHourColumns(answerShape(payTable(["One weekday hour | 1 | | | 10 | 10"])));
+    assert.deepEqual(found.map((one) => [one.header, one.type, one.boxed]), [
+      ["Sunday Hours", "Integer", true],
+      ["Holiday Hours", "Integer", true],
+    ]);
+  });
+
+  test("marks a blank cell on a primitive parameter unboxed, which cannot accept null", () => {
+    const source = `
+      @TableTest("""
+          Scenario | Sunday Hours | Hourly Rate | Weekly Pay?
+          No Sunday|              | 10          | 0
+          """)
+      void paysTheWeek(double sundayHours, int hourlyRate, int weeklyPay) {}
+    `;
+    assert.deepEqual(blankHourColumns(answerShape(source)).map((one) => one.boxed), [false]);
+  });
+
+  test("finds nothing where every cell writes a zero instead", () => {
+    assert.deepEqual(blankHourColumns(answerShape(payTable(["A week | 40 | 0 | 0 | 10 | 400"]))), []);
+  });
+});
+
+describe("errorEdgeCases and zeroRateRow", () => {
+  test("finds negative hours and a negative rate", () => {
+    const shape = answerShape(payTable([
+      "A correction  | -10 | 0 | 0 | 10 | 0",
+      "A bad rate    | 40  | 0 | 0 | -1 | 0",
+    ]));
+    const { negativeHours, negativeRate } = errorEdgeCases(shape);
+    assert.equal(negativeHours.value, -10);
+    assert.equal(negativeRate.value, -1);
+  });
+
+  test("finds a zero rate stated against a zero pay", () => {
+    const found = zeroRateRow(answerShape(payTable(["Any hours at no rate | 41 | 8 | 8 | 0 | 0"])));
+    assert.equal(found.rate, 0);
+  });
+
+  test("does not accept a zero rate whose row states no pay at all", () => {
+    const source = `
+      @TableTest("""
+          Scenario    | Hourly Rate | Throws?
+          A zero rate | 0           |
+          """)
+      void rejects(int hourlyRate, Class<? extends Throwable> thrown) {}
+    `;
+    assert.equal(zeroRateRow(answerShape(source)), null);
+  });
+});
+
+describe("rejectionExpectationColumn", () => {
+  test("finds the exception column on the table carrying the negative rate", () => {
+    const source = `
+      @TableTest("""
+          Scenario   | Hourly Rate | Throws?
+          Below zero | -1          | java.lang.IllegalArgumentException
+          """)
+      void rejects(int hourlyRate, Class<? extends Throwable> thrown) {}
+    `;
+    assert.equal(rejectionExpectationColumn(answerShape(source)).column.header, "Throws?");
+  });
+
+  test("reports a rejection row with the outcome nowhere in the table", () => {
+    const source = `
+      @TableTest("""
+          Scenario   | Hourly Rate
+          Below zero | -1
+          """)
+      void rejects(int hourlyRate) {}
+    `;
+    assert.equal(rejectionExpectationColumn(answerShape(source)).column, null);
+  });
+});
+
+describe("implementationHeaders", () => {
+  test("names a camelCase header", () => {
+    const source = `
+      @TableTest("""
+          Scenario | weekdayHours | Weekly Pay?
+          A week   | 40           | 400
+          """)
+      void pays(int weekdayHours, int weeklyPay) {}
+    `;
+    assert.deepEqual(implementationHeaders(answerShape(source)).map((one) => one.header), ["weekdayHours"]);
+  });
+
+  test("names an abbreviated header", () => {
+    const source = `
+      @TableTest("""
+          Scenario | Weekday Hrs | Weekly Pay?
+          A week   | 40          | 400
+          """)
+      void pays(int weekdayHours, int weeklyPay) {}
+    `;
+    assert.deepEqual(implementationHeaders(answerShape(source)).map((one) => one.header), ["Weekday Hrs"]);
+  });
+
+  test("exempts the exception column, which 1.2 requires by that name", () => {
+    const source = `
+      @TableTest("""
+          Scenario   | Hourly Rate | Throws?
+          Below zero | -1          | java.lang.IllegalArgumentException
+          """)
+      void rejects(int hourlyRate, Class<? extends Throwable> thrown) {}
+    `;
+    assert.deepEqual(implementationHeaders(answerShape(source)), []);
+  });
+});
+
+describe("the classified-hours vocabulary", () => {
+  const classifiedTable = (rows) => `
+    @TableTest("""
+        Scenario | Regular Hours | Overtime Hours | Sunday Hours | Holiday Hours | Hourly Rate | Total Pay?
+${rows.map((row) => `        ${row}`).join("\n")}
+        """)
+    void pricesBands(double regularHours, double overtimeHours, double sundayHours,
+                     double holidayHours, double hourlyRate, double totalPay) {
+        assertEquals(totalPay, Pay.of(regularHours, overtimeHours, sundayHours, holidayHours, hourlyRate), 0.001);
+    }
+  `;
+
+  test("prices pre-classified bands without applying the threshold a second time", () => {
+    const { cases } = payCases(answerShape(classifiedTable(["All bands | 40 | 5 | 8 | 8 | 20.00 | 1590.00"])));
+    assert.deepEqual(cases.map((one) => [one.pay, one.stated]), [[1590, 1590]]);
+  });
+
+  test("floors a negative correction in a classified table", () => {
+    const { cases } = payCases(answerShape(classifiedTable(["A correction | -50 | 0 | 0 | 0 | 20.00 | 0.00"])));
+    assert.deepEqual(cases.map((one) => [one.pay, one.stated]), [[0, 0]]);
+  });
+
+  test("counts a classified row as working weekday hours for the combined scenario", () => {
+    const found = combinedScenario(answerShape(classifiedTable(["All bands | 40 | 5 | 8 | 8 | 20.00 | 1590.00"])));
+    assert.deepEqual(found.hours, [40, 8, 8]);
+  });
+
+  test("finds a negative correction stated in a regular-hours column", () => {
+    const { negativeHours } = errorEdgeCases(answerShape(classifiedTable(["A correction | -50 | 0 | 0 | 0 | 20.00 | 0.00"])));
+    assert.equal(negativeHours.value, -50);
+  });
+});
+
+describe("a policy column is not an hours column", () => {
+  const withThreshold = `
+    @TableTest("""
+        Scenario | Weekday Hours | Overtime Threshold (hrs) | Hourly Rate | Weekly Pay?
+        A week   | 39            | 40                       | 20          | 780
+        """)
+    void pays(double weekdayHours, double overtimeThreshold, double hourlyRate, double weeklyPay) {}
+  `;
+
+  test("does not read a declared threshold as forty overtime hours", () => {
+    assert.equal(findInputColumn(answerShape(withThreshold).tables[0], /overtime/i), null);
+  });
+
+  test("prices the row from the hours alone, so the stated pay is right", () => {
+    const { cases } = payCases(answerShape(withThreshold));
+    assert.deepEqual(cases.map((one) => [one.pay, one.stated]), [[780, 780]]);
+  });
+
+  test("does not fail the header for its parenthesised unit", () => {
+    assert.deepEqual(implementationHeaders(answerShape(withThreshold)), []);
+  });
+});
+
+describe("payColumn", () => {
+  const tableWith = (header, params) => answerShape(`
+    @TableTest("""
+        ${header}
+        A week | -5 | 20 | -100
+        """)
+    void prices(${params}) {}
+  `).tables[0];
+
+  test("takes a column that names the week's total", () => {
+    const table = tableWith("Scenario | Weekday Hours | Hourly Rate | Weekly Pay?", "double weekdayHours, double hourlyRate, double weeklyPay");
+    assert.equal(payColumn(table).header, "Weekly Pay?");
+  });
+
+  test("refuses a band's own pay, which the floor does not apply to", () => {
+    const table = tableWith("Scenario | Weekday Hours | Hourly Rate | Weekday Pay?", "double weekdayHours, double hourlyRate, double weekdayPay");
+    assert.equal(payColumn(table), null);
+  });
+});
+
+describe("heldBandValue", () => {
+  const tableOf = (source) => answerShape(source).tables[0];
+
+  test("reads a null argument as no hours of that band worked", () => {
+    const table = tableOf(`
+      @TableTest("""
+          Scenario | Weekday Hours | Sunday Hours | Hourly Rate | Weekly Pay?
+          A week   | 40            | -10          | 10          | 200
+          """)
+      void pays(Integer weekdayHours, Integer sundayHours, int hourlyRate, int weeklyPay) {
+          int pay = WeeklyPay.calculate(weekdayHours, sundayHours, null, hourlyRate);
+          assertEquals(weeklyPay, pay);
+      }
+    `);
+    assert.deepEqual(heldBandValue(table, hourColumns(table)), { band: "holiday", value: 0, ambiguous: false });
+  });
+
+  test("reads a numeric argument as that many hours held for every row", () => {
+    const table = tableOf(`
+      @TableTest("""
+          Scenario  | Sunday Hours | Hourly Rate | Weekly Pay?
+          Floored   | -10          | 20          | 400
+          """)
+      void floors(Integer sundayHours, int hourlyRate, int weeklyPay) {
+          assertEquals(weeklyPay, WeeklyPay.calculate(40, sundayHours, 0, hourlyRate));
+      }
+    `);
+    const held = heldBandValue(table, hourColumns(table));
+    assert.equal(held.ambiguous, true, "two literals against two missing bands cannot be mapped");
+  });
+
+  test("holds nothing where the act call passes no literal at all", () => {
+    const table = tableOf(`
+      @TableTest("""
+          Scenario | Weekday Hours | Hourly Rate | Weekly Pay?
+          A week   | 40            | 10          | 400
+          """)
+      void pays(Integer weekdayHours, int hourlyRate, int weeklyPay) {
+          assertEquals(weeklyPay, WeeklyPay.calculate(weekdayHours, hourlyRate));
+      }
+    `);
+    assert.deepEqual(heldBandValue(table, hourColumns(table)), { band: null, value: 0, ambiguous: false });
+  });
+});

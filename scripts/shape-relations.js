@@ -18,7 +18,15 @@
  * candidate, not a result: determinism buys the countable half and no more.
  */
 
-const { constantExpectationColumns, findColumn, callArguments, literalArgument, numericValue } = require("./answer-shape.js");
+const {
+  actCallArguments,
+  callArguments,
+  constantExpectationColumns,
+  findColumn,
+  literalArgument,
+  numericValue,
+  rowCases,
+} = require("./answer-shape.js");
 
 /**
  * How eval-18's answers name the quantities its assertions are about.
@@ -343,8 +351,521 @@ function describeClaimsByAge(cases) {
   return entries.map(([age, claims]) => `${age}:[${claims.join(",")}]`).join(" ");
 }
 
+// ---------------------------------------------------------------------------
+// eval-14 weekly-pay
+// ---------------------------------------------------------------------------
+
+/**
+ * How eval-14's answers name the quantities its assertions are about.
+ *
+ * Unlike eval-18 there is no method under test to read names from: the prompt says no
+ * implementation exists yet and the answer stubs its own. So every role here resolves from the
+ * table, and a table that hides a quantity in its body is reported unresolved rather than guessed.
+ */
+const EVAL_14_ROLES = {
+  weekday: /weekday/i,
+  // A large family of answers splits the weekday concern in two — one table classifies weekday
+  // hours into regular and overtime, the next prices pre-classified bands — so the pricing table
+  // has no weekday column and no threshold to apply. Its arithmetic is right and reading only
+  // `weekday` calls it wrong, which is what it did on iterations 42, 44, 50, 52 and 57.
+  regular: /regular|standard/i,
+  overtime: /overtime/i,
+  sunday: /sunday/i,
+  holiday: /holiday/i,
+  rate: /rate/i,
+  pay: /pay|earnings/i,
+  total: /weekly|total|net|gross/i,
+  thrown: /throws|exception/i,
+};
+
+/** Where overtime starts, and the multipliers, exactly as the prompt states them. */
+const OVERTIME_THRESHOLD = 40;
+const OVERTIME_MULTIPLIER = 1.5;
+const DOUBLE_TIME_MULTIPLIER = 2;
+
+/** Pay is compared to a tolerance because a rate may be given to the penny. */
+const PENCE = 0.005;
+
+/** A column declaring a constant the code owns, not a quantity a row varies. */
+const POLICY_COLUMN = /threshold|cutoff|\blimit\b|\(policy\)|multiplier|factor/i;
+
+/**
+ * An input column for `role`: never an expectation, never a policy constant.
+ *
+ * `Regular Hours?` is a classify table's output, and `Overtime Threshold (hrs)` is the 40 the rule
+ * compares against — reading the latter as forty overtime hours priced iteration-84's whole table
+ * at two and a half times its stated pay.
+ */
+function findInputColumn(table, role) {
+  const column = findColumn(table, role);
+  if (!column || column.isExpectation) return null;
+  return POLICY_COLUMN.test(column.header) ? null : column;
+}
+
+/**
+ * The hours a table supplies, by band, or null where it supplies none this can price.
+ *
+ * Two vocabularies say the same thing. A `Weekday Hours` column carries unclassified hours and the
+ * 40-hour threshold splits them; `Regular Hours` and `Overtime Hours` carry them already split, so
+ * the threshold has been applied by an earlier table and applying it again would double-count.
+ */
+function hourColumns(table) {
+  const weekday = findInputColumn(table, EVAL_14_ROLES.weekday);
+  const regular = findInputColumn(table, EVAL_14_ROLES.regular);
+  const overtime = findInputColumn(table, EVAL_14_ROLES.overtime);
+  const sunday = findInputColumn(table, EVAL_14_ROLES.sunday);
+  const holiday = findInputColumn(table, EVAL_14_ROLES.holiday);
+  if (!weekday && !regular && !overtime && !sunday && !holiday) return null;
+  return { weekday, regular, overtime, sunday, holiday };
+}
+
+/**
+ * The pay the prompt's rules give for one row.
+ *
+ * Weekday hours up to 40 at the base rate, beyond 40 at time-and-a-half, Sunday and holiday hours
+ * at double time, and the total floored at zero. Negative hours pass straight through the same
+ * arithmetic, which is what lets the floor rule be exercised at all.
+ */
+function payForRow({ weekday = 0, regular = 0, overtime = 0, sunday = 0, holiday = 0, rate }) {
+  const fromWeekday =
+    Math.min(weekday, OVERTIME_THRESHOLD) * rate +
+    Math.max(weekday - OVERTIME_THRESHOLD, 0) * OVERTIME_MULTIPLIER * rate;
+  const fromClassified = regular * rate + overtime * OVERTIME_MULTIPLIER * rate;
+  const doubleTime = (sunday + holiday) * DOUBLE_TIME_MULTIPLIER * rate;
+  return Math.max(fromWeekday + fromClassified + doubleTime, 0);
+}
+
+/**
+ * The expectation column holding the week's total pay, or null.
+ *
+ * A class may assert intermediate bands beside the total, so the total is picked by name rather
+ * than by position — and where nothing names itself the total, one pay column is unambiguous.
+ */
+function payColumn(table) {
+  const candidates = table.expectationColumns.filter((column) => EVAL_14_ROLES.pay.test(column.header));
+  if (candidates.length === 0) return null;
+  const total = candidates.find((column) => EVAL_14_ROLES.total.test(column.header));
+  if (total) return total;
+  // A band's own pay is not the week's pay: `Weekday Pay?` is not floored at zero, because the
+  // floor is a property of the total, so pricing it with the total's rules invents an error the
+  // answer does not contain — iterations 40 and 72 state -100 for -5 weekday hours, correctly.
+  const band = /weekday|regular|overtime|sunday|holiday|premium|double/i;
+  if (candidates.length !== 1) return null;
+  return band.test(candidates[0].header) ? null : candidates[0];
+}
+
+/** A blank cell says the hours were not worked, and reaches the calculator as absent. */
+function hoursValue(cell) {
+  const text = String(cell ?? "").trim();
+  if (text === "") return 0;
+  return numericValue(text);
+}
+
+/**
+ * Every row stating a total pay, with the hours and rate it states, as
+ * `{method, weekday, sunday, holiday, rate, pay, stated}`.
+ *
+ * `unresolved` counts the rows that state a pay but hide an hour count or the rate in the method
+ * body, where no column and no signature can supply it. Those rows are dropped rather than
+ * assumed zero: assuming would invent an arithmetic error that the answer does not contain.
+ */
+function payCases(shape) {
+  const cases = [];
+  let unresolved = 0;
+
+  for (const table of shape.tables) {
+    const pay = payColumn(table);
+    const rate = findInputColumn(table, EVAL_14_ROLES.rate);
+    const bands = hourColumns(table);
+    if (!pay) continue;
+    if (!rate || !bands) {
+      unresolved += table.cases.length;
+      continue;
+    }
+    const held = heldBandValue(table, bands);
+
+    for (const one of table.cases) {
+      const hours = {};
+      let missing = held.ambiguous;
+      for (const [band, column] of Object.entries(bands)) {
+        if (column) {
+          hours[band] = hoursValue(one[column.header]);
+          continue;
+        }
+        if (held.band === band) hours[band] = held.value;
+      }
+      const values = { method: table.method, ...hours, rate: numericValue(one[rate.header]) };
+      const stated = numericValue(one[pay.header]);
+      if (missing || stated === null || values.rate === null || Object.values(hours).some((v) => v === null)) {
+        unresolved++;
+        continue;
+      }
+      cases.push({ ...values, stated, pay: payForRow(values) });
+    }
+  }
+  return { cases, unresolved };
+}
+
+/**
+ * The value a table holds for the one band it has no column for, or null.
+ *
+ * `calculateWeeklyPay(weekdayHours, sundayHours, null, hourlyRate)` states that no holiday hours
+ * were worked, and `calculateWeeklyPay(40, sundayHours, 0, hourlyRate)` states that forty weekday
+ * hours were. Both are data. The inference only runs where exactly one band lacks a column and the
+ * act call holds exactly one literal, which is the only case where the mapping is unambiguous.
+ */
+function heldBandValue(table, bands) {
+  const missing = ["weekday", "regular", "overtime", "sunday", "holiday"].filter((band) => {
+    if (bands[band]) return false;
+    // The two vocabularies stand in for each other: a table pricing classified bands is not
+    // missing a weekday column, and one splitting weekday hours is not missing the bands.
+    if (band === "weekday") return !bands.regular && !bands.overtime;
+    return !bands.weekday || band === "sunday" || band === "holiday";
+  });
+  if (missing.length === 0) return { band: null, value: 0, ambiguous: false };
+
+  const call = actCallArguments(table.body, table.params.map((param) => param.name));
+  const literals = call ? call.args.map(literalArgument).filter((value) => value !== null) : [];
+  // No literal in the act call means nothing is held, so a band with no column is simply not an
+  // input to this table and contributes nothing.
+  if (literals.length === 0) return { band: null, value: 0, ambiguous: false };
+  if (literals.length !== 1 || missing.length !== 1) return { band: null, value: 0, ambiguous: true };
+
+  const literal = literals[0];
+  const value = literal === "null" ? 0 : numericValue(literal);
+  return value === null ? { band: null, value: 0, ambiguous: true } : { band: missing[0], value, ambiguous: false };
+}
+
+/**
+ * `1.3-depth-overtime-boundary`: 40 and a value just past it, in one column of one table.
+ *
+ * Overtime starts strictly above 40, so the pair has to sit in the same column of the same table —
+ * two tables each holding one side state nothing about where the threshold is.
+ */
+function overtimeBoundary(shape) {
+  for (const table of shape.tables) {
+    const weekday = findColumn(table, EVAL_14_ROLES.weekday);
+    if (!weekday) continue;
+    const values = table.cases.map((one) => numericValue(one[weekday.header])).filter((value) => value !== null);
+    const past = values.find((value) => value > OVERTIME_THRESHOLD && value <= OVERTIME_THRESHOLD + 1);
+    if (values.includes(OVERTIME_THRESHOLD) && past !== undefined) {
+      return { method: table.method, column: weekday.header, past };
+    }
+  }
+  return null;
+}
+
+/**
+ * `1.4-depth-combined-scenario`: one row working weekday, Sunday and holiday hours together.
+ *
+ * Weekday hours count however the table names them — a row carrying regular and overtime bands is
+ * working weekday hours just as much as one carrying an unclassified count.
+ */
+function combinedScenario(shape) {
+  for (const table of shape.tables) {
+    const bands = hourColumns(table);
+    if (!bands || !bands.sunday || !bands.holiday) continue;
+    const weekdayColumns = [bands.weekday, bands.regular, bands.overtime].filter(Boolean);
+    if (weekdayColumns.length === 0) continue;
+
+    for (const one of table.cases) {
+      const weekday = weekdayColumns
+        .map((column) => numericValue(one[column.header]))
+        .filter((value) => value !== null);
+      const sunday = numericValue(one[bands.sunday.header]);
+      const holiday = numericValue(one[bands.holiday.header]);
+      if (weekday.length === 0 || sunday === null || holiday === null) continue;
+      if (weekday.some((value) => value > 0) && sunday > 0 && holiday > 0) {
+        return { method: table.method, hours: [Math.max(...weekday), sunday, holiday] };
+      }
+    }
+  }
+  return null;
+}
+
+/** Every case in the class carrying a value for `role`, with the table it sits in. */
+function valuesForRole(shape, role) {
+  const found = [];
+  for (const table of shape.tables) {
+    const column = findInputColumn(table, role);
+    if (!column) continue;
+    for (const one of table.cases) {
+      const value = numericValue(one[column.header]);
+      if (value !== null) found.push({ table, method: table.method, header: column.header, value, row: one });
+    }
+  }
+  return found;
+}
+
+/** `1.5-depth-error-edge-cases`: a visible negative-hours row, and a negative rate rejected. */
+function errorEdgeCases(shape) {
+  const negativeHours = [
+    EVAL_14_ROLES.weekday,
+    EVAL_14_ROLES.regular,
+    EVAL_14_ROLES.overtime,
+    EVAL_14_ROLES.sunday,
+    EVAL_14_ROLES.holiday,
+  ]
+    .flatMap((role) => valuesForRole(shape, role))
+    .find((one) => one.value < 0);
+  const negativeRate = valuesForRole(shape, EVAL_14_ROLES.rate).find((one) => one.value < 0);
+  return { negativeHours: negativeHours || null, negativeRate: negativeRate || null };
+}
+
+/**
+ * The Sunday and holiday hour columns that carry a blank cell, with the parameter type each feeds.
+ *
+ * This is `1.6-readability-empty-cells`, and its two halves are one change: a blank cell converts
+ * to null, so a column written blank must feed a boxed parameter or the answer does not compile.
+ * The grader has failed this slot on both counts in the same sentence.
+ */
+function blankHourColumns(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    for (const role of [EVAL_14_ROLES.sunday, EVAL_14_ROLES.holiday]) {
+      const column = findColumn(table, role);
+      if (!column) continue;
+      const blanks = table.rows.filter((row) => String(row.cells[column.index] ?? "").trim() === "").length;
+      if (blanks === 0) continue;
+      const type = column.param ? column.param.type : null;
+      found.push({
+        method: table.method,
+        header: column.header,
+        type,
+        boxed: Boolean(type) && /^(Integer|Double|Long|Float|BigDecimal|Short|Byte)\b/.test(type),
+      });
+    }
+  }
+  return found;
+}
+
+/** `1.14-depth-zero-rate`: a row at a zero rate stating that the week pays nothing. */
+function zeroRateRow(shape) {
+  const { cases } = payCases(shape);
+  return cases.find((one) => one.rate === 0 && Math.abs(one.stated) < PENCE) || null;
+}
+
+/**
+ * `1.2-error-has-expected-column`: the rejection is stated per row, not in prose.
+ *
+ * Only asked of a class that rejects something — a negative rate row is what makes the rejection
+ * table exist, so its own table is where the expectation column has to be.
+ */
+function rejectionExpectationColumn(shape) {
+  const negativeRate = valuesForRole(shape, EVAL_14_ROLES.rate).find((one) => one.value < 0);
+  if (!negativeRate) return { tested: false, column: null };
+  const column = negativeRate.table.expectationColumns.find((one) => EVAL_14_ROLES.thrown.test(one.header));
+  return { tested: true, column: column || null, method: negativeRate.method };
+}
+
+/**
+ * Column headers written in code rather than in the business's words.
+ *
+ * An exception column is exempt: `Throws?` is TableTest's own name for the outcome and
+ * `1.2-error-has-expected-column` requires it, so failing it here would set the two against
+ * each other.
+ */
+function implementationHeaders(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    for (const column of table.columns) {
+      if (column.isScenario) continue;
+      if (EVAL_14_ROLES.thrown.test(column.header)) continue;
+      // A parenthesised suffix names a unit or a source — `Overtime Threshold (hrs)`,
+      // `Cutoff (Policy)` — which the skill encourages and the grader passes. Strip it before
+      // looking for implementation vocabulary, or every declared unit reads as an abbreviation.
+      const header = column.header.replace(/\?$/, "").replace(/\s*\([^)]*\)\s*$/, "");
+      const camelCase = /[a-z][A-Z]/.test(header);
+      const abbreviation = /\b(hrs|hr|amt|num|qty|param\d*|val|idx|str|int|dbl)\b/i.test(header);
+      if (camelCase || abbreviation) found.push({ method: table.method, header: column.header });
+    }
+  }
+  return found;
+}
+
+/** The hours a row states, naming only the bands it actually carries. */
+function describeHours(one) {
+  const labels = { weekday: "weekday", regular: "regular", overtime: "overtime", sunday: "Sunday", holiday: "holiday" };
+  const parts = Object.entries(labels)
+    .filter(([band]) => one[band] !== undefined)
+    .map(([band, label]) => `${label} ${one[band]}`);
+  return parts.length === 0 ? "no hours" : parts.join(", ");
+}
+
+const EVAL_14_RELATIONS = [
+  {
+    id: "1.3-depth-overtime-boundary",
+    label: "40 and just past it, one column, one table",
+    evaluate: (shape) => {
+      const found = overtimeBoundary(shape);
+      return {
+        holds: found !== null,
+        evidence: found
+          ? `${found.method}: ${found.column} holds 40 and ${found.past}`
+          : "no table holds 40 beside a value in (40, 41] in the same column",
+      };
+    },
+  },
+  {
+    id: "1.4-depth-combined-scenario",
+    label: "one row works all three hour types",
+    evaluate: (shape) => {
+      const found = combinedScenario(shape);
+      return {
+        holds: found !== null,
+        evidence: found
+          ? `${found.method}: weekday ${found.hours[0]}, Sunday ${found.hours[1]}, holiday ${found.hours[2]}`
+          : "no row carries weekday, Sunday and holiday hours together",
+      };
+    },
+  },
+  {
+    id: "1.5-depth-error-edge-cases",
+    label: "negative hours shown, negative rate rejected",
+    evaluate: (shape) => {
+      const { negativeHours, negativeRate } = errorEdgeCases(shape);
+      const missing = [];
+      if (!negativeHours) missing.push("no row states what negative hours do");
+      if (!negativeRate) missing.push("no row carries a negative rate");
+      return {
+        holds: missing.length === 0,
+        evidence:
+          missing.length === 0
+            ? `negative hours ${negativeHours.value} in ${negativeHours.header}, negative rate ${negativeRate.value}`
+            : missing.join("; "),
+      };
+    },
+  },
+  {
+    id: "1.6-readability-empty-cells",
+    label: "blank Sunday/holiday cells, boxed parameters",
+    evaluate: (shape) => {
+      const blanks = blankHourColumns(shape);
+      if (blanks.length === 0) {
+        const types = [...new Set(shape.tables.flatMap((table) =>
+          [EVAL_14_ROLES.sunday, EVAL_14_ROLES.holiday]
+            .map((role) => findColumn(table, role))
+            .filter(Boolean)
+            .map((column) => (column.param ? column.param.type : "?")),
+        ))];
+        return {
+          holds: false,
+          evidence: `no blank cell in any Sunday or holiday hours column${types.length ? ` (declared ${types.join(", ")})` : ""}`,
+        };
+      }
+      const unboxed = blanks.filter((one) => !one.boxed);
+      return {
+        holds: unboxed.length === 0,
+        evidence:
+          unboxed.length === 0
+            ? `blanks in ${blanks.map((one) => `${one.header} (${one.type})`).join(", ")}`
+            : `blank cells on unboxed parameters: ${unboxed.map((one) => `${one.header} (${one.type})`).join(", ")}`,
+      };
+    },
+  },
+  {
+    id: "1.8-correctness-expected-values",
+    label: "every stated pay is arithmetically right",
+    evaluate: (shape) => {
+      const { cases, unresolved } = payCases(shape);
+      const wrong = cases.filter((one) => Math.abs(one.pay - one.stated) > PENCE);
+      const note = unresolved > 0 ? ` (${unresolved} row(s) unresolved: hours or rate held in the body)` : "";
+      if (cases.length === 0) {
+        return { holds: false, evidence: `no row states a pay this could check${note}` };
+      }
+      return {
+        holds: wrong.length === 0,
+        evidence:
+          wrong.length === 0
+            ? `${cases.length} row(s) correct${note}`
+            : wrong
+                .slice(0, 4)
+                .map(
+                  (one) => `${one.method}: ${describeHours(one)} @ ${one.rate} → stated ${one.stated}, rules give ${one.pay}`,
+                )
+                .join("; ") + note,
+      };
+    },
+  },
+  {
+    id: "1.9-correctness-value-set-semantics",
+    label: "a value set only where the result is the same",
+    evaluate: (shape) => {
+      const offenders = [];
+      for (const table of shape.tables) {
+        const pay = payColumn(table);
+        const rate = findInputColumn(table, EVAL_14_ROLES.rate);
+        const bands = hourColumns(table);
+        if (!pay || !rate || !bands) continue;
+
+        for (const row of table.rows) {
+          const expanded = rowCases(table.columns, row.cells);
+          if (expanded.length < 2) continue;
+          const paid = expanded.map((one) => {
+            const hours = {};
+            for (const [band, column] of Object.entries(bands)) {
+              if (column) hours[band] = hoursValue(one[column.header]);
+            }
+            const values = { ...hours, rate: numericValue(one[rate.header]) };
+            if (Object.values(values).some((value) => value === null)) return null;
+            return payForRow(values);
+          });
+          if (paid.some((value) => value === null)) continue;
+          if (new Set(paid.map((value) => value.toFixed(2))).size > 1) {
+            offenders.push(`${table.method}: a value set spans pays ${[...new Set(paid)].join(", ")}`);
+          }
+        }
+      }
+      return {
+        holds: offenders.length === 0,
+        evidence: offenders.length === 0 ? "no value set spans differing results" : offenders.slice(0, 3).join("; "),
+      };
+    },
+  },
+  {
+    id: "1.14-depth-zero-rate",
+    label: "a zero rate pays nothing",
+    evaluate: (shape) => {
+      const found = zeroRateRow(shape);
+      return {
+        holds: found !== null,
+        evidence: found
+          ? `${found.method}: ${describeHours(found)} at rate 0 pay 0`
+          : "no row states a zero rate against a zero pay",
+      };
+    },
+  },
+  {
+    id: "1.2-error-has-expected-column",
+    label: "the rejection is a column, not prose",
+    evaluate: (shape) => {
+      const { tested, column, method } = rejectionExpectationColumn(shape);
+      if (!tested) return { holds: false, evidence: "no negative-rate row, so no rejection is stated at all" };
+      return {
+        holds: column !== null,
+        evidence: column ? `${method}: ${column.header}` : `${method}: rejection row with no exception column`,
+      };
+    },
+  },
+  {
+    id: "business-language-columns",
+    label: "no column header written in code",
+    evaluate: (shape) => {
+      const found = implementationHeaders(shape);
+      return {
+        holds: found.length === 0,
+        evidence:
+          found.length === 0
+            ? "every header reads as business language"
+            : found.map((one) => `${one.method}: ${one.header}`).join("; "),
+      };
+    },
+  },
+];
+
 /** Every eval this module can read, by eval number. */
 const EVALS = {
+  14: { call: null, relations: EVAL_14_RELATIONS },
   18: { call: EVAL_18_CALL, relations: EVAL_18_RELATIONS },
 };
 
@@ -359,14 +880,28 @@ function authoredEvals() {
 }
 
 module.exports = {
+  EVAL_14_RELATIONS,
   EVAL_18_RELATIONS,
   ageBoundaryPair,
   authoredEvals,
   bandedAgePair,
   claimBoundaryPair,
   claimEffectBands,
+  blankHourColumns,
   claimsByAge,
+  combinedScenario,
+  errorEdgeCases,
+  implementationHeaders,
   internalColumns,
+  overtimeBoundary,
+  findInputColumn,
+  heldBandValue,
+  hourColumns,
+  payCases,
+  payForRow,
+  payColumn,
+  rejectionExpectationColumn,
+  zeroRateRow,
   perClaimTriple,
   policyColumns,
   premiumCases,
