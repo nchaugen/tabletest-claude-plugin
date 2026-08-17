@@ -2984,12 +2984,737 @@ const EVAL_22_RELATIONS = [
   falsifiabilityRelation(),
 ];
 
+// ---------------------------------------------------------------------------
+// eval-23 loan-approval
+// ---------------------------------------------------------------------------
+
+/**
+ * The method under test. Its parameter order is what a literal argument in a body *means*:
+ * `evaluateLoan(40, 600, hasStableIncome)` holds age at 40 and the score at 600.
+ */
+const EVAL_23_CALL = "evaluateLoan";
+
+/** The policy the prompt states, and the only numbers a scenario name may echo from its own row. */
+const EVAL_23_SENIOR_AGE = 65;
+const EVAL_23_STANDARD_THRESHOLD = 650;
+const EVAL_23_SENIOR_THRESHOLD = 600;
+const EVAL_23_POLICY_VALUES = [EVAL_23_SENIOR_AGE, EVAL_23_STANDARD_THRESHOLD, EVAL_23_SENIOR_THRESHOLD];
+
+/** How draws name the three inputs and the decision. */
+const EVAL_23_ROLES = {
+  age: /\bage\b/i,
+  score: /credit.?score|\bscore\b|\bcredit\b/i,
+  income: /income/i,
+  decision: /decision|result|approval|status|outcome|verdict/i,
+};
+
+/** A column declaring the policy the code owns, not a quantity a row varies. */
+const EVAL_23_POLICY_COLUMN = /threshold|cutoff|\(policy\)|\blimit\b/i;
+
+/** A cell standing in for unknown income with a word where the notation wants a blank. */
+const EVAL_23_STANDS_FOR_UNKNOWN = /^(unknown|null|nil|none|n\/a|na|missing|not provided|\?|-|--)$/i;
+
+/** A second column splitting one Boolean input in two, which `blank-for-unknown-income` names. */
+const EVAL_23_KNOWN_FLAG = /known|provided|present|available|supplied|missing/i;
+
+/** The threshold that governs an applicant of this age, or null where the age is unresolved. */
+function thresholdFor(age) {
+  if (age === null) return null;
+  return age >= EVAL_23_SENIOR_AGE ? EVAL_23_SENIOR_THRESHOLD : EVAL_23_STANDARD_THRESHOLD;
+}
+
+/** The band an age falls in, or null where the age is unresolved. */
+function bandOf(age) {
+  if (age === null) return null;
+  return age >= EVAL_23_SENIOR_AGE ? "senior" : "standard";
+}
+
+/** An input column for `role`: never the expectation, never a declared policy constant. */
+function eval23Input(table, role) {
+  return (
+    table.columns.find(
+      (column) =>
+        !column.isScenario &&
+        !column.isExpectation &&
+        !EVAL_23_POLICY_COLUMN.test(column.header) &&
+        role.test(column.header),
+    ) || null
+  );
+}
+
+/** The column carrying the decision. */
+function eval23Decision(table) {
+  return (
+    table.expectationColumns.find((column) => EVAL_23_ROLES.decision.test(column.header)) ||
+    table.expectationColumns[0] ||
+    null
+  );
+}
+
+/**
+ * What supplies each of the three inputs for one table: a column that varies it, or a literal the
+ * body holds for every row.
+ *
+ * iteration-46 splits the class three ways and holds two inputs in each body —
+ * `evaluateLoan(40, 600, hasStableIncome)`. Reading only the columns reports those tables as
+ * carrying no age and no score at all, which drops every one of their rows from the coverage
+ * relations. The call's argument order is the method's own signature, so a literal in position two
+ * is the credit score and nothing else.
+ */
+function eval23Inputs(table) {
+  const order = ["age", "score", "income"];
+  const inputs = { age: null, score: null, income: null };
+  const call = callArguments(table.body, EVAL_23_CALL);
+  if (call && call.length === order.length) {
+    order.forEach((role, index) => {
+      const argument = call[index];
+      const held = literalArgument(argument);
+      if (held !== null) {
+        inputs[role] = { held };
+        return;
+      }
+      const named = table.columns.find(
+        (column) => !column.isScenario && column.param && column.param.name === String(argument).trim(),
+      );
+      if (named) inputs[role] = { column: named };
+    });
+  }
+  // A body this cannot read leaves the headers as the only evidence of what a column supplies.
+  for (const role of order) {
+    if (inputs[role]) continue;
+    const column = eval23Input(table, EVAL_23_ROLES[role]);
+    if (column) inputs[role] = { column };
+  }
+  return inputs;
+}
+
+/** The number a role supplies for one case, or null where nothing resolves it. */
+function eval23Number(input, one) {
+  if (!input) return null;
+  if (input.held !== undefined) return numericValue(input.held);
+  return numericValue(one[input.column.header]);
+}
+
+/**
+ * The income state a role supplies: `stable`, `unstable`, `unknown` for the blank cell, or null.
+ *
+ * A cell holding the word `UNKNOWN` resolves to null rather than to `unknown`: the notation is
+ * what `blank-for-unknown-income` is about, and reading the word as a blank would hide the very
+ * thing that relation reports.
+ */
+function eval23IncomeState(input, one) {
+  if (!input) return null;
+  const text = input.held !== undefined ? String(input.held) : String(one[input.column.header] ?? "").trim();
+  if (/^true$/i.test(text)) return "stable";
+  if (/^false$/i.test(text)) return "unstable";
+  if (text === "") return "unknown";
+  return null;
+}
+
+/**
+ * Every case the class runs, as the applicant it describes and the decision it expects.
+ *
+ * A value set multiplies: `{true, false}` in the income cell runs the row twice and both cases are
+ * what the row means. Each case keeps its literal row number, because two assertions here are
+ * about rows as written rather than about the cases they expand to.
+ */
+function loanCases(shape) {
+  const cases = [];
+  for (const table of shape.tables) {
+    const inputs = eval23Inputs(table);
+    const decision = eval23Decision(table);
+    if (!decision) continue;
+    table.rows.forEach((row, index) => {
+      for (const one of rowCases(table.columns, row.cells)) {
+        cases.push({
+          table,
+          method: table.method,
+          row: index + 1,
+          age: eval23Number(inputs.age, one),
+          score: eval23Number(inputs.score, one),
+          income: eval23IncomeState(inputs.income, one),
+          decision: String(one[decision.header] ?? "").trim().toUpperCase(),
+        });
+      }
+    });
+  }
+  return cases;
+}
+
+/** Columns declaring the applicable threshold beside the score — way (a) of the assertion. */
+function eval23ThresholdColumns(shape) {
+  return shape.tables.flatMap((table) =>
+    table.columns
+      .filter((column) => !column.isScenario && EVAL_23_POLICY_COLUMN.test(column.header))
+      .map((column) => ({ method: table.method, header: column.header })),
+  );
+}
+
+/**
+ * A pair of cases in one table bracketing a band's threshold — way (b) of the assertion.
+ *
+ * Bracketing has to *locate* the cut, so one side sits on it: a case at the threshold that fails,
+ * or a case one point above it that qualifies. 500 against 700 shows only that the cut is
+ * somewhere between them, which is the "arbitrary values with no boundary pair" the assertion
+ * fails. Income is held equal across the pair, because a pair that also moves income brackets
+ * nothing.
+ */
+function bracketingPair(cases, band) {
+  const threshold = band === "senior" ? EVAL_23_SENIOR_THRESHOLD : EVAL_23_STANDARD_THRESHOLD;
+  const inBand = cases.filter((one) => bandOf(one.age) === band && one.score !== null && one.income !== null);
+  const pairs = [];
+  for (const below of inBand.filter((one) => one.score <= threshold)) {
+    for (const above of inBand.filter((one) => one.score > threshold)) {
+      if (above.table !== below.table) continue;
+      if (above.income !== below.income) continue;
+      if (above.decision === below.decision) continue;
+      if (below.score !== threshold && above.score !== threshold + 1) continue;
+      pairs.push({ band, threshold, below, above });
+    }
+  }
+  // Several pairs can bracket the same cut; the tightest is the one the reader would cite, so it
+  // is the one the evidence names.
+  return pairs.sort((a, b) => a.above.score - a.below.score - (b.above.score - b.below.score))[0] || null;
+}
+
+/** How a bracket reads as evidence. */
+function describeBracket(pair) {
+  return (
+    `${pair.below.method} rows ${pair.below.row} and ${pair.above.row}: ` +
+    `${pair.below.score} is ${pair.below.decision} and ${pair.above.score} is ${pair.above.decision} ` +
+    `for a ${pair.band} applicant`
+  );
+}
+
+/**
+ * How a class shows that the age band selects the threshold: a pair either side of 65 holding the
+ * score and income equal, or a bracket in each band sitting at a different score.
+ *
+ * The reference does it the second way — 650/651 at 64 and 600/601 at 65 — and never puts one
+ * score against two ages, so requiring the crossing pair alone would fail the ground truth.
+ */
+function ageBandEffect(cases) {
+  for (const younger of cases.filter((one) => bandOf(one.age) === "standard")) {
+    for (const older of cases.filter((one) => bandOf(one.age) === "senior")) {
+      if (older.table !== younger.table) continue;
+      if (older.score === null || older.score !== younger.score) continue;
+      if (older.income === null || older.income !== younger.income) continue;
+      if (older.decision === younger.decision) continue;
+      return (
+        `${younger.method} rows ${younger.row} and ${older.row}: at score ${younger.score}, ` +
+        `age ${younger.age} is ${younger.decision} and age ${older.age} is ${older.decision}`
+      );
+    }
+  }
+  const standard = bracketingPair(cases, "standard");
+  const senior = bracketingPair(cases, "senior");
+  if (standard && senior && standard.threshold !== senior.threshold) {
+    return `the bands bracket at different scores — ${standard.threshold} for standard, ${senior.threshold} for senior`;
+  }
+  return null;
+}
+
+/** Two cases in one table holding age and score equal and disagreeing on income and decision. */
+function incomeEffectCases(cases) {
+  for (const one of cases) {
+    for (const other of cases) {
+      if (other === one || other.table !== one.table) continue;
+      if (one.age === null || one.age !== other.age) continue;
+      if (one.score === null || one.score !== other.score) continue;
+      if (one.income === null || other.income === null || one.income === other.income) continue;
+      if (one.decision === other.decision) continue;
+      return (
+        `${one.method}: at age ${one.age} and score ${one.score}, ` +
+        `${one.income} income is ${one.decision} and ${other.income} income is ${other.decision}`
+      );
+    }
+  }
+  return null;
+}
+
+/**
+ * Two literal rows of one table holding the age and score *cells* equal, differing in the income
+ * cell, and disagreeing on the decision.
+ *
+ * `depth-stable-income-effect` excludes a pair whose rows "also vary another input", so this
+ * compares cells as written rather than the cases they expand to. iteration-52's only income
+ * comparison is a row carrying `{30, 70} | {700, 500}` against a plain `30 | 700` row: the case
+ * the pair needs is in there, but a reader has to expand two value sets to find it, which is
+ * exactly the "merely implied" the assertion is about.
+ */
+function heldConstantIncomePair(shape) {
+  for (const table of shape.tables) {
+    const inputs = eval23Inputs(table);
+    const decision = eval23Decision(table);
+    if (!decision || !inputs.income || !inputs.income.column) continue;
+    // A quantity held in the body is equal across every row by construction, so a null cell on
+    // both sides of a comparison is a match rather than a miss.
+    const cellOf = (row, input) =>
+      input && input.column ? String(row.cells[input.column.index] ?? "").trim() : null;
+    for (let i = 0; i < table.rows.length; i++) {
+      for (let j = i + 1; j < table.rows.length; j++) {
+        const one = table.rows[i];
+        const other = table.rows[j];
+        if (cellOf(one, inputs.age) !== cellOf(other, inputs.age)) continue;
+        if (cellOf(one, inputs.score) !== cellOf(other, inputs.score)) continue;
+        const incomeOne = cellOf(one, inputs.income);
+        const incomeOther = cellOf(other, inputs.income);
+        if (incomeOne === incomeOther) continue;
+        const decisionOne = String(one.cells[decision.index] ?? "").trim();
+        const decisionOther = String(other.cells[decision.index] ?? "").trim();
+        if (decisionOne === decisionOther) continue;
+        return {
+          method: table.method,
+          rows: [i + 1, j + 1],
+          income: [incomeOne || "(blank)", incomeOther || "(blank)"],
+          decisions: [decisionOne, decisionOther],
+        };
+      }
+    }
+  }
+  return null;
+}
+
+/** Every income column in the class, with the table it belongs to. */
+function incomeColumns(shape) {
+  return shape.tables
+    .map((table) => ({ table, input: eval23Inputs(table).income }))
+    .filter((one) => one.input && one.input.column)
+    .map((one) => ({ table: one.table, column: one.input.column }));
+}
+
+/** A second income column splitting the one Boolean input across two — the assertion names it. */
+function splitIncomeColumns(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    // An expectation column is not excluded here: the assertion's own example of the split writes
+    // it as `Income Known?`, question mark and all.
+    const income = table.columns.filter(
+      (column) => !column.isScenario && EVAL_23_ROLES.income.test(column.header),
+    );
+    if (income.length < 2) continue;
+    const flag = income.find((column) => EVAL_23_KNOWN_FLAG.test(column.header));
+    if (flag) found.push({ method: table.method, header: flag.header });
+  }
+  return found;
+}
+
+/**
+ * A value the body hands the evaluator for every row of a table, and whether that table says so.
+ *
+ * The published surface of a method is its `@DisplayName`, its own name where it has none, its
+ * `@Description` and its headers. A held value in none of those is a constant the reader cannot
+ * see, which is `held-constants-declared`'s failure.
+ */
+function undeclaredHeldValues(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    const inputs = eval23Inputs(table);
+    const surface = [table.displayName || table.method || "", table.description || "", table.headers.join(" ")].join(
+      " ",
+    );
+    for (const role of ["age", "score", "income"]) {
+      const input = inputs[role];
+      if (!input || input.held === undefined) continue;
+      if (publishesValue(surface, input.held)) continue;
+      found.push({ method: table.method, role, value: input.held });
+    }
+  }
+  return found;
+}
+
+/**
+ * Scenario names echoing a value the same row's input cells already hold.
+ *
+ * The assertion exempts the rule's own boundaries by name — "At the 650 threshold" states where
+ * the cut is, not what the cell happens to contain — and for this eval those boundaries are
+ * exactly 65, 650 and 600. Every other numeral is incidental to the row and clause (1) fires.
+ */
+function echoedInputValues(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    const scenario = table.columns.find((column) => column.isScenario);
+    if (!scenario) continue;
+    const inputs = table.columns.filter((column) => !column.isScenario && !column.isExpectation);
+    table.rows.forEach((row, index) => {
+      const name = String(row.cells[scenario.index] ?? "").trim();
+      for (const numeral of name.match(/\d+(?:\.\d+)?/g) || []) {
+        if (EVAL_23_POLICY_VALUES.includes(Number(numeral))) continue;
+        const echoed = inputs.find((column) => String(row.cells[column.index] ?? "").trim() === numeral);
+        if (echoed) found.push({ method: table.method, row: index + 1, name, header: echoed.header, value: numeral });
+      }
+    });
+  }
+  return found;
+}
+
+/**
+ * Descriptions pinning an input to the one value its column shows in every row — clause (2).
+ *
+ * A constant that is *not* a column is the opposite of a failure here: it is what
+ * `held-constants-declared` requires, and iteration-46 declares three of them.
+ */
+function descriptionPinsAColumn(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    if (!table.description || table.rows.length === 0) continue;
+    for (const column of table.columns) {
+      if (column.isScenario || column.isExpectation) continue;
+      const values = new Set(table.rows.map((row) => String(row.cells[column.index] ?? "").trim()));
+      if (values.size !== 1) continue;
+      const [value] = [...values];
+      if (value === "") continue;
+      if (EVAL_23_POLICY_VALUES.includes(Number(value))) continue;
+      if (!publishesValue(table.description, value)) continue;
+      found.push({ method: table.method, header: column.header, value });
+    }
+  }
+  return found;
+}
+
+/**
+ * Values a description states that the table holds in its body rather than in a column.
+ *
+ * These are the exemption clause (2) turns on, and iteration-46 is built of them: "Credit score is
+ * fixed at 700" beside a table with no credit-score column declares a held constant, which is
+ * `held-constants-declared`'s requirement and explicitly not this assertion's failure.
+ */
+function heldValuesNamedInDescriptions(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    if (!table.description) continue;
+    const inputs = eval23Inputs(table);
+    for (const role of ["age", "score", "income"]) {
+      const input = inputs[role];
+      if (!input || input.held === undefined) continue;
+      if (!publishesValue(table.description, input.held)) continue;
+      found.push(`${table.method}'s description states ${role} = ${input.held}`);
+    }
+  }
+  return found;
+}
+
+/** How a decision reads when a scenario name paraphrases it instead of naming the variation. */
+const EVAL_23_DECISION_ECHOES = [
+  { decision: /^APPROVED?$/, echo: /\bapprov(e|es|ed|al)\b/i },
+  { decision: /^REJECTED?$/, echo: /\breject(s|ed|ion)?\b|\bdeclin(e|es|ed)\b|\bturn(s|ed)? down\b|\bdenie[ds]\b/i },
+  { decision: /^PENDING_?REVIEW$/, echo: /\bpending\b|\bfor review\b|\bneeds review\b|\bmanual review\b/i },
+];
+
+/** A label naming no variation at all, which the assertion fails outright. */
+const EVAL_23_GENERIC_NAME = /^(test|case|scenario|row|example)\s*\d*$/i;
+
+/** Scenario names stating the outcome their own row expects, or naming nothing at all. */
+function namesStatingTheOutcome(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    const scenario = table.columns.find((column) => column.isScenario);
+    if (!scenario) continue;
+    table.rows.forEach((row, index) => {
+      const name = String(row.cells[scenario.index] ?? "").trim();
+      if (EVAL_23_GENERIC_NAME.test(name)) {
+        found.push({ method: table.method, row: index + 1, name, why: "names no variation" });
+        return;
+      }
+      for (const column of table.expectationColumns) {
+        const cell = String(row.cells[column.index] ?? "").trim().toUpperCase();
+        const echo = EVAL_23_DECISION_ECHOES.find((one) => one.decision.test(cell));
+        if (echo && echo.echo.test(name)) {
+          found.push({ method: table.method, row: index + 1, name, why: `paraphrases ${cell}` });
+        }
+      }
+    });
+  }
+  return found;
+}
+
+/**
+ * What a case is evidence for: which threshold the band selects, where the cut sits inside a band,
+ * or what an income state does once the score qualifies.
+ *
+ * The income rule is stated once for all applicants, so a case above the applicable threshold is
+ * evidence about income and nothing else, whatever its band. That is what makes iteration-45's
+ * ninth row — a senior with an unstable income above the senior threshold — a repeat of its
+ * seventh, which already showed unstable income rejecting.
+ */
+function obligationOf(one) {
+  if (one.age === null || one.score === null || one.income === null) return null;
+  const threshold = thresholdFor(one.age);
+  if (one.score > threshold) return `${one.income} income once the score qualifies`;
+  if (one.score === threshold) return `the ${bandOf(one.age)} cut at ${threshold}, ${one.income} income`;
+  return `below the ${bandOf(one.age)} threshold, ${one.income} income`;
+}
+
+/** A case sitting on a band's cut with the other side of the cut present at the same income. */
+function isBoundaryCase(one, cases) {
+  const threshold = thresholdFor(one.age);
+  if (threshold === null || one.score === null) return false;
+  if (one.score !== threshold && one.score !== threshold + 1) return false;
+  return cases.some(
+    (other) =>
+      other.table === one.table &&
+      other.income === one.income &&
+      bandOf(other.age) === bandOf(one.age) &&
+      other.score === (one.score === threshold ? threshold + 1 : threshold) &&
+      other.decision !== one.decision,
+  );
+}
+
+/** A case paired across 65 with the score and income held, which is the age cut's own evidence. */
+function isAgeCrossingCase(one, cases) {
+  return cases.some(
+    (other) =>
+      other.table === one.table &&
+      other.score !== null &&
+      other.score === one.score &&
+      other.income === one.income &&
+      bandOf(other.age) !== bandOf(one.age) &&
+      other.decision !== one.decision,
+  );
+}
+
+/**
+ * Rows every one of whose obligations an earlier row of the same table already discharged.
+ *
+ * A row is judged by the whole set its cases discharge, not case by case: `{true, false}` against
+ * one decision re-shows one obligation and states another, and the assertion's invariance
+ * exemption is what that second one is. Boundary rows and the two halves of an age crossing are
+ * exempt by the assertion's own words.
+ */
+function rowsRediscarging(shape) {
+  const cases = loanCases(shape);
+  const found = [];
+  for (const table of shape.tables) {
+    const discharged = new Set();
+    const inTable = cases.filter((one) => one.table === table);
+    const rows = [...new Set(inTable.map((one) => one.row))].sort((a, b) => a - b);
+    for (const row of rows) {
+      const ofRow = inTable.filter((one) => one.row === row);
+      const obligations = ofRow.map(obligationOf).filter(Boolean);
+      if (obligations.length === 0) continue;
+      const fresh = obligations.filter((one) => !discharged.has(one));
+      for (const obligation of obligations) discharged.add(obligation);
+      if (fresh.length > 0) continue;
+      if (ofRow.some((one) => isBoundaryCase(one, cases) || isAgeCrossingCase(one, cases))) continue;
+      found.push({ method: table.method, row, obligation: obligations[0] });
+    }
+  }
+  return found;
+}
+
+const EVAL_23_RELATIONS = [
+  {
+    id: "threshold-verifiable-from-table",
+    label: "each band's threshold is a column or a bracketing pair",
+    evaluate: (shape) => {
+      const cases = loanCases(shape);
+      const declared = eval23ThresholdColumns(shape);
+      if (declared.length > 0) {
+        return {
+          holds: true,
+          evidence: declared.map((one) => `${one.method} declares ${one.header}`).join("; "),
+        };
+      }
+      // Only a band the class actually exercises owes the reader its threshold: a threshold that
+      // governs no row is not one the assertion asks about.
+      const bands = ["standard", "senior"].filter((band) => cases.some((one) => bandOf(one.age) === band));
+      if (bands.length === 0) return { holds: false, evidence: "no row resolves to an age band" };
+      const brackets = bands.map((band) => ({ band, pair: bracketingPair(cases, band) }));
+      const missing = brackets.filter((one) => !one.pair);
+      return {
+        holds: missing.length === 0,
+        evidence:
+          missing.length === 0
+            ? brackets.map((one) => describeBracket(one.pair)).join("; ")
+            : `no threshold column, and no bracketing pair in the ${missing.map((one) => one.band).join(" or ")} band`,
+      };
+    },
+  },
+  {
+    id: "covers-age-credit-income",
+    label: "age banding, the score boundary and income status are each exercised",
+    evaluate: (shape) => {
+      const cases = loanCases(shape);
+      const age = ageBandEffect(cases);
+      const credit = ["standard", "senior"].map((band) => bracketingPair(cases, band)).find(Boolean) || null;
+      const income = incomeEffectCases(cases);
+      const missing = [];
+      if (!age) missing.push("no row pair shows the age band changing the threshold");
+      if (!credit) missing.push("no row pair brackets a score threshold");
+      if (!income) missing.push("income status is never varied against a fixed age and score");
+      return {
+        holds: missing.length === 0,
+        evidence:
+          missing.length === 0
+            ? `age: ${age}; credit: ${describeBracket(credit)}; income: ${income}`
+            : missing.join("; "),
+      };
+    },
+  },
+  {
+    id: "depth-stable-income-effect",
+    label: "two rows differ only in income and disagree on the decision",
+    evaluate: (shape) => {
+      const pair = heldConstantIncomePair(shape);
+      if (pair) {
+        return {
+          holds: true,
+          evidence:
+            `${pair.method} rows ${pair.rows.join(" and ")}: income ${pair.income.join(" against ")} ` +
+            `decides ${pair.decisions.join(" against ")}, with age and score held`,
+        };
+      }
+      // The assertion excludes a pair whose rows also vary another input, so a comparison
+      // available only after expanding a value set is named rather than counted as the pair.
+      const implied = incomeEffectCases(loanCases(shape));
+      return {
+        holds: false,
+        evidence: implied
+          ? `no two rows hold age and score equal while income varies — ${implied} only after expanding a value set`
+          : "no two rows differ in income while holding age and score equal",
+      };
+    },
+  },
+  {
+    id: "blank-for-unknown-income",
+    label: "unknown income is a blank cell on a Boolean parameter",
+    evaluate: (shape) => {
+      const columns = incomeColumns(shape);
+      if (columns.length === 0) return { holds: false, evidence: "no income column anywhere" };
+      const split = splitIncomeColumns(shape);
+      const words = [];
+      let blank = null;
+      for (const { table, column } of columns) {
+        table.rows.forEach((row, index) => {
+          const cell = String(row.cells[column.index] ?? "").trim();
+          if (cell === "") {
+            // The prompt makes the parameter a `Boolean` precisely so a blank can reach it as null;
+            // a primitive `boolean` cannot, so the blank would not carry the third state.
+            const boxed = column.param && /^Boolean\??$/.test(String(column.param.type).trim());
+            blank = blank || { method: table.method, row: index + 1, cells: row.cells.join(" | "), boxed };
+          } else if (EVAL_23_STANDS_FOR_UNKNOWN.test(cell)) {
+            words.push({ method: table.method, header: column.header, cell });
+          }
+        });
+      }
+      const failures = [];
+      if (words.length > 0) {
+        failures.push(words.map((one) => `${one.method}: ${one.header} = "${one.cell}"`).join("; "));
+      }
+      if (split.length > 0) {
+        failures.push(split.map((one) => `${one.method} splits income across ${one.header}`).join("; "));
+      }
+      if (!blank) failures.push("no row leaves the income cell blank");
+      else if (!blank.boxed) failures.push(`${blank.method} row ${blank.row} is blank on a primitive parameter`);
+      return {
+        holds: failures.length === 0,
+        evidence: failures.length === 0 ? `${blank.method} row ${blank.row}: ${blank.cells}` : failures.join("; "),
+      };
+    },
+  },
+  {
+    id: "held-constants-declared",
+    label: "every value the body holds is on that table's surface",
+    evaluate: (shape) => {
+      const undeclared = undeclaredHeldValues(shape);
+      const held = shape.tables.flatMap((table) => {
+        const inputs = eval23Inputs(table);
+        return ["age", "score", "income"]
+          .filter((role) => inputs[role] && inputs[role].held !== undefined)
+          .map((role) => `${table.method} holds ${role} at ${inputs[role].held}`);
+      });
+      return {
+        holds: undeclared.length === 0,
+        evidence:
+          undeclared.length > 0
+            ? undeclared.map((one) => `${one.method} holds ${one.role} at ${one.value} and says so nowhere`).join("; ")
+            : held.length > 0
+              ? `${held.join("; ")} — each declared on its own surface`
+              : "every input the outcome depends on is a column",
+      };
+    },
+  },
+  {
+    id: "description-no-redundant-field-values",
+    label: "no scenario name or description restates a cell",
+    evaluate: (shape) => {
+      const echoed = echoedInputValues(shape);
+      const pinned = descriptionPinsAColumn(shape);
+      const failures = [
+        ...echoed.map((one) => `${one.method} row ${one.row}: "${one.name}" restates ${one.header} = ${one.value}`),
+        ...pinned.map((one) => `${one.method}: the description pins ${one.header} to ${one.value}`),
+      ];
+      // A description naming a value that is *not* a column is what the assertion exempts and what
+      // `held-constants-declared` requires, so the exemptions are named: they are what a reader
+      // has to check when the grader and this disagree.
+      const exempt = heldValuesNamedInDescriptions(shape);
+      return {
+        holds: failures.length === 0,
+        evidence:
+          failures.length === 0
+            ? exempt.length === 0
+              ? "no name echoes an incidental cell, and no description pins a column to one value"
+              : `no column is pinned; ${exempt.join("; ")} — each a constant the table holds, not a cell restated`
+            : failures.slice(0, 3).join("; "),
+      };
+    },
+  },
+  {
+    id: "scenario-names-describe-conditions",
+    label: "no scenario name states its own row's decision",
+    evaluate: (shape) => {
+      const found = namesStatingTheOutcome(shape);
+      return {
+        holds: found.length === 0,
+        evidence:
+          found.length === 0
+            ? "every scenario name states the variation, not the outcome"
+            : found.slice(0, 3).map((one) => `${one.method} row ${one.row}: "${one.name}" ${one.why}`).join("; "),
+      };
+    },
+  },
+  {
+    id: "no-duplicate-rows-within-a-table",
+    label: "no row re-discharges an obligation an earlier row already did",
+    advisory: true,
+    judgement:
+      "what a row is evidence for is a reading; boundary rows, the halves of an age crossing and " +
+      "an invariance over a value set are exempt here, and the assertion lists more",
+    evaluate: (shape) => {
+      const found = rowsRediscarging(shape);
+      return {
+        holds: found.length === 0,
+        evidence:
+          found.length === 0
+            ? "every row discharges something no earlier row in its table reached"
+            : found.map((one) => `${one.method} row ${one.row} re-shows ${one.obligation}`).join("; "),
+      };
+    },
+  },
+  {
+    id: "business-language-columns",
+    label: "no column header written in code",
+    evaluate: (shape) => {
+      const found = implementationHeaders(shape);
+      return {
+        holds: found.length === 0,
+        evidence:
+          found.length === 0
+            ? "every header reads as business language"
+            : found.map((one) => `${one.method}: ${one.header}`).join("; "),
+      };
+    },
+  },
+  falsifiabilityRelation(),
+];
+
 /** Every eval this module can read, by eval number. */
 const EVALS = {
   14: { call: null, relations: EVAL_14_RELATIONS },
   15: { call: null, relations: EVAL_15_RELATIONS },
   18: { call: EVAL_18_CALL, relations: EVAL_18_RELATIONS },
   22: { call: "register", relations: EVAL_22_RELATIONS },
+  23: { call: EVAL_23_CALL, relations: EVAL_23_RELATIONS },
   25: { call: EVAL_25_CALL, relations: EVAL_25_RELATIONS },
   29: { call: null, relations: EVAL_29_RELATIONS },
   30: { call: null, relations: EVAL_30_RELATIONS },
@@ -3008,6 +3733,22 @@ function authoredEvals() {
 module.exports = {
   EVAL_14_RELATIONS,
   EVAL_22_RELATIONS,
+  EVAL_23_RELATIONS,
+  ageBandEffect,
+  bandOf,
+  bracketingPair,
+  descriptionPinsAColumn,
+  echoedInputValues,
+  eval23Inputs,
+  heldConstantIncomePair,
+  incomeEffectCases,
+  loanCases,
+  namesStatingTheOutcome,
+  obligationOf,
+  rowsRediscarging,
+  splitIncomeColumns,
+  thresholdFor,
+  undeclaredHeldValues,
   EVAL_25_RELATIONS,
   EVAL_29_RELATIONS,
   EVAL_30_RELATIONS,

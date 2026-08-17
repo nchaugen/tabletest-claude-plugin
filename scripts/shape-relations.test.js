@@ -7,7 +7,20 @@ const {
   EVAL_14_RELATIONS,
   EVAL_15_RELATIONS,
   EVAL_22_RELATIONS,
+  EVAL_23_RELATIONS,
   EVAL_25_RELATIONS,
+  ageBandEffect,
+  bracketingPair,
+  descriptionPinsAColumn,
+  echoedInputValues,
+  eval23Inputs,
+  heldConstantIncomePair,
+  incomeEffectCases,
+  loanCases,
+  namesStatingTheOutcome,
+  rowsRediscarging,
+  splitIncomeColumns,
+  undeclaredHeldValues,
   eval22Concerns,
   optionalColumns,
   wordsForAbsent,
@@ -346,6 +359,12 @@ describe("the reference answers", () => {
   test("eval-30's reference satisfies every one of its relations", () => {
     const rows = evaluateDraw(referenceOf("eval-30-order-splitting-tt"), EVAL_30_RELATIONS, { sutParameters: [] });
     assert.deepEqual(rows.filter((row) => !row.holds).map((row) => `${row.id}: ${row.evidence}`), []);
+  });
+
+  test("eval-23's reference satisfies every one of its relations", () => {
+    const rows = evaluateDraw(referenceOf("eval-23-loan-approval-tt"), EVAL_23_RELATIONS, { sutParameters: [] });
+    const failed = rows.filter((row) => !row.holds && !row.advisory).map((row) => `${row.id}: ${row.evidence}`);
+    assert.deepEqual(failed, []);
   });
 
   test("every authored eval declares relations with an id and an evaluate", () => {
@@ -1493,5 +1512,322 @@ describe("the date and discount relations", () => {
       "Scenario | Registration Timing | Base price | Group Size | Price?",
     );
     assert.equal(verdictOf("discount-column-preferred", withBase).holds, true);
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// eval-23 loan-approval
+// ---------------------------------------------------------------------------
+
+/** A one-table answer whose body calls the evaluator with the three columns, in signature order. */
+const loanClass = (rows, header = "Scenario | Age | Credit Score | Stable Income | Decision?", description = "") => `
+public class LoanEvaluatorTest {
+${description ? `    @Description("""\n        ${description}\n        """)` : ""}
+    @TableTest("""
+        ${header}
+${rows.map((row) => `        ${row}`).join("\n")}
+        """)
+    void decides(int age, int creditScore, Boolean stableIncome, ApprovalResult decision) {
+        assertEquals(decision, evaluator.evaluateLoan(age, creditScore, stableIncome));
+    }
+}
+`;
+
+const loanShape = (...args) => answerShape(loanClass(...args));
+const loanVerdict = (id, shape) => EVAL_23_RELATIONS.find((one) => one.id === id).evaluate(shape, {});
+
+describe("eval23Inputs", () => {
+  test("reads a quantity the body holds, by the position the signature gives it", () => {
+    const shape = answerShape(`
+      @Description("Credit score is fixed at 700, comfortably above both thresholds.")
+      @TableTest("""
+          Scenario        | Customer Age | Stable Income | Result?
+          Stable income   | {30, 70}     | true          | APPROVED
+          """)
+      void decidesFromIncome(int customerAge, Boolean hasStableIncome, ApprovalResult result) {
+          assertEquals(result, evaluator.evaluateLoan(customerAge, 700, hasStableIncome));
+      }
+    `);
+    const inputs = eval23Inputs(shape.tables[0]);
+    assert.equal(inputs.score.held, "700");
+    assert.equal(inputs.age.column.header, "Customer Age");
+    assert.equal(inputs.income.column.header, "Stable Income");
+  });
+
+  test("falls back to the headers where the body makes no call it can read", () => {
+    const shape = answerShape(`
+      @TableTest("""
+          Scenario | Applicant Age | Credit Score | Stable Income | Result?
+          A        | 64            | 651          | true          | APPROVED
+          """)
+      void decides(int age, int score, Boolean income, ApprovalResult result) {}
+    `);
+    const inputs = eval23Inputs(shape.tables[0]);
+    assert.deepEqual(
+      ["age", "score", "income"].map((role) => inputs[role].column.header),
+      ["Applicant Age", "Credit Score", "Stable Income"],
+    );
+  });
+});
+
+describe("loanCases", () => {
+  test("runs a value set in the income cell as the two cases it means", () => {
+    const cases = loanCases(loanShape(["At the cut | 40 | 650 | {true, false} | REJECTED"]));
+    assert.deepEqual(cases.map((one) => one.income), ["stable", "unstable"]);
+  });
+
+  test("reads a blank income cell as unknown, and the word for it as unresolved", () => {
+    const cases = loanCases(loanShape(["Unknown | 40 | 700 |  | PENDING_REVIEW", "Worded | 40 | 700 | UNKNOWN | PENDING_REVIEW"]));
+    assert.deepEqual(cases.map((one) => one.income), ["unknown", null]);
+  });
+});
+
+describe("bracketingPair", () => {
+  const cases = (rows) => loanCases(loanShape(rows));
+
+  test("locates the cut where the failing row sits on the threshold", () => {
+    const pair = bracketingPair(cases(["At | 40 | 650 | true | REJECTED", "Above | 40 | 651 | true | APPROVED"]), "standard");
+    assert.deepEqual([pair.below.score, pair.above.score], [650, 651]);
+  });
+
+  test("refuses a pair that only says the cut is somewhere in between", () => {
+    assert.equal(bracketingPair(cases(["Low | 40 | 500 | true | REJECTED", "High | 40 | 700 | true | APPROVED"]), "standard"), null);
+  });
+
+  test("refuses a pair that also moves income, which brackets nothing", () => {
+    assert.equal(bracketingPair(cases(["At | 40 | 650 | false | REJECTED", "Above | 40 | 651 | true | APPROVED"]), "standard"), null);
+  });
+
+  test("names the tightest pair where several bracket the same cut", () => {
+    const pair = bracketingPair(
+      cases([
+        "At | 40 | 650 | true | REJECTED",
+        "Well above | 40 | 700 | true | APPROVED",
+        "Just above | 40 | 651 | true | APPROVED",
+      ]),
+      "standard",
+    );
+    assert.equal(pair.above.score, 651);
+  });
+});
+
+describe("ageBandEffect", () => {
+  test("finds a pair either side of 65 holding the score and income", () => {
+    const found = ageBandEffect(
+      loanCases(loanShape(["Under | 64 | 601 | true | REJECTED", "Senior | 65 | 601 | true | APPROVED"])),
+    );
+    assert.match(found, /age 64 is REJECTED and age 65 is APPROVED/);
+  });
+
+  test("accepts two brackets at different scores, which is how the reference states it", () => {
+    const found = ageBandEffect(
+      loanCases(
+        loanShape([
+          "Standard at | 64 | 650 | true | REJECTED",
+          "Standard above | 64 | 651 | true | APPROVED",
+          "Senior at | 65 | 600 | true | REJECTED",
+          "Senior above | 65 | 601 | true | APPROVED",
+        ]),
+      ),
+    );
+    assert.match(found, /bracket at different scores/);
+  });
+
+  test("says nothing where only one band is exercised", () => {
+    assert.equal(
+      ageBandEffect(loanCases(loanShape(["At | 40 | 650 | true | REJECTED", "Above | 40 | 651 | true | APPROVED"]))),
+      null,
+    );
+  });
+});
+
+describe("depth-stable-income-effect", () => {
+  test("finds two rows holding the age and score cells while income moves", () => {
+    const shape = loanShape(["Stable | 64 | 651 | true | APPROVED", "Unstable | 64 | 651 | false | REJECTED"]);
+    assert.ok(heldConstantIncomePair(shape));
+    assert.equal(loanVerdict("depth-stable-income-effect", shape).holds, true);
+  });
+
+  test("refuses a comparison available only after expanding a value set", () => {
+    const shape = loanShape([
+      "Unstable | 30 | 700 | false | REJECTED",
+      "Unknown  | {30, 70} | {700, 500} |  | PENDING_REVIEW",
+    ]);
+    assert.equal(heldConstantIncomePair(shape), null);
+    // The case is in there, and the relation says so rather than reporting nothing at all.
+    assert.match(incomeEffectCases(loanCases(shape)), /at age 30 and score 700/);
+    assert.match(loanVerdict("depth-stable-income-effect", shape).evidence, /only after expanding a value set/);
+  });
+
+  test("holds where the score is held in the body, since it is then equal by construction", () => {
+    const shape = answerShape(`
+      @Description("Credit score is fixed at 700.")
+      @TableTest("""
+          Scenario  | Customer Age | Stable Income | Result?
+          Stable    | {30, 70}     | true          | APPROVED
+          Unstable  | {30, 70}     | false         | REJECTED
+          """)
+      void decidesFromIncome(int customerAge, Boolean hasStableIncome, ApprovalResult result) {
+          assertEquals(result, evaluator.evaluateLoan(customerAge, 700, hasStableIncome));
+      }
+    `);
+    assert.equal(loanVerdict("depth-stable-income-effect", shape).holds, true);
+  });
+});
+
+describe("blank-for-unknown-income", () => {
+  test("passes a blank cell on a Boolean parameter, and quotes the row", () => {
+    const verdict = loanVerdict("blank-for-unknown-income", loanShape(["Unknown | 64 | 651 |  | PENDING_REVIEW"]));
+    assert.equal(verdict.holds, true);
+    assert.match(verdict.evidence, /Unknown \| 64 \| 651/);
+  });
+
+  test("fails a word standing in for the blank", () => {
+    const verdict = loanVerdict("blank-for-unknown-income", loanShape(["Unknown | 64 | 651 | null | PENDING_REVIEW"]));
+    assert.equal(verdict.holds, false);
+    assert.match(verdict.evidence, /Stable Income = "null"/);
+  });
+
+  test("fails a primitive parameter, which no blank can reach as null", () => {
+    const shape = answerShape(`
+      @TableTest("""
+          Scenario | Age | Credit Score | Stable Income | Decision?
+          Unknown  | 64  | 651          |               | PENDING_REVIEW
+          """)
+      void decides(int age, int creditScore, boolean stableIncome, ApprovalResult decision) {}
+    `);
+    assert.match(loanVerdict("blank-for-unknown-income", shape).evidence, /primitive parameter/);
+  });
+
+  test("names a second column splitting the one Boolean input in two", () => {
+    const shape = answerShape(`
+      @TableTest("""
+          Scenario | Age | Credit Score | Income Known? | Stable Income | Decision?
+          Unknown  | 64  | 651          | false         | true          | PENDING_REVIEW
+          """)
+      void decides(int age, int creditScore, boolean incomeKnown, boolean stableIncome, ApprovalResult decision) {}
+    `);
+    assert.deepEqual(splitIncomeColumns(shape).map((one) => one.header), ["Income Known?"]);
+  });
+});
+
+describe("held-constants-declared", () => {
+  test("names a held value the table's own surface never states", () => {
+    const shape = answerShape(`
+      @DisplayName("Decides from income")
+      @TableTest("""
+          Scenario | Customer Age | Stable Income | Result?
+          Stable   | 30           | true          | APPROVED
+          """)
+      void decidesFromIncome(int customerAge, Boolean hasStableIncome, ApprovalResult result) {
+          assertEquals(result, evaluator.evaluateLoan(customerAge, 700, hasStableIncome));
+      }
+    `);
+    assert.deepEqual(undeclaredHeldValues(shape).map((one) => [one.role, one.value]), [["score", "700"]]);
+  });
+
+  test("accepts the same value once the description states it", () => {
+    const shape = answerShape(`
+      @Description("Credit score is fixed at 700, above both thresholds.")
+      @TableTest("""
+          Scenario | Customer Age | Stable Income | Result?
+          Stable   | 30           | true          | APPROVED
+          """)
+      void decidesFromIncome(int customerAge, Boolean hasStableIncome, ApprovalResult result) {
+          assertEquals(result, evaluator.evaluateLoan(customerAge, 700, hasStableIncome));
+      }
+    `);
+    assert.deepEqual(undeclaredHeldValues(shape), []);
+  });
+});
+
+describe("description-no-redundant-field-values", () => {
+  test("fires on a scenario name echoing a value incidental to its row", () => {
+    const found = echoedInputValues(loanShape(["Age 35 applicant | 35 | 700 | true | APPROVED"]));
+    assert.deepEqual(found.map((one) => [one.header, one.value]), [["Age", "35"]]);
+  });
+
+  test("exempts a name stating the rule's own boundary, even where the cell holds it", () => {
+    assert.deepEqual(echoedInputValues(loanShape(["At the 650 threshold | 40 | 650 | true | REJECTED"])), []);
+  });
+
+  test("fires where the description pins a column to the one value every row shows", () => {
+    const shape = loanShape(
+      ["A | 35 | 700 | true | APPROVED", "B | 35 | 500 | true | REJECTED"],
+      "Scenario | Age | Credit Score | Stable Income | Decision?",
+      "Every row is a 35 year old applicant.",
+    );
+    assert.deepEqual(descriptionPinsAColumn(shape).map((one) => one.header), ["Age"]);
+  });
+
+  test("says nothing about a constant that is not a column", () => {
+    const shape = loanShape(
+      ["A | 35 | 700 | true | APPROVED", "B | 40 | 500 | true | REJECTED"],
+      "Scenario | Age | Credit Score | Stable Income | Decision?",
+      "Applicants above the 650 threshold are approved when income is stable.",
+    );
+    assert.deepEqual(descriptionPinsAColumn(shape), []);
+  });
+});
+
+describe("scenario-names-describe-conditions", () => {
+  test("fires on a name paraphrasing its own row's decision", () => {
+    const found = namesStatingTheOutcome(loanShape(["Below threshold rejects regardless of income | 40 | 500 | true | REJECTED"]));
+    assert.deepEqual(found.map((one) => one.why), ["paraphrases REJECTED"]);
+  });
+
+  test("says nothing about a name describing an input, however close it sounds", () => {
+    assert.deepEqual(namesStatingTheOutcome(loanShape(["Qualifying score, income not stable | 64 | 651 | false | REJECTED"])), []);
+  });
+
+  test("fires on a label naming no variation at all", () => {
+    assert.deepEqual(namesStatingTheOutcome(loanShape(["Test 1 | 64 | 651 | true | APPROVED"])).map((one) => one.why), [
+      "names no variation",
+    ]);
+  });
+});
+
+describe("rowsRediscarging", () => {
+  test("names a row re-showing an income rule an earlier row already stated", () => {
+    const found = rowsRediscarging(
+      loanShape([
+        "Standard unstable | 40 | 651 | false | REJECTED",
+        "Senior unstable   | 65 | 700 | false | REJECTED",
+      ]),
+    );
+    assert.deepEqual(found.map((one) => one.row), [2]);
+  });
+
+  test("exempts the two halves of an age crossing, which state the band rule", () => {
+    const found = rowsRediscarging(
+      loanShape([
+        "Standard above | 40 | 651 | true | APPROVED",
+        "Under the cut  | 64 | 620 | true | REJECTED",
+        "At the cut     | 65 | 620 | true | APPROVED",
+      ]),
+    );
+    assert.deepEqual(found, []);
+  });
+
+  test("exempts a boundary row whose other side disagrees with it", () => {
+    const found = rowsRediscarging(
+      loanShape([
+        "Standard above | 40 | 651 | true | APPROVED",
+        "Senior at      | 65 | 600 | true | REJECTED",
+        "Senior above   | 65 | 601 | true | APPROVED",
+      ]),
+    );
+    assert.deepEqual(found, []);
+  });
+
+  test("counts a value set as the obligations it discharges, not as a repeat", () => {
+    const found = rowsRediscarging(
+      loanShape([
+        "Below, stable | 64 | 500 | true | REJECTED",
+        "Below, either | 40 | 500 | {true, false} | REJECTED",
+      ]),
+    );
+    assert.deepEqual(found, []);
   });
 });
