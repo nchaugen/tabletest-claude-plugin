@@ -1,8 +1,18 @@
 const { test, describe } = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("path");
+const os = require("node:os");
 
-const { disagreements, evalDir, parseArgs, storedDraws, sutParameterNames } = require("./shape-report.js");
+const fs = require("fs");
+
+const {
+  disagreements,
+  evalDir,
+  gradesAnOlderSource,
+  parseArgs,
+  storedDraws,
+  sutParameterNames,
+} = require("./shape-report.js");
 
 describe("sutParameterNames", () => {
   test("reads the method under test's parameters from the eval's own project", () => {
@@ -63,5 +73,40 @@ describe("evalDir and parseArgs", () => {
 
   test("defaults the skill and reads the eval number", () => {
     assert.deepEqual(parseArgs(["--eval", "18"]), { skill: "tabletest", eval: 18, json: false });
+  });
+});
+
+
+describe("gradesAnOlderSource", () => {
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "shape-report-"));
+  const draw = (name, gradingOffsetMs, sourceOffsetMs) => {
+    const dir = path.join(scratch, name);
+    fs.mkdirSync(dir, { recursive: true });
+    const grading = path.join(dir, "grading.json");
+    const source = path.join(dir, "Answer.java");
+    fs.writeFileSync(grading, "{}");
+    fs.writeFileSync(source, "class Answer {}");
+    const base = Date.now();
+    fs.utimesSync(grading, new Date(base + gradingOffsetMs), new Date(base + gradingOffsetMs));
+    fs.utimesSync(source, new Date(base + sourceOffsetMs), new Date(base + sourceOffsetMs));
+    return { grading, sources: [source] };
+  };
+
+  test("says nothing when a run wrote both files in the same pass", () => {
+    // Measured across the corpus: 29 of 30 such draws differ by 16 ms or less, and the order
+    // within the second is incidental.
+    const { grading, sources } = draw("same-run", 0, 16);
+    assert.equal(gradesAnOlderSource(grading, sources), false);
+  });
+
+  test("names a grading written before an answer that was later edited", () => {
+    // eval-7's reference: graded, edited 42 seconds later, regraded under a suffix.
+    const { grading, sources } = draw("edited-after", 0, 42_000);
+    assert.equal(gradesAnOlderSource(grading, sources), true);
+  });
+
+  test("says nothing when the grading is the newer file, which is the ordinary case", () => {
+    const { grading, sources } = draw("graded-after", 5_000, 0);
+    assert.equal(gradesAnOlderSource(grading, sources), false);
   });
 });

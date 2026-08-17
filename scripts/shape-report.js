@@ -100,6 +100,33 @@ function storedDraws(skill, slug) {
   return draws.filter(Boolean);
 }
 
+/** A run writes its grading and its outputs together; anything slower is a later edit. */
+const SAME_RUN_MS = 1000;
+
+/**
+ * Whether `grading.json` grades an answer that has since been edited.
+ *
+ * A reference answer gets edited after a first grading exposes a defect in it, and the regrade is
+ * written under a suffix while `grading.json` keeps the verdicts on the superseded draft. Comparing
+ * the current source against those verdicts manufactures a disagreement and attributes it to the
+ * grader — which is what eval-7's reference did on 2026-08-17, producing a "the grader failed the
+ * reference" finding that was not true.
+ *
+ * **The threshold is measured, not chosen.** Across the whole stored corpus 30 draws have a source
+ * newer than their grading: one by **41.7 seconds** — eval-7's edited reference — and the other 29
+ * by **16 milliseconds or less**, because a run writes both files in one pass and the order within
+ * the second is incidental. Three orders of magnitude separate the two populations, so a one-second
+ * margin costs nothing at either end.
+ *
+ * **This detects and never guarantees.** A fresh clone flattens every mtime, so the check goes
+ * quiet rather than wrong.
+ */
+function gradesAnOlderSource(gradingPath, sources) {
+  const graded = fs.statSync(gradingPath).mtimeMs;
+  const newestSource = Math.max(...sources.map((file) => fs.statSync(file).mtimeMs));
+  return newestSource - graded > SAME_RUN_MS;
+}
+
 /** One draw: its answer source, the grader's verdicts, and the skill state it was generated at. */
 function readDraw(label, dir, iterationDir, isReference) {
   const sources = findFiles(path.join(dir, "outputs"), /\.(java|kt)$/);
@@ -108,9 +135,11 @@ function readDraw(label, dir, iterationDir, isReference) {
 
   const gradingPath = path.join(dir, "grading.json");
   const graded = new Map();
+  let staleGrading = false;
   if (fs.existsSync(gradingPath)) {
     const grading = JSON.parse(fs.readFileSync(gradingPath, "utf8"));
     for (const assertion of grading.assertions || []) graded.set(assertion.id, assertion.passed);
+    staleGrading = gradesAnOlderSource(gradingPath, sources);
   }
 
   let digest = null;
@@ -119,7 +148,7 @@ function readDraw(label, dir, iterationDir, isReference) {
     digest = JSON.parse(fs.readFileSync(benchmarkPath, "utf8")).skill_digest || null;
   }
 
-  return { label, isReference, source, graded, digest };
+  return { label, isReference, source, graded, digest, staleGrading };
 }
 
 /** Every relation's mechanical verdict for one draw, beside the grader's. */
@@ -173,6 +202,7 @@ function renderPanel(draws, evaluations, relations) {
 function disagreements(draws, evaluations) {
   const found = [];
   draws.forEach((draw, index) => {
+    if (draw.staleGrading) return;
     for (const row of evaluations[index]) {
       if (row.agrees === false && !row.advisory) found.push({ draw: draw.label, ...row });
     }
@@ -247,8 +277,19 @@ function main() {
     }
   });
 
+  const stale = draws.filter((draw) => draw.staleGrading);
+  if (stale.length > 0) {
+    console.log(
+      `\n⚠️  ${stale.map((one) => one.label).join(", ")}: grading.json was written before the answer it grades,` +
+        ` so its verdicts are excluded below. Regrade, or read the suffixed grading beside it.`,
+    );
+  }
+
   const conflicts = disagreements(draws, evaluations);
-  const counted = evaluations.flat().filter((row) => row.graded !== null && !row.advisory);
+  const counted = evaluations
+    .filter((_, index) => !draws[index].staleGrading)
+    .flat()
+    .filter((row) => row.graded !== null && !row.advisory);
   const agreed = counted.filter((row) => row.agrees).length;
   console.log(
     `\n${agreed} of ${counted.length} graded comparisons agree (${Math.round((100 * agreed) / Math.max(counted.length, 1))}%),` +
@@ -258,7 +299,7 @@ function main() {
     console.log(`  ${one.draw} ${one.id}: mechanical ${mark(one.holds)}, grader ${mark(one.graded)} — ${one.evidence}`);
   }
 
-  const advisory = advisoryDivergences(draws, evaluations);
+  const advisory = advisoryDivergences(draws.filter((draw) => !draw.staleGrading), evaluations.filter((_, index) => !draws[index].staleGrading));
   if (advisory.length > 0) {
     console.log(`\n${advisory.length} divergence(s) on advisory relations, not counted above:`);
     for (const one of advisory) {
@@ -277,6 +318,7 @@ if (require.main === module) main();
 
 module.exports = {
   advisoryDivergences,
+  gradesAnOlderSource,
   disagreements,
   evalDir,
   evaluateDraw,
