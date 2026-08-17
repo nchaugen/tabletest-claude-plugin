@@ -7,7 +7,14 @@ const {
   EVAL_14_RELATIONS,
   EVAL_15_RELATIONS,
   EVAL_2_RELATIONS,
+  EVAL_7_RELATIONS,
   EVAL_8_RELATIONS,
+  EVAL_9_RELATIONS,
+  bonusCases,
+  contractorDepartmentCells,
+  coreRulesCovered,
+  duplicateRoleOutcomes,
+  ratesThatAreNotPercentages,
   EVAL_20_RELATIONS,
   collectionElements,
   emptyTagRows,
@@ -401,6 +408,16 @@ describe("the reference answers", () => {
 
   test("eval-20's reference satisfies every one of its relations", () => {
     const rows = evaluateDraw(referenceOf("eval-20-collections-and-quoting"), EVAL_20_RELATIONS, { sutParameters: [] });
+    assert.deepEqual(rows.filter((row) => !row.holds).map((row) => `${row.id}: ${row.evidence}`), []);
+  });
+
+  test("eval-9's reference satisfies every one of its relations", () => {
+    const rows = evaluateDraw(referenceOf("eval-9-bonus-contractor-structure"), EVAL_9_RELATIONS, { sutParameters: [] });
+    assert.deepEqual(rows.filter((row) => !row.holds).map((row) => `${row.id}: ${row.evidence}`), []);
+  });
+
+  test("eval-7's reference satisfies every one of its relations", () => {
+    const rows = evaluateDraw(referenceOf("eval-7-permission-check"), EVAL_7_RELATIONS, { sutParameters: [] });
     assert.deepEqual(rows.filter((row) => !row.holds).map((row) => `${row.id}: ${row.evidence}`), []);
   });
 
@@ -2265,5 +2282,141 @@ describe("native-collection-output on eval-20", () => {
   test("names a kept cell packing the list into one quoted string", () => {
     const shape = filtering(['Joined | ["tech:a", "dev:b"] | tech | "tech:a, dev:b"']);
     assert.deepEqual(keptAsString(shape).map((one) => one.header), ["Kept?"]);
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// eval-9 bonus-contractor-structure and eval-7 permission-check
+// ---------------------------------------------------------------------------
+
+const bonusClass = (rows, header = "Scenario | Level | Department | Bonus %?") => `
+    @TableTest("""
+        ${header}
+${rows.map((row) => `        ${row}`).join("\n")}
+        """)
+    void rates(Level level, Department department, double bonusPercentage) {
+        assertEquals(bonusPercentage, calculator.calculateBonusPercentage(new Employee(level, department)));
+    }
+`;
+
+const bonusShape = (...args) => answerShape(bonusClass(...args));
+const bonusVerdict = (id, shape) => EVAL_9_RELATIONS.find((one) => one.id === id).evaluate(shape, {});
+
+const THE_FOUR = [
+  "Senior in sales       | SENIOR | SALES       | 15",
+  "Senior in engineering | SENIOR | ENGINEERING | 12",
+  "Junior in sales       | JUNIOR | SALES       | 8",
+  "Junior in engineering | JUNIOR | ENGINEERING | 5",
+];
+
+describe("contractor-uses-value-set", () => {
+  test("accepts one row whose department cell covers both", () => {
+    const shape = bonusShape([...THE_FOUR, "Contractor, either | CONTRACTOR | {SALES, ENGINEERING} | 0"]);
+    assert.equal(bonusVerdict("contractor-uses-value-set", shape).holds, true);
+  });
+
+  test("fails a placeholder standing in for the departments", () => {
+    const shape = bonusShape([...THE_FOUR, "Contractor | CONTRACTOR | ANY | 0"]);
+    const verdict = bonusVerdict("contractor-uses-value-set", shape);
+    assert.equal(verdict.holds, false);
+    assert.match(verdict.evidence, /a placeholder/);
+  });
+
+  test("fails one row per department, which the value set exists to replace", () => {
+    const shape = bonusShape([
+      ...THE_FOUR,
+      "Contractor in sales       | CONTRACTOR | SALES       | 0",
+      "Contractor in engineering | CONTRACTOR | ENGINEERING | 0",
+    ]);
+    const verdict = bonusVerdict("contractor-uses-value-set", shape);
+    assert.equal(verdict.holds, false);
+    assert.match(verdict.evidence, /enumerated rather than one value set/);
+  });
+
+  test("fails a value set covering only one department", () => {
+    const shape = bonusShape([...THE_FOUR, "Contractor | CONTRACTOR | {SALES} | 0"]);
+    assert.equal(bonusVerdict("contractor-uses-value-set", shape).holds, false);
+  });
+});
+
+describe("four-core-rules-covered and expects-bonus-percentage", () => {
+  test("counts a value set as the cases it runs, so one contractor row covers both", () => {
+    const shape = bonusShape([...THE_FOUR, "Contractor | CONTRACTOR | {SALES, ENGINEERING} | 0"]);
+    assert.equal(bonusCases(shape).length, 6);
+    assert.equal(coreRulesCovered(shape).size, 4);
+  });
+
+  test("names the combination no row carries", () => {
+    const verdict = bonusVerdict("four-core-rules-covered", bonusShape(THE_FOUR.slice(0, 3)));
+    assert.equal(verdict.holds, false);
+    assert.match(verdict.evidence, /JUNIOR ENGINEERING/);
+  });
+
+  test("fails a fraction written where the requirement gives a percentage", () => {
+    const shape = bonusShape(["Senior in sales | SENIOR | SALES | 0.15"]);
+    assert.deepEqual(ratesThatAreNotPercentages(shape).map((one) => one.cell), ["0.15"]);
+  });
+
+  test("accepts the same percentage written with a decimal point", () => {
+    assert.deepEqual(ratesThatAreNotPercentages(bonusShape(["Senior in sales | SENIOR | SALES | 15.0"])), []);
+  });
+});
+
+describe("scenario-names-describe-conditions across evals", () => {
+  test("fires on the assertion's own bonus example — a zero rate named as no bonus", () => {
+    const shape = bonusShape([...THE_FOUR, "Contractor gets no bonus | CONTRACTOR | {SALES, ENGINEERING} | 0"]);
+    const verdict = bonusVerdict("scenario-names-describe-conditions", shape);
+    assert.equal(verdict.holds, false);
+    assert.match(verdict.evidence, /paraphrases Bonus %\? = 0/);
+  });
+
+  test("says nothing about a contractor row naming the situation instead", () => {
+    const shape = bonusShape([...THE_FOUR, "Contractor, either department | CONTRACTOR | {SALES, ENGINEERING} | 0"]);
+    assert.equal(bonusVerdict("scenario-names-describe-conditions", shape).holds, true);
+  });
+});
+
+const permissionClass = (rows) => answerShape(`
+    @TableTest("""
+        Scenario | Role | Action | Allowed?
+${rows.map((row) => `        ${row}`).join("\n")}
+        """)
+    void allows(Role role, Action action, boolean allowed) {
+        assertEquals(allowed, checker.canPerform(role, action));
+    }
+`);
+
+const permissionVerdict = (id, shape) => EVAL_7_RELATIONS.find((one) => one.id === id).evaluate(shape, {});
+
+describe("no-duplicate-role-output", () => {
+  test("names two rows a value set would have stated once", () => {
+    const found = duplicateRoleOutcomes(
+      permissionClass(["User reads | USER | READ | true", "User writes | USER | WRITE | true"]),
+    );
+    assert.deepEqual(found.map((one) => [one.first, one.row]), [[1, 2]]);
+  });
+
+  test("says nothing where the actions are consolidated into one value set", () => {
+    const found = duplicateRoleOutcomes(
+      permissionClass(["User reads or writes | USER | {READ, WRITE} | true", "User deletes | USER | DELETE | false"]),
+    );
+    assert.deepEqual(found, []);
+  });
+});
+
+describe("scenario-names-describe-conditions on a boolean outcome", () => {
+  test("fires on the assertion's own worked example", () => {
+    const verdict = permissionVerdict(
+      "scenario-names-describe-conditions",
+      permissionClass(["User cannot delete | USER | DELETE | false"]),
+    );
+    assert.equal(verdict.holds, false);
+    assert.match(verdict.evidence, /paraphrases Allowed\? = FALSE/);
+  });
+
+  test("passes a name stating the variation, however plainly the rule predicts the outcome", () => {
+    const shape = permissionClass(["User deletes | USER | DELETE | false", "Guest reads | GUEST | READ | true"]);
+    assert.equal(permissionVerdict("scenario-names-describe-conditions", shape).holds, true);
   });
 });

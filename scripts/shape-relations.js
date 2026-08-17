@@ -4564,9 +4564,284 @@ const EVAL_20_RELATIONS = [
   },
 ];
 
+// ---------------------------------------------------------------------------
+// eval-9 bonus-contractor-structure
+// ---------------------------------------------------------------------------
+
+/** The rule, as the requirement states it: a rate per level and department. */
+const EVAL_9_RATES = {
+  "SENIOR SALES": 15,
+  "SENIOR ENGINEERING": 12,
+  "JUNIOR SALES": 8,
+  "JUNIOR ENGINEERING": 5,
+};
+
+/** The level that ignores its department, and the two departments it must be shown against. */
+const EVAL_9_CONTRACTOR = "CONTRACTOR";
+const EVAL_9_DEPARTMENTS = ["SALES", "ENGINEERING"];
+
+/** A cell standing in for "any department" with a word where a value set belongs. */
+const EVAL_9_PLACEHOLDER = /^(any|all|n\/a|na|none|-|--|\*|ignored|irrelevant|either)$/i;
+
+/** How draws name the two inputs and the rate. */
+const EVAL_9_ROLES = {
+  level: /level|grade|seniority/i,
+  department: /department|dept|division/i,
+};
+
+/** How a scenario name paraphrases a bonus rate — the assertion's own worked example is the zero. */
+const EVAL_9_RATE_ECHOES = [
+  { expectation: /^0(\.0+)?$/, echo: /\bno bonus\b|\bnone\b|\bzero\b|\bnothing\b|\bgets? nothing\b|\bno payout\b/i },
+];
+
+/** An input column for `role`. */
+function eval9Input(table, role) {
+  return (
+    table.columns.find((column) => !column.isScenario && !column.isExpectation && role.test(column.header)) || null
+  );
+}
+
+/** The column carrying the rate. */
+function rateColumn(table) {
+  return table.expectationColumns[0] || null;
+}
+
+/**
+ * Every case the class runs, as the employee it describes and the rate it expects.
+ *
+ * The contractor row is the point of the eval and it is written as a value set, so counting literal
+ * rows would report one department where the row runs against two.
+ */
+function bonusCases(shape) {
+  const cases = [];
+  for (const table of shape.tables) {
+    const level = eval9Input(table, EVAL_9_ROLES.level);
+    const department = eval9Input(table, EVAL_9_ROLES.department);
+    const rate = rateColumn(table);
+    if (!level || !department || !rate) continue;
+    table.rows.forEach((row, index) => {
+      for (const one of rowCases(table.columns, row.cells)) {
+        cases.push({
+          method: table.method,
+          row: index + 1,
+          level: String(one[level.header] ?? "").trim().toUpperCase(),
+          department: String(one[department.header] ?? "").trim().toUpperCase(),
+          rate: numericValue(one[rate.header]),
+          cell: String(one[rate.header] ?? "").trim(),
+        });
+      }
+    });
+  }
+  return cases;
+}
+
+/**
+ * How each table expresses "regardless of department" for the contractor.
+ *
+ * The assertion names three shapes and accepts one: a value set covering both departments. A word
+ * standing in for the departments is a placeholder, and one row per department is the enumeration
+ * the value set exists to replace.
+ */
+function contractorDepartmentCells(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    const level = eval9Input(table, EVAL_9_ROLES.level);
+    const department = eval9Input(table, EVAL_9_ROLES.department);
+    if (!level || !department) continue;
+    table.rows.forEach((row, index) => {
+      if (String(row.cells[level.index] ?? "").trim().toUpperCase() !== EVAL_9_CONTRACTOR) return;
+      const cell = String(row.cells[department.index] ?? "").trim();
+      const members = (parseCollectionElements(cell) || []).map((one) => one.trim().toUpperCase());
+      found.push({
+        method: table.method,
+        row: index + 1,
+        cell,
+        covers: EVAL_9_DEPARTMENTS.every((one) => members.includes(one)),
+        placeholder: EVAL_9_PLACEHOLDER.test(cell) || cell === "",
+      });
+    });
+  }
+  return found;
+}
+
+/** The four level-and-department combinations the requirement names, and where each is exercised. */
+function coreRulesCovered(shape) {
+  const covered = new Map();
+  for (const one of bonusCases(shape)) {
+    const key = `${one.level} ${one.department}`;
+    if (EVAL_9_RATES[key] !== undefined && !covered.has(key)) covered.set(key, one);
+  }
+  return covered;
+}
+
+/**
+ * Rates that are not the percentage the requirement gives.
+ *
+ * A fraction (`0.15` for 15%) and an amount (`1500`) both fail the assertion, and both are told
+ * from a percentage by the same test: whether the cell is the number the rule states.
+ */
+function ratesThatAreNotPercentages(shape) {
+  const found = [];
+  for (const one of bonusCases(shape)) {
+    const expected = one.level === EVAL_9_CONTRACTOR ? 0 : EVAL_9_RATES[`${one.level} ${one.department}`];
+    if (expected === undefined || one.rate === null) continue;
+    if (one.rate === expected) continue;
+    found.push(one);
+  }
+  return found;
+}
+
+const EVAL_9_RELATIONS = [
+  {
+    id: "contractor-uses-value-set",
+    label: "the contractor row varies department with a value set",
+    evaluate: (shape) => {
+      const rows = contractorDepartmentCells(shape);
+      if (rows.length === 0) return { holds: false, evidence: "no row carries the CONTRACTOR level" };
+      if (rows.length > 1) {
+        return {
+          holds: false,
+          evidence: `${rows.length} contractor rows — ${rows.map((one) => one.cell || "(blank)").join(", ") } — enumerated rather than one value set`,
+        };
+      }
+      const [one] = rows;
+      if (one.placeholder) {
+        return { holds: false, evidence: `${one.method} row ${one.row}: department is "${one.cell || "(blank)"}", a placeholder` };
+      }
+      return {
+        holds: one.covers,
+        evidence: one.covers
+          ? `${one.method} row ${one.row}: ${one.cell}`
+          : `${one.method} row ${one.row}: ${one.cell} does not cover both departments`,
+      };
+    },
+  },
+  {
+    id: "four-core-rules-covered",
+    label: "all four level-and-department combinations are present",
+    evaluate: (shape) => {
+      const covered = coreRulesCovered(shape);
+      const missing = Object.keys(EVAL_9_RATES).filter((key) => !covered.has(key));
+      return {
+        holds: missing.length === 0,
+        evidence:
+          missing.length === 0
+            ? [...covered.entries()].map(([key, one]) => `${key} at row ${one.row}`).join("; ")
+            : `no row carries ${missing.join(", nor ")}`,
+      };
+    },
+  },
+  {
+    id: "expects-bonus-percentage",
+    label: "every rate is the percentage the requirement gives",
+    evaluate: (shape) => {
+      const cases = bonusCases(shape);
+      if (cases.length === 0) return { holds: false, evidence: "no table carries a level, a department and a rate" };
+      const wrong = ratesThatAreNotPercentages(shape);
+      return {
+        holds: wrong.length === 0,
+        evidence:
+          wrong.length === 0
+            ? `${cases.length} cases, each stating the whole percentage — ${[...new Set(cases.map((one) => one.cell))].join(", ")}`
+            : wrong
+                .slice(0, 3)
+                .map(
+                  (one) =>
+                    `${one.method} row ${one.row}: ${one.level} in ${one.department} expects ${one.cell}, not ${one.level === EVAL_9_CONTRACTOR ? 0 : EVAL_9_RATES[`${one.level} ${one.department}`]}`,
+                )
+                .join("; "),
+      };
+    },
+  },
+  scenarioNamesRelation(EVAL_9_RATE_ECHOES),
+  {
+    id: "business-language-columns",
+    label: "no column header written in code",
+    evaluate: (shape) => {
+      const found = implementationHeaders(shape);
+      return {
+        holds: found.length === 0,
+        evidence:
+          found.length === 0
+            ? `${shape.tables.flatMap((table) => table.headers).join(", ")} — each reads as business language`
+            : found.map((one) => `${one.method}: ${one.header}`).join("; "),
+      };
+    },
+  },
+];
+
+// ---------------------------------------------------------------------------
+// eval-7 permission-check
+// ---------------------------------------------------------------------------
+
+/** How draws name the role, whose repetition across rows the consolidation assertion is about. */
+const EVAL_7_ROLE = /role|actor|principal|user type/i;
+
+/**
+ * How a scenario name paraphrases an `Allowed?` cell.
+ *
+ * The assertion's own worked example is one of this eval's rows — "'User cannot delete' beside an
+ * Allowed? cell of false". What it does *not* catch is a name saying what the row varies, however
+ * plainly the rule then predicts the outcome: "User deletes" names the variation and passes.
+ */
+const EVAL_7_ALLOWED_ECHOES = [
+  { expectation: /^(TRUE|YES|ALLOWED|PERMITTED)$/, echo: /\bcan\b|\bmay\b|\ballowed\b|\bpermitted\b|\bis able\b|\bhas access\b/i },
+  {
+    expectation: /^(FALSE|NO|DENIED|FORBIDDEN)$/,
+    echo: /\bcannot\b|\bcan'?t\b|\bmay not\b|\bnot allowed\b|\bdenied\b|\bforbidden\b|\bno access\b|\bblocked\b|\brefused\b/i,
+  },
+];
+
+/**
+ * Pairs of rows sharing a role and an outcome, which one value set would have stated once.
+ *
+ * Literal rows, not the cases they expand to: a value set is the consolidation the assertion asks
+ * for, so counting its cases would report the correct answer as the failure.
+ */
+function duplicateRoleOutcomes(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    const role = table.columns.find(
+      (column) => !column.isScenario && !column.isExpectation && EVAL_7_ROLE.test(column.header),
+    );
+    const outcome = table.expectationColumns[0];
+    if (!role || !outcome) continue;
+    const seen = new Map();
+    table.rows.forEach((row, index) => {
+      const key = `${String(row.cells[role.index] ?? "").trim().toUpperCase()} ${String(row.cells[outcome.index] ?? "").trim().toUpperCase()}`;
+      if (seen.has(key)) found.push({ method: table.method, row: index + 1, first: seen.get(key), key });
+      else seen.set(key, index + 1);
+    });
+  }
+  return found;
+}
+
+const EVAL_7_RELATIONS = [
+  {
+    id: "no-duplicate-role-output",
+    label: "no two rows share a role and an outcome",
+    evaluate: (shape) => {
+      const found = duplicateRoleOutcomes(shape);
+      return {
+        holds: found.length === 0,
+        evidence:
+          found.length === 0
+            ? "every role-and-outcome pair is stated once, the repeated actions consolidated into value sets"
+            : found
+                .slice(0, 3)
+                .map((one) => `${one.method} rows ${one.first} and ${one.row} both state ${one.key}`)
+                .join("; "),
+      };
+    },
+  },
+  scenarioNamesRelation(EVAL_7_ALLOWED_ECHOES),
+];
+
 /** Every eval this module can read, by eval number. */
 const EVALS = {
   2: { call: EVAL_2_CALL, relations: EVAL_2_RELATIONS },
+  7: { call: "canPerform", relations: EVAL_7_RELATIONS },
+  9: { call: "calculateBonusPercentage", relations: EVAL_9_RELATIONS },
   8: { call: EVAL_8_CALL, relations: EVAL_8_RELATIONS },
   20: { call: EVAL_20_CALL, relations: EVAL_20_RELATIONS },
   14: { call: null, relations: EVAL_14_RELATIONS },
@@ -4591,6 +4866,13 @@ function authoredEvals() {
 
 module.exports = {
   EVAL_2_RELATIONS,
+  EVAL_7_RELATIONS,
+  EVAL_9_RELATIONS,
+  duplicateRoleOutcomes,
+  bonusCases,
+  contractorDepartmentCells,
+  coreRulesCovered,
+  ratesThatAreNotPercentages,
   EVAL_20_RELATIONS,
   collectionElements,
   emptyTagRows,
