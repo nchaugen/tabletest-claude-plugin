@@ -2692,11 +2692,304 @@ const EVAL_25_RELATIONS = [
   falsifiabilityRelation(),
 ];
 
+
+// ---------------------------------------------------------------------------
+// eval-22 event-registration
+// ---------------------------------------------------------------------------
+
+const EVAL_22_ROLES = {
+  name: /\bname\b/i,
+  email: /\be-?mail\b/i,
+  dietary: /dietary|diet\b/i,
+  accessibility: /accessibilit|access needs/i,
+  timing: /\bdate\b|timing|when\b|registered/i,
+  groupSize: /group size|\bgroup\b|attendees|party size/i,
+  discount: /discount/i,
+  price: /\bprice\b|\bcost\b|\bfee\b|amount/i,
+  accepted: /accepted|approved|valid\b|status|result|success/i,
+  error: /error|message|reason/i,
+  cutoff: /cutoff|cut-off|early.?bird/i,
+  basePrice: /base price|list price|standard price/i,
+};
+
+/** A raw date literal, which the assertion prefers a descriptive value over. */
+const DATE_LITERAL = /\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/;
+
+/** An absent optional is a blank cell; `N/A` and `none` are values that say something else. */
+const STANDS_FOR_ABSENT = /^(n\/?a|none|null|nil|-{1,2}|empty|not (given|provided|specified))$/i;
+
+/** An input column of a table matching `pattern`. */
+function eval22Input(table, pattern) {
+  return table.columns.find((column) => !column.isScenario && !column.isExpectation && pattern.test(column.header)) || null;
+}
+
+/** An expectation column of a table matching `pattern`. */
+function eval22Expectation(table, pattern) {
+  return table.expectationColumns.find((column) => pattern.test(column.header)) || null;
+}
+
+/**
+ * Which concern each table serves: validating a registration, or pricing one.
+ *
+ * A discount or a price expectation makes a table the pricing one; an acceptance or error
+ * expectation beside a name or an email makes it the validation one.
+ */
+function eval22Concerns(shape) {
+  const concerns = { validation: [], pricing: [] };
+  for (const table of shape.tables) {
+    const prices = eval22Expectation(table, EVAL_22_ROLES.discount) || eval22Expectation(table, EVAL_22_ROLES.price);
+    if (prices) {
+      concerns.pricing.push(table);
+      continue;
+    }
+    const judges = eval22Expectation(table, EVAL_22_ROLES.accepted) || eval22Expectation(table, EVAL_22_ROLES.error);
+    if (judges && (eval22Input(table, EVAL_22_ROLES.name) || eval22Input(table, EVAL_22_ROLES.email))) {
+      concerns.validation.push(table);
+    }
+  }
+  return concerns;
+}
+
+/** The optional-field columns of a table — dietary requirements and accessibility needs. */
+function optionalColumns(table) {
+  return [EVAL_22_ROLES.dietary, EVAL_22_ROLES.accessibility]
+    .map((role) => eval22Input(table, role))
+    .filter(Boolean);
+}
+
+/** Cells standing in for an absent optional with a word instead of a blank. */
+function wordsForAbsent(shape) {
+  const found = [];
+  for (const table of shape.tables) {
+    for (const column of optionalColumns(table)) {
+      for (const row of table.rows) {
+        const cell = String(row.cells[column.index] ?? "").trim();
+        if (STANDS_FOR_ABSENT.test(cell)) found.push({ method: table.method, header: column.header, cell });
+      }
+    }
+  }
+  return found;
+}
+
+const EVAL_22_RELATIONS = [
+  {
+    id: "separates-validation-and-pricing",
+    label: "validation and pricing are separate methods",
+    evaluate: (shape) => {
+      const { validation, pricing } = eval22Concerns(shape);
+      const missing = [];
+      if (validation.length === 0) missing.push("no validation table");
+      if (pricing.length === 0) missing.push("no pricing table");
+      if (missing.length > 0) return { holds: false, evidence: missing.join("; ") };
+      const shared = validation.filter((table) => pricing.includes(table));
+      return {
+        holds: shared.length === 0,
+        evidence:
+          shared.length === 0
+            ? `validation: ${validation.map((one) => one.method).join(", ")}; pricing: ${pricing.map((one) => one.method).join(", ")}`
+            : `${shared.map((one) => one.method).join(", ")} does both`,
+      };
+    },
+  },
+  {
+    id: "validation-rules-covered",
+    label: "an invalid email row and a missing name row",
+    evaluate: (shape) => {
+      const { validation } = eval22Concerns(shape);
+      if (validation.length === 0) return { holds: false, evidence: "no validation table" };
+      let badEmail = null;
+      let noName = null;
+      for (const table of validation) {
+        const email = eval22Input(table, EVAL_22_ROLES.email);
+        const name = eval22Input(table, EVAL_22_ROLES.name);
+        for (const row of table.rows) {
+          // An email is invalid when it has no at sign or nothing after it; a name is missing when
+          // its cell is blank.
+          if (email) {
+            const cell = String(row.cells[email.index] ?? "").trim();
+            if (cell !== "" && !/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(cell)) badEmail = badEmail || cell;
+          }
+          // A blank cell means absent and `''` means present-but-empty. Both are a registration with
+          // no name, and iteration-50 writes the empty string.
+          if (name) {
+            const cell = String(row.cells[name.index] ?? "").trim();
+            if (cell === "" || /^(''|"")$/.test(cell)) noName = noName || table.method;
+          }
+        }
+      }
+      const missing = [];
+      if (!badEmail) missing.push("no row carries a malformed email");
+      if (!noName) missing.push("no row leaves the name out");
+      return {
+        holds: missing.length === 0,
+        evidence: missing.length === 0 ? `malformed email "${badEmail}", and a row with no name` : missing.join("; "),
+      };
+    },
+  },
+  {
+    id: "validation-includes-optional-fields",
+    label: "the optionals vary in the validation table",
+    evaluate: (shape) => {
+      // A dedicated acceptance table carrying only the optionals is a validation table too, even
+      // with no name or email column — iterations 82 and 83 write exactly that, and the assertion
+      // asks only that a validation table show the optionals given and absent.
+      const hosts = shape.tables.filter(
+        (table) =>
+          optionalColumns(table).length > 0 &&
+          (eval22Expectation(table, EVAL_22_ROLES.accepted) || eval22Expectation(table, EVAL_22_ROLES.error)),
+      );
+      if (hosts.length === 0) return { holds: false, evidence: "no table asserts acceptance beside the optional fields" };
+      for (const table of hosts) {
+        const optionals = optionalColumns(table);
+        const varies = optionals.some((column) => {
+          const cells = table.rows.map((row) => String(row.cells[column.index] ?? "").trim());
+          return cells.some((cell) => cell === "") && cells.some((cell) => cell !== "");
+        });
+        if (varies) {
+          return { holds: true, evidence: `${table.method}: ${optionals.map((one) => one.header).join(" and ")} shown given and absent` };
+        }
+      }
+      return {
+        holds: false,
+        evidence: `no table shows an optional field both given and absent (${hosts.map((one) => one.method).join(", ")})`,
+      };
+    },
+  },
+  {
+    id: "blank-for-absent-optional",
+    label: "an absent optional is blank, not a word",
+    evaluate: (shape) => {
+      const words = wordsForAbsent(shape);
+      const anyOptional = shape.tables.some((table) => optionalColumns(table).length > 0);
+      if (!anyOptional) return { holds: false, evidence: "no optional-field column anywhere" };
+      return {
+        holds: words.length === 0,
+        evidence:
+          words.length === 0
+            ? "absent optionals are written as blank cells"
+            : words.slice(0, 3).map((one) => `${one.method}: ${one.header} = "${one.cell}"`).join("; "),
+      };
+    },
+  },
+  {
+    id: "blank-vs-value-set-correct",
+    label: "the pricing table does not blank an irrelevant input",
+    evaluate: (shape) => {
+      const { pricing } = eval22Concerns(shape);
+      if (pricing.length === 0) return { holds: false, evidence: "no pricing table" };
+      // A blank means null. An input the pricing rule ignores should carry a value set or a
+      // representative value, so a blank there says the field was absent rather than irrelevant.
+      const blanked = [];
+      for (const table of pricing) {
+        for (const column of optionalColumns(table)) {
+          const blanks = table.rows.filter((row) => String(row.cells[column.index] ?? "").trim() === "").length;
+          if (blanks > 0) blanked.push(`${table.method}: ${column.header} blank in ${blanks} row(s)`);
+        }
+      }
+      return {
+        holds: blanked.length === 0,
+        evidence: blanked.length === 0 ? "no irrelevant input is left blank where price is decided" : blanked.join("; "),
+      };
+    },
+  },
+  {
+    id: "descriptive-registration-date",
+    label: "the date reads as a description, not a literal",
+    evaluate: (shape) => {
+      const { pricing } = eval22Concerns(shape);
+      if (pricing.length === 0) return { holds: false, evidence: "no pricing table" };
+      const literals = [];
+      for (const table of pricing) {
+        const timing = eval22Input(table, EVAL_22_ROLES.timing);
+        if (!timing) continue;
+        const raw = table.rows
+          .map((row) => String(row.cells[timing.index] ?? "").trim())
+          .find((cell) => DATE_LITERAL.test(cell));
+        if (raw) literals.push({ method: table.method, header: timing.header, cell: raw });
+      }
+      return {
+        holds: literals.length === 0,
+        evidence:
+          literals.length === 0
+            ? "registration timing is stated descriptively"
+            : literals.map((one) => `${one.method}: ${one.header} = ${one.cell}`).join("; "),
+      };
+    },
+  },
+  {
+    id: "cutoff-date-column-if-literal-dates",
+    label: "a literal date brings the cutoff with it",
+    evaluate: (shape) => {
+      const { pricing } = eval22Concerns(shape);
+      if (pricing.length === 0) return { holds: false, evidence: "no pricing table" };
+      const missing = [];
+      for (const table of pricing) {
+        const timing = eval22Input(table, EVAL_22_ROLES.timing);
+        if (!timing) continue;
+        const literal = table.rows.some((row) => DATE_LITERAL.test(String(row.cells[timing.index] ?? "")));
+        // Descriptive values pass automatically; only a literal date owes the reader the cutoff it
+        // is being compared against. This is repair 11's shape — a policy constant as a column.
+        if (!literal) continue;
+        const cutoff = table.columns.find((column) => !column.isScenario && EVAL_22_ROLES.cutoff.test(column.header));
+        if (!cutoff) missing.push(table.method);
+      }
+      return {
+        holds: missing.length === 0,
+        evidence:
+          missing.length === 0
+            ? "dates are descriptive, or the cutoff is a column beside them"
+            : `${missing.join(", ")} carries literal dates with no cutoff column`,
+      };
+    },
+  },
+  {
+    id: "discount-column-preferred",
+    label: "the discount is the output, or the base price is shown",
+    evaluate: (shape) => {
+      const { pricing } = eval22Concerns(shape);
+      if (pricing.length === 0) return { holds: false, evidence: "no pricing table" };
+      const failures = [];
+      for (const table of pricing) {
+        if (eval22Expectation(table, EVAL_22_ROLES.discount)) continue;
+        // A price alone makes the reader supply the base price from memory; showing it as a column
+        // is the other way the assertion accepts.
+        const base = table.columns.find((column) => !column.isScenario && EVAL_22_ROLES.basePrice.test(column.header));
+        if (!base) failures.push(table.method);
+      }
+      return {
+        holds: failures.length === 0,
+        evidence:
+          failures.length === 0
+            ? "every pricing table states a discount, or a base price beside its price"
+            : `${failures.join(", ")} states a price with no discount and no base price`,
+      };
+    },
+  },
+  {
+    id: "optional-fields-has-expected-column",
+    label: "the optional-fields rows assert something",
+    evaluate: (shape) => {
+      const hosts = shape.tables.filter((table) => optionalColumns(table).length > 0);
+      if (hosts.length === 0) return { holds: false, evidence: "no optional-field column anywhere" };
+      const bare = hosts.filter((table) => table.expectationColumns.length === 0);
+      return {
+        holds: bare.length === 0,
+        evidence:
+          bare.length === 0
+            ? `${hosts.map((one) => one.method).join(", ")} each assert an outcome`
+            : `${bare.map((one) => one.method).join(", ")} varies the optionals with nothing expected`,
+      };
+    },
+  },
+  falsifiabilityRelation(),
+];
+
 /** Every eval this module can read, by eval number. */
 const EVALS = {
   14: { call: null, relations: EVAL_14_RELATIONS },
   15: { call: null, relations: EVAL_15_RELATIONS },
   18: { call: EVAL_18_CALL, relations: EVAL_18_RELATIONS },
+  22: { call: "register", relations: EVAL_22_RELATIONS },
   25: { call: EVAL_25_CALL, relations: EVAL_25_RELATIONS },
   29: { call: null, relations: EVAL_29_RELATIONS },
   30: { call: null, relations: EVAL_30_RELATIONS },
@@ -2714,6 +3007,7 @@ function authoredEvals() {
 
 module.exports = {
   EVAL_14_RELATIONS,
+  EVAL_22_RELATIONS,
   EVAL_25_RELATIONS,
   EVAL_29_RELATIONS,
   EVAL_30_RELATIONS,
@@ -2739,6 +3033,9 @@ module.exports = {
   historyEntries,
   bespokeMapCells,
   boundaryPairs,
+  eval22Concerns,
+  optionalColumns,
+  wordsForAbsent,
   costColumn,
   dimensionsOf,
   unpublishedConstants,

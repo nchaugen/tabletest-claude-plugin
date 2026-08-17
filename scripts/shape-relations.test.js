@@ -6,7 +6,11 @@ const { storedDraws, evaluateDraw } = require("./shape-report.js");
 const {
   EVAL_14_RELATIONS,
   EVAL_15_RELATIONS,
+  EVAL_22_RELATIONS,
   EVAL_25_RELATIONS,
+  eval22Concerns,
+  optionalColumns,
+  wordsForAbsent,
   EVAL_29_RELATIONS,
   EVAL_30_RELATIONS,
   boundaryPairs,
@@ -317,6 +321,12 @@ describe("the reference answers", () => {
   test("eval-15's reference satisfies every one of its relations", () => {
     const rows = evaluateDraw(referenceOf("eval-15-reis-discount"), EVAL_15_RELATIONS, { sutParameters: [] });
     assert.deepEqual(rows.filter((row) => !row.holds).map((row) => `${row.id}: ${row.evidence}`), []);
+  });
+
+  test("eval-22's reference satisfies every one of its relations", () => {
+    const rows = evaluateDraw(referenceOf("eval-22-event-registration-tt"), EVAL_22_RELATIONS, { sutParameters: [] });
+    const failed = rows.filter((row) => !row.holds && !row.advisory).map((row) => `${row.id}: ${row.evidence}`);
+    assert.deepEqual(failed, []);
   });
 
   test("eval-25's reference satisfies every one of its relations", () => {
@@ -1349,5 +1359,139 @@ describe("publishesValue", () => {
 
   test("trims trailing zeros before matching, so 3.0 held in a body finds '3 kg'", () => {
     assert.equal(publishesValue("a 3 kg package", "3.0"), true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// eval-22 event-registration
+// ---------------------------------------------------------------------------
+
+const registrationClass = (tables) => answerShape(tables.map(({ name, header, rows }) => `
+    @TableTest("""
+        ${header}
+${rows.map((row) => `        ${row}`).join("\n")}
+        """)
+    void ${name}(String a, String b, String c, String d) {}
+`).join("\n"));
+
+const verdictOf = (id, shape) => EVAL_22_RELATIONS.find((one) => one.id === id).evaluate(shape, {});
+
+describe("eval22Concerns", () => {
+  test("tells the validation table from the pricing one", () => {
+    const shape = registrationClass([
+      { name: "validates", header: "Scenario | Name | Email | Accepted? | Error Message?", rows: ["A | Ann | a@b.co | true | "] },
+      { name: "prices", header: "Scenario | Registration Timing | Group Size | Discount? | Price?", rows: ["A | before cutoff | 1 | 0.20 | 80.00"] },
+    ]);
+    const { validation, pricing } = eval22Concerns(shape);
+    assert.deepEqual([validation.map((one) => one.method), pricing.map((one) => one.method)], [["validates"], ["prices"]]);
+  });
+});
+
+describe("validation-rules-covered", () => {
+  test("finds a malformed email and a blank name", () => {
+    const shape = registrationClass([
+      {
+        name: "validates",
+        header: "Scenario | Name | Email | Accepted? | Error Message?",
+        rows: ["Bad email | Ann | ann.example.com | false | Email format is invalid", "No name |  | ann@example.com | false | Name is required"],
+      },
+    ]);
+    assert.equal(verdictOf("validation-rules-covered", shape).holds, true);
+  });
+
+  test("counts an explicit empty string as a missing name", () => {
+    const shape = registrationClass([
+      {
+        name: "validates",
+        header: "Scenario | Name | Email | Accepted? | Error Message?",
+        rows: ["Bad email | Ann | ann.example.com | false | Email format is invalid", "No name | '' | ann@example.com | false | Name is required"],
+      },
+    ]);
+    assert.equal(verdictOf("validation-rules-covered", shape).holds, true);
+  });
+
+  test("fails where every email is well formed", () => {
+    const shape = registrationClass([
+      {
+        name: "validates",
+        header: "Scenario | Name | Email | Accepted? | Error Message?",
+        rows: ["Fine | Ann | ann@example.com | true | ", "No name |  | ben@example.com | false | Name is required"],
+      },
+    ]);
+    assert.match(verdictOf("validation-rules-covered", shape).evidence, /malformed email/);
+  });
+});
+
+describe("validation-includes-optional-fields", () => {
+  test("accepts a dedicated acceptance table carrying only the optionals", () => {
+    const shape = registrationClass([
+      { name: "rejectsMissingName", header: "Scenario | Name | Accepted? | Error Message?", rows: ["A |  | false | Name is required"] },
+      {
+        name: "acceptsRegardlessOfOptionalDetails",
+        header: "Scenario | Dietary Requirements | Accessibility Needs | Accepted?",
+        rows: ["Supplied | vegetarian | wheelchair access | true", "Omitted |  |  | true"],
+      },
+    ]);
+    assert.equal(verdictOf("validation-includes-optional-fields", shape).holds, true);
+  });
+
+  test("fails where an optional never varies", () => {
+    const shape = registrationClass([
+      {
+        name: "validates",
+        header: "Scenario | Name | Dietary Requirements | Accepted?",
+        rows: ["A | Ann | vegetarian | true", "B | Ben | vegetarian | true"],
+      },
+    ]);
+    assert.equal(verdictOf("validation-includes-optional-fields", shape).holds, false);
+  });
+});
+
+describe("blank-for-absent-optional and wordsForAbsent", () => {
+  test("names a cell standing in for absence with a word", () => {
+    const shape = registrationClass([
+      { name: "validates", header: "Scenario | Name | Dietary Requirements | Accepted?", rows: ["A | Ann | N/A | true"] },
+    ]);
+    assert.deepEqual(wordsForAbsent(shape).map((one) => one.cell), ["N/A"]);
+  });
+
+  test("accepts a blank cell", () => {
+    const shape = registrationClass([
+      { name: "validates", header: "Scenario | Name | Dietary Requirements | Accepted?", rows: ["A | Ann |  | true"] },
+    ]);
+    assert.deepEqual(wordsForAbsent(shape), []);
+  });
+});
+
+describe("the date and discount relations", () => {
+  const pricing = (rows, header = "Scenario | Registration Timing | Group Size | Discount? | Price?") =>
+    registrationClass([{ name: "prices", header, rows }]);
+
+  test("descriptive timing passes, a literal date fails", () => {
+    assert.equal(verdictOf("descriptive-registration-date", pricing(["A | before cutoff | 1 | 0.20 | 80.00"])).holds, true);
+    assert.equal(verdictOf("descriptive-registration-date", pricing(["A | 2025-02-28 | 1 | 0.20 | 80.00"])).holds, false);
+  });
+
+  test("a literal date needs the cutoff beside it — repair 11's shape", () => {
+    assert.equal(verdictOf("cutoff-date-column-if-literal-dates", pricing(["A | 2025-02-28 | 1 | 0.20 | 80.00"])).holds, false);
+    const withCutoff = pricing(
+      ["A | 2025-02-28 | 2025-03-01 | 1 | 0.20 | 80.00"],
+      "Scenario | Registration Date | Early-Bird Cutoff (Policy) | Group Size | Discount? | Price?",
+    );
+    assert.equal(verdictOf("cutoff-date-column-if-literal-dates", withCutoff).holds, true);
+  });
+
+  test("descriptive values pass the cutoff relation automatically", () => {
+    assert.equal(verdictOf("cutoff-date-column-if-literal-dates", pricing(["A | before cutoff | 1 | 0.20 | 80.00"])).holds, true);
+  });
+
+  test("a price with no discount needs a base price column", () => {
+    const priceOnly = pricing(["A | before cutoff | 1 | 80.00"], "Scenario | Registration Timing | Group Size | Price?");
+    assert.equal(verdictOf("discount-column-preferred", priceOnly).holds, false);
+    const withBase = pricing(
+      ["A | before cutoff | 100.00 | 1 | 80.00"],
+      "Scenario | Registration Timing | Base price | Group Size | Price?",
+    );
+    assert.equal(verdictOf("discount-column-preferred", withBase).holds, true);
   });
 });
