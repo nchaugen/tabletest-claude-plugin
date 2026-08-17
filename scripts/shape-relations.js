@@ -1601,7 +1601,12 @@ function stringEncodedOutputs(shape) {
 function quotedStructureIn(cell) {
   for (const match of String(cell ?? "").matchAll(/"([^"]*)"|'([^']*)'/g)) {
     const inner = match[1] ?? match[2] ?? "";
-    if (/[:\[\]{}]/.test(inner) || inner.includes(",")) return match[0];
+    // A bracket inside the quotes is an encoded collection — `"W1:[camera,lens]"`.
+    if (/[\[\]{}]/.test(inner)) return match[0];
+    // So are several key-and-value segments. One is prose: `"Unknown product: bogus"` is a message
+    // quoted because a cell may be, not a structure packed into a scalar.
+    const segments = inner.split(/[;,]/).map((one) => one.trim()).filter(Boolean);
+    if (segments.length >= 2 && segments.filter((segment) => segment.includes(":")).length >= 2) return match[0];
   }
   return null;
 }

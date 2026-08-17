@@ -1184,3 +1184,17 @@ describe("enumeratingMessages", () => {
     assert.deepEqual(enumeratingMessages(shape), []);
   });
 });
+
+describe("quotedStructureIn", () => {
+  test("fires on a quoted collection", () => {
+    assert.equal(quotedStructureIn('["W1:[camera,lens]"]'), '"W1:[camera,lens]"');
+  });
+
+  test("fires on several key-and-value segments packed into one quoted scalar", () => {
+    assert.match(quotedStructureIn('"widget: 5, gadget: 4"'), /widget/);
+  });
+
+  test("does not fire on a quoted prose message carrying one colon", () => {
+    assert.equal(quotedStructureIn('"Unknown product: bogus"'), null);
+  });
+});
