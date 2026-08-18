@@ -653,7 +653,7 @@ turns on, such as a threshold or a limit, always can be. The other two surfaces 
 cannot: where the data came from, what the fixture fixes, an assumption the cases cannot state.
 
 **Once a value is a column, it is declared — check the table before writing about it or adding to
-it.** A the test's docstring or leading comment sentence naming a value the cases already show tells the reader
+it.** A sentence in the test's docstring or leading comment naming a value the cases already show tells the reader
 nothing they cannot read off the table, and a column that does not vary is declared just as well as
 one that does. Being constant is not on its own a reason to add a case varying it: where a constant
 column hides a second axis, *Make Thresholds Visible* owns that question — and when the cases are
@@ -681,7 +681,7 @@ short enough to scan.
 offset.** A shorter cell that cannot state the rule has bought nothing — see *Cover Every Tier and
 Both Sides of Every Boundary*, which owns the choice.
 
-**Keep a slot in the cell for every field the the test's docstring or leading comment makes a claim about.** A compact
+**Keep a slot in the cell for every field the test's docstring or leading comment makes a claim about.** A compact
 cell carries the fields the rule reads and drops the rest, and a dropped field is pinned exactly as it
 would be in a conversion helper, with nothing on any surface to say so. When the claim is that the
 outcome does not turn on that field, dropping it is what makes the claim uncontradictable — put the
