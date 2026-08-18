@@ -94,6 +94,8 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - **spec-by-example**: Worked examples no longer illustrate with loan approval, discounts, order-status transitions, shipping zones, or subscription trial and loyalty columns
 
+## [1.8.0] - 2026-07-31
+
 ### Fixed
 - **tabletest**: Corrected the rule for multiple type converters. The skill claimed two `@TypeConverter` methods returning the same wrapper type are selected by matching the parameter name — they are not, and the published example fails every row with `TableTestException: Multiple type converters found`. Selection is by return type alone, and the match is on the *erased* type, so `Optional<String>` and `Optional<Boolean>` collide with each other. Several parameters of one wrapper type share a single converter
 - **tabletest**: "Irrelevant input" meant two opposite things in two places. An input **another** rule owns is held at one obviously-valid value; an input **this** rule claims not to affect the outcome has to vary across the values it ignores, or the claim cannot be contradicted by any row. The distinction is now stated once, as a question to ask of your own table, and both misuses are corrected. Same fix applied to the table-driven-testing skill, which carried the identical conflict in its own checklist
