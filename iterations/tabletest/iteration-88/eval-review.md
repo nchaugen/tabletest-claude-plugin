@@ -1,6 +1,6 @@
 # Eval Review — tabletest, Iteration 88
 
-**Model:** sonnet (claude-sonnet-5) · **Grading:** claude-sonnet-5 · **Date:** 2026-08-16 · **Evals:** 5
+**Model:** sonnet (claude-sonnet-5) · **Grading:** claude-sonnet-5 · **Date:** 2026-08-18 · **Evals:** 5
 
 ## Summary
 
@@ -63,7 +63,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 - ✅ **annotation-order**: Annotations appear in order: @DisplayName (if present), @Description (if present), @TableTest — not any other order.
 - ✅ **description-uses-textblock**: If @Description is present and the text is longer than a single short line, it uses a text block (triple-quoted string """), not string concatenation with +. Passes if @Description is absent.
 - ❌ **scenario-names-describe-conditions**: Scenario names name the variation the row exercises, not the result it produces. The decidable test: FAILS when a scenario name states or paraphrases a value that appears in an expectation column of that same row — 'User cannot delete' beside an Allowed? cell of false, 'No discount applies' beside a Discount? cell of 0.00, 'Contractor gets no bonus' beside a Bonus? cell of 0. Also FAILS on generic labels ('Test 1', 'Test case 2'), which name no variation at all. PASSES otherwise. Naming the rule or the situation is correct even when it makes the outcome inferable — 'Delivery and pickup items always split', 'At the standard threshold, not above it', 'EU express, light package', 'Renewal with no claims', 'Missing name' all PASS. The failure this catches is a name echoing its own expectation cell, not a name that describes what the row is about, and not a name from which a reader who knows the rule could predict the outcome. A single offending name fails the assertion. Judge every @TableTest method in the class.
-  > 'User cannot delete' | USER | DELETE | false — echoes the false outcome
+  > grantsPermissionsAccordingToRole row 1: "Admin can perform any action" paraphrases Allowed? = TRUE; grantsPermissionsAccordingToRole row 2: "User can read and write" paraphrases Allowed? = TRUE; grantsPermissionsAccordingToRole row 3: "User cannot delete" paraphrases Allowed? = FALSE
 - ✅ **has-tabletest-dependency**: The build file (build.gradle) includes org.tabletest:tabletest-junit as a test dependency
 - ✅ **compiles**: The generated test code compiles successfully against the project scaffolding
 

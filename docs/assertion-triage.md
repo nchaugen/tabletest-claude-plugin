@@ -152,6 +152,26 @@ grader noise, which the reference probe measured at zero where it can be measure
 
 ## Mechanical — convert to checkers
 
+**Done 2026-08-18 — `scenario-names-describe-conditions` on eval-7** (`eaa1cc1` checker,
+`iteration-88` regrade). The assertion's decidable test is two rules: a name that paraphrases a value
+in an expectation column of *its own row*, and a generic label (`Test 1`) that names no variation.
+Both are countable; what is *not* derivable is the paraphrase vocabulary — `false` is echoed by
+"cannot", `REJECTED` by "rejects", a bonus of `0` by "gets no bonus" — so the checker carries one
+vocabulary per eval slug and **fails loudly for an eval that has none**, rather than grading a new
+domain against another's words ([[deterministic-checkers-rot-silently]]). The same vocabularies feed
+`shape-relations.js`, so the checker and the mechanical relation cannot drift apart.
+
+**It was converted for accuracy, not for cost.** Over eval-7's 11 stored draws the checker reproduces
+the grader on 10 and disagrees on `iteration-52`, where the grader passed
+`"Admin can perform any action"` beside `Allowed? = true` — the assertion's own worked FAIL example,
+and character-identical to the tables it failed in `iteration-45` and `iteration-88`. That is the
+false pass the slot was known for. The regrade cost **$0.0094** and eval-7 holds at 11/12; the flip
+re-fingerprints eval-7 to `3f6d30eeac0a`, and `check-baseline` reports all 14 evals live.
+
+**Next two, in order: eval-14 and eval-22** — both agree with their relation on every stored draw
+(153 and 108 comparisons). Neither hosts this assertion, so each needs its own conversion candidate
+chosen from its own 100%-agreeing slots.
+
 - **`rule-statable-from-table`, clause (1)** — "a value needed to predict the expectation appears
   only in the method body". Extract numeric and string literals from the method body and test
   membership in the table text, `@DisplayName`, and `@Description`. This is the highest-value
