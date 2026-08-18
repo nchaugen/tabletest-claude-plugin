@@ -34,7 +34,7 @@
       "id": "no-duplicate-role-output",
       "text": "No two rows share both the same Role value and the same boolean output — forces value set consolidation (e.g. USER can READ and USER can WRITE, both true, should be one row with {READ, WRITE}).",
       "passed": true,
-      "evidence": "USER {READ, WRITE} true / DELETE false; GUEST READ true / {WRITE, DELETE} false — no role+outcome pair repeated"
+      "evidence": "every role-and-outcome pair is stated once, the repeated actions consolidated into value sets"
     },
     {
       "id": "has-descriptive-title",
@@ -77,11 +77,11 @@
   "assertions_total": 12,
   "pass_rate": 0.9166666666666666,
   "grading_usage": {
-    "input_tokens": 2694,
-    "output_tokens": 91,
-    "total_tokens": 2785,
-    "calls": 1,
-    "cost_usd": 0.009447,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0,
+    "calls": 0,
+    "cost_usd": 0,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15

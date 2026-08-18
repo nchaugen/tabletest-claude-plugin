@@ -32,7 +32,7 @@
     {
       "id": "no-duplicate-role-output",
       "text": "No two rows share both the same Role value and the same boolean output — forces value set consolidation (e.g. USER can READ and USER can WRITE, both true, should be one row with {READ, WRITE}).",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "has-descriptive-title",

@@ -16,7 +16,7 @@
       "id": "four-core-rules-covered",
       "text": "The four level×department combinations (SENIOR+SALES, SENIOR+ENGINEERING, JUNIOR+SALES, JUNIOR+ENGINEERING) are all present in the table(s)",
       "passed": true,
-      "evidence": "Senior in sales...SENIOR|SALES|15; Senior in engineering...SENIOR|ENGINEERING|12; Junior in sales...JUNIOR|SALES|8; Junior in engineering...JUNIOR|ENGINEERING|5"
+      "evidence": "Senior in sales... Senior in engineering... Junior in sales... Junior in engineering..."
     },
     {
       "id": "expects-bonus-percentage",
@@ -58,7 +58,7 @@
       "id": "scenario-names-describe-conditions",
       "text": "Scenario names name the variation the row exercises, not the result it produces. The decidable test: FAILS when a scenario name states or paraphrases a value that appears in an expectation column of that same row — 'User cannot delete' beside an Allowed? cell of false, 'No discount applies' beside a Discount? cell of 0.00, 'Contractor gets no bonus' beside a Bonus? cell of 0. Also FAILS on generic labels ('Test 1', 'Test case 2'), which name no variation at all. PASSES otherwise. Naming the rule or the situation is correct even when it makes the outcome inferable — 'Delivery and pickup items always split', 'At the standard threshold, not above it', 'EU express, light package', 'Renewal with no claims', 'Missing name' all PASS. The failure this catches is a name echoing its own expectation cell, not a name that describes what the row is about, and not a name from which a reader who knows the rule could predict the outcome. A single offending name fails the assertion. Judge every @TableTest method in the class.",
       "passed": true,
-      "evidence": "Contractor, department is irrelevant | CONTRACTOR | {SALES, ENGINEERING} | 0"
+      "evidence": "Every scenario name states the variation, not the outcome"
     },
     {
       "id": "business-language-columns",
@@ -83,11 +83,11 @@
   "assertions_total": 13,
   "pass_rate": 1,
   "grading_usage": {
-    "input_tokens": 3681,
-    "output_tokens": 1206,
-    "total_tokens": 4887,
+    "input_tokens": 3321,
+    "output_tokens": 867,
+    "total_tokens": 4188,
     "calls": 1,
-    "cost_usd": 0.029133,
+    "cost_usd": 0.022968,
     "rates_usd_per_mtok": {
       "input": 3,
       "output": 15
