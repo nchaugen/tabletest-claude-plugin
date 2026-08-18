@@ -12,6 +12,7 @@ const {
   parseArgs,
   storedDraws,
   sutParameterNames,
+  selfGradedAssertions,
 } = require("./shape-report.js");
 
 describe("sutParameterNames", () => {
@@ -108,5 +109,28 @@ describe("gradesAnOlderSource", () => {
   test("says nothing when the grading is the newer file, which is the ordinary case", () => {
     const { grading, sources } = draw("graded-after", 5_000, 0);
     assert.equal(gradesAnOlderSource(grading, sources), false);
+  });
+});
+
+describe("selfGradedAssertions", () => {
+  test("names the assertions the eval now grades with its own relation", () => {
+    const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "self-graded-"));
+    fs.writeFileSync(
+      path.join(scratch, "eval.json"),
+      JSON.stringify({
+        assertions: [
+          { id: "converted", type: "deterministic" },
+          { id: "still-judged", type: "llm" },
+          { id: "untyped-is-llm" },
+        ],
+      }),
+    );
+    const converted = selfGradedAssertions(scratch);
+    assert.deepEqual([...converted], ["converted"]);
+  });
+
+  test("returns nothing for a directory with no eval definition", () => {
+    const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "self-graded-"));
+    assert.equal(selfGradedAssertions(scratch).size, 0);
   });
 });

@@ -127,6 +127,21 @@ function gradesAnOlderSource(gradingPath, sources) {
   return newestSource - graded > SAME_RUN_MS;
 }
 
+/**
+ * Assertion ids this eval now grades with the relation below, read from its `eval.json`.
+ *
+ * Once a slot is converted, the stored verdict *is* the relation's own output, so counting it as
+ * agreement would compare the instrument with itself and inflate the headline a little more with
+ * every conversion. Those slots are excluded from the figure and reported separately, with the
+ * comparisons they contributed while the grader still judged them.
+ */
+function selfGradedAssertions(evalDirectory) {
+  const definition = path.join(evalDirectory, "eval.json");
+  if (!fs.existsSync(definition)) return new Set();
+  const assertions = JSON.parse(fs.readFileSync(definition, "utf8")).assertions || [];
+  return new Set(assertions.filter((one) => one.type === "deterministic").map((one) => one.id));
+}
+
 /** One draw: its answer source, the grader's verdicts, and the skill state it was generated at. */
 function readDraw(label, dir, iterationDir, isReference) {
   const sources = findFiles(path.join(dir, "outputs"), /\.(java|kt)$/);
@@ -199,12 +214,12 @@ function renderPanel(draws, evaluations, relations) {
  * this cannot read, so a divergence there says nothing about either side. They are reported
  * separately by `advisoryDivergences` rather than counted.
  */
-function disagreements(draws, evaluations) {
+function disagreements(draws, evaluations, selfGraded = new Set()) {
   const found = [];
   draws.forEach((draw, index) => {
     if (draw.staleGrading) return;
     for (const row of evaluations[index]) {
-      if (row.agrees === false && !row.advisory) found.push({ draw: draw.label, ...row });
+      if (row.agrees === false && !row.advisory && !selfGraded.has(row.id)) found.push({ draw: draw.label, ...row });
     }
   });
   return found;
@@ -251,6 +266,7 @@ function main() {
     console.error(`No stored draws with an answer for ${slug}`);
     process.exit(2);
   }
+  const selfGraded = selfGradedAssertions(dir);
   const context = { sutParameters: sutParameterNames(dir, authored.call) };
   const evaluations = draws.map((draw) => evaluateDraw(draw, relations, context));
 
@@ -285,11 +301,11 @@ function main() {
     );
   }
 
-  const conflicts = disagreements(draws, evaluations);
+  const conflicts = disagreements(draws, evaluations, selfGraded);
   const counted = evaluations
     .filter((_, index) => !draws[index].staleGrading)
     .flat()
-    .filter((row) => row.graded !== null && !row.advisory);
+    .filter((row) => row.graded !== null && !row.advisory && !selfGraded.has(row.id));
   const agreed = counted.filter((row) => row.agrees).length;
   console.log(
     `\n${agreed} of ${counted.length} graded comparisons agree (${Math.round((100 * agreed) / Math.max(counted.length, 1))}%),` +
@@ -297,6 +313,16 @@ function main() {
   );
   for (const one of conflicts) {
     console.log(`  ${one.draw} ${one.id}: mechanical ${mark(one.holds)}, grader ${mark(one.graded)} — ${one.evidence}`);
+  }
+
+  const converted = [...selfGraded].filter((id) => relations.some((relation) => relation.id === id));
+  if (converted.length > 0) {
+    console.log(`\n${converted.length} slot(s) now graded by the relation below, so excluded from that figure:`);
+    for (const id of converted) {
+      const rows = evaluations.flat().filter((row) => row.id === id && row.graded !== null);
+      const agreeing = rows.filter((row) => row.agrees).length;
+      console.log(`  ${id}: ${agreeing} of ${rows.length} stored comparisons agree, the grader's among them`);
+    }
   }
 
   const advisory = advisoryDivergences(draws.filter((draw) => !draw.staleGrading), evaluations.filter((_, index) => !draws[index].staleGrading));
@@ -322,6 +348,7 @@ module.exports = {
   disagreements,
   evalDir,
   evaluateDraw,
+  selfGradedAssertions,
   findFiles,
   parseArgs,
   storedDraws,
