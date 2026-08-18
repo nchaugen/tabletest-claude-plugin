@@ -18,7 +18,7 @@
     {
       "id": "2.2-children-flat-discount",
       "text": "Children's flat 20% discount is represented — as a row wherever the discount that applies is decided, or a separate note. It does not follow the ladder. Judge wherever that rule is stated, not in a table with a particular name.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "2.3-depth-tier-boundaries",
@@ -38,7 +38,7 @@
     {
       "id": "period-ticket-excluded-from-count",
       "text": "A past purchase that is not a single ticket is shown by row not to count toward the travel count. FAILS when period tickets appear only where the discount for the purchase being made is decided, and never in the rule that decides whether a past purchase counts. Judge wherever countability is decided, not in a table with a particular name.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "count-derived-from-raw-history",
@@ -53,7 +53,7 @@
     {
       "id": "2.15-ticket-count-uses-value-sets",
       "text": "The discount ladder table uses value sets for the ticket count column to group counts within the same tier (e.g. {5, 6, 7, 8, 9} or {5, 9} for min/max → 5%) — not one row per boundary value. The 'every fifth trip' rule creates tiers; the table should express tiers, not enumerate boundaries.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "2.16-no-duplicate-tier-mapping",
@@ -88,22 +88,22 @@
     {
       "id": "2.17-zone-irrelevance-visible",
       "text": "Wherever the discount percentage is decided, a Zone column (or equivalent) carries a value set showing that the discount applies regardless of zone — rather than silently omitting zone. The requirement explicitly says 'regardless of the zones you travel in'. Judge wherever that rule is stated, not in a table with a particular name. This is about the percentage, not about counting, which zone-independent-counting covers.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "zone-independent-counting",
       "text": "The rolling-window counting concern shows by row that a past purchase's zone does not affect whether it counts toward the travel count — for example history entries whose zones differ (or a zone value set) reaching the same count. The claim must be exercised by data: stating it only in @Description, or fixing every history entry to a single zone in the test or a converter, FAILS. This is about counting, not about the discount percentage, which zone-irrelevance-visible covers.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "2.18-adult-senior-value-set",
       "text": "Adult and senior are expressed as a value set {ADULT, SENIOR} (or equivalent) in at least one row wherever traveller category appears, since they follow identical discount rules. Not enumerated as separate rows with the same outcome. Judge wherever traveller category is stated, not in a table with a particular name.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "2.19-depth-all-tiers",
       "text": "All 9 discount tiers are represented in the ladder table: 0% (tickets 1-4), 5% (5-9), 10% (10-14), 15% (15-19), 20% (20-24), 25% (25-29), 30% (30-34), 35% (35-39), and 40% (40+). Not just a subset of tiers.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "2.20-readability-one-row-per-tier",
@@ -113,7 +113,7 @@
     {
       "id": "2.21-readability-relative-time",
       "text": "The rolling window table expresses time relatively (e.g. '14 days ago', '30 days ago', or an integer 'Days ago' column) rather than using absolute dates, making the table readable without needing to know the reference date.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "concerns-decomposed",

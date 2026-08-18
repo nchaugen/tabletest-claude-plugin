@@ -233,7 +233,27 @@ evaluates every eval-18 relation through both paths and asserts the same verdict
 *the computation that decides a slot is convertible and the computation that grades it must be the
 same one.*
 
-**Next: eval-22's remaining slots- **`rule-statable-from-table`, clause (1)** — "a value needed to predict the expectation appears
+**eval-15's eight slots converted 2026-08-18** — `2.2-children-flat-discount`,
+`period-ticket-excluded-from-count`, `2.15-ticket-count-uses-value-sets`,
+`2.17-zone-irrelevance-visible`, `zone-independent-counting`, `2.18-adult-senior-value-set`,
+`2.19-depth-all-tiers` and `2.21-readability-relative-time`. Seven agree on all 19 stored draws and
+one on all 14, every one of them in both directions; four sit near a coin flip on the grader
+(`2.15` 10P/9F, `2.17` and `zone-independent-counting` 7P/12F, `2.21` 11P/8F). **This round was
+bought for cost and permanence, not for stability** — eval-15's ±6-slot spread between identical
+skill states is generation variance, and taking slots off the grader does not narrow it
+([[eval-15-run-variance-is-six-slots]]). The `iteration-91` regrade cost **$0.30**, all eight held
+their stored verdicts, and eval-15 re-fingerprints to `17f58e9115b2`. **Two slots still on the
+grader moved on that same stored answer** — `rule-statable-from-table` F→P and
+`held-constants-declared` P→F, cancelling at 27/34 — which is the eval-14 lesson repeating on a
+second host.
+
+The suite now stands at **140 deterministic, 174 LLM, 17 build**.
+
+**Next: six slots across evals 23, 25, 29 and 30**, one or two each, and each needs that eval's
+disagreements diagnosed first. Nothing is convertible on evals 2, 7, 8, 9, 15, 18, 20 or 22 today —
+every remaining slot there is one-directional, too-few, advisory, or disagrees.
+
+- **`rule-statable-from-table`, clause (1)** — "a value needed to predict the expectation appears
   only in the method body". Extract numeric and string literals from the method body and test
   membership in the table text, `@DisplayName`, and `@Description`. This is the highest-value
   conversion in the list: the assertion has surfaced as unstable in four separate probes, and this
