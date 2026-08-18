@@ -213,10 +213,27 @@ grades describes the wrong code. `one-directional` is the rule that earns its ke
 slots agreeing on every draw and **not one is convertible**, because the grader has never once failed
 them, so their agreement says nothing about what the relation would catch.
 
-**Next: eval-22's remaining slots and the other seven evals.** Nothing is convertible on evals 2, 7,
-9, 20 or 22 today — every remaining slot there is one-directional, too-few, or advisory.
+**eval-18's four premium slots converted 2026-08-18** — `premium-age-is-banded`,
+`premium-claim-effect-varies-by-band`, `premium-charge-is-per-claim` and `premium-claim-boundary`.
+**These are § B's own repair target**, so the next repair is now measured by a deterministic reading
+rather than by a grader whose record on the cluster is 1-of-5 and 2-of-5. The evidence is what a
+grader could never emit: *"no triple; claims by age 5:[5] 30:[2] 40:[0,1] 64:[0] 65:[0]"*. Three of
+the four rest on only **5 stored comparisons** — the thinnest set converted so far, because the
+premium assertions were added on 2026-08-09 — so the independent check that they pass the reference
+answer, pinned as a test, is doing real work here.
 
-- **`rule-statable-from-table`, clause (1)** — "a value needed to predict the expectation appears
+**A bug this conversion exposed, worth the paragraph.** The bridge evaluated `relation.evaluate(shape)`
+while five of eval-18's relations take `(shape, context)` and read the system under test's parameter
+names from it. Graded without it, `premium-claim-boundary` returned FAIL against a stored PASS — a
+wrong verdict with nothing reporting it. Only eval-18 was affected; every other converted relation
+takes one argument. **What caught it was the regrade's moved-verdict list**, and what made it
+diagnosable in minutes was that `conversion-candidates.js` had said 8/8 for that slot: the tool and
+the grading path disagreed, so one of them was wrong. **They are now pinned to agree** — a test
+evaluates every eval-18 relation through both paths and asserts the same verdict. The general rule:
+*the computation that decides a slot is convertible and the computation that grades it must be the
+same one.*
+
+**Next: eval-22's remaining slots- **`rule-statable-from-table`, clause (1)** — "a value needed to predict the expectation appears
   only in the method body". Extract numeric and string literals from the method body and test
   membership in the table text, `@DisplayName`, and `@Description`. This is the highest-value
   conversion in the list: the assertion has surfaced as unstable in four separate probes, and this
