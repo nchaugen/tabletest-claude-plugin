@@ -3839,7 +3839,7 @@ function duplicateFormatRows(shape) {
       const expectation = table.expectationColumns
         .map((column) => String(row.cells[column.index] ?? "").trim())
         .join(" | ");
-      const key = `${kind} ${expectation}`;
+      const key = `${kind}\u0000${expectation}`;
       if (seen.has(key)) found.push({ method: table.method, row: index + 1, kind, first: seen.get(key) });
       else seen.set(key, index + 1);
     });
@@ -3853,7 +3853,7 @@ function rowClaims(table) {
   if (!input) return [];
   return table.rows.map((row) =>
     [String(row.cells[input.index] ?? "").trim(), ...table.expectationColumns.map((column) => String(row.cells[column.index] ?? "").trim())].join(
-      " ",
+      "\u0000",
     ),
   );
 }
@@ -4378,7 +4378,7 @@ function untraceableRows(shape) {
         const optional = eval20Optional(inputs.optional, one);
         if (category === undefined || optional === undefined) continue;
         const permitted = permittedKeptLists(tags, category, optional);
-        if (permitted.some((list) => list.join(" ") === expected.join(" "))) continue;
+        if (permitted.some((list) => list.join("\u0000") === expected.join("\u0000"))) continue;
         found.push({
           method: table.method,
           row: index + 1,
