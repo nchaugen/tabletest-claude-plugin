@@ -139,10 +139,14 @@ function countDataRows(content) {
  * Split a table row into the cells its pipes actually separate.
  *
  * `split("|")` shreds exactly the values these checkers exist to judge: the pipe in
- * `"tech:milestone|v2"` is data, not a separator. Depth tracks `[]`/`{}`, quotes suppress
- * everything inside them, and **blank cells are preserved** — dropping them, as the older
- * `filter(c => c.length > 0)` idiom does, silently changes a row's shape and hides the
- * blank-cell defects outright.
+ * `"tech:milestone|v2"` is data, not a separator. Depth tracks `[]`/`{}`, and **blank cells are
+ * preserved** — dropping them, as the older `filter(c => c.length > 0)` idiom does, silently
+ * changes a row's shape and hides the blank-cell defects outright.
+ *
+ * **A quote opens a quoted region only at the start of a value**, which is TableTest's own rule
+ * (USERGUIDE § quoting). Opening one at any `'` made an apostrophe inside a scenario name swallow
+ * the rest of its row: `Adult's discount | ADULT | 5` came back as a single cell, and a swallowed
+ * row is not checked at all — a false pass on the quoting family eval-20 exists to measure.
  */
 function splitRowCells(line) {
   const cells = [];
@@ -150,25 +154,25 @@ function splitRowCells(line) {
   let depth = 0;
   let quote = null;
 
-  for (const ch of line) {
+  for (const character of String(line)) {
     if (quote) {
-      if (ch === quote) quote = null;
-      current += ch;
-    } else if (ch === '"' || ch === "'") {
-      quote = ch;
-      current += ch;
-    } else if (ch === "[" || ch === "{") {
-      depth++;
-      current += ch;
-    } else if (ch === "]" || ch === "}") {
-      depth--;
-      current += ch;
-    } else if (ch === "|" && depth === 0) {
+      current += character;
+      if (character === quote) quote = null;
+      continue;
+    }
+    if ((character === '"' || character === "'") && current.trim() === "") {
+      quote = character;
+      current += character;
+      continue;
+    }
+    if (character === "[" || character === "{") depth++;
+    else if (character === "]" || character === "}") depth--;
+    if (character === "|" && depth === 0) {
       cells.push(current.trim());
       current = "";
-    } else {
-      current += ch;
+      continue;
     }
+    current += character;
   }
   cells.push(current.trim());
   return cells;

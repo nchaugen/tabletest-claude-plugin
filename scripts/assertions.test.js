@@ -205,6 +205,14 @@ describe("table cell tokenizer", () => {
     assert.deepEqual(splitRowCells("No optional set |  | [a]"), ["No optional set", "", "[a]"]);
   });
 
+  test("treats an apostrophe inside a value as an ordinary character", () => {
+    assert.deepEqual(splitRowCells("Adult's discount | ADULT | 5"), ["Adult's discount", "ADULT", "5"]);
+  });
+
+  test("still quotes a value that opens with a quote", () => {
+    assert.deepEqual(splitRowCells("Pipe in a quoted cell | 'a|b' | 2"), ["Pipe in a quoted cell", "'a|b'", "2"]);
+  });
+
   test("splits collection elements on commas at the collection's own depth", () => {
     assert.deepEqual(parseCollectionElements('["a, still one", b]'), ['"a, still one"', "b"]);
     assert.deepEqual(parseCollectionElements("[[a, b], [c]]"), ["[a, b]", "[c]"]);
