@@ -1,0 +1,78 @@
+{
+  "skill_name": "tabletest (next)",
+  "iteration": 2,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5",
+  "grading_effort": null,
+  "skill_commit": "01b9d2451f5d63b9af84dcb0ec64eca0db85b6b5",
+  "skill_digest": "65e2554848506ec5",
+  "generation_auth": "subscription",
+  "timestamp": "2026-08-18T19:48:59.109Z",
+  "evals": [
+    {
+      "id": "eval-18-convert-from-code",
+      "name": "convert from code",
+      "skill": "tabletest",
+      "fingerprint": "a653c82435a6",
+      "results": {
+        "model": "claude-sonnet-5",
+        "assertions_passed": 23,
+        "assertions_total": 34,
+        "pass_rate": 0.6764705882352942,
+        "failed_assertions": [
+          "concerns-decomposed",
+          "no-duplicate-rows-within-a-table",
+          "separates-decision-and-premium",
+          "description-no-internals",
+          "decision-claim-cliff",
+          "decision-cliff-independent-of-age",
+          "rule-statable-from-table",
+          "row-values-traceable-to-requirement",
+          "premium-charge-is-per-claim",
+          "premium-claim-effect-varies-by-band",
+          "premium-age-is-banded"
+        ],
+        "total_tokens": 970628,
+        "duration_ms": 180840,
+        "cost_usd": 0.8870925999999999,
+        "grading_usage": {
+          "input_tokens": 17342,
+          "output_tokens": 13869,
+          "total_tokens": 31211,
+          "calls": 2,
+          "cost_usd": 0.260061,
+          "rates_usd_per_mtok": {
+            "input": 3,
+            "output": 15
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 23,
+    "assertions_total": 34,
+    "pass_rate": 0.6764705882352942,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 970628,
+    "total_duration_ms": 180840,
+    "total_cost_usd": 0.8870925999999999,
+    "grading": {
+      "input_tokens": 17342,
+      "output_tokens": 13869,
+      "total_tokens": 31211,
+      "calls": 2,
+      "cost_usd": 0.260061,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 3,
+        "output": 15
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5",
+  "cost_basis": "cli-list-price-estimate"
+}
