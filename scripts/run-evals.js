@@ -6,6 +6,7 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const { checkers } = require("./assertions");
+const { relationChecker, hasRelationChecker } = require("./relation-checkers.js");
 
 function findFiles(dir, pattern) {
   const results = [];
@@ -1823,10 +1824,16 @@ function loadOutputFiles(evalDir) {
   return files;
 }
 
-function runDeterministicAssertions(assertions, fileContent, allFiles, evalSlug) {
+function runDeterministicAssertions(assertions, fileContent, allFiles, evalSlug, evalNumber) {
   const results = [];
   for (const a of assertions) {
-    const checker = checkers[a.id];
+    // A hand-written checker wins where one exists; otherwise the assertion is graded by the
+    // relation written to measure it, which is what makes a conversion a one-line eval.json flip.
+    const checker =
+      checkers[a.id] ||
+      (hasRelationChecker(a.id, evalNumber)
+        ? ({ fileContent: source }) => relationChecker(a.id, evalNumber, source)
+        : null);
     if (!checker) {
       results.push({ id: a.id, text: a.text, passed: false, evidence: `No deterministic checker for "${a.id}"` });
       continue;
@@ -1966,7 +1973,7 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, prov
   // Run deterministic assertions
   const deterministicResults = gated
     ? deterministicAssertions.map(gate)
-    : runDeterministicAssertions(deterministicAssertions, fileContent, allFiles, evalDef.slug);
+    : runDeterministicAssertions(deterministicAssertions, fileContent, allFiles, evalDef.slug, evalDef.id);
 
   // Run build assertions
   const buildResults = gated
