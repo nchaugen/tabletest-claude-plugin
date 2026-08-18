@@ -247,11 +247,25 @@ grader moved on that same stored answer** — `rule-statable-from-table` F→P a
 `held-constants-declared` P→F, cancelling at 27/34 — which is the eval-14 lesson repeating on a
 second host.
 
-The suite now stands at **140 deterministic, 174 LLM, 17 build**.
+**Five more converted the same day, closing the list** — eval-23's
+`scenario-names-describe-conditions` (9/9, hand-written checker), eval-25's `dimensions-as-list`
+and `options-type-converter` (12/12 each), eval-30's `native-collection-output` and
+`assertion-criteria-declared` (13/13 each). All five hold in both directions. The regrades cost
+**$0.36** (`iteration-81`, eval-23) and **$0.89** (`iteration-89`, evals 25 and 30); every converted
+slot held its stored verdict, and four slots still on the grader moved on unchanged answers —
+eval-23's `no-duplicate-rows-within-a-table` P→F, eval-25's `rule-statable-from-table` F→P,
+eval-30's `no-duplicate-rows-within-a-table` P→F and `scenario-names-describe-conditions` P→F.
 
-**Next: six slots across evals 23, 25, 29 and 30**, one or two each, and each needs that eval's
-disagreements diagnosed first. Nothing is convertible on evals 2, 7, 8, 9, 15, 18, 20 or 22 today —
-every remaining slot there is one-directional, too-few, advisory, or disagrees.
+**eval-29's `native-collection-output` is the one candidate left, and it is held back.** It agrees
+2 of 2, the thinnest set the tool has ever ranked convertible, because its other ten draws fall into
+the advisory halves. The enumerating-message boundary is undrawn on this eval — 5 of 11 draws write
+one message covering several shortfalls and the assertion says nothing about where one message
+becomes several. Draw that boundary in the assertion text first; converting now would freeze a
+reading the text does not carry.
+
+The suite now stands at **145 deterministic, 169 LLM, 17 build**. **Nothing else is convertible
+today** across all fourteen evals — every remaining slot is one-directional, too-few, advisory, or
+disagrees. The next candidates come from writing relations for slots that have none.
 
 - **`rule-statable-from-table`, clause (1)** — "a value needed to predict the expectation appears
   only in the method body". Extract numeric and string literals from the method body and test

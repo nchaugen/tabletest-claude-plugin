@@ -18,12 +18,12 @@
     {
       "id": "options-type-converter",
       "text": "A @TypeConverter method is present that accepts Map<String, String> (or similar) and returns PackageOptions, applying defaults for missing keys.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "dimensions-as-list",
       "text": "Dimensions are represented as a [L, W, H] list in the table — not as three separate length/width/height columns",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "uses-value-sets",

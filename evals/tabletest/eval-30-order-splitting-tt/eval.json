@@ -71,7 +71,7 @@
     },
     {
       "id": "native-collection-output",
-      "type": "llm",
+      "type": "deterministic",
       "text": "Judge the expectation columns only — the '?'-suffixed result columns. Input columns are out of scope and can never fail this assertion, including an input whose cells carry a compact per-item shorthand that a @TypeConverter parses ('camera:DELIVERY:Addr-A'): that shorthand is a sanctioned input form here, whatever separator it uses. A compound output — a collection of items, or items keyed by a tag — is expressed as a native TableTest list, map, or set (possibly nested, e.g. [[a, b], [c]] or [W1: [a, b]]), not as a hand-rolled string that encodes the structure with embedded brackets or colons (e.g. \"W1:[a,b]\") and is assembled or parsed by a helper. FAILS when an expectation cell packs multiple values into one quoted scalar that the test builds via a stringifying helper. PASSES when the output column is a native collection — sets for order-independent semantics, or ordered lists/maps with a canonical sort. Scalar outputs (a number, an enum, or a single message) are exempt. Your evidence must name each expectation column and its verdict."
     },
     {
@@ -132,7 +132,7 @@
     {
       "id": "assertion-criteria-declared",
       "text": "A comparison criterion applied by the assertion must be stated on the published surface — the table, the @DisplayName, or the @Description. FAILS when a helper or the assertion body applies ordering (sorting either side before comparing), a numeric tolerance, subset or 'contains' matching, or normalisation of the actual or expected value, and no column, title or description says so. Such a criterion is a rule the test enforces and no table claims: a reader cannot tell whether order is part of the behaviour or an artefact of the comparison. PASSES when each such criterion is named — a description sentence ('the expected column lists substrings the message must contain', 'shipments are compared without regard to order') or a column that makes it evident — and passes when the assertion is a plain equality on the values the columns name. Constructing the objects the columns name is not a criterion. The title is the @DisplayName, or the method name it falls back to, with camelCase split into words. A conventional floating-point epsilon (an assertEquals delta of the order of 0.001 on a decimal column, or BigDecimal.compareTo) is numeric hygiene, not a rule, and is exempt. What this assertion is for is a criterion that changes which behaviours the test would accept — ordering, subset matching, normalisation — since those are rules the test enforces while no table claims them.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "titles-form-a-family",
