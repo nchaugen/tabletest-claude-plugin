@@ -92,12 +92,12 @@
     {
       "id": "descriptive-registration-date",
       "text": "Registration date uses descriptive values (e.g. 'before cutoff', 'on cutoff', 'after cutoff') with a @TypeConverter method converting to actual dates — not raw date literals like '2025-02-28'. Readability over precision.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "cutoff-date-column-if-literal-dates",
       "text": "If registration dates are literal (e.g. '2025-02-28' instead of descriptive), the early-bird cutoff date appears as a separate policy column so the reader can see both dates and verify the comparison. Passes automatically if descriptive date values are used.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "description-no-irrelevant-information",

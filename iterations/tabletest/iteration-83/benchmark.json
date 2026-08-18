@@ -8,31 +8,30 @@
   "skill_commit": "501c4d058b25facdc96a1698d3e5d6490dd4c069",
   "skill_digest": "1a587c9bf7c69511",
   "generation_auth": "subscription",
-  "timestamp": "2026-08-16T23:15:02.060Z",
+  "timestamp": "2026-08-18T18:36:54.886Z",
   "evals": [
     {
       "id": "eval-22-event-registration-tt",
       "name": "event registration tt",
       "skill": "tabletest",
-      "fingerprint": "97fe4a0a3ec0",
+      "fingerprint": "2e06294f893a",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 28,
+        "assertions_passed": 29,
         "assertions_total": 30,
-        "pass_rate": 0.9333333333333333,
+        "pass_rate": 0.9666666666666667,
         "failed_assertions": [
-          "no-duplicate-rows-within-a-table",
           "descriptive-registration-date"
         ],
         "total_tokens": 1111762,
         "duration_ms": 219599,
         "cost_usd": 1.0144958999999998,
         "grading_usage": {
-          "input_tokens": 17759,
-          "output_tokens": 8582,
-          "total_tokens": 26341,
+          "input_tokens": 17564,
+          "output_tokens": 10376,
+          "total_tokens": 27940,
           "calls": 2,
-          "cost_usd": 0.182007,
+          "cost_usd": 0.208332,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -42,20 +41,20 @@
     }
   ],
   "summary": {
-    "assertions_passed": 28,
+    "assertions_passed": 29,
     "assertions_total": 30,
-    "pass_rate": 0.9333333333333333,
+    "pass_rate": 0.9666666666666667,
     "errored_evals": [],
     "truncated_evals": [],
     "total_tokens": 1111762,
     "total_duration_ms": 219599,
     "total_cost_usd": 1.0144958999999998,
     "grading": {
-      "input_tokens": 17759,
-      "output_tokens": 8582,
-      "total_tokens": 26341,
+      "input_tokens": 17564,
+      "output_tokens": 10376,
+      "total_tokens": 27940,
       "calls": 2,
-      "cost_usd": 0.182007,
+      "cost_usd": 0.208332,
       "evals_measured": 1,
       "rates_usd_per_mtok": {
         "input": 3,
