@@ -209,6 +209,14 @@ describe("table cell tokenizer", () => {
     assert.deepEqual(splitRowCells("Adult's discount | ADULT | 5"), ["Adult's discount", "ADULT", "5"]);
   });
 
+  test("splits a row whose scenario name ends in a possessive plural", () => {
+    assert.deepEqual(splitRowCells("Correction exceeds the categories' pay | -100 | 0"), [
+      "Correction exceeds the categories' pay",
+      "-100",
+      "0",
+    ]);
+  });
+
   test("still quotes a value that opens with a quote", () => {
     assert.deepEqual(splitRowCells("Pipe in a quoted cell | 'a|b' | 2"), ["Pipe in a quoted cell", "'a|b'", "2"]);
   });

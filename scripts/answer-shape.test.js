@@ -7,34 +7,7 @@ const {
   constantExpectationColumns,
   findColumn,
   numericValue,
-  splitCells,
 } = require("./answer-shape.js");
-
-describe("splitCells", () => {
-  test("treats an apostrophe inside a value as an ordinary character", () => {
-    assert.deepEqual(splitCells("Adult's discount | ADULT | 5"), ["Adult's discount", "ADULT", "5"]);
-  });
-
-  test("splits a row whose scenario name ends in a possessive plural", () => {
-    assert.deepEqual(splitCells("Correction exceeds the categories' pay | -100 | 0"), [
-      "Correction exceeds the categories' pay",
-      "-100",
-      "0",
-    ]);
-  });
-
-  test("still honours a quote that opens a value, so a quoted pipe is not a separator", () => {
-    assert.deepEqual(splitCells('a | "b|c" | d'), ["a", '"b|c"', "d"]);
-  });
-
-  test("does not split inside a collection", () => {
-    assert.deepEqual(splitCells('tags | ["a:1", "b:2"] | 3'), ["tags", '["a:1", "b:2"]', "3"]);
-  });
-
-  test("keeps a blank cell blank", () => {
-    assert.deepEqual(splitCells("No hours worked |  |  | 10"), ["No hours worked", "", "", "10"]);
-  });
-});
 
 /** A table with a scenario column, one value set, and two expectation columns. */
 const twoConcerns = `

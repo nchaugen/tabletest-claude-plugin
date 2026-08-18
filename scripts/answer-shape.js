@@ -11,17 +11,18 @@
  * the shape (`shape-report.js`), so that widening to a second eval adds relations rather than
  * touching extraction.
  *
- * Extraction shares `assertions.js`'s parsing everywhere it can, because a shape that disagreed
- * with the checkers about where a column ends would make every comparison between them
- * unreadable. **It splits cells itself, and only for this reason:** `splitRowCells` opens a quoted
- * region at any `'`, while TableTest gives a quote meaning *only at the start of a value*
- * (USERGUIDE § quoting), so `Adult's discount | ADULT | 5` collapses into one cell there. That
- * drops 11 rows across the stored corpus, including one in eval-15's iteration-91. The shared
- * splitter is not fixed here because it grades runs and the closing run must measure one
- * instrument; when it is fixed, delete `splitCells` and go back to sharing.
+ * Extraction shares `assertions.js`'s parsing throughout, because a shape that disagreed with the
+ * checkers about where a column ends would make every comparison between them unreadable. It
+ * split cells itself for one release, while `splitRowCells` still opened a quoted region at any
+ * `'`; that is fixed at the source (`9a15c6a`) and the quarantine is gone.
  */
 
-const { parseCollectionElements, extractTableTestMethodBodies, parseParameterList } = require("./assertions.js");
+const {
+  parseCollectionElements,
+  extractTableTestMethodBodies,
+  parseParameterList,
+  splitRowCells,
+} = require("./assertions.js");
 
 /**
  * Parameter types whose cell braces are the value itself. Everything else with braces is a
@@ -32,44 +33,6 @@ const SET_TYPE = /^(?:java\.util\.)?(?:Set|HashSet|LinkedHashSet|MutableSet)\b/;
 /** A header ending in `?` is an expectation column — TableTest's own convention. */
 function isExpectationHeader(header) {
   return /\?$/.test(String(header).trim());
-}
-
-/**
- * The cells of one table line, split on the pipes that separate values.
- *
- * A quote opens a quoted region only at the start of a value, which is TableTest's own rule: an
- * apostrophe inside a scenario name is an ordinary character, so `Adult's discount | ADULT | 5`
- * is three cells. Brackets and braces still nest, so a pipe inside a collection is not a
- * separator.
- */
-function splitCells(line) {
-  const cells = [];
-  let current = "";
-  let depth = 0;
-  let quote = null;
-
-  for (const character of String(line)) {
-    if (quote) {
-      current += character;
-      if (character === quote) quote = null;
-      continue;
-    }
-    if ((character === '"' || character === "'") && current.trim() === "") {
-      quote = character;
-      current += character;
-      continue;
-    }
-    if (character === "[" || character === "{") depth++;
-    else if (character === "]" || character === "}") depth--;
-    if (character === "|" && depth === 0) {
-      cells.push(current.trim());
-      current = "";
-      continue;
-    }
-    current += character;
-  }
-  cells.push(current.trim());
-  return cells;
 }
 
 /**
@@ -133,8 +96,8 @@ function tableRows(text) {
     .filter((line) => line.length > 0 && line.includes("|"));
   if (lines.length === 0) return { headers: [], rows: [] };
 
-  let headers = splitCells(lines[0]);
-  let rows = lines.slice(1).map(splitCells);
+  let headers = splitRowCells(lines[0]);
+  let rows = lines.slice(1).map(splitRowCells);
   const dropLeading = headers.length > 1 && headers[0] === "" && lines[0].trimStart().startsWith("|");
   const dropTrailing =
     headers.length > 1 && headers[headers.length - 1] === "" && lines[0].trimEnd().endsWith("|");
@@ -387,7 +350,6 @@ module.exports = {
   parseCollectionElements,
   answerShape,
   argumentList,
-  splitCells,
   tableLiterals,
   tableRows,
   callArguments,
