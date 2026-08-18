@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [1.9.0] - 2026-08-18
 
 ### Removed
 - **tabletest**: Five of the eight references are gone — `column-design.md`, `common-patterns.md`, `table-design-advanced.md`, `pair-programming.md` and `testing-reveals-bugs.md`, about 1,300 of 1,746 lines. A reference is for a corner case whose trigger you can see in your own task before opening the file: a type to convert, an annotation to use, a shape the code has. "Torn between maps and separate columns" and "test design feels wrong" are judgements, not triggers, and the table design behind them is in the skill file itself, which is always read. The patterns that did have a trigger moved: an expectation that is an escape code or Base64 into `type-converters.md`, off-thread work and positional output fields into a new short file
