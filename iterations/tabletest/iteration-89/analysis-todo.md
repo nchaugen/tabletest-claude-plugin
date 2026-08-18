@@ -4,12 +4,13 @@ Compared against **iteration 88**, grading claude-sonnet-5/default.
 
 ## ⚠️ Partial comparison
 
-**2 of 4 evals comparable.** The rest were excluded from them:
+**1 of 4 evals comparable.** The rest were excluded from them:
 
+- `eval-14-weekly-pay` — definition changed since the baseline; the two verdicts are not commensurable
 - `eval-25-convert-from-spock` — the baseline never ran this eval; there is nothing to compare against
 - `eval-30-order-splitting-tt` — the baseline never ran this eval; there is nothing to compare against
 
-**8 assertion verdicts moved.**
+**4 assertion verdicts moved.**
 
 These are deltas, not attributions. Before explaining any of them, read the generated
 output for that eval and its narration — a grader justification can name the right
@@ -17,42 +18,6 @@ assertion and still name the wrong cause, and graders do misfire outright. Fill 
 cause line from the artefact, not from the justification.
 
 Do not start the next iteration until every line below has a cause.
-
-## WON `1.11-format-description` — eval-14-weekly-pay
-
-Grader said: _"The 40-hour overtime threshold applies only to weekday hours, not to the sum of..." adds context beyond rows_
-
-- Output: `eval-14-weekly-pay/outputs/`
-- Narration: `eval-14-weekly-pay/narration.md`
-- Raw transcript: `eval-14-weekly-pay/conversation.jsonl` (gitignored, trimmed each cycle — mine it now)
-- Cause (from artefact): 
-
-## WON `1.7-readability-scenario-names` — eval-14-weekly-pay
-
-Grader said: _"Day before the overtime cap", "First hour of overtime", "Sunday hours only"_
-
-- Output: `eval-14-weekly-pay/outputs/`
-- Narration: `eval-14-weekly-pay/narration.md`
-- Raw transcript: `eval-14-weekly-pay/conversation.jsonl` (gitignored, trimmed each cycle — mine it now)
-- Cause (from artefact): 
-
-## LOST `concern-not-over-split` — eval-14-weekly-pay
-
-Grader said: _Table1 fixes Sunday/Holiday=0 and varies weekday hours; Table2 fixes weekday=0 and varies Sunday/Holiday hours, both sharing the same 'Weekly Pay?' output column - matching the described anti-pattern of same-fixture, single-sub-rule tables that should be merged._
-
-- Output: `eval-14-weekly-pay/outputs/`
-- Narration: `eval-14-weekly-pay/narration.md`
-- Raw transcript: `eval-14-weekly-pay/conversation.jsonl` (gitignored, trimmed each cycle — mine it now)
-- Cause (from artefact): 
-
-## LOST `held-constants-declared` — eval-14-weekly-pay
-
-Grader said: _In method 1, sundayHours/holidayHours are hardcoded 0 in the call 'calculator.calculateWeeklyPay(weekdayHours, 0, 0, hourlyRate)' with no such column or declared fixed value in title/description; same pattern in method 2 and 5 with weekdayHours=0 hardcoded._
-
-- Output: `eval-14-weekly-pay/outputs/`
-- Narration: `eval-14-weekly-pay/narration.md`
-- Raw transcript: `eval-14-weekly-pay/conversation.jsonl` (gitignored, trimmed each cycle — mine it now)
-- Cause (from artefact): 
 
 ## WON `black-box-columns` — eval-18-convert-from-code
 

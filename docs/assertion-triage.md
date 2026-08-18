@@ -168,9 +168,31 @@ and character-identical to the tables it failed in `iteration-45` and `iteration
 false pass the slot was known for. The regrade cost **$0.0094** and eval-7 holds at 11/12; the flip
 re-fingerprints eval-7 to `3f6d30eeac0a`, and `check-baseline` reports all 14 evals live.
 
-**Next two, in order: eval-14 and eval-22** — both agree with their relation on every stored draw
-(153 and 108 comparisons). Neither hosts this assertion, so each needs its own conversion candidate
-chosen from its own 100%-agreeing slots.
+**Done 2026-08-18 — eval-14's `1.6-readability-empty-cells` and `1.14-depth-zero-rate`**
+(`8763c60`, `iteration-89` regrade, $0.21). Both agree with their relation on all 16 stored graded
+draws, in **both directions** — the criterion that matters, since a relation which has only ever said
+PASS has never been shown to catch anything. Converting these two was chosen over cheaper candidates
+because they are §§ A and E of the repair candidates: the learning phase measures its next two
+repairs on exactly these slots, and the ±6-slot grading noise is now off them permanently. The
+evidence they emit is also better than the grader's — *"no blank cell in any Sunday or holiday hours
+column (declared double)"* and *"no row states a zero rate against a zero pay"*.
+
+**These were converted by the relation itself, not by a transcription of it** (`scripts/relation-checkers.js`).
+Where a hand-written checker exists it still wins; otherwise a deterministic assertion is graded by
+the relation of the same id for that eval. Two loud refusals guard it: a relation carrying a
+`judgement` note is advisory and refuses to grade (eval-22's `rule-falsifiable-by-a-row` is the live
+example), and an assertion with no relation fails rather than passing vacuously. **Every later
+conversion is now a one-line `eval.json` flip.**
+
+**A converted slot no longer counts toward the instrument's agreement figure** (`25a04d8`). Its
+stored verdict *is* the relation's output, so counting it would compare the instrument with itself;
+`shape-report.js` excludes those slots and prints what each contributed while the grader still judged
+it.
+
+**Next: eval-22.** It agrees 108 of 108, and its best candidates are `descriptive-registration-date`
+(8 P / 4 F) and `cutoff-date-column-if-literal-dates` (10 P / 2 F) — both exercised in both
+directions. It also hosts `scenario-names-describe-conditions`, but **no relation was ever written
+for it there**, so that one needs a relation and a vocabulary entry before it can be flipped.
 
 - **`rule-statable-from-table`, clause (1)** — "a value needed to predict the expectation appears
   only in the method body". Extract numeric and string literals from the method body and test

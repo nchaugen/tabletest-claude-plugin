@@ -28,7 +28,7 @@
     {
       "id": "1.6-readability-empty-cells",
       "text": "Sunday and Holiday hour columns use empty cells (not 0) when those inputs are not relevant to a scenario — making it easier to spot which rows involve weekend/holiday hours. This is a readability preference; parameter types should be Integer (not int) to support null from blank cells.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "1.7-readability-scenario-names",
@@ -68,7 +68,7 @@
     {
       "id": "1.14-depth-zero-rate",
       "text": "A row where the hourly rate is zero, showing that pay is zero regardless of hours worked. This is a distinct edge case from negative rate (which is rejected).",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "1.15-format-clean-method",
