@@ -225,6 +225,17 @@ describe("scenario-names-describe-conditions", () => {
     assert.equal(verdict(["Cannot be reached by a viewer | VIEWER | DELETE | true"]).passed, true);
   });
 
+  test("passes eval-7's reference answer, whose names state the action without the modal", () => {
+    const reference = [
+      "Admin performs any action | ADMIN | {READ, WRITE, DELETE} | true",
+      "User reads or writes | USER | {READ, WRITE} | true",
+      "User deletes | USER | DELETE | false",
+      "Guest reads | GUEST | READ | true",
+      "Guest writes or deletes | GUEST | {WRITE, DELETE} | false",
+    ];
+    assert.equal(verdict(reference).passed, true, "the reference answer must pass its own assertion");
+  });
+
   test("fails loudly for an eval with no registered vocabulary, rather than passing vacuously", () => {
     const result = verdict(["User cannot delete | USER | DELETE | false"], "some-other-eval");
     assert.equal(result.passed, false);
