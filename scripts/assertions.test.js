@@ -191,6 +191,47 @@ ${body}
   });
 });
 
+describe("scenario-names-describe-conditions", () => {
+  const table = (rows) => `
+    @TableTest("""
+      Scenario | Role | Action | Allowed?
+      ${rows.join("\n      ")}
+      """)
+    void grantsPermissionsAccordingToRole(Role role, Action action, boolean allowed) {}
+  `;
+  const verdict = (rows, evalSlug = "permission-check") =>
+    checkers["scenario-names-describe-conditions"]({ fileContent: table(rows), allFiles: [], evalSlug });
+
+  test("fails a name paraphrasing its own row's expectation, the assertion's worked example", () => {
+    const result = verdict(["User cannot delete | USER | DELETE | false"]);
+    assert.equal(result.passed, false, result.evidence);
+    assert.match(result.evidence, /User cannot delete/);
+  });
+
+  test("fails a name echoing a positive outcome", () => {
+    assert.equal(verdict(["Admin can perform any action | ADMIN | DELETE | true"]).passed, false);
+  });
+
+  test("passes a name stating the situation, even when the outcome is inferable", () => {
+    assert.equal(verdict(["Missing name | USER | DELETE | false"]).passed, true);
+    assert.equal(verdict(["Viewer on a restricted action | VIEWER | DELETE | false"]).passed, true);
+  });
+
+  test("fails a generic label, which names no variation", () => {
+    assert.equal(verdict(["Test 1 | USER | READ | true"]).passed, false);
+  });
+
+  test("does not fail a name whose echo belongs to the other outcome", () => {
+    assert.equal(verdict(["Cannot be reached by a viewer | VIEWER | DELETE | true"]).passed, true);
+  });
+
+  test("fails loudly for an eval with no registered vocabulary, rather than passing vacuously", () => {
+    const result = verdict(["User cannot delete | USER | DELETE | false"], "some-other-eval");
+    assert.equal(result.passed, false);
+    assert.match(result.evidence, /vocabulary/i);
+  });
+});
+
 describe("table cell tokenizer", () => {
   test("keeps a trailing blank cell, which edge-pipe trimming must not swallow", () => {
     assert.deepEqual(splitRowCells("Empty means blank | "), ["Empty means blank", ""]);

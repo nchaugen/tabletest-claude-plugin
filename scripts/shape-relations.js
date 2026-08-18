@@ -18,6 +18,7 @@
  * candidate, not a result: determinism buys the countable half and no more.
  */
 
+const { GENERIC_SCENARIO_NAME, SCENARIO_NAME_ECHOES } = require("./assertions.js");
 const {
   actCallArguments,
   callArguments,
@@ -3394,16 +3395,6 @@ function heldValuesNamedInDescriptions(shape) {
   return found;
 }
 
-/** A label naming no variation at all, which the assertion fails outright, whatever the eval. */
-const GENERIC_SCENARIO_NAME = /^(test|case|scenario|row|example)\s*\d*$/i;
-
-/** How a decision reads when a scenario name paraphrases it instead of naming the variation. */
-const EVAL_23_DECISION_ECHOES = [
-  { expectation: /^APPROVED?$/, echo: /\bapprov(e|es|ed|al)\b/i },
-  { expectation: /^REJECTED?$/, echo: /\breject(s|ed|ion)?\b|\bdeclin(e|es|ed)\b|\bturn(s|ed)? down\b|\bdenie[ds]\b/i },
-  { expectation: /^PENDING_?REVIEW$/, echo: /\bpending\b|\bfor review\b|\bneeds review\b|\bmanual review\b/i },
-];
-
 /**
  * Scenario names stating the outcome their own row expects, or naming nothing at all.
  *
@@ -3684,7 +3675,7 @@ const EVAL_23_RELATIONS = [
       };
     },
   },
-  scenarioNamesRelation(EVAL_23_DECISION_ECHOES),
+  scenarioNamesRelation(SCENARIO_NAME_ECHOES["loan-approval-tt"]),
   {
     id: "no-duplicate-rows-within-a-table",
     label: "no row re-discharges an obligation an earlier row already did",
@@ -4598,10 +4589,6 @@ const EVAL_9_ROLES = {
 };
 
 /** How a scenario name paraphrases a bonus rate — the assertion's own worked example is the zero. */
-const EVAL_9_RATE_ECHOES = [
-  { expectation: /^0(\.0+)?$/, echo: /\bno bonus\b|\bnone\b|\bzero\b|\bnothing\b|\bgets? nothing\b|\bno payout\b/i },
-];
-
 /** An input column for `role`. */
 function eval9Input(table, role) {
   return (
@@ -4761,7 +4748,7 @@ const EVAL_9_RELATIONS = [
       };
     },
   },
-  scenarioNamesRelation(EVAL_9_RATE_ECHOES),
+  scenarioNamesRelation(SCENARIO_NAME_ECHOES["bonus-contractor-structure"]),
   {
     id: "business-language-columns",
     label: "no column header written in code",
@@ -4792,14 +4779,6 @@ const EVAL_7_ROLE = /role|actor|principal|user type/i;
  * Allowed? cell of false". What it does *not* catch is a name saying what the row varies, however
  * plainly the rule then predicts the outcome: "User deletes" names the variation and passes.
  */
-const EVAL_7_ALLOWED_ECHOES = [
-  { expectation: /^(TRUE|YES|ALLOWED|PERMITTED)$/, echo: /\bcan\b|\bmay\b|\ballowed\b|\bpermitted\b|\bis able\b|\bhas access\b/i },
-  {
-    expectation: /^(FALSE|NO|DENIED|FORBIDDEN)$/,
-    echo: /\bcannot\b|\bcan'?t\b|\bmay not\b|\bnot allowed\b|\bdenied\b|\bforbidden\b|\bno access\b|\bblocked\b|\brefused\b/i,
-  },
-];
-
 /**
  * Pairs of rows sharing a role and an outcome, which one value set would have stated once.
  *
@@ -4842,7 +4821,7 @@ const EVAL_7_RELATIONS = [
       };
     },
   },
-  scenarioNamesRelation(EVAL_7_ALLOWED_ECHOES),
+  scenarioNamesRelation(SCENARIO_NAME_ECHOES["permission-check"]),
 ];
 
 // ---------------------------------------------------------------------------

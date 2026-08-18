@@ -550,7 +550,107 @@ function extractSwiftTestFunctionBodies(content) {
 
 // --- Checkers ---
 
+/**
+ * A label naming no variation at all, which the assertion fails outright, whatever the eval.
+ */
+const GENERIC_SCENARIO_NAME = /^(test|case|scenario|row|example)\s*\d*$/i;
+
+/**
+ * How each eval's outcomes read when a scenario name paraphrases one instead of naming the
+ * variation the row exercises.
+ *
+ * **Per eval, never derived.** Paraphrase is a language question — `REJECTED` is echoed by
+ * "rejects" and a bonus of `0` by "gets no bonus" — and a stemmer that guessed would fail in the
+ * direction that makes the verdict meaningless. An eval with no entry here fails loudly rather
+ * than passing vacuously, so marking this assertion `deterministic` on a new eval cannot silently
+ * grade it against another domain's vocabulary ([[deterministic-checkers-rot-silently]]).
+ *
+ * `shape-relations.js` reads these same entries, so the checker and the mechanical relation
+ * cannot disagree about what counts as an echo.
+ */
+const SCENARIO_NAME_ECHOES = {
+  "loan-approval-tt": [
+    { expectation: /^APPROVED?$/, echo: /\bapprov(e|es|ed|al)\b/i },
+    { expectation: /^REJECTED?$/, echo: /\breject(s|ed|ion)?\b|\bdeclin(e|es|ed)\b|\bturn(s|ed)? down\b|\bdenie[ds]\b/i },
+    { expectation: /^PENDING_?REVIEW$/, echo: /\bpending\b|\bfor review\b|\bneeds review\b|\bmanual review\b/i },
+  ],
+  "bonus-contractor-structure": [
+    { expectation: /^0(\.0+)?$/, echo: /\bno bonus\b|\bnone\b|\bzero\b|\bnothing\b|\bgets? nothing\b|\bno payout\b/i },
+  ],
+  "permission-check": [
+    { expectation: /^(TRUE|YES|ALLOWED|PERMITTED)$/, echo: /\bcan\b|\bmay\b|\ballowed\b|\bpermitted\b|\bis able\b|\bhas access\b/i },
+    {
+      expectation: /^(FALSE|NO|DENIED|FORBIDDEN)$/,
+      echo: /\bcannot\b|\bcan'?t\b|\bmay not\b|\bnot allowed\b|\bdenied\b|\bforbidden\b|\bno access\b|\bblocked\b|\brefused\b/i,
+    },
+  ],
+};
+
+/**
+ * The scenario names that state their own row's outcome, given one eval's echo vocabulary.
+ *
+ * Shared with `shape-relations.js`, which walks a richer parsed shape: the traversals differ, the
+ * judgement does not.
+ */
+function namesEchoingTheirOwnRow({ headers, rows, scenarioIndex }, echoes) {
+  const expectationColumns = headers
+    .map((header, index) => ({ header, index }))
+    .filter(({ header, index }) => index !== scenarioIndex && /\?\s*$/.test(String(header).trim()));
+
+  const found = [];
+  rows.forEach((cells, rowIndex) => {
+    const name = String(cells[scenarioIndex] ?? "").trim();
+    if (!name) return;
+    if (GENERIC_SCENARIO_NAME.test(name)) {
+      found.push({ row: rowIndex + 1, name, why: "names no variation" });
+      return;
+    }
+    for (const column of expectationColumns) {
+      const cell = String(cells[column.index] ?? "").trim().toUpperCase();
+      const echo = echoes.find((one) => one.expectation.test(cell));
+      if (echo && echo.echo.test(name)) {
+        found.push({ row: rowIndex + 1, name, why: `paraphrases ${column.header} = ${cell}` });
+      }
+    }
+  });
+  return found;
+}
+
 const checkers = {
+  "scenario-names-describe-conditions": ({ fileContent, evalSlug }) => {
+    const echoes = SCENARIO_NAME_ECHOES[evalSlug];
+    if (!echoes) {
+      return {
+        passed: false,
+        evidence:
+          `No paraphrase vocabulary registered for "${evalSlug}" in SCENARIO_NAME_ECHOES. ` +
+          "Add one before marking this assertion deterministic on a new eval — grading it against " +
+          "another domain's vocabulary would be worse than the LLM judgement it replaces.",
+      };
+    }
+
+    const tables = tableTestTables(fileContent);
+    if (tables.length === 0) return { passed: false, evidence: "No @TableTest table found" };
+
+    const offenders = [];
+    for (const table of tables) {
+      // The scenario column is optional, and `tableTestTables` already decides whether this
+      // table has one — from the column count against the parameter count. Deciding it again
+      // here would be a second copy of that rule, free to drift from the shape the relations read.
+      if (!table.hasScenarioColumn) continue;
+      const found = namesEchoingTheirOwnRow(
+        { headers: table.headers, rows: table.rows, scenarioIndex: 0 },
+        echoes,
+      );
+      offenders.push(...found.map((one) => `${table.method} row ${one.row}: "${one.name}" ${one.why}`));
+    }
+
+    // "A single offending name fails the assertion. Judge every @TableTest method in the class."
+    return offenders.length === 0
+      ? { passed: true, evidence: "Every scenario name states the variation, not the outcome" }
+      : { passed: false, evidence: offenders.slice(0, 3).join("; ") };
+  },
+
   "has-tabletest-annotation": ({ fileContent, allFiles }) => {
     const content = getCheckContent(fileContent, allFiles);
     const found = /@TableTest/.test(content);
@@ -1217,6 +1317,9 @@ module.exports = {
   parseTableHeaders,
   countDataRows,
   splitRowCells,
+  GENERIC_SCENARIO_NAME,
+  SCENARIO_NAME_ECHOES,
+  namesEchoingTheirOwnRow,
   parseCollectionElements,
   parseParameterList,
   tableTestTables,

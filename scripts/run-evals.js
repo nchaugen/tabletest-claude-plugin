@@ -1823,7 +1823,7 @@ function loadOutputFiles(evalDir) {
   return files;
 }
 
-function runDeterministicAssertions(assertions, fileContent, allFiles) {
+function runDeterministicAssertions(assertions, fileContent, allFiles, evalSlug) {
   const results = [];
   for (const a of assertions) {
     const checker = checkers[a.id];
@@ -1832,7 +1832,7 @@ function runDeterministicAssertions(assertions, fileContent, allFiles) {
       continue;
     }
     try {
-      const result = checker({ fileContent, allFiles });
+      const result = checker({ fileContent, allFiles, evalSlug });
       results.push({ id: a.id, text: a.text, passed: result.passed, evidence: result.evidence });
     } catch (err) {
       results.push({ id: a.id, text: a.text, passed: false, evidence: `Checker error: ${err.message}` });
@@ -1966,7 +1966,7 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, prov
   // Run deterministic assertions
   const deterministicResults = gated
     ? deterministicAssertions.map(gate)
-    : runDeterministicAssertions(deterministicAssertions, fileContent, allFiles);
+    : runDeterministicAssertions(deterministicAssertions, fileContent, allFiles, evalDef.slug);
 
   // Run build assertions
   const buildResults = gated
@@ -3356,6 +3356,7 @@ if (require.main === module) {
 // Exported for scripts/run-evals.test.js. Everything here is either pure or takes its
 // collaborators as arguments, so the suite needs no network and no eval fixtures.
 module.exports = {
+  runDeterministicAssertions,
   classifyGenerationFailure,
   contaminationHits,
   parseEvalIds,
