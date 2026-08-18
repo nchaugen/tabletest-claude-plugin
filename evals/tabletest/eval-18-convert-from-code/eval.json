@@ -101,7 +101,7 @@
     {
       "id": "premium-claim-boundary",
       "text": "The premium difference between 0 and 1 prior claim is shown, holding age constant (the impact of +15 risk score on premium). Judge wherever premium is derived, not in a table with a particular name — the two rows may sit in different tables. Enumerate before you decide: your evidence must first list every row in the class carrying a premium derived from the risk score, one line each as table · age · claims · premium, and then name the pair or state that no pair exists. A verdict reached without that list is not a verdict. The pair must share an age and nothing else — applicant type and every other input MAY differ, and a candidate pair is never disqualified for differing in them. FAILS when no pair of rows at one age differs in carrying 0 against 1 claim. BOTH rows of the pair must have their premium derived from the risk score: a row whose premium is 0 because the applicant was auto-approved is not a valid 0-claim side, since it shows the auto-approval override rather than the effect of a claim.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "premium-age-boundary",
@@ -161,17 +161,17 @@
     {
       "id": "premium-charge-is-per-claim",
       "text": "The premium table shows that a prior claim is charged PER CLAIM, not once for having any claim history. FAILS when no table carries three consecutive claim counts at one age with the premium derived from them — 0, 1 and 2 at the same age is the minimal form. Two counts are not enough and this is the whole point of the assertion: 0 against 1 shows a difference and is equally consistent with a flat penalty applied to anyone with a claim history, which is an ordinary insurance rule, so a two-row pair cannot tell the two readings apart. The third consecutive count is what decides it. Judge wherever premium is derived, not in a table with a particular name; the three rows may sit in different tables provided they share an age. Enumerate before you decide: list every row in the class carrying a premium, one line each as table - age - claims - premium, then name the consecutive triple or state that none exists. PASSES when such a triple exists at any one age. Rows beyond the third at the same age are not this assertion's concern.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "premium-claim-effect-varies-by-band",
       "text": "The premium table shows that a claim costs a senior more than it costs a standard applicant. FAILS when the 0-against-1-claim pair appears at only one age band — the effect of a claim is not the same on both sides of the senior threshold, and a table showing the pair once states a per-claim charge that is wrong for the other band. Judge wherever premium is derived, not in a table with a particular name. Enumerate before you decide: list every pair of rows in the class that share an age and differ only in claim count, giving the age and both premiums, then state whether at least two such pairs exist with one age below 65 and one at or above it. PASSES when they do. The two pairs need not use the same claim counts as each other, and they need not sit in the same table. A single pair, however well chosen, FAILS: one pair cannot show that the increment differs.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "premium-age-is-banded",
       "text": "The premium table shows that age is banded rather than counted — two different ages can carry the same premium. FAILS when no two rows share a premium at different ages with claims held constant, because a table whose every age carries a different premium states 'premium rises with age', which is not the rule. Judge wherever premium is derived, not in a table with a particular name. A value set over two ages against one premium ({30, 39} against a single value) is the compact discharge and is preferred; two separate rows carrying the same premium discharge it equally. Enumerate before you decide: list every row carrying a premium as age - claims - premium, then name the two ages sharing a premium at one claim count, or state that none do. PASSES when such a pair exists, whether written as two rows or one value set. This is not satisfied by the 64-against-65 pair, which shows the opposite — that crossing a band changes the premium.",
-      "type": "llm"
+      "type": "deterministic"
     }
   ]
 }

@@ -1,7 +1,12 @@
 const { test, describe } = require("node:test");
 const assert = require("node:assert");
 
+const fs = require("node:fs");
+const path = require("node:path");
+
 const { relationChecker } = require("./relation-checkers.js");
+const { evalDir, evaluateDraw, sutParameterNames } = require("./shape-report.js");
+const { relationsFor } = require("./shape-relations.js");
 
 /** eval-14's shape: hours columns, a rate, and a pay expectation. */
 const weeklyPay = (rows, signature = "Integer sunday, Integer holiday, double rate") => `
@@ -49,5 +54,51 @@ describe("relation-backed checkers", () => {
     const result = relationChecker("rule-falsifiable-by-a-row", 22, "@TableTest(\"\"\"\nA | B?\n1 | 2\n\"\"\")\nvoid t(int a, int b) {}");
     assert.equal(result.passed, false);
     assert.match(result.evidence, /exemption|advisory|judgement/i);
+  });
+});
+
+describe("the context a relation is evaluated with", () => {
+  /** eval-18's reference answer, the one artefact whose verdicts are pinned elsewhere. */
+  const referenceSource = () => {
+    const base = path.join(__dirname, "..", "iterations", "tabletest", "reference");
+    for (const iteration of fs.readdirSync(base)) {
+      const outputs = path.join(base, iteration, "eval-18-convert-from-code", "outputs");
+      if (!fs.existsSync(outputs)) continue;
+      const files = [];
+      (function walk(dir) {
+        for (const entry of fs.readdirSync(dir)) {
+          const full = path.join(dir, entry);
+          if (fs.statSync(full).isDirectory()) walk(full);
+          else if (/\.(java|kt)$/.test(entry)) files.push(fs.readFileSync(full, "utf8"));
+        }
+      })(outputs);
+      if (files.length > 0) return files.join("\n\n");
+    }
+    return null;
+  };
+
+  test("a relation reading the system under test's parameters gets them, not an empty context", (t) => {
+    const source = referenceSource();
+    if (!source) return t.skip("eval-18 reference answer not in the tree");
+
+    // Graded without the context, these relations return the wrong verdict silently — which is what
+    // failed `premium-claim-boundary` against a stored PASS before the context was passed through.
+    for (const id of ["premium-charge-is-per-claim", "premium-claim-boundary", "premium-age-is-banded"]) {
+      const result = relationChecker(id, 18, source, "tabletest");
+      assert.equal(result.passed, true, `${id}: the reference answer must pass — ${result.evidence}`);
+    }
+  });
+
+  test("grades a slot exactly as the shape report reads it, so the two cannot diverge", (t) => {
+    const source = referenceSource();
+    if (!source) return t.skip("eval-18 reference answer not in the tree");
+
+    const authored = relationsFor(18);
+    const context = { sutParameters: sutParameterNames(evalDir("tabletest", 18), authored.call) };
+    const rows = evaluateDraw({ source, graded: new Map() }, authored.relations, context);
+    for (const row of rows.filter((one) => !one.judgement)) {
+      const graded = relationChecker(row.id, 18, source, "tabletest");
+      assert.equal(graded.passed, row.holds, `${row.id} grades differently from how the report reads it`);
+    }
   });
 });

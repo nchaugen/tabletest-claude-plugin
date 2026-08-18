@@ -23,14 +23,21 @@
 
 const { answerShape } = require("./answer-shape.js");
 const { relationsFor } = require("./shape-relations.js");
+const { evalDir, sutParameterNames } = require("./shape-report.js");
 
 /**
  * The verdict of `assertionId`'s relation for `evalNumber` over one answer's source.
  *
  * Returns the checker protocol — `{ passed, evidence }` — so a caller cannot tell a relation-backed
  * slot from a hand-written one.
+ *
+ * **The context is not optional.** Several relations take `(shape, context)` and read the system
+ * under test's own parameter names from it; evaluating them without it silently changes the verdict,
+ * which is how eval-18's `premium-claim-boundary` was graded FAIL against a stored PASS on
+ * 2026-08-18. It is built here exactly as `shape-report.js` builds it, so the slot that grades and
+ * the figure that justified converting it are the same computation.
  */
-function relationChecker(assertionId, evalNumber, source) {
+function relationChecker(assertionId, evalNumber, source, skill = "tabletest") {
   const authored = relationsFor(evalNumber);
   const relation = authored && authored.relations.find((one) => one.id === assertionId);
 
@@ -52,7 +59,9 @@ function relationChecker(assertionId, evalNumber, source) {
     };
   }
 
-  const verdict = relation.evaluate(answerShape(source));
+  const directory = evalDir(skill, evalNumber);
+  const context = { sutParameters: directory ? sutParameterNames(directory, authored.call) : [] };
+  const verdict = relation.evaluate(answerShape(source), context);
   return { passed: verdict.holds, evidence: verdict.evidence };
 }
 

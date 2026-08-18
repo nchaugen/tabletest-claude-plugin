@@ -1824,7 +1824,7 @@ function loadOutputFiles(evalDir) {
   return files;
 }
 
-function runDeterministicAssertions(assertions, fileContent, allFiles, evalSlug, evalNumber) {
+function runDeterministicAssertions(assertions, fileContent, allFiles, evalSlug, evalNumber, skillName) {
   const results = [];
   for (const a of assertions) {
     // A hand-written checker wins where one exists; otherwise the assertion is graded by the
@@ -1832,7 +1832,7 @@ function runDeterministicAssertions(assertions, fileContent, allFiles, evalSlug,
     const checker =
       checkers[a.id] ||
       (hasRelationChecker(a.id, evalNumber)
-        ? ({ fileContent: source }) => relationChecker(a.id, evalNumber, source)
+        ? ({ fileContent: source }) => relationChecker(a.id, evalNumber, source, skillName)
         : null);
     if (!checker) {
       results.push({ id: a.id, text: a.text, passed: false, evidence: `No deterministic checker for "${a.id}"` });
@@ -1973,7 +1973,7 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, prov
   // Run deterministic assertions
   const deterministicResults = gated
     ? deterministicAssertions.map(gate)
-    : runDeterministicAssertions(deterministicAssertions, fileContent, allFiles, evalDef.slug, evalDef.id);
+    : runDeterministicAssertions(deterministicAssertions, fileContent, allFiles, evalDef.slug, evalDef.id, evalDef.skill);
 
   // Run build assertions
   const buildResults = gated
