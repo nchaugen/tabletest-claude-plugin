@@ -189,10 +189,32 @@ stored verdict *is* the relation's output, so counting it would compare the inst
 `shape-report.js` excludes those slots and prints what each contributed while the grader still judged
 it.
 
-**Next: eval-22.** It agrees 108 of 108, and its best candidates are `descriptive-registration-date`
-(8 P / 4 F) and `cutoff-date-column-if-literal-dates` (10 P / 2 F) — both exercised in both
-directions. It also hosts `scenario-names-describe-conditions`, but **no relation was ever written
-for it there**, so that one needs a relation and a vocabulary entry before it can be flipped.
+**Twelve slots converted, 2026-08-18, for $0.63 of grading in total.** eval-7's
+`scenario-names-describe-conditions` and `no-duplicate-role-output`; eval-14's
+`1.6-readability-empty-cells`, `1.14-depth-zero-rate`, `1.3-depth-overtime-boundary`,
+`1.4-depth-combined-scenario` and `1.5-depth-error-edge-cases`; eval-22's
+`descriptive-registration-date` and `cutoff-date-column-if-literal-dates`; eval-2's
+`separates-valid-and-invalid` and `concerns-decomposed`; eval-9's
+`scenario-names-describe-conditions`. The suite now stands at **128 deterministic, 186 LLM, 17
+build**, and **eval-7 carries no LLM assertion at all** — 11 deterministic plus one build check, so
+it grades for $0.00 and cannot flip.
+
+**The eval-14 round is the argument for the whole exercise.** Converting its last three
+`depth-*` slots moved none of them, while three slots that are *still LLM-graded* flipped on a
+re-grade of the same stored answer — `1.11-format-description` P→F, `held-constants-declared` F→P,
+`concern-not-over-split` F→P. Same answer, same definitions, different verdicts, in the run that took
+three other slots out of that lottery for good.
+
+**The selection rule is now a tool, not a habit:** `node scripts/conversion-candidates.js --eval N`
+ranks every slot as convert / disagrees / one-directional / too-few / advisory / converted, reading
+only what is on disk. It measures **whichever implementation would actually grade** — a hand-written
+checker where one exists, the relation otherwise — because measuring the relation while a checker
+grades describes the wrong code. `one-directional` is the rule that earns its keep: eval-20 has five
+slots agreeing on every draw and **not one is convertible**, because the grader has never once failed
+them, so their agreement says nothing about what the relation would catch.
+
+**Next: eval-22's remaining slots and the other seven evals.** Nothing is convertible on evals 2, 7,
+9, 20 or 22 today — every remaining slot there is one-directional, too-few, or advisory.
 
 - **`rule-statable-from-table`, clause (1)** — "a value needed to predict the expectation appears
   only in the method body". Extract numeric and string literals from the method body and test
