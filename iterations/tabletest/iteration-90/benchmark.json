@@ -8,23 +8,22 @@
   "skill_commit": "c658ab63f8888c583b15c9cb79a11eaf14a2e343",
   "skill_digest": "c000c0a688f63faa",
   "generation_auth": "subscription",
-  "timestamp": "2026-08-18T19:16:53.212Z",
+  "timestamp": "2026-08-19T07:11:54.744Z",
   "evals": [
     {
       "id": "eval-18-convert-from-code",
       "name": "convert from code",
       "skill": "tabletest",
-      "fingerprint": "a653c82435a6",
+      "fingerprint": "39dcbafc4648",
       "results": {
         "model": "claude-sonnet-5",
-        "assertions_passed": 19,
+        "assertions_passed": 20,
         "assertions_total": 34,
-        "pass_rate": 0.5588235294117647,
+        "pass_rate": 0.5882352941176471,
         "failed_assertions": [
           "black-box-columns",
           "observable-io-only",
           "scenario-names-describe-conditions",
-          "concerns-decomposed",
           "separates-decision-and-premium",
           "description-no-internals",
           "decision-claim-cliff",
@@ -41,11 +40,11 @@
         "duration_ms": 207563,
         "cost_usd": 0.9558175000000001,
         "grading_usage": {
-          "input_tokens": 19566,
-          "output_tokens": 15875,
-          "total_tokens": 35441,
+          "input_tokens": 19414,
+          "output_tokens": 19060,
+          "total_tokens": 38474,
           "calls": 2,
-          "cost_usd": 0.296823,
+          "cost_usd": 0.344142,
           "rates_usd_per_mtok": {
             "input": 3,
             "output": 15
@@ -55,20 +54,20 @@
     }
   ],
   "summary": {
-    "assertions_passed": 19,
+    "assertions_passed": 20,
     "assertions_total": 34,
-    "pass_rate": 0.5588235294117647,
+    "pass_rate": 0.5882352941176471,
     "errored_evals": [],
     "truncated_evals": [],
     "total_tokens": 908732,
     "total_duration_ms": 207563,
     "total_cost_usd": 0.9558175000000001,
     "grading": {
-      "input_tokens": 19566,
-      "output_tokens": 15875,
-      "total_tokens": 35441,
+      "input_tokens": 19414,
+      "output_tokens": 19060,
+      "total_tokens": 38474,
       "calls": 2,
-      "cost_usd": 0.296823,
+      "cost_usd": 0.344142,
       "evals_measured": 1,
       "rates_usd_per_mtok": {
         "input": 3,

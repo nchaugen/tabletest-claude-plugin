@@ -76,7 +76,7 @@
     {
       "id": "separates-decision-and-premium",
       "text": "Decision logic (AUTO_APPROVED/REJECTED/APPROVED) and premium calculation are not derived in the same table. Judge this as a property of the decomposition, not as a fixed two-table shape: any number of tables PASSES provided no single table derives both, and splitting premium further across several tables is not a failure here. FAILS when one table carries both a decision expectation column and a premium expectation column and asserts on both.",
-      "type": "llm"
+      "type": "deterministic"
     },
     {
       "id": "no-reimplemented-internals",
