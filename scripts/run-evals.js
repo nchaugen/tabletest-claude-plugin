@@ -83,6 +83,25 @@ const LANGUAGE_PROFILES = {
     rootTestFiles: false,
     buildFiles: ["Package.swift"],
     appDirs: ["Sources"],
+    // The agent runs confined to its workspace (see agentSandboxProfile), with the scaffold built
+    // before it starts: a project that already uses TableTest has its checkouts, and an agent that
+    // finds `.build/checkouts` empty searches the whole disk for the library instead.
+    confinement: {
+      readWrite: ["Library/Caches/org.swift.swiftpm", "Library/org.swift.swiftpm"],
+      prepare: "swift build --build-tests",
+      // SwiftPM and the compiler's macro host start their own sandbox, which macOS refuses inside
+      // another one. The flag is SwiftPM's own; no environment variable turns it off.
+      commands: {
+        swift: [
+          "#!/bin/sh",
+          "case \"$1\" in",
+          "  build|test|run|package) sub=\"$1\"; shift; exec /usr/bin/swift \"$sub\" --disable-sandbox \"$@\" ;;",
+          "esac",
+          "exec /usr/bin/swift \"$@\"",
+          "",
+        ].join("\n"),
+      },
+    },
     deliverablePath: /\.swift$/,
     deliverableContent: /@(?:Test|TableTest)\b/,
     deliverableDescription: "Swift Testing test file",
@@ -1194,6 +1213,84 @@ function severWorktreeFromRepo(worktreePath) {
  * Returns one entry per distinct kind of reach, each with the text that proves it.
  */
 /**
+ * The folder name the CLI gives a session's project: the workspace's real path with every
+ * character that is not a letter or a digit turned into `-`.
+ */
+function sessionFolderName(agentCwd) {
+  return agentCwd.replace(/[^A-Za-z0-9]/g, "-");
+}
+
+/**
+ * Home-relative paths every confined agent may read: git needs its configuration, and the
+ * toolchains read the user's preferences.
+ */
+const SANDBOX_READ_ONLY = [".gitconfig", ".config/git", "Library/Preferences"];
+
+/**
+ * Parts of `~/.claude` that hold other projects' data or the user's own extensions. The CLI needs
+ * the rest of `~/.claude`, and the keychain for its login.
+ */
+const SANDBOX_CLAUDE_PRIVATE = ["projects", "plugins", "skills", "agents", "commands", "CLAUDE.md"];
+
+/**
+ * The macOS sandbox profile that keeps an eval agent out of the user's home folder. The agent runs
+ * with every permission granted, so only the operating system can stop a `find /` (two agents read
+ * the user's own checkouts that way on 2026-11-10).
+ *
+ * **Every allow names the operations the deny names.** A deny of `file-read-data` wins over a later
+ * allow of `file-read*`, whatever the order. The CLI then fails as "Not logged in", which says
+ * nothing about the cause.
+ *
+ * The keychain stays readable, because the CLI's login is there. That leaves its items readable
+ * to the agent's Bash, as they were before.
+ */
+function agentSandboxProfile({ home, agentCwd, readOnly = [], readWrite = [] }) {
+  const subpath = (relative) => `(subpath ${JSON.stringify(path.join(home, relative))})`;
+  const claude = path.join(home, ".claude");
+  const ownSession = path.join(claude, "projects", sessionFolderName(agentCwd));
+  return [
+    "(version 1)",
+    "(allow default)",
+    `(deny file-read-data file-write* (subpath ${JSON.stringify(home)}))`,
+    `(allow file-read-data ${[...SANDBOX_READ_ONLY, ...readOnly].map(subpath).join(" ")})`,
+    `(allow file-read-data file-write* ${[".claude.json", ".claude", "Library/Keychains", ...readWrite].map(subpath).join(" ")}`
+      + ` (prefix ${JSON.stringify(path.join(home, ".claude.json."))}))`,
+    `(deny file-read-data file-write* ${SANDBOX_CLAUDE_PRIVATE.map((entry) => subpath(path.join(".claude", entry))).join(" ")})`,
+    `(allow file-read-data file-write* (subpath ${JSON.stringify(ownSession)}))`,
+  ].join("\n") + "\n";
+}
+
+/**
+ * Prepares a workspace for an agent confined to it, when the eval's language asks for that:
+ * builds the scaffold, writes the command wrappers outside the workspace, and writes the sandbox
+ * profile. Returns null for a language that runs unconfined. A confined language off macOS is an
+ * error, not an unconfined run, so two draws never differ in what the agent could reach.
+ */
+async function confineWorkspace(evalDef, worktreePath, agentCwd) {
+  const { confinement } = languageProfile(evalDef);
+  if (!confinement) return null;
+  if (process.platform !== "darwin") {
+    throw new Error(`eval ${evalDef.id} runs confined, which needs macOS sandbox-exec`);
+  }
+  if (confinement.prepare) {
+    const built = await runBuildCommand(confinement.prepare, agentCwd, 300000);
+    if (!built.ok) throw new Error(`preparing eval ${evalDef.id} failed: ${built.output.slice(-500)}`);
+  }
+  const commandsDir = path.join(worktreePath, `eval-${evalDef.id}-commands`);
+  fs.mkdirSync(commandsDir, { recursive: true });
+  for (const [name, script] of Object.entries(confinement.commands || {})) {
+    fs.writeFileSync(path.join(commandsDir, name), script, { mode: 0o755 });
+  }
+  const profileFile = path.join(worktreePath, `eval-${evalDef.id}.sb`);
+  fs.writeFileSync(profileFile, agentSandboxProfile({
+    home: require("os").homedir(),
+    agentCwd: fs.realpathSync(agentCwd),
+    readWrite: confinement.readWrite,
+  }));
+  return { commandsDir, profileFile };
+}
+
+/**
  * One result for the whole run. A background task the agent started can end after its answer;
  * the CLI then runs one more turn and emits a second `result`. Each event's text, time and usage
  * cover its own turn, so they add up; `total_cost_usd` and `modelUsage` are running totals, so the
@@ -1307,7 +1404,7 @@ const THINKING_DISPLAY_REQUEST = {
   },
 };
 
-function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, apiGeneration = false, timeoutMs = 600000 }) {
+function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, apiGeneration = false, timeoutMs = 600000, confinement = null }) {
   return new Promise((resolve, reject) => {
     let settled = false;
     const settle = (fn, value) => {
@@ -1335,8 +1432,12 @@ function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, apiG
     let stderr = "";
 
     const env = generationEnv(process.env, { apiGeneration, provider });
+    if (confinement) env.PATH = `${confinement.commandsDir}${path.delimiter}${env.PATH}`;
 
-    const proc = spawn("claude", args, {
+    const [command, commandArgs] = confinement
+      ? ["/usr/bin/sandbox-exec", ["-f", confinement.profileFile, "claude", ...args]]
+      : ["claude", args];
+    const proc = spawn(command, commandArgs, {
       cwd,
       env,
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -1500,7 +1601,9 @@ async function generateOne(evalDef, worktreePath, iterationDir, args, repoRoot) 
   }
 
   try {
+    const confinement = hasProject ? await confineWorkspace(evalDef, worktreePath, agentCwd) : null;
     const result = await runClaude({
+      confinement,
       prompt: evalDef.prompt + BATCH_MODE_NOTE + (args.nudgeSkill ? SKILL_NUDGE : ""),
       model,
       provider,
@@ -3426,6 +3529,9 @@ module.exports = {
   classifyGenerationFailure,
   contaminationHits,
   mergeResultEvents,
+  agentSandboxProfile,
+  sessionFolderName,
+  confineWorkspace,
   parseEvalIds,
   lastAssistantText,
   harvestGeneratedFiles,

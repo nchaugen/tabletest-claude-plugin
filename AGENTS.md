@@ -506,6 +506,16 @@ repo root or any `expected_output`. **A run with that file is not evidence** —
 using the number. Both holes were found on 2026-08-02 by reading transcripts; the detector
 reproduces those two historical hits and flags nothing else in 31 runs.
 
+**Swift evals run confined; the other languages do not yet.** A language profile with
+`confinement` starts the agent under `sandbox-exec` with `agentSandboxProfile`: home is unreadable
+except the CLI's own files, the keychain (its login), the agent's own session folder, git's
+configuration and the language's caches. The scaffold is built before the agent starts, and a
+`swift` wrapper adds `--disable-sandbox`, because SwiftPM's own sandbox cannot start inside
+another. Two things to know: an allow must name the operations its deny names (`file-read-data`,
+not `file-read*`), or the deny wins and the CLI reports "Not logged in"; and the keychain stays
+readable to the agent's Bash. Claude Code's built-in Bash sandbox was tried first and cannot build
+a Swift package: it refuses writes to `.git/hooks` and to Swift Build's manifest inside `.build`.
+
 **When the batch run shows a regression, bisect — don't re-run the suite.** Re-run *only the
 regressed evals* against each promotion commit in the batch. That is per-eval money (~$1 each),
 so attributing a two-eval regression across four promotions costs a few dollars, not $60. The

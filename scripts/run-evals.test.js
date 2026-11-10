@@ -17,6 +17,8 @@ const path = require("node:path");
 const {
   contaminationHits,
   mergeResultEvents,
+  agentSandboxProfile,
+  sessionFolderName,
   parseLlmGrading,
   repairGradingJson,
   extractJson,
@@ -2056,6 +2058,61 @@ describe("mergeResultEvents", () => {
 
   test("returns undefined when the run emitted no result", () => {
     assert.equal(mergeResultEvents([{ type: "assistant" }]), undefined);
+  });
+});
+
+// The agent runs with every permission granted, so only the operating system can keep it out of
+// the user's files. On 2026-11-10 two agents read the user's own checkouts with `find /`.
+describe("agentSandboxProfile", () => {
+  test("names the session folder as the CLI does, from the workspace's real path", () => {
+    assert.equal(sessionFolderName("/private/var/folders/x_y/T/eval-1-work"), "-private-var-folders-x-y-T-eval-1-work");
+  });
+
+  test("denies home, then allows what the CLI and the language need, then the own session last", () => {
+    const profile = agentSandboxProfile({ home: "/Users/u", agentCwd: "/w/eval-1-work", readWrite: ["Library/Caches/x"] });
+    const lines = profile.trim().split("\n");
+    assert.match(lines[2], /^\(deny file-read-data file-write\* \(subpath "\/Users\/u"\)\)$/);
+    assert.match(profile, /\(subpath "\/Users\/u\/Library\/Caches\/x"\)/);
+    assert.match(lines[lines.length - 1], /\/Users\/u\/\.claude\/projects\/-w-eval-1-work/);
+  });
+
+  test("allows with the same operation names it denies with, or the deny wins", () => {
+    const profile = agentSandboxProfile({ home: "/Users/u", agentCwd: "/w/e" });
+    assert.doesNotMatch(profile, /file-read\*/, "an allow of file-read* never overrides a deny of file-read-data");
+  });
+
+  // Skipped where no sandbox can start: off macOS, and inside another sandbox, which refuses one.
+  const { spawnSync } = require("node:child_process");
+  const sandboxExec = "/usr/bin/sandbox-exec";
+  const canSandbox = fs.existsSync(sandboxExec)
+    && spawnSync(sandboxExec, ["-p", "(version 1)(allow default)", "/usr/bin/true"]).status === 0;
+  test("keeps a process out of home but lets it read what the profile allows", { skip: !canSandbox }, () => {
+    const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "sandbox-")));
+    const home = path.join(root, "home");
+    const agentCwd = path.join(root, "work");
+    const own = path.join(home, ".claude", "projects", sessionFolderName(agentCwd));
+    const files = {
+      secret: path.join(home, "repo", "README.md"),
+      memory: path.join(home, ".claude", "projects", "-other", "memory.md"),
+      config: path.join(home, ".gitconfig"),
+      cache: path.join(home, "Library", "Caches", "x", "entry"),
+      session: path.join(own, "tool-results", "out.txt"),
+    };
+    for (const file of Object.values(files)) {
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(file, "x");
+    }
+    fs.mkdirSync(agentCwd);
+    const profileFile = path.join(root, "agent.sb");
+    fs.writeFileSync(profileFile, agentSandboxProfile({ home, agentCwd, readWrite: ["Library/Caches/x"] }));
+    const reads = (file) => spawnSync(sandboxExec, ["-f", profileFile, "/bin/cat", file]).status === 0;
+
+    assert.equal(reads(files.secret), false, "a checkout in home");
+    assert.equal(reads(files.memory), false, "another project's memory");
+    assert.equal(reads(files.config), true, "git needs its configuration");
+    assert.equal(reads(files.cache), true, "a language cache the profile lists");
+    assert.equal(reads(files.session), true, "the agent's own saved tool output");
+    fs.rmSync(root, { recursive: true });
   });
 });
 
