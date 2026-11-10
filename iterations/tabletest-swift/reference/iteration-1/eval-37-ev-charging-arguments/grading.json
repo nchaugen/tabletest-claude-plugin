@@ -1,0 +1,78 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest attribute",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "tabletest-function-in-a-type",
+      "text": "Every @TableTest function is declared inside a type (a struct, class, enum or an extension of one), not at file scope.",
+      "passed": true,
+      "evidence": "2 @TableTest function(s), each inside a type"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test function body contains no if, guard or switch statement and no ternary",
+      "passed": true,
+      "evidence": "2 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Euros?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Euros?, Euros?"
+    },
+    {
+      "id": "named-collection-becomes-a-table",
+      "text": "The `sessions` collection becomes one @TableTest whose columns are its tuple labels (charger, minutes, euros, with the euros as the expectation) and whose eight rows keep the original values. The `sessions` property is removed. FAILS when the collection is kept and passed to the table, when rows are added or dropped, or when a value changes.",
+      "passed": true,
+      "evidence": "Table with Charger | Minutes | Euros? has 8 rows (fast 5→0 ... ultrafast 600→40); no sessions property remains."
+    },
+    {
+      "id": "zipped-literals-become-a-table",
+      "text": "The unread-meter test's zip of two inline lists becomes its own @TableTest with one row per pair: ac → 10, fast → 25, ultrafast → 40. FAILS when the pairs stay in a zip or in two parallel lists, or when they are merged into the sessions table.",
+      "passed": true,
+      "evidence": "Separate @TableTest: \"Charger | Euros?\" ac 10, fast 25, ultrafast 40; no zip."
+    },
+    {
+      "id": "computed-arguments-stay",
+      "text": "The test whose arguments are Charger.allCases stays a @Test(arguments: Charger.allCases), and the response or a comment gives the reason: the list comes from the app, so a charger added there is tested with no change here. FAILS when it becomes a table that lists the chargers by hand, or when it is kept with no reason given.",
+      "passed": true,
+      "evidence": "/// The chargers come from the app, so a charger added there is checked here too. @Test(... arguments: Charger.allCases)"
+    },
+    {
+      "id": "case-count-kept",
+      "text": "The converted tests run the same 14 cases as before: 8 sessions, 3 unread meters and 3 chargers free for five minutes. PASSES when the count differs only for a change the response names and explains. FAILS on an unexplained added, dropped or merged case.",
+      "passed": true,
+      "evidence": "8 session rows + 3 unread meter rows + allCases test (3 chargers) = 14 cases; none added or dropped."
+    },
+    {
+      "id": "compiles",
+      "text": "swift build --build-tests succeeds against the package scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The converted tests pass when run against ChargingFee",
+      "passed": true,
+      "evidence": "Tests passed"
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 10,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 2694,
+    "output_tokens": 297,
+    "total_tokens": 2991,
+    "calls": 1,
+    "cost_usd": 0.008358,
+    "rates_usd_per_mtok": {
+      "input": 2,
+      "output": 10
+    }
+  }
+}

@@ -8,5 +8,5 @@ read `wrongCode(attemptsLeft: 2)` as Swift spells it; the stub stays unimplement
 compile and fail.
 
 The rules do not say what a blocked parcel past 72 hours gives. This answer takes
-`returnedToDepot`, and the row "Blocked and past its time" states that reading; the doc comment
+`returnedToDepot`, and the row "Three wrong codes, past its time" states that reading; the doc comment
 says the rules leave it open.
