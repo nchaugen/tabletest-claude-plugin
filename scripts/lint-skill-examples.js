@@ -196,6 +196,9 @@ const EVAL_DOMAIN_TERMS = [
   // `{IN_STOCK, BACKORDERED}` passed the checker on 2026-08-04 while naming the exact enum the eval
   // grades.
   "in_stock", "backordered", "pre_ordered", "pre-ordered",
+  // The tabletest-swift suite (evals 36–41).
+  "bowling", "charger", "charging session", "washing machine", "laundry", "playlist",
+  "parcel locker", "pickup code",
 ];
 
 /**
