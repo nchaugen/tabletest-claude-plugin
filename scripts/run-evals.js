@@ -82,6 +82,7 @@ const LANGUAGE_PROFILES = {
     testFilePattern: /\.swift$/,
     rootTestFiles: false,
     buildFiles: ["Package.swift"],
+    appDirs: ["Sources"],
     deliverablePath: /\.swift$/,
     deliverableContent: /@Test/,
     deliverableDescription: "Swift Testing test file",
@@ -1636,6 +1637,29 @@ function harvestGeneratedFiles(agentCwd, evalDir, evalDef) {
       fs.cpSync(src, path.join(evalDir, "outputs", buildFile));
     }
   }
+  for (const appFile of changedAppFiles(agentCwd, evalDef, profile)) {
+    const dest = path.join(evalDir, "outputs", appFile);
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.cpSync(path.join(agentCwd, appFile), dest);
+  }
+}
+
+/**
+ * The app source files, relative to the working directory, that the agent added or changed
+ * against the eval's scaffold. **A change to an app type can be the answer** — `Codable` on the
+ * app type is how a Swift cell converts — so the grader must see it, and an unchanged scaffold
+ * file is not the agent's work.
+ */
+function changedAppFiles(agentCwd, evalDef, profile) {
+  const projectDir = evalDef.sourceDir ? path.join(evalDef.sourceDir, "project") : null;
+  return (profile.appDirs || [])
+    .flatMap((dir) => findFiles(path.join(agentCwd, dir), profile.testFilePattern))
+    .map((file) => path.relative(agentCwd, file))
+    .filter((file) => {
+      const original = projectDir ? path.join(projectDir, file) : null;
+      return !original || !fs.existsSync(original)
+        || fs.readFileSync(original, "utf-8") !== fs.readFileSync(path.join(agentCwd, file), "utf-8");
+    });
 }
 
 /**

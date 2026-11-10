@@ -1812,6 +1812,28 @@ describe("harvesting a failed generation", () => {
     assert.ok(fs.existsSync(path.join(evalDir, "outputs/pom.xml")));
     fs.rmSync(root, { recursive: true });
   });
+
+  test("copies an app source file the agent changed, and leaves an unchanged one out", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "harvest-"));
+    const sourceDir = path.join(root, "definition");
+    const agentCwd = path.join(root, "work");
+    const evalDir = path.join(root, "eval");
+    for (const base of [path.join(sourceDir, "project"), agentCwd]) {
+      fs.mkdirSync(path.join(base, "Sources/Lighting"), { recursive: true });
+      fs.writeFileSync(path.join(base, "Sources/Lighting/Lamp.swift"), "struct Lamp {}\n");
+      fs.writeFileSync(path.join(base, "Sources/Lighting/Scene.swift"), "enum Scene { case warm }\n");
+    }
+    fs.writeFileSync(path.join(agentCwd, "Sources/Lighting/Scene.swift"), "enum Scene: String, Codable { case warm }\n");
+    fs.mkdirSync(path.join(evalDir, "outputs"), { recursive: true });
+
+    harvestGeneratedFiles(agentCwd, evalDir, { id: 1, slug: "x", skill: "tabletest-swift", language: "swift", sourceDir });
+
+    assert.ok(fs.existsSync(path.join(evalDir, "outputs/Sources/Lighting/Scene.swift")),
+      "a change to an app type is part of the answer, so the grader must see it");
+    assert.ok(!fs.existsSync(path.join(evalDir, "outputs/Sources/Lighting/Lamp.swift")),
+      "an unchanged scaffold file is not the agent's work");
+    fs.rmSync(root, { recursive: true });
+  });
 });
 
 // --- build verification ----------------------------------------------------
