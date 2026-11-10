@@ -1,0 +1,6 @@
+{
+  "compiles": true,
+  "tests_pass": false,
+  "compile_output": "",
+  "test_output": "Building for debugging...\n[Computing dependencies]\n[1 / 5] SwiftParser\nBuild complete! (0,39 secs)\n"
+}
