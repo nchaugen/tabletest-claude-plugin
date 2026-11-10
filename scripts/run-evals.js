@@ -84,7 +84,7 @@ const LANGUAGE_PROFILES = {
     buildFiles: ["Package.swift"],
     appDirs: ["Sources"],
     deliverablePath: /\.swift$/,
-    deliverableContent: /@Test/,
+    deliverableContent: /@(?:Test|TableTest)\b/,
     deliverableDescription: "Swift Testing test file",
   },
 };

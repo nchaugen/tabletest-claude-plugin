@@ -1892,6 +1892,15 @@ describe("classifying a generation failure", () => {
     fs.rmSync(dir, { recursive: true });
   });
 
+  test("a Swift file with only @TableTest functions is delivered test code", () => {
+    const dir = withOutputs({ "Tests/LightingTests/DimmerTests.swift":
+      "struct DimmerTests {\n    @TableTest(\"\"\"\n        Watts | Lumens?\n        60    | 800\n        \"\"\")\n    func converts(watts: Int, lumens: Int) {}\n}\n" });
+    const swiftEval = { id: 1, slug: "x", skill: "tabletest-swift", language: "swift", assertions: [] };
+    const r = classifyGenerationFailure({ message: "Timed out after 900000ms", stdout: "" }, dir, swiftEval);
+    assert.equal(r.kind, "timeout-after-delivery", "a table-only answer is the answer the Swift skill asks for");
+    fs.rmSync(dir, { recursive: true });
+  });
+
   test("a timeout that delivered nothing is not countable", () => {
     const dir = withOutputs({});
     const r = classifyGenerationFailure({ message: "Timed out after 900000ms", stdout: "" }, dir, evalDef);
