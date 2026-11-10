@@ -1193,6 +1193,26 @@ function severWorktreeFromRepo(worktreePath) {
  *
  * Returns one entry per distinct kind of reach, each with the text that proves it.
  */
+/**
+ * One result for the whole run. A background task the agent started can end after its answer;
+ * the CLI then runs one more turn and emits a second `result`. Each event's text, time and usage
+ * cover its own turn, so they add up; `total_cost_usd` and `modelUsage` are running totals, so the
+ * last event's are kept.
+ */
+function mergeResultEvents(events) {
+  const results = events.filter((o) => o.type === "result");
+  if (results.length <= 1) return results[0];
+  const last = results[results.length - 1];
+  const usageKeys = ["input_tokens", "output_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"];
+  return {
+    ...last,
+    result: results.map((r) => r.result || "").filter((text) => text.trim()).join("\n\n"),
+    duration_ms: results.reduce((sum, r) => sum + (r.duration_ms || 0), 0),
+    usage: Object.fromEntries(usageKeys.map((key) =>
+      [key, results.reduce((sum, r) => sum + ((r.usage || {})[key] || 0), 0)])),
+  };
+}
+
 function contaminationHits(conversationJsonl, { repoRoot }) {
   const probes = [
     { kind: "answer-key", pattern: "expected_output" },
@@ -1200,7 +1220,16 @@ function contaminationHits(conversationJsonl, { repoRoot }) {
     // Stays armed: severing the .git link is what should keep the agent out of this project's
     // memory, and this probe is the check that it did.
     { kind: "agent-memory", pattern: "/.claude/projects/" },
+    // The public repo publishes every eval's answer key, so a fetch of it reads them.
+    { kind: "public-answer-keys", pattern: "nchaugen/tabletest-claude-plugin" },
   ];
+  // The CLI saves a long tool output under the session's own folder, and the agent reads it back.
+  // That is its own work, not this project's memory.
+  const init = conversationJsonl.split("\n").map((line) => { try { return JSON.parse(line); } catch { return null; } })
+    .find((frame) => frame && frame.type === "system" && frame.subtype === "init");
+  const ownToolResults = init && init.session_id
+    ? new RegExp(`/\\.claude/projects/[^/\\s"']+/${init.session_id}/tool-results/`, "g")
+    : null;
   const hits = [];
   for (const { kind, pattern } of probes) {
     if (!pattern) continue;
@@ -1212,9 +1241,12 @@ function contaminationHits(conversationJsonl, { repoRoot }) {
       try { frame = JSON.parse(line); } catch { continue; }
       const content = frame?.message?.content;
       if (!Array.isArray(content)) continue;
-      const use = content.find(
-        (b) => b.type === "tool_use" && JSON.stringify(b.input || {}).includes(pattern)
-      );
+      const use = content.find((b) => {
+        if (b.type !== "tool_use") return false;
+        const input = JSON.stringify(b.input || {});
+        const reached = ownToolResults && kind === "agent-memory" ? input.replace(ownToolResults, "") : input;
+        return reached.includes(pattern);
+      });
       if (!use) continue;
       hits.push({ kind, tool: use.name, evidence: JSON.stringify(use.input).slice(0, 300) });
       break;
@@ -1341,7 +1373,7 @@ function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, apiG
         if (!line.trim()) continue;
         try { events.push(JSON.parse(line)); } catch { /* ignore non-JSON lines */ }
       }
-      const resultLine = events.filter(o => o.type === "result").pop();
+      const resultLine = mergeResultEvents(events);
       if (code !== 0) {
         const detail = resultLine && resultLine.result
           ? `\n  result: ${String(resultLine.result).slice(0, 300)}`
@@ -3393,6 +3425,7 @@ module.exports = {
   runDeterministicAssertions,
   classifyGenerationFailure,
   contaminationHits,
+  mergeResultEvents,
   parseEvalIds,
   lastAssistantText,
   harvestGeneratedFiles,

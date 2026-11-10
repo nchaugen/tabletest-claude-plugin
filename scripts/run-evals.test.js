@@ -16,6 +16,7 @@ const path = require("node:path");
 
 const {
   contaminationHits,
+  mergeResultEvents,
   parseLlmGrading,
   repairGradingJson,
   extractJson,
@@ -2028,6 +2029,36 @@ describe("classifying a generation failure", () => {
   });
 });
 
+// A background task the agent started ends after its answer, and the CLI then runs one more
+// turn and emits a second result. Keeping only the last one lost the answer and the time.
+describe("mergeResultEvents", () => {
+  const result = (fields) => ({ type: "result", ...fields });
+
+  test("keeps every turn's text, time and tokens when a run emits two results", () => {
+    const merged = mergeResultEvents([
+      result({ result: "The answer.", duration_ms: 266000, total_cost_usd: 0.32,
+        usage: { input_tokens: 10, output_tokens: 4000, cache_read_input_tokens: 50000 }, modelUsage: { a: {} } }),
+      { type: "assistant" },
+      result({ result: "The background search finished.", duration_ms: 1400, total_cost_usd: 0.34,
+        usage: { input_tokens: 4, output_tokens: 78 }, modelUsage: { a: {}, b: {} } }),
+    ]);
+    assert.equal(merged.result, "The answer.\n\nThe background search finished.");
+    assert.equal(merged.duration_ms, 267400);
+    assert.deepEqual(merged.usage, { input_tokens: 14, output_tokens: 4078, cache_creation_input_tokens: 0, cache_read_input_tokens: 50000 });
+    assert.equal(merged.total_cost_usd, 0.34, "the CLI's cost is already the running total");
+    assert.deepEqual(Object.keys(merged.modelUsage), ["a", "b"]);
+  });
+
+  test("returns a single result as it is", () => {
+    const only = result({ result: "Done.", duration_ms: 5, usage: { output_tokens: 1 } });
+    assert.equal(mergeResultEvents([only]), only);
+  });
+
+  test("returns undefined when the run emitted no result", () => {
+    assert.equal(mergeResultEvents([{ type: "assistant" }]), undefined);
+  });
+});
+
 describe("contaminationHits", () => {
   const toolCall = (name, input) => JSON.stringify({
     type: "assistant",
@@ -2058,6 +2089,23 @@ describe("contaminationHits", () => {
   test("reports a read of this project's auto-memory, which severing .git should prevent", () => {
     const jsonl = toolCall("Bash", { command: "cat /Users/x/.claude/projects/p/memory/m.md" });
     assert.deepEqual(contaminationHits(jsonl, { repoRoot: "/repo" }).map((h) => h.kind), ["agent-memory"]);
+  });
+
+  test("lets the agent read its own session's saved tool output", () => {
+    const init = JSON.stringify({ type: "system", subtype: "init", session_id: "s-1" });
+    const jsonl = [init, toolCall("Bash", { command: "grep error: /Users/x/.claude/projects/-tmp-wt-eval-1-work/s-1/tool-results/b1.txt" })].join("\n");
+    assert.deepEqual(contaminationHits(jsonl, { repoRoot: "/repo" }), []);
+  });
+
+  test("still reports another session's files under the projects folder", () => {
+    const init = JSON.stringify({ type: "system", subtype: "init", session_id: "s-1" });
+    const jsonl = [init, toolCall("Bash", { command: "cat /Users/x/.claude/projects/p/s-2/tool-results/b1.txt" })].join("\n");
+    assert.deepEqual(contaminationHits(jsonl, { repoRoot: "/repo" }).map((h) => h.kind), ["agent-memory"]);
+  });
+
+  test("reports a fetch of the public plugin repo, which publishes the answer keys", () => {
+    const jsonl = toolCall("WebFetch", { url: "https://github.com/nchaugen/tabletest-claude-plugin/tree/main/evals", prompt: "x" });
+    assert.deepEqual(contaminationHits(jsonl, { repoRoot: "/repo" }).map((h) => h.kind), ["public-answer-keys"]);
   });
 
   test("ignores the pattern outside a tool call, so a prompt mentioning it is not a breach", () => {
