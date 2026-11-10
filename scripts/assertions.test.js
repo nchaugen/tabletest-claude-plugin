@@ -670,4 +670,31 @@ ${body}
       assert.equal(result.passed, true, result.evidence);
     });
   });
+
+  describe("tabletest-function-in-a-type", () => {
+    const inType = checkers["tabletest-function-in-a-type"];
+    const testFile = (content) => ({ fileContent: content, allFiles: [
+      { path: "Package.swift", content: "// swift-tools-version: 6.2\n" },
+      { path: "Tests/LightingTests/DimmerTests.swift", content },
+    ] });
+    const table = (name) => `@TableTest("Dims the lamp", table: """
+    Scene        | Levels      | Brightness?
+    '{evening}'  | {10, 20}    | 20
+    """)
+func ${name}(scene: String, levels: Int, brightness: Int) {
+    #expect(true)
+}`;
+
+    test("passes a table inside a struct and one inside an extension of it", () => {
+      const result = inType(testFile(`import TableTest\n\nstruct DimmerTests {\n${table("dims")}\n}\n\nextension DimmerTests {\n${table("brightens")}\n}\n`));
+      assert.equal(result.passed, true, result.evidence);
+    });
+
+    test("fails a table at file scope and names its function", () => {
+      const result = inType(testFile(`import TableTest\n\nstruct DimmerTests {\n${table("dims")}\n}\n\n${table("brightens")}\n`));
+      assert.equal(result.passed, false);
+      assert.match(result.evidence, /brightens/);
+      assert.doesNotMatch(result.evidence, /\bdims\b/);
+    });
+  });
 });

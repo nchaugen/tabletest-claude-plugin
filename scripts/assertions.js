@@ -145,6 +145,36 @@ function swiftTableTestFunctions(content) {
 }
 
 /**
+ * How many braces are open at `index` in Swift source, not counting a brace inside a string
+ * literal or a comment. A table cell such as `{10, 20}` is a set, not a scope.
+ */
+function swiftBraceDepthAt(content, index) {
+  let depth = 0;
+  let i = 0;
+  while (i < index) {
+    if (content.startsWith('"""', i)) {
+      const close = content.indexOf('"""', i + 3);
+      i = close === -1 ? index : close + 3;
+    } else if (content[i] === '"') {
+      let j = i + 1;
+      while (j < content.length && content[j] !== '"' && content[j] !== "\n") j += content[j] === "\\" ? 2 : 1;
+      i = j + 1;
+    } else if (content.startsWith("//", i)) {
+      const end = content.indexOf("\n", i);
+      i = end === -1 ? index : end + 1;
+    } else if (content.startsWith("/*", i)) {
+      const end = content.indexOf("*/", i + 2);
+      i = end === -1 ? index : end + 2;
+    } else {
+      if (content[i] === "{") depth++;
+      else if (content[i] === "}") depth--;
+      i++;
+    }
+  }
+  return depth;
+}
+
+/**
  * Every markdown table in the content, as its pipe-delimited lines.
  *
  * **The alignment row is what identifies a table**, and requiring it is deliberate: a prose
@@ -1347,6 +1377,22 @@ const checkers = {
     return offenders.length === 0
       ? { passed: true, evidence: "No init(from:) in app code" }
       : { passed: false, evidence: `init(from:) written into app code: ${offenders.join(", ")}` };
+  },
+
+  // A `@TableTest` function at file scope compiles, but the tabletest-swift README puts each one
+  // inside a type: a suite groups the tables of one subject and holds their shared fixtures.
+  "tabletest-function-in-a-type": ({ allFiles }) => {
+    const testFiles = (allFiles || []).filter((f) => f.path.endsWith(".swift")
+      && !/(^|\/)Package\.swift$/.test(f.path) && !/(^|\/)Sources\//.test(f.path));
+    const functions = testFiles.flatMap((f) => swiftTableTestFunctions(f.content)
+      .map((fn) => ({ name: fn.name, inType: swiftBraceDepthAt(f.content, fn.attributeIndex) > 0 })));
+    if (functions.length === 0) {
+      return { passed: false, evidence: "No @TableTest function found" };
+    }
+    const outside = functions.filter((fn) => !fn.inType).map((fn) => fn.name);
+    return outside.length === 0
+      ? { passed: true, evidence: `${functions.length} @TableTest function(s), each inside a type` }
+      : { passed: false, evidence: `@TableTest at file scope: ${outside.join(", ")}` };
   },
 
   // --- Swift (table-driven-testing skill) ---
