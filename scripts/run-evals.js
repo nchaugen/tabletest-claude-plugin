@@ -256,7 +256,7 @@ function logError(...args) {
 function resolveModel(shortName) {
   const models = {
     haiku: "claude-haiku-4-5",
-    sonnet: "claude-sonnet-5",
+    sonnet: "claude-sonnet-5-5",
     opus: "claude-opus-4-8",
   };
   if (models[shortName]) return models[shortName];
@@ -544,7 +544,8 @@ async function gradeViaApi(systemPrompt, userPrompt, model, provider = "anthropi
 // Keyed by prefix, not exact id: resolveModel returns bare aliases ("claude-haiku-4-5") for some
 // families and dated ids for others, and an exact-match table silently priced a real run at $0.
 const GRADING_PRICES_USD_PER_MTOK = {
-  "claude-sonnet-5": { input: 3, output: 15 },
+  "claude-sonnet-5-5": { input: 2, output: 10 },
+  "claude-sonnet-5": { input: 2, output: 10 },
   "claude-haiku-4-5": { input: 1, output: 5 },
 };
 
@@ -1410,7 +1411,9 @@ const SKILL_NUDGE =
   "Before writing or modifying any code, invoke the skill relevant to this task and follow its instructions.";
 
 async function generateOne(evalDef, worktreePath, iterationDir, args, repoRoot) {
-  const model = args.model;
+  // The exact id, not the alias: the CLI resolves an alias itself, so a CLI update could change
+  // the generation model between two runs that are compared.
+  const model = resolveModel(args.model);
   const provider = args.provider;
   const evalDir = path.join(
     iterationDir,

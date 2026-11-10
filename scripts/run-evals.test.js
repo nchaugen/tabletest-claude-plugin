@@ -476,9 +476,14 @@ describe("gradingEffortFor", () => {
 
 describe("priceGradingUsage", () => {
   test("prices sonnet input and output at their separate rates", () => {
-    const p = priceGradingUsage({ input_tokens: 1e6, output_tokens: 1e6 }, "claude-sonnet-5");
-    assert.equal(p.cost_usd, 18); // 3 in + 15 out
+    const p = priceGradingUsage({ input_tokens: 1e6, output_tokens: 1e6 }, "claude-sonnet-5-5");
+    assert.equal(p.cost_usd, 12); // 2 in + 10 out
     assert.equal(p.total_tokens, 2e6);
+  });
+
+  test("prices Sonnet 5 at its own rates, not by a longer id's", () => {
+    const p = priceGradingUsage({ input_tokens: 1e6, output_tokens: 1e6 }, "claude-sonnet-5");
+    assert.equal(p.cost_usd, 12); // 2 in + 10 out
   });
 
   // A real haiku run priced at $0 because the table was keyed on a dated id while resolveModel
@@ -854,7 +859,7 @@ describe("parseEvalIds", () => {
 describe("resolveModel", () => {
   test("expands the short names used on the command line", () => {
     assert.equal(resolveModel("haiku"), "claude-haiku-4-5");
-    assert.equal(resolveModel("sonnet"), "claude-sonnet-5");
+    assert.equal(resolveModel("sonnet"), "claude-sonnet-5-5");
     assert.equal(resolveModel("opus"), "claude-opus-4-8");
   });
 

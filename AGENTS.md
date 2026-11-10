@@ -573,7 +573,9 @@ exactly one of them changed between the compared iterations.
 - **Cross-suite regression reports are noise** — added/renamed assertions show as spurious
   regressions. Re-baseline instead of interpreting them.
 - **The grading regime is part of the instrument.** Standard model is **sonnet**
-  (`claude-sonnet-5`). **A comparison is void across a change of grading model, `--grade-runs`,
+  (`claude-sonnet-5-5` since 2026-11-10, for generation and grading; `claude-sonnet-5` before).
+  Every result stored before that date ran on Sonnet 5, so it is a baseline only for another
+  Sonnet 5 run. **A comparison is void across a change of grading model, `--grade-runs`,
   `LLM_GRADING_BATCH_SIZE`, or the grader's response schema.** Re-baseline instead. Current
   measurements — instability, accuracy, level, what each batch of assertion edits moved — live in
   `docs/assertion-triage.md`; read that rather than trusting a figure remembered from a past session.
