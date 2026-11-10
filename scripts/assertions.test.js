@@ -509,3 +509,165 @@ Standard applicant | yes
     assert.equal(checkers["output-columns-have-question-marks"](markdown(one)).passed, false);
   });
 });
+
+describe("Swift @TableTest", () => {
+  const swiftFile = (members) => `import TableTest
+import Testing
+@testable import Lighting
+
+struct DimmerTests {
+${members}
+}
+`;
+  const swift = (members) => ({
+    fileContent: swiftFile(members),
+    allFiles: [
+      { path: "Package.swift", content: "// swift-tools-version: 6.2\n" },
+      { path: "Tests/LightingTests/DimmerTests.swift", content: swiftFile(members) },
+    ],
+  });
+  const titled = (body, signature, bodyCode = "#expect(true)") => `    @TableTest("Dims the lamp", table: """
+${body}
+        """)
+    func ${signature} {
+        ${bodyCode}
+    }`;
+
+  test("reads a titled table with the parameters of its function", () => {
+    const [t] = tableTestTables(swiftFile(titled(
+      "        Scenario | Scene   | Levels   | Brightness?\n        evening  | evening | [10, 20] | 20",
+      "dims(scene: String, levels: [Int], brightness: Int?)",
+    )));
+    assert.equal(t.method, "dims");
+    assert.deepEqual(t.params, [
+      { name: "scene", type: "String" },
+      { name: "levels", type: "[Int]" },
+      { name: "brightness", type: "Int?" },
+    ]);
+    assert.equal(t.hasScenarioColumn, true);
+    assert.deepEqual(t.rows, [["evening", "evening", "[10, 20]", "20"]]);
+  });
+
+  test("reads a table with no title", () => {
+    const [t] = tableTestTables(swiftFile(`    @TableTest("""
+        Watts | Lumens?
+        60    | 800
+        """)
+    func converts(watts: Int, lumens: Int) {
+        #expect(true)
+    }`));
+    assert.equal(t.method, "converts");
+    assert.deepEqual(t.params.map((p) => p.name), ["watts", "lumens"]);
+    assert.equal(t.hasScenarioColumn, false);
+  });
+
+  test("reads a table after traits, above a function with attributes and modifiers", () => {
+    const [t] = tableTestTables(swiftFile(`    @TableTest(.tags(.fast), table: """
+        Value | Others
+        1     | [a: 2]
+        """)
+    @MainActor
+    private func reads(_ value: Int, labelled others: [String: Int]) {
+        #expect(true)
+    }`));
+    assert.equal(t.method, "reads");
+    assert.deepEqual(t.params, [
+      { name: "value", type: "Int" },
+      { name: "others", type: "[String: Int]" },
+    ]);
+  });
+
+  test("splits parameters on commas outside brackets and parentheses", () => {
+    assert.deepEqual(parseParameterList("pair: (Int, Int), counts: [String: Int], scale: Int = 3"), [
+      { name: "pair", type: "(Int, Int)" },
+      { name: "counts", type: "[String: Int]" },
+      { name: "scale", type: "Int" },
+    ]);
+  });
+
+  test("reads a title that holds a parenthesis", () => {
+    const [t] = tableTestTables(swiftFile(`    @TableTest("Dims (or not) the lamp", table: """
+        Watts | Lumens?
+        60    | 800
+        """)
+    func converts(watts: Int, lumens: Int) {
+        #expect(true)
+    }`));
+    assert.equal(t.method, "converts");
+    assert.deepEqual(t.headers, ["Watts", "Lumens?"]);
+  });
+
+  test("reads the headers and counts the rows of every table", () => {
+    const content = swiftFile([
+      titled("        Watts | Lumens?\n        60    | 800\n        100   | 1600", "a(watts: Int, lumens: Int)"),
+      titled("        Scene | Level?\n        night | 5", "b(scene: String, level: Int)"),
+    ].join("\n\n"));
+    assert.deepEqual(parseTableHeaders(content), [["Watts", "Lumens?"], ["Scene", "Level?"]]);
+    assert.equal(countDataRows(content), 3);
+  });
+
+  test("list-syntax-correct judges a column of a Swift array type", () => {
+    const bad = swift(titled("        Scenario | Tags\n        bare     | warm, dim", "t(tags: [String])"));
+    assert.equal(checkers["list-syntax-correct"](bad).passed, false);
+    const good = swift(titled("        Scenario | Tags\n        listed   | [warm, dim]", "t(tags: [String]?)"));
+    assert.equal(checkers["list-syntax-correct"](good).passed, true);
+  });
+
+  test("list-syntax-correct leaves a Swift dictionary column alone", () => {
+    const map = swift(titled("        Scenario | Levels\n        map      | [warm: 2]", "t(levels: [String: Int])"));
+    assert.equal(checkers["list-syntax-correct"](map).evidence, "No List-typed column in any table — nothing to check.");
+  });
+
+  test("set-syntax-correct judges a Set column but not a value set", () => {
+    const bad = swift(titled("        Scenario | Scenes\n        listed   | [warm, dim]", "t(scenes: Set<String>)"));
+    assert.equal(checkers["set-syntax-correct"](bad).passed, false);
+    const valueSet = swift(titled("        Scenario | Scene\n        either   | {warm, dim}", "t(scene: String)"));
+    assert.equal(checkers["set-syntax-correct"](valueSet).passed, true);
+  });
+
+  describe("no-if-switch-in-method", () => {
+    const body = (code) =>
+      checkers["no-if-switch-in-method"](swift(titled("        Watts | Lumens?\n        60    | 800", "t(watts: Int, lumens: Int)", code)));
+
+    test("catches if, guard, switch and a ternary", () => {
+      for (const code of [
+        "if watts > 50 { #expect(true) }",
+        "guard watts > 0 else { return }",
+        "switch watts { default: break }",
+        "#expect(lumens == (watts > 50 ? 800 : 400))",
+      ]) {
+        assert.equal(body(code).passed, false, code);
+      }
+    });
+
+    test("does not read optional chaining, try?, as?, an optional type or ?? as a ternary", () => {
+      const code = [
+        "let lamp: Lamp? = try? Lamp(watts: watts)",
+        "let bright = lamp?.lumens ?? 0",
+        "let named = (lamp as? Named)?.name",
+        "#expect(bright == lumens)",
+      ].join("\n        ");
+      assert.equal(body(code).passed, true, body(code).evidence);
+      assert.match(body(code).evidence, /^1 method\(s\) checked/);
+    });
+  });
+
+  describe("no-decoder-in-app-code", () => {
+    const files = (...pairs) => ({ fileContent: "", allFiles: pairs.map(([path, content]) => ({ path, content })) });
+    const decoder = "extension Scene {\n    init(from decoder: any Decoder) throws {\n        self.init()\n    }\n}\n";
+
+    test("fails an init(from:) written into app code", () => {
+      const result = checkers["no-decoder-in-app-code"](files(["Sources/Lighting/Scene.swift", decoder]));
+      assert.equal(result.passed, false);
+      assert.match(result.evidence, /Sources\/Lighting\/Scene\.swift/);
+    });
+
+    test("passes a conversion in the test target and a one-word conformance in the app", () => {
+      const result = checkers["no-decoder-in-app-code"](files(
+        ["Sources/Lighting/Scene.swift", "enum Scene: String, Codable, CaseIterable { case warm, dim }\n"],
+        ["Tests/LightingTests/TableCells.swift", "extension Scene: @retroactive TableValueDecodable {\n    public init(tableValue: TableValue) throws { self = .warm }\n}\n" + decoder],
+      ));
+      assert.equal(result.passed, true, result.evidence);
+    });
+  });
+});

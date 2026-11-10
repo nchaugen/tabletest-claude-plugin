@@ -14,10 +14,17 @@
  */
 function extractTableTestMethodBodies(content) {
   const results = [];
+  const swiftFunctions = new Map(swiftTableTestFunctions(content).map((f) => [f.attributeIndex, f]));
   const tableTestRegex = /@TableTest/g;
   let match;
 
   while ((match = tableTestRegex.exec(content)) !== null) {
+    const swift = swiftFunctions.get(match.index);
+    if (swift) {
+      results.push({ methodSignature: swift.signature, name: swift.name, body: swift.body, language: "swift" });
+      continue;
+    }
+
     // Scan forward from @TableTest to find the method signature
     const after = content.slice(match.index);
 
@@ -58,15 +65,83 @@ function pipeLines(text) {
     .filter(l => l.length > 0 && l.includes("|") && !isAlignmentRow(l));
 }
 
-/** The text of every `@TableTest` table literal in Java or Kotlin source. */
-function tableTestLiterals(content) {
-  const tableTestRegex = /@TableTest\s*\(\s*(?:value\s*=\s*)?"{3}([\s\S]*?)"{3}\s*\)/g;
-  const literals = [];
+/**
+ * Every `@TableTest` attribute whose table is a `"""` literal, as {index, literal, end}: where the
+ * attribute starts, the table text, and the index just after its closing parenthesis.
+ *
+ * Java and Kotlin pass the table first (`"""` or `value = """`). Swift passes it first too, or
+ * last, after a title and traits: `@TableTest("Title", .tags(.fast), table: """`. **The literal
+ * is found by its delimiter, not by counting parentheses**, because a cell such as
+ * `'Valtellina (Lombardia'` holds an unbalanced one and a title may hold one too.
+ */
+function tableTestAttributes(content) {
+  const found = [];
+  const start = /@TableTest\s*\(/g;
   let match;
-  while ((match = tableTestRegex.exec(content)) !== null) {
-    literals.push(match[1]);
+  while ((match = start.exec(content)) !== null) {
+    const argumentsStart = match.index + match[0].length;
+    const open = content.indexOf('"""', argumentsStart);
+    if (open === -1) break;
+    const prefix = content.slice(argumentsStart, open);
+    if (/@TableTest\b/.test(prefix)) continue;
+    if (!/^\s*(?:value\s*=\s*)?$/.test(prefix) && !/\btable\s*:\s*$/.test(prefix)) continue;
+    const close = content.indexOf('"""', open + 3);
+    if (close === -1) break;
+    const closing = content.slice(close + 3).match(/^\s*\)/);
+    if (!closing) continue;
+    found.push({ index: match.index, literal: content.slice(open + 3, close), end: close + 3 + closing[0].length });
+    start.lastIndex = close + 3;
   }
-  return literals;
+  return found;
+}
+
+/** The text of every `@TableTest` table literal in Java, Kotlin or Swift source. */
+function tableTestLiterals(content) {
+  return tableTestAttributes(content).map((attribute) => attribute.literal);
+}
+
+/**
+ * The Swift function a `@TableTest` attribute annotates, read from the text after the attribute:
+ * other attributes and modifiers, then `func name(parameters)`. Null when the next declaration
+ * is not a Swift function, which is how Java and Kotlin source is told apart.
+ */
+const SWIFT_FUNCTION_AFTER_ATTRIBUTE =
+  /^(?:\s*@\w+(?:\([^)]*\))?)*\s*(?:(?:public|private|internal|fileprivate|static|mutating|nonisolated|final|override)\s+)*func\s+(\w+|`[^`]+`)\s*\(/;
+
+function swiftFunctionAfter(text) {
+  const head = text.match(SWIFT_FUNCTION_AFTER_ATTRIBUTE);
+  if (!head) return null;
+  const parametersStart = head[0].length;
+  let depth = 1;
+  let i = parametersStart;
+  while (i < text.length && depth > 0) {
+    if (text[i] === "(") depth++;
+    else if (text[i] === ")") depth--;
+    i++;
+  }
+  const bodyOpen = text.indexOf("{", i);
+  if (bodyOpen === -1) return null;
+  let bodyDepth = 1;
+  let j = bodyOpen + 1;
+  while (j < text.length && bodyDepth > 0) {
+    if (text[j] === "{") bodyDepth++;
+    else if (text[j] === "}") bodyDepth--;
+    j++;
+  }
+  return {
+    name: head[1],
+    parameters: text.slice(parametersStart, i - 1),
+    signature: text.slice(0, bodyOpen + 1).trim(),
+    body: text.slice(bodyOpen + 1, j - 1),
+  };
+}
+
+/** Every Swift function a `@TableTest` annotates, with the index of its attribute. */
+function swiftTableTestFunctions(content) {
+  return tableTestAttributes(content)
+    .map((attribute) => ({ attribute, fn: swiftFunctionAfter(content.slice(attribute.end)) }))
+    .filter(({ fn }) => fn !== null)
+    .map(({ attribute, fn }) => ({ attributeIndex: attribute.index, ...fn }));
 }
 
 /**
@@ -247,17 +322,21 @@ function isNestedCollection(element) {
 }
 
 /**
- * Split a parameter list on the commas between parameters, not the ones inside generics.
- * Handles both `List<String> tags` (Java) and `tags: List<String>` (Kotlin).
+ * Split a parameter list on the commas between parameters, not the ones inside generics, arrays,
+ * dictionaries or tuples. Handles `List<String> tags` (Java), `tags: List<String>` (Kotlin) and
+ * `_ tags: [String]` or `labelled tags: [String: Int] = [:]` (Swift: the second name is the
+ * parameter, and a default value is not part of the type).
  */
 function parseParameterList(text) {
   if (!text || !text.trim()) return [];
   const parts = [];
   let current = "";
   let depth = 0;
+  let previous = "";
   for (const ch of text) {
-    if (ch === "<") depth++;
-    else if (ch === ">") depth--;
+    if (ch === "<" || ch === "(" || ch === "[") depth++;
+    else if ((ch === ">" && previous !== "-") || ch === ")" || ch === "]") depth--;
+    previous = ch;
     if (ch === "," && depth === 0) {
       parts.push(current.trim());
       current = "";
@@ -268,15 +347,17 @@ function parseParameterList(text) {
   parts.push(current.trim());
 
   return parts.filter(Boolean).map((part) => {
-    const kotlin = part.match(/^(\w+)\s*:\s*(.+)$/);
-    if (kotlin) return { name: kotlin[1], type: kotlin[2].trim() };
+    const named = part.match(/^(?:\w+\s+)?(\w+)\s*:\s*(.+)$/);
+    if (named) return { name: named[1], type: named[2].replace(/\s*=[\s\S]*$/, "").trim() };
     const split = part.lastIndexOf(" ");
     if (split === -1) return { name: part, type: part };
     return { name: part.slice(split + 1).trim(), type: part.slice(0, split).trim() };
   });
 }
 
-const LIST_TYPE = /^(?:java\.util\.)?(?:List|Collection|Iterable|ArrayList|MutableList)\b/;
+// Swift: `[Int]`, `[[Int]]`, `[[String: Int]]` or `[String]?` is a list; `[String: Int]` is a map.
+const LIST_TYPE =
+  /^(?:(?:java\.util\.)?(?:List|Collection|Iterable|ArrayList|MutableList)\b|Array<|\[(?:[^:\[\]]|\[[^\]]*\])*\]\??$)/;
 const SET_TYPE = /^(?:java\.util\.)?(?:Set|HashSet|LinkedHashSet|MutableSet)\b/;
 
 /**
@@ -289,19 +370,20 @@ const SET_TYPE = /^(?:java\.util\.)?(?:Set|HashSet|LinkedHashSet|MutableSet)\b/;
  * them apart.
  */
 function tableTestTables(content) {
-  const tableRegex = /@TableTest\s*\(\s*(?:value\s*=\s*)?"{3}([\s\S]*?)"{3}\s*\)/g;
   const tables = [];
-  let match;
 
-  while ((match = tableRegex.exec(content)) !== null) {
-    const lines = match[1]
+  for (const attribute of tableTestAttributes(content)) {
+    const lines = attribute.literal
       .split("\n")
       .map((l) => l.trim())
       .filter((l) => l.length > 0 && l.includes("|"));
     if (lines.length === 0) continue;
 
-    const after = content.slice(match.index + match[0].length);
-    const signature = after.match(/(?:fun|void|[A-Za-z_$][\w<>,\[\].\s]*?)\s+(\w+|`[^`]+`)\s*\(([^)]*)\)/);
+    const after = content.slice(attribute.end);
+    const swift = swiftFunctionAfter(after);
+    const signature = swift
+      ? [null, swift.name, swift.parameters]
+      : after.match(/(?:fun|void|[A-Za-z_$][\w<>,\[\].\s]*?)\s+(\w+|`[^`]+`)\s*\(([^)]*)\)/);
 
     // Leading/trailing pipes are optional, and whether one is present is a property of the
     // table's style, not of a row. Decide it from the header and apply it to every row —
@@ -731,6 +813,15 @@ const checkers = {
 
     const violations = [];
     for (const m of methods) {
+      if (m.language === "swift") {
+        // `#if` is a compiler directive. A Swift ternary needs whitespace on both sides of its `?`,
+        // which optional chaining, `try?`, `as?`, an optional type and `??` never have.
+        if (/(?<!#)\bif\b/.test(m.body)) violations.push(`if statement found in ${m.name}`);
+        if (/\bguard\b/.test(m.body)) violations.push(`guard statement found in ${m.name}`);
+        if (/\bswitch\b/.test(m.body)) violations.push(`switch statement found in ${m.name}`);
+        if (/\s\?\s/.test(m.body)) violations.push(`ternary operator found in ${m.name}`);
+        continue;
+      }
       if (/\bif\s*\(/.test(m.body)) violations.push("if statement found in method body");
       if (/\bswitch\s*\(/.test(m.body)) violations.push("switch statement found in method body");
       // A ternary's `?` and `:` always sit in one statement, so `[^;]` bounds the search
@@ -1243,6 +1334,21 @@ const checkers = {
     };
   },
 
+  // --- Swift (tabletest-swift skill) ---
+
+  // A form the app never decodes is a conversion in the test target, never an `init(from:)` in
+  // the app. The outputs hold only the files the agent wrote or changed, so an eval's scaffold
+  // must hold no `init(from:)` of its own in `Sources/`.
+  "no-decoder-in-app-code": ({ allFiles }) => {
+    const offenders = (allFiles || [])
+      .filter((f) => /(^|\/)Sources\/.*\.swift$/.test(f.path))
+      .filter((f) => /\binit\s*\(\s*from\s+\w+\s*:/.test(f.content))
+      .map((f) => f.path);
+    return offenders.length === 0
+      ? { passed: true, evidence: "No init(from:) in app code" }
+      : { passed: false, evidence: `init(from:) written into app code: ${offenders.join(", ")}` };
+  },
+
   // --- Swift (table-driven-testing skill) ---
 
   "uses-test-arguments": ({ fileContent, allFiles }) => {
@@ -1323,4 +1429,5 @@ module.exports = {
   parseCollectionElements,
   parseParameterList,
   tableTestTables,
+  tableTestLiterals,
 };

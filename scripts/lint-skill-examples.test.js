@@ -125,6 +125,22 @@ void appliesConfig(String scenario, RequestConfig config, String expected) { }`)
     assert.ok(checks.includes("constant-expectation-column"), checks.join(","));
   });
 
+  test("flags a constant expectation column and a ternary in a titled Swift table", () => {
+    const checks = violationsIn(`struct HeaterTests {
+    @TableTest("Keeps the heater on below the set point", table: """
+        Reading | Heater?
+        12      | on
+        18      | on
+        """)
+    func keepsTheHeaterOn(reading: Int, heater: String) {
+        #expect(Heater(reading).state == (reading < 20 ? heater : "off"))
+    }
+}`);
+
+    assert.ok(checks.includes("constant-expectation-column"), checks.join(","));
+    assert.ok(checks.includes("no-if-switch-in-method"), checks.join(","));
+  });
+
   test("accepts an expectation column that moves with the rows", () => {
     const checks = violationsIn(`@TableTest("""
     Credit Hours | Standing?

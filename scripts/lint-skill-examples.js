@@ -15,7 +15,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const { checkers, extractTableTestMethodBodies } = require("./assertions.js");
+const { checkers, extractTableTestMethodBodies, tableTestLiterals } = require("./assertions.js");
 
 /**
  * Fenced code blocks holding a `@TableTest`, each with the 1-based line its fence opens on.
@@ -53,12 +53,10 @@ function extractTableTestExamples(markdown) {
  * match its neighbours.
  */
 function parseTables(code) {
-  const tableRegex = /@TableTest\s*\(\s*(?:value\s*=\s*)?"""([\s\S]*?)"""\s*\)/g;
   const tables = [];
-  let match;
 
-  while ((match = tableRegex.exec(code)) !== null) {
-    const rows = match[1]
+  for (const literal of tableTestLiterals(code)) {
+    const rows = literal
       .split("\n")
       .map((line) => line.trim())
       .filter((line) => line.length > 0 && line.includes("|") && !line.startsWith("//"))
