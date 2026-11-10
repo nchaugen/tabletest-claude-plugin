@@ -1,0 +1,6 @@
+{
+  "compiles": true,
+  "tests_pass": false,
+  "compile_output": "",
+  "test_output": "Building for debugging...\n[Computing dependencies]\n[Pre-planning 1 / 739]\n[Planning deferred tasks]\n[1 / 5]\nBuild complete! (0,78 secs)\n"
+}
