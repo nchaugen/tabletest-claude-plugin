@@ -1,5 +1,7 @@
 const { test, describe } = require("node:test");
 const assert = require("node:assert");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const {
   render,
@@ -99,9 +101,17 @@ describe("the shared sources and the copies generated from them", () => {
   });
 });
 
+/**
+ * The skills that render the shared core. A vocabulary also serves an eval suite, and a suite's
+ * evals are frozen before its skill is written, so a vocabulary can exist before its skill does.
+ */
+function publishedSkills(vocabularies) {
+  return Object.keys(vocabularies).filter((skill) => fs.existsSync(path.join(__dirname, "..", "skills", skill)));
+}
+
 describe("the shared table-design core", () => {
   const vocabularies = loadVocabulary();
-  const skills = Object.keys(vocabularies);
+  const skills = publishedSkills(vocabularies);
   const rules = loadTableDesignRules();
 
   test("renders for every skill, so every rule has an illustration in each", () => {
@@ -244,14 +254,14 @@ describe("the generated checklist", () => {
     for (const { slug, template } of loadTableDesignRules()) {
       assert.doesNotMatch(template, /\*\*Check:\*\*/, `${slug} still carries its check in the body`);
     }
-    for (const skill of Object.keys(vocabularies)) {
+    for (const skill of publishedSkills(vocabularies)) {
       assert.doesNotMatch(renderTableDesign(skill, vocabularies[skill]), /\*\*Check:\*\*/, skill);
     }
   });
 
   test("emits one checklist item per rule, for every skill", () => {
     const ruleCount = loadTableDesignRules().length;
-    for (const skill of Object.keys(vocabularies)) {
+    for (const skill of publishedSkills(vocabularies)) {
       const lines = renderTableDesignChecks(skill, vocabularies[skill]).split("\n");
       assert.equal(lines.length, ruleCount, skill);
       for (const line of lines) assert.match(line, /^- \[ \] \*\*/, `${skill}: ${line}`);

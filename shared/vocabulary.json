@@ -47,5 +47,21 @@
     "title_surface": "the test function name, or the display name the framework shows",
     "description_surface": "the test's docstring or leading comment",
     "unused_cell": "at a placeholder value throughout"
+  },
+  "tabletest-swift": {
+    "names": "scenario names",
+    "name": "scenario name",
+    "name_noun": "name",
+    "a_name_noun": "a name",
+    "row": "row",
+    "rows": "rows",
+    "table_noun": "table",
+    "each_table": "each @TableTest",
+    "every_table": "every @TableTest function in the file",
+    "coverage_assertions": "this eval's own coverage assertions where it has them",
+    "empty_value_notation": "`''` for a string, `[]` `{}` `[:]` for a collection",
+    "title_surface": "the `@TableTest` title, or the function name when there is none",
+    "description_surface": "the doc comment above the function",
+    "unused_cell": "blank throughout"
   }
 }
