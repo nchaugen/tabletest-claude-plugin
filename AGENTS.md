@@ -15,9 +15,18 @@ One-line conventional commits (`feat:`/`fix:`/`docs:`/`chore:`), no body, no att
 
 ## Release
 
-1. Bump the version in `.claude-plugin/plugin.json`; add a `CHANGELOG.md` entry.
-2. Commit and push to `main`.
-3. `git tag vX.Y.Z && git push origin vX.Y.Z`.
+1. Check the library versions the skills name, and update a stale one by hand:
+   - `skills/tabletest/SKILL.md` names the newest `tabletest-junit` release, in the Maven and the
+     Gradle snippet.
+   - `skills/tabletest-swift/SKILL.md` names, in `from:`, the lowest `tabletest-swift` release that
+     its guidance needs. Raise it when the skill teaches a newer feature, and at 1.0.0.
+
+   A skill names a version so that the agent does not spend time and tokens to find one. Keeping it
+   current is the price. The Swift eval scaffolds pin their own versions in `Package.resolved`;
+   change those only as a suite change, with a re-baseline.
+2. Bump the version in `.claude-plugin/plugin.json`; add a `CHANGELOG.md` entry.
+3. Commit and push to `main`.
+4. `git tag vX.Y.Z && git push origin vX.Y.Z`.
 
 The tag triggers `.github/workflows/release.yml`, which creates the GitHub release from
 `CHANGELOG.md`. Never `gh release create` manually — always use the tag.
