@@ -36,6 +36,9 @@ Before you write a `@TableTest`, check three things. **If one is missing, add it
    )
    ```
 
+   Write the version as it stands here. `0.1.2` is the lowest release this skill's guidance needs,
+   and `from:` takes every later 0.x release, so there is no need to look up the newest one.
+
    In an Xcode project, the package is in the project, and the `TableTest` library is linked to the
    test target, not to the app target. An agent cannot do this step: tell the user to select
    **File > Add Package Dependencies…**, enter the package URL, and add `TableTest` to the test
