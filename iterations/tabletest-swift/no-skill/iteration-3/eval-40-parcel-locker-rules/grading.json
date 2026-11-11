@@ -1,0 +1,96 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest attribute",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "tabletest-function-in-a-type",
+      "text": "Every @TableTest function is declared inside a type (a struct, class, enum or an extension of one), not at file scope.",
+      "passed": true,
+      "evidence": "2 @TableTest function(s), each inside a type"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test function body contains no if, guard or switch statement and no ternary",
+      "passed": true,
+      "evidence": "2 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Result?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Result?, Result?"
+    },
+    {
+      "id": "result-cell-spelled-as-swift",
+      "text": "The expected result is one cell that spells the PickupResult case as Swift code does, such as wrongCode(attemptsLeft: 2) or returnedToDepot, because PickupResult gained Codable (or Decodable) in Sources/. FAILS when the result is split into a case-name column and an attempts column that the body puts back together, when the body builds the expected result from other columns, or when the test target maps words to cases by hand.",
+      "passed": false,
+      "evidence": "Test file adds `extension PickupResult: TableTextDecodable` with a hand-written `switch tableText` mapping words to cases"
+    },
+    {
+      "id": "no-decoder-in-app-code",
+      "text": "No init(from:) is written into the app code under Sources/.",
+      "passed": true,
+      "evidence": "No init(from:) in app code"
+    },
+    {
+      "id": "countdown-and-block-shown",
+      "text": "The rows show the countdown of wrong codes — 2 attempts left after the first, 1 after the second, blocked at the third — and that a blocked parcel stays blocked for the right code. FAILS when a step of the countdown has no row, or when no row gives the right code to a blocked parcel.",
+      "passed": true,
+      "evidence": "Rows at 0, 1 and 2 give attemptsLeft 2, attemptsLeft 1 and blocked; 'Already blocked | {482915, 482916} | 3' gives blocked"
+    },
+    {
+      "id": "pickup-window-both-sides",
+      "text": "The 72-hour limit is shown from both sides: the pickup code opens at 72 hours after delivery, and the result is returnedToDepot at 73 (or the first hour after 72 the table uses). FAILS when only one side is shown, or when the boundary sits at another value without a reason the rules give.",
+      "passed": true,
+      "evidence": "'At the 72-hour limit ... 72 | opens' and 'Just past the limit ... 73 | returnedToDepot'"
+    },
+    {
+      "id": "assumption-surfaced-as-row",
+      "text": "Where the requirement leaves a point open and the answer must commit to a reading anyway, a row states the commitment. Judge ONLY the points the Expected Output Description names as underspecified — normally a section headed \"Underspecified\" — and of those, only the ones it says should become a row. **If it names no such point, or says the requirement leaves nothing open, this assertion PASSES**, and your evidence must quote the sentence that says so. Do not go looking for open points of your own: that description is the only list, and a point it does not name is not judged here. Enumerate before you decide: list each named point, and beside it the row that fixes it — its table, its scenario name, and the cells carrying the choice — or write \"no row\". A verdict reached without that list is not a verdict. The decidable test for a named point is whether the reading NOT taken would move a cell: name that reading and the cell it would change. PASSES when every named point has such a row. One row can fix several points, and one point can need a pair — the row taking the reading and the row just past it. FAILS when a named point is fixed only in prose: in the doc comment above the function, in a comment, in the response text, or in a name with no cell behind it. A sentence saying which reading was taken is not the row this asks for, and publishing it neither creates nor discharges the failure — whether an assumption is *published* is another assertion's subject, and whether the reading chosen is the better one is nobody's. FAILS when a named point is fixed nowhere. Follow the Expected Output Description's own words on what each point needs, never your own sense of what would be worth testing. Where it prescribes something other than a row — stating the choice in the doc comment above the function, or constructing the rows so the case cannot arise — that is the resolution, and the point PASSES when the answer does it. Where it marks a point out of scope, or foreseeable-but-omitted, or says omitting it is not penalised, the point is NOT judged. Where it makes a point conditional on a choice the answer did not make — \"if the answer rejects these, a row should show it\" — the point is NOT judged. And rows you think are missing for any other reason are never a failure here: this assertion judges the named points and nothing else.",
+      "passed": true,
+      "evidence": "Named point: blocked parcel past 72h. Row 'Blocked parcel | 482915 | 482915 | 3 | 73 | returnedToDepot' (second table) fixes it."
+    },
+    {
+      "id": "row-kills-a-wrong-implementation",
+      "text": "A row that exists to defeat a specific wrong implementation must actually defeat it. Judge ONLY the coverage obligations the Expected Output Description states in that form — an obligation whose point is that a plausible but wrong version of the rule gets this case wrong, such as \"the correct minimal pair is found where a greedy pick fails\" or \"companions break a tie between equally-minimal sets\". **If it states no such obligation, this assertion PASSES**, and your evidence must quote the sentence you judged that on. Do not invent wrong implementations of your own: the Expected Output Description names them, or states the obligation clearly enough to imply one, and nothing else is judged here. Enumerate before you decide: for each such obligation, name the row meant to discharge it, name the wrong rule it is aimed at, and work out what that wrong rule would produce **from that row's own input cells**. A verdict reached without that list is not a verdict. FAILS when the wrong rule would produce the row's expected output too — the row cannot tell the two apart, whatever it is called. FAILS when no row targets the obligation at all. PASSES when every such obligation has a row whose expected output the named wrong rule gets wrong. Judge cells, never scenario names: a name like \"the correct pair, not just any pair\" claims the property and does not confer it, and a row an approximating rule would answer the same way fails here under any scenario name. Two things are NOT failures here. A row satisfiable by some contrived lookup of the very answers it states — every finite table is, and that is not what this asks. And rows you think are missing for an obligation the Expected Output Description does not put in this form: coverage in general is not this assertion's subject, only the obligations that name a wrong rule to defeat.",
+      "passed": true,
+      "evidence": "'Right code after two misses | 2 | opens' defeats early blocking; 'Already blocked' with the right code 482915 and count 3 expects blocked."
+    },
+    {
+      "id": "row-values-traceable-to-requirement",
+      "text": "Every input value is there for a reason the table could state. Enumerate before you decide: list every row carrying an input outside the range the domain admits, and every pair of rows that differ in one input and straddle a change of outcome. Write the reason each value is there. A verdict reached without that list is not a verdict. FAILS when a row carries an input the domain does not admit — an age of 800, a claim count of 999 — and the rule that table states is not itself about values in that range. Such a value is there to move some quantity the table is not about, and the row then demonstrates nothing the requirement asks for. Publishing the reason does not rescue it: \"age 760 is used only to force an internal risk score above the rejection threshold\" is a clear statement of the defect, not a defence. FAILS when a boundary pair's values can only be justified by arithmetic the test is NOT PERMITTED to publish. The check in one question: could a column, a title or the doc comment above the function say why these two values and not others, without naming something this eval forbids the test to name? Approving at age 9 and rejecting at age 10 fails it — nothing publishable separates 9 from 10, and the only thing that does is a private formula. PASSES when an out-of-range value is the subject of the rule the table states — a value set of {-1, -10, -100} in a table whose rule is that negative hours floor to zero — or when it demonstrates a precedence the requirement states and the row says which, as \"the oldest applicant still under the claim limit\" does at age 100 with 4 claims. PASSES when a boundary pair brackets a value the requirement names (650 against 651 where the requirement says \"above 650\"; 40 against 41 hours) or a boundary of a rule the table's own columns show, such as a weight of 1.0 against 1.01 beside the rate each produces. A threshold the solution found in the code and then PUBLISHED as a column or a description PASSES here; whether publishing it was allowed is another assertion's subject. A value that is merely unstated is also another assertion's subject, not this one. Judge every @TableTest function in the file.",
+      "passed": true,
+      "evidence": "Hours 0/72/73 bracket the stated 72-hour limit; counts 0-3 follow the three-wrong-codes rule; no out-of-domain values."
+    },
+    {
+      "id": "scenario-names-describe-conditions",
+      "text": "Scenario names name the variation the row exercises, not the result it produces. The decidable test: FAILS when a scenario name states or paraphrases a value that appears in an expectation column of that same row — 'User cannot delete' beside an Allowed? cell of false, 'No discount applies' beside a Discount? cell of 0.00, 'Contractor gets no bonus' beside a Bonus? cell of 0. Also FAILS on generic labels ('Test 1', 'Test case 2'), which name no variation at all. PASSES otherwise. Naming the rule or the situation is correct even when it makes the outcome inferable — 'Delivery and pickup items always split', 'At the standard threshold, not above it', 'EU express, light package', 'Renewal with no claims', 'Missing name' all PASS. The failure this catches is a name echoing its own expectation cell, not a name that describes what the row is about, and not a name from which a reader who knows the rule could predict the outcome. A single offending name fails the assertion. Judge every @TableTest function in the file.",
+      "passed": false,
+      "evidence": "Scenario 'Already blocked' sits beside a Result? cell of 'blocked', so the name echoes its own expectation"
+    },
+    {
+      "id": "compiles",
+      "text": "swift build --build-tests succeeds against the package scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 11,
+  "assertions_total": 13,
+  "pass_rate": 0.8461538461538461,
+  "grading_usage": {
+    "input_tokens": 6721,
+    "output_tokens": 1623,
+    "total_tokens": 8344,
+    "calls": 1,
+    "cost_usd": 0.029672,
+    "rates_usd_per_mtok": {
+      "input": 2,
+      "output": 10
+    }
+  }
+}
