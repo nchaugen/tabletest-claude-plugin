@@ -231,6 +231,9 @@ const GENERIC_IDENTIFIERS = new Set([
   "notes", "null", "optional", "premium", "rejected", "result", "scenario", "senior", "several",
   "short", "single", "standard", "state", "string", "success", "table", "test", "this", "throws",
   "total", "travel", "unknown", "valid", "weight", "where", "write",
+  // Swift language and package words: the Swift suite's answer keys name them as types and
+  // folders, and every Swift illustration must too.
+  "bool", "codable", "decimal", "decodable", "sources",
 ]);
 
 const IDENTIFIER_PATTERN = /\b[A-Z][a-z]{3,}\b|\b[A-Z]{3,}(?:_[A-Z]+)*\b/g;
