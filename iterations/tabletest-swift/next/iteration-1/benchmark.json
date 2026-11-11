@@ -1,0 +1,209 @@
+{
+  "skill_name": "tabletest-swift (next)",
+  "iteration": 1,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5-5",
+  "grading_effort": null,
+  "skill_commit": "44ee5b8cf7cdb5bfca9b09f4659364c2268c8691",
+  "skill_digest": "ec2e3bd6fac75485",
+  "generation_auth": "subscription",
+  "timestamp": "2026-11-11T08:51:33.971Z",
+  "evals": [
+    {
+      "id": "eval-36-bowling-lanes-convert",
+      "name": "bowling lanes convert",
+      "skill": "tabletest-swift",
+      "fingerprint": "34edfd23cf7d",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 11,
+        "assertions_total": 11,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 216101,
+        "duration_ms": 32212,
+        "cost_usd": 0.24688739999999998,
+        "grading_usage": {
+          "input_tokens": 3551,
+          "output_tokens": 249,
+          "total_tokens": 3800,
+          "calls": 1,
+          "cost_usd": 0.009592,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-37-ev-charging-arguments",
+      "name": "ev charging arguments",
+      "skill": "tabletest-swift",
+      "fingerprint": "ec062aa55339",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 10,
+        "assertions_total": 10,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 164965,
+        "duration_ms": 23925,
+        "cost_usd": 0.23150400000000004,
+        "grading_usage": {
+          "input_tokens": 2975,
+          "output_tokens": 331,
+          "total_tokens": 3306,
+          "calls": 1,
+          "cost_usd": 0.00926,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-38-washing-machine-cells",
+      "name": "washing machine cells",
+      "skill": "tabletest-swift",
+      "fingerprint": "e101245453da",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 12,
+        "assertions_total": 12,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 171382,
+        "duration_ms": 44461,
+        "cost_usd": 0.24270840000000002,
+        "grading_usage": {
+          "input_tokens": 6097,
+          "output_tokens": 825,
+          "total_tokens": 6922,
+          "calls": 1,
+          "cost_usd": 0.020444,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-39-playlist-screen-columns",
+      "name": "playlist screen columns",
+      "skill": "tabletest-swift",
+      "fingerprint": "6cc1dcea9188",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 12,
+        "assertions_total": 12,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 233359,
+        "duration_ms": 51696,
+        "cost_usd": 0.2966708,
+        "grading_usage": {
+          "input_tokens": 5784,
+          "output_tokens": 1330,
+          "total_tokens": 7114,
+          "calls": 1,
+          "cost_usd": 0.024868,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-40-parcel-locker-rules",
+      "name": "parcel locker rules",
+      "skill": "tabletest-swift",
+      "fingerprint": "db3e3a16fe11",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 12,
+        "assertions_total": 13,
+        "pass_rate": 0.9230769230769231,
+        "failed_assertions": [
+          "scenario-names-describe-conditions"
+        ],
+        "total_tokens": 226625,
+        "duration_ms": 52422,
+        "cost_usd": 0.2571138,
+        "grading_usage": {
+          "input_tokens": 6706,
+          "output_tokens": 2131,
+          "total_tokens": 8837,
+          "calls": 1,
+          "cost_usd": 0.034722,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-41-hotel-cancellation-routing",
+      "name": "hotel cancellation routing",
+      "skill": "tabletest-swift",
+      "fingerprint": "de7671485ca9",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 4,
+        "assertions_total": 9,
+        "pass_rate": 0.4444444444444444,
+        "failed_assertions": [
+          "has-tabletest-annotation",
+          "fee-cases-are-table-rows",
+          "tabletest-function-in-a-type",
+          "no-if-switch-in-method",
+          "has-question-mark-column"
+        ],
+        "total_tokens": 108313,
+        "duration_ms": 28212,
+        "cost_usd": 0.18102010000000002,
+        "grading_usage": {
+          "input_tokens": 3254,
+          "output_tokens": 316,
+          "total_tokens": 3570,
+          "calls": 1,
+          "cost_usd": 0.009668,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 61,
+    "assertions_total": 67,
+    "pass_rate": 0.9104477611940298,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 1120745,
+    "total_duration_ms": 232928,
+    "total_cost_usd": 1.4559045,
+    "grading": {
+      "input_tokens": 28367,
+      "output_tokens": 5182,
+      "total_tokens": 33549,
+      "calls": 6,
+      "cost_usd": 0.108554,
+      "evals_measured": 6,
+      "rates_usd_per_mtok": {
+        "input": 2,
+        "output": 10
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5-5",
+  "cost_basis": "cli-list-price-estimate"
+}

@@ -1,0 +1,90 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest attribute",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "tabletest-function-in-a-type",
+      "text": "Every @TableTest function is declared inside a type (a struct, class, enum or an extension of one), not at file scope.",
+      "passed": true,
+      "evidence": "1 @TableTest function(s), each inside a type"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test function body contains no if, guard or switch statement and no ternary",
+      "passed": true,
+      "evidence": "1 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Actions?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Edited?, Actions?"
+    },
+    {
+      "id": "edit-columns-are-the-deciding-inputs",
+      "text": "For a saved playlist, the input columns are the inputs the screen reads to decide the actions: the unread rules and the change the user made to the rules (such as 'adds a rule' or 'removes every rule'), with test code that builds the query on screen from the change. FAILS when the columns hold full rule sets or queries, saved and on screen, that the reader must compare to find the change, or when a scenario name states a deciding input that no column holds.",
+      "passed": true,
+      "evidence": "Columns `Screen` (a playlist / a playlist with an unread rule) and `Change`; `Change.applied(to:)` builds the on-screen query."
+    },
+    {
+      "id": "irrelevant-input-is-a-value-set",
+      "text": "An input that does not change the actions is shown once, as a value set ({...}) or left out of the table with the fixture stating it: the order on the library, and the count of unread rules beyond zero. FAILS when two rows differ only in such an input and have the same expectations.",
+      "passed": true,
+      "evidence": "Library order/no-change/remove-all share one `{no change, changes the order, removes every rule}` row; unread count is only 0 or 1."
+    },
+    {
+      "id": "crossing-the-inputs-finds-missing-rows",
+      "text": "The playlist table has a row for a playlist with an unread rule whose every rule is removed (actions: revert), which the original cases lacked.",
+      "passed": true,
+      "evidence": "`a playlist with an unread rule | removes every rule | true | [revert]`"
+    },
+    {
+      "id": "rule-cell-names-only-what-it-sets",
+      "text": "Where a cell holds a rule set, it names only the rules it sets (such as [:] or [genres: {rock}]) and a TableValueDecodable conformance on SmartRules in the test target reads it, for example with readingFields. PASSES when no cell holds a rule set (the rules are columns and the body builds SmartRules). FAILS when every rule cell must name all three fields, or when the app was changed so a synthesised decoder accepts the cell.",
+      "passed": true,
+      "evidence": "No cell holds a rule set; `Change` enum builds SmartRules in the body, so there is no rule-set cell."
+    },
+    {
+      "id": "action-list-converts-on-the-app-type",
+      "text": "The actions list cell converts because PlaylistScreen.Action gained a one-word conformance in Sources/ (CaseIterable, Codable, Decodable, or String raw values). FAILS when the test target turns words into actions itself (a switch, a dictionary, a test-local copy of the enum), or when the expectation is not a list of actions.",
+      "passed": true,
+      "evidence": "`public enum Action: Equatable, CaseIterable, Sendable` in Sources; the test uses `actions: [PlaylistScreen.Action]` with no test-side mapping."
+    },
+    {
+      "id": "no-decoder-in-app-code",
+      "text": "No init(from:) is written into the app code under Sources/.",
+      "passed": true,
+      "evidence": "No init(from:) in app code"
+    },
+    {
+      "id": "compiles",
+      "text": "swift build --build-tests succeeds against the package scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The tests pass when run against PlaylistScreen",
+      "passed": true,
+      "evidence": "Tests passed"
+    }
+  ],
+  "assertions_passed": 12,
+  "assertions_total": 12,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 5784,
+    "output_tokens": 1330,
+    "total_tokens": 7114,
+    "calls": 1,
+    "cost_usd": 0.024868,
+    "rates_usd_per_mtok": {
+      "input": 2,
+      "output": 10
+    }
+  }
+}
