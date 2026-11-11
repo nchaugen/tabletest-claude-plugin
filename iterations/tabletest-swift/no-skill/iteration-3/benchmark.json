@@ -8,13 +8,13 @@
   "skill_commit": "2dcac558d6d0f66fd91f618f5af9d15607c05610",
   "skill_digest": "absent",
   "generation_auth": "subscription",
-  "timestamp": "2026-11-11T00:01:49.890Z",
+  "timestamp": "2026-11-11T09:26:32.371Z",
   "evals": [
     {
       "id": "eval-36-bowling-lanes-convert",
       "name": "bowling lanes convert",
       "skill": "tabletest-swift",
-      "fingerprint": "34edfd23cf7d",
+      "fingerprint": "669e7c86441d",
       "results": {
         "model": "claude-sonnet-5-5",
         "assertions_passed": 10,
@@ -43,7 +43,7 @@
       "id": "eval-37-ev-charging-arguments",
       "name": "ev charging arguments",
       "skill": "tabletest-swift",
-      "fingerprint": "ec062aa55339",
+      "fingerprint": "efbcd9a192db",
       "results": {
         "model": "claude-sonnet-5-5",
         "assertions_passed": 10,
@@ -70,7 +70,7 @@
       "id": "eval-38-washing-machine-cells",
       "name": "washing machine cells",
       "skill": "tabletest-swift",
-      "fingerprint": "e101245453da",
+      "fingerprint": "177aaa30318b",
       "results": {
         "model": "claude-sonnet-5-5",
         "assertions_passed": 10,
@@ -100,7 +100,7 @@
       "id": "eval-39-playlist-screen-columns",
       "name": "playlist screen columns",
       "skill": "tabletest-swift",
-      "fingerprint": "6cc1dcea9188",
+      "fingerprint": "1fd57085a2e4",
       "results": {
         "model": "claude-sonnet-5-5",
         "assertions_passed": 8,
@@ -132,7 +132,7 @@
       "id": "eval-40-parcel-locker-rules",
       "name": "parcel locker rules",
       "skill": "tabletest-swift",
-      "fingerprint": "db3e3a16fe11",
+      "fingerprint": "8087dda4c5a2",
       "results": {
         "model": "claude-sonnet-5-5",
         "assertions_passed": 11,
@@ -162,7 +162,7 @@
       "id": "eval-41-hotel-cancellation-routing",
       "name": "hotel cancellation routing",
       "skill": "tabletest-swift",
-      "fingerprint": "de7671485ca9",
+      "fingerprint": "f6b372d7d2fb",
       "results": {
         "model": "claude-sonnet-5-5",
         "assertions_passed": 3,

@@ -1,5 +1,5 @@
 {
-  "skill_name": "tabletest-swift (next)",
+  "skill_name": "tabletest-swift",
   "iteration": 2,
   "model": "sonnet",
   "provider": "anthropic",
@@ -8,13 +8,13 @@
   "skill_commit": "d672da5acea61a6af9f77cedba11afe0b750139d",
   "skill_digest": "133832150a70e52e",
   "generation_auth": "subscription",
-  "timestamp": "2026-11-11T09:02:07.497Z",
+  "timestamp": "2026-11-11T09:26:32.149Z",
   "evals": [
     {
       "id": "eval-36-bowling-lanes-convert",
       "name": "bowling lanes convert",
       "skill": "tabletest-swift",
-      "fingerprint": "34edfd23cf7d",
+      "fingerprint": "669e7c86441d",
       "results": {
         "model": "claude-sonnet-5-5",
         "assertions_passed": 11,
@@ -41,7 +41,7 @@
       "id": "eval-37-ev-charging-arguments",
       "name": "ev charging arguments",
       "skill": "tabletest-swift",
-      "fingerprint": "ec062aa55339",
+      "fingerprint": "efbcd9a192db",
       "results": {
         "model": "claude-sonnet-5-5",
         "assertions_passed": 10,
@@ -68,7 +68,7 @@
       "id": "eval-38-washing-machine-cells",
       "name": "washing machine cells",
       "skill": "tabletest-swift",
-      "fingerprint": "e101245453da",
+      "fingerprint": "177aaa30318b",
       "results": {
         "model": "claude-sonnet-5-5",
         "assertions_passed": 12,
@@ -95,7 +95,7 @@
       "id": "eval-39-playlist-screen-columns",
       "name": "playlist screen columns",
       "skill": "tabletest-swift",
-      "fingerprint": "6cc1dcea9188",
+      "fingerprint": "1fd57085a2e4",
       "results": {
         "model": "claude-sonnet-5-5",
         "assertions_passed": 11,
@@ -124,7 +124,7 @@
       "id": "eval-40-parcel-locker-rules",
       "name": "parcel locker rules",
       "skill": "tabletest-swift",
-      "fingerprint": "db3e3a16fe11",
+      "fingerprint": "8087dda4c5a2",
       "results": {
         "model": "claude-sonnet-5-5",
         "assertions_passed": 12,
@@ -153,7 +153,7 @@
       "id": "eval-41-hotel-cancellation-routing",
       "name": "hotel cancellation routing",
       "skill": "tabletest-swift",
-      "fingerprint": "de7671485ca9",
+      "fingerprint": "f6b372d7d2fb",
       "results": {
         "model": "claude-sonnet-5-5",
         "assertions_passed": 9,
