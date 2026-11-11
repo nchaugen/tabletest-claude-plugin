@@ -171,6 +171,7 @@ describe("the shared table-design core", () => {
       tabletest: /\bpytest\b|test\.each|\[Theory\]|#expect\(/,
       "spec-by-example": /@TableTest|\bpytest\b|test\.each|\[Theory\]/,
       "table-driven-testing": /@TableTest|@TypeConverter/,
+      "tabletest-swift": /@TypeConverter|\bvoid \w+\(|\bpytest\b|test\.each|\[Theory\]|@Test\(arguments/,
     };
     for (const { slug } of rules) {
       for (const skill of skills) {
