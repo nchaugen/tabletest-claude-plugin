@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+
+- **table-driven-testing**: A Swift project that already uses TableTest, or a request that asks for TableTest, goes to the `tabletest-swift` skill — also when the request says "table-driven" or "Swift Testing" tests
+
 ## [1.9.0] - 2026-08-18
 
 The three skills now share one table-design core — the same rules, in the same words, illustrated in each skill's own notation. **Every entry below applies to all three skills unless it names one.**

@@ -1,6 +1,6 @@
 ---
 name: table-driven-testing
-description: Use when writing or converting parameterised, data-driven, or table-driven tests in any non-JVM ecosystem — pytest parametrize (Python), Swift Testing @Test(arguments:), Jest/Vitest test.each, Go table-driven subtests, xUnit [Theory] — or any framework where several scenarios repeat the same assertion logic over different data. Trigger whenever the user wants to test multiple scenarios of one behaviour, even if they don't say "table". Do not use for Java or Kotlin projects — the tabletest skill owns those, including requests phrased as "table-driven tests".
+description: Use when writing or converting parameterised, data-driven, or table-driven tests in any non-JVM ecosystem — pytest parametrize (Python), Swift Testing @Test(arguments:), Jest/Vitest test.each, Go table-driven subtests, xUnit [Theory] — or any framework where several scenarios repeat the same assertion logic over different data. Trigger whenever the user wants to test multiple scenarios of one behaviour, even if they don't say "table". Do not use for Java or Kotlin projects — the tabletest skill owns those, including requests phrased as "table-driven tests". Do not use for a Swift project whose tests already use TableTest (a Package.swift that depends on tabletest-swift, or a test file that imports TableTest), or when the user asks for TableTest — the tabletest-swift skill owns those, including requests phrased as "table-driven" or "Swift Testing" tests.
 ---
 
 # Table-Driven Testing Skill
@@ -8,6 +8,8 @@ description: Use when writing or converting parameterised, data-driven, or table
 Use this skill when several test scenarios exercise the same behaviour with different data, in ecosystems where the TableTest library is not available.
 
 **Java/Kotlin: stop here.** If the project is Java or Kotlin (Maven/Gradle), use the `tabletest` skill instead — the TableTest library is the target idiom on the JVM, even when the request says "table-driven" or "parameterised" tests.
+
+**Swift with TableTest: stop here.** If the Swift project depends on tabletest-swift, or the user asks for TableTest, use the `tabletest-swift` skill instead — even when the request says "table-driven" or "Swift Testing" tests. A `@TableTest` is a Swift Testing test.
 
 ## The Table Model
 
