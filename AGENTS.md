@@ -1,8 +1,10 @@
 # tabletest-claude-plugin
 
-Claude Code plugin with two Java/Kotlin skills:
+Claude Code plugin with four skills:
 
-- `tabletest` (`/tabletest`) — write and convert JUnit tests to TableTest.
+- `tabletest` (`/tabletest`) — write and convert JUnit tests to TableTest (Java, Kotlin).
+- `tabletest-swift` (`/tabletest-swift`) — write and convert Swift tests to `@TableTest`.
+- `table-driven-testing` (`/table-driven-testing`) — parameterised tests in other ecosystems.
 - `spec-by-example` (`/spec-by-example`) — clarify behaviour through example tables.
 
 Canonical skill files: `skills/<skill>/SKILL.md`.

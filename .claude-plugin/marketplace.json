@@ -10,7 +10,7 @@
         "source": "github",
         "repo": "nchaugen/tabletest-claude-plugin"
       },
-      "description": "Tools to help write TableTest-style JUnit tests in Java and Kotlin"
+      "description": "Tools to help write TableTest tests in Java, Kotlin and Swift, and table-driven tests in other ecosystems"
     }
   ]
 }
