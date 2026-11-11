@@ -1,0 +1,24 @@
+{
+  "originHash" : "0ace1701eb0bd6824d2a5fab59b8628c2b4d79d985832976f45b32686865279d",
+  "pins" : [
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-syntax.git",
+      "state" : {
+        "revision" : "79e4b74a295b6eb74a8b585e3a39d29e70c1dbd1",
+        "version" : "603.0.2"
+      }
+    },
+    {
+      "identity" : "tabletest-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/nchaugen/tabletest-swift.git",
+      "state" : {
+        "revision" : "89af58421cd03e9c538c966b8ae697ade616794e",
+        "version" : "0.1.2"
+      }
+    }
+  ],
+  "version" : 3
+}
