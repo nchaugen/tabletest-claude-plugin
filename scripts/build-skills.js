@@ -20,10 +20,12 @@
  * drift** — it has not been migrated yet, which step 7 does one skill at a time so each migration
  * gets its own measurement.
  *
- * It has to be a region of `SKILL.md` rather than a reference file: `SKILL.md` is the only thing
- * loaded when a skill triggers, and measured across the stored transcripts a `references/` file is
- * opened in 14 of 103 runs while a second skill is invoked in none of 123. See
+ * The region lives in `SKILL.md` by default: `SKILL.md` is the only thing loaded when a skill
+ * triggers, and measured across the stored transcripts a `references/` file is opened in 14 of 103
+ * runs while a second skill is invoked in none of 123. See
  * products/claude-plugin/decisions/measured-guidance-lives-in-skill-md.md in the private docs repo.
+ * A skill may move a region into `references/*.md` behind a gate the agent can observe; the build
+ * fills and checks it there the same way.
  *
  *   node scripts/build-skills.js            write the generated copies
  *   node scripts/build-skills.js --check    report drift, write nothing, exit 1 when it finds any
@@ -214,32 +216,41 @@ function replaceRegion(content, body, name = "table-design") {
 }
 
 /**
- * Every `SKILL.md` the build owns: the published skills, plus any in-development variant.
+ * Every markdown file the build owns, as {skill, file}: each skill's `SKILL.md` and its
+ * `references/*.md`, for the published skills and for any in-development variant. A region is
+ * filled wherever its markers are, so a skill moves a region into a reference file by moving the
+ * markers; nothing here names which file holds which region.
  *
  * **Variants are included deliberately.** A variant is a full copy of a skill directory and the
  * runner hands the agent that copy, so a variant whose region was never filled would be measured
  * with a region the build has not written — the run would be attributed to the shared core while
  * testing something else.
  */
-function skillFiles() {
+function skillFiles(root = repoRoot) {
   const found = [];
-
-  const skillsDir = path.join(repoRoot, "skills");
-  if (fs.existsSync(skillsDir)) {
-    for (const skill of fs.readdirSync(skillsDir).sort()) {
-      const file = path.join(skillsDir, skill, "SKILL.md");
-      if (fs.existsSync(file)) found.push({ skill, file });
+  const filesOf = (skill, dir) => {
+    const main = path.join(dir, "SKILL.md");
+    if (!fs.existsSync(main)) return;
+    found.push({ skill, file: main });
+    const references = path.join(dir, "references");
+    if (!fs.existsSync(references)) return;
+    for (const entry of fs.readdirSync(references).sort()) {
+      if (entry.endsWith(".md")) found.push({ skill, file: path.join(references, entry) });
     }
+  };
+
+  const skillsDir = path.join(root, "skills");
+  if (fs.existsSync(skillsDir)) {
+    for (const skill of fs.readdirSync(skillsDir).sort()) filesOf(skill, path.join(skillsDir, skill));
   }
 
-  const variantsDir = path.join(repoRoot, "skill-variants");
+  const variantsDir = path.join(root, "skill-variants");
   if (fs.existsSync(variantsDir)) {
     for (const skill of fs.readdirSync(variantsDir).sort()) {
       const skillVariants = path.join(variantsDir, skill);
       if (!fs.statSync(skillVariants).isDirectory()) continue;
       for (const variant of fs.readdirSync(skillVariants).sort()) {
-        const file = path.join(skillVariants, variant, "SKILL.md");
-        if (fs.existsSync(file)) found.push({ skill, file });
+        filesOf(skill, path.join(skillVariants, variant));
       }
     }
   }

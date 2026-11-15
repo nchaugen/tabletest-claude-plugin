@@ -283,3 +283,30 @@ describe("the generated checklist", () => {
     assert.equal(findRegion(onlyChecks, "table-design-checks").body, "B");
   });
 });
+
+describe("a generated region in a reference file", () => {
+  const { skillFiles } = require("./build-skills.js");
+  const os = require("node:os");
+
+  test("finds every markdown file of a skill and of its variants, references included", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "skills-"));
+    const write = (file) => {
+      fs.mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+      fs.writeFileSync(path.join(root, file), "# x\n");
+    };
+    write("skills/kennel/SKILL.md");
+    write("skills/kennel/references/table-design.md");
+    write("skills/kennel/references/notes.txt");
+    write("skill-variants/kennel/next/SKILL.md");
+    write("skill-variants/kennel/next/references/table-design.md");
+
+    const found = skillFiles(root).map(({ skill, file }) => `${skill}:${path.relative(root, file)}`);
+    assert.deepEqual(found, [
+      "kennel:skills/kennel/SKILL.md",
+      "kennel:skills/kennel/references/table-design.md",
+      "kennel:skill-variants/kennel/next/SKILL.md",
+      "kennel:skill-variants/kennel/next/references/table-design.md",
+    ]);
+    fs.rmSync(root, { recursive: true });
+  });
+});
