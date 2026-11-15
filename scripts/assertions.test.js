@@ -698,3 +698,247 @@ func ${name}(scene: String, levels: Int, brightness: Int) {
     });
   });
 });
+
+describe("no-branch-on-table-enum-outside-it", () => {
+  const check = checkers["no-branch-on-table-enum-outside-it"];
+  const testFile = (members) => ({
+    fileContent: "",
+    allFiles: [
+      { path: "Package.swift", content: "// swift-tools-version: 6.2\n" },
+      { path: "Sources/Archive/Record.swift", content: "public enum Kind: String { case a, b }\nfunc pick(_ kind: Kind) -> Int { switch kind { case .a: 1; case .b: 2 } }\n" },
+      {
+        path: "Tests/ArchiveTests/ArchiveTests.swift",
+        content: `import TableTest
+import Testing
+@testable import Archive
+
+struct ArchiveTests {
+    enum Insertion: String {
+        case inOrder = "in order"
+        case reversed
+
+        var records: [Int] {
+            switch self {
+            case .inOrder: [1, 2]
+            case .reversed: [2, 1]
+            }
+        }
+    }
+
+${members}
+}
+`,
+      },
+    ],
+  });
+  const tableTest = (body) => `    @TableTest("""
+        Insertion | Newest?
+        in order  | 2
+        """)
+    func findsTheNewest(insertion: Insertion, newest: Int) {
+        ${body}
+    }`;
+
+  test("passes a branch in a member of the test-local enum", () => {
+    const result = check(testFile(tableTest("#expect(Archive(insertion.records).newest == newest)")));
+    assert.equal(result.passed, true, result.evidence);
+  });
+
+  test("fails a helper of the test type that switches on the enum, and names it", () => {
+    const result = check(testFile(`${tableTest("#expect(Archive(Self.records(insertion)).newest == newest)")}
+
+    static func records(_ insertion: Insertion) -> [Int] {
+        switch insertion {
+        case .inOrder: [1, 2]
+        case .reversed: [2, 1]
+        }
+    }`));
+    assert.equal(result.passed, false);
+    assert.match(result.evidence, /records/);
+    assert.match(result.evidence, /Insertion/);
+  });
+
+  test("fails a fixture method that picks with a ternary on a case, the shape found in the field", () => {
+    const result = check(testFile(`${tableTest("#expect(fixture(insertion).newest == newest)")}
+
+    func fixture(_ inserted: Insertion) -> Archive {
+        Archive(inserted == .inOrder ? [1, 2] : [2, 1])
+    }`));
+    assert.equal(result.passed, false);
+    assert.match(result.evidence, /fixture/);
+  });
+
+  test("fails an if or a guard that compares the value with a case", () => {
+    for (const body of [
+      "if insertion == .reversed { return Archive([2, 1]) }\n        return Archive([1, 2])",
+      "guard insertion != .reversed else { return Archive([2, 1]) }\n        return Archive([1, 2])",
+      "if case .reversed = insertion { return Archive([2, 1]) }\n        return Archive([1, 2])",
+    ]) {
+      const result = check(testFile(`${tableTest("#expect(true)")}
+
+    func archive(for insertion: Insertion) -> Archive {
+        ${body}
+    }`));
+      assert.equal(result.passed, false, body);
+    }
+  });
+
+  test("fails a helper that branches on a stored property of the enum's type", () => {
+    const result = check(testFile(`${tableTest("#expect(true)")}
+
+    let order: Insertion = .inOrder
+
+    func archive() -> Archive {
+        switch order {
+        case .inOrder: Archive([1, 2])
+        case .reversed: Archive([2, 1])
+        }
+    }`));
+    assert.equal(result.passed, false, result.evidence);
+  });
+
+  test("passes a comparison with a case that is passed on as a flag, not branched on", () => {
+    const result = check(testFile(tableTest("#expect(Archive(insertion.records, sorted: insertion == .inOrder).newest == newest)")));
+    assert.equal(result.passed, true, result.evidence);
+  });
+
+  test("passes an extension of the enum, which is a member", () => {
+    const result = check(testFile(`${tableTest("#expect(true)")}
+}
+
+extension ArchiveTests.Insertion {
+    func label() -> String {
+        switch self {
+        case .inOrder: "in order"
+        case .reversed: "reversed"
+        }
+    }`));
+    assert.equal(result.passed, true, result.evidence);
+  });
+
+  test("ignores an enum in the app code, and an enum without String raw values", () => {
+    const result = check(testFile(`${tableTest("#expect(true)")}
+
+    enum Step { case one, two }
+
+    func size(_ step: Step) -> Int {
+        switch step {
+        case .one: 1
+        case .two: 2
+        }
+    }`));
+    assert.equal(result.passed, true, result.evidence);
+  });
+
+  test("passes vacuously, and says so, when the tests declare no test-local enum", () => {
+    const result = check({ fileContent: "", allFiles: [{ path: "Tests/ATests/ATests.swift", content: "struct ATests {}\n" }] });
+    assert.equal(result.passed, true);
+    assert.match(result.evidence, /VACUOUS/);
+  });
+});
+
+describe("no-default-in-test-function", () => {
+  const check = checkers["no-default-in-test-function"];
+  const swiftTable = (signature, body) => {
+    const content = `import TableTest
+import Testing
+@testable import Signs
+
+struct SignTests {
+    @TableTest("""
+        Text  | Style | Colour?
+        Stop  | bold  | red
+        """)
+    func ${signature} {
+        ${body}
+    }
+}
+`;
+    return { fileContent: content, allFiles: [{ path: "Tests/SignsTests/SignTests.swift", content }] };
+  };
+
+  test("fails a default with ?? in the body, the shape found in the field", () => {
+    const result = check(swiftTable("paints(text: String, style: Style?, colour: Colour)",
+      "#expect(Sign(text: text, style: style ?? .red).colour == colour)"));
+    assert.equal(result.passed, false);
+    assert.match(result.evidence, /\?\?/);
+    assert.match(result.evidence, /paints/);
+  });
+
+  test("fails .map or .flatMap on a parameter", () => {
+    for (const body of [
+      "#expect(Sign(text: text, style: style.map { Style(name: $0) }).colour == colour)",
+      "#expect(Sign(text: text, style: style?.flatMap(Style.init)).colour == colour)",
+    ]) {
+      const result = check(swiftTable("paints(text: String, style: String?, colour: Colour)", body));
+      assert.equal(result.passed, false, body);
+      assert.match(result.evidence, /style/);
+    }
+  });
+
+  test("passes .map on the result, which is a projection, not a default", () => {
+    const result = check(swiftTable("paints(text: String, style: Style?, colour: Colour)",
+      "#expect(Sign(text: text, style: style).layers.map(\\.colour) == [colour])"));
+    assert.equal(result.passed, true, result.evidence);
+  });
+
+  test("passes optional chaining, try? and as?", () => {
+    const result = check(swiftTable("paints(text: String, style: Style?, colour: Colour)",
+      "let sign = try? Sign(text: text, style: style)\n        #expect((sign as? Painted)?.colour == colour)"));
+    assert.equal(result.passed, true, result.evidence);
+  });
+});
+
+describe("untouched-tables-unchanged", () => {
+  const check = checkers["untouched-tables-unchanged"];
+  const file = (tables) => `import TableTest
+import Testing
+
+struct KennelTests {
+${tables.join("\n\n")}
+}
+`;
+  const table = (name, rows) => `    @TableTest("""
+        Size  | Pen?
+${rows.map((r) => `        ${r}`).join("\n")}
+        """)
+    func ${name}(size: String, pen: Int) {
+        #expect(true)
+    }`;
+  const scaffold = [{ path: "Tests/KennelTests/KennelTests.swift", content: file([
+    table("assignsAPen", ["small | 1", "large | 2"]),
+    table("chargesTheFee", ["small | 30"]),
+  ]) }];
+  const output = (tables) => ({ fileContent: "", allFiles: [{ path: "Tests/KennelTests/KennelTests.swift", content: file(tables) }] });
+  const assertion = { id: "untouched-tables-unchanged", functions: ["chargesTheFee"] };
+
+  test("passes when the named table is byte-equal to the scaffold's, whatever else changed", () => {
+    const result = check({ ...output([
+      table("assignsAPen", ["small | 1", "medium | 2", "large | 2"]),
+      table("chargesTheFee", ["small | 30"]),
+    ]), assertion, scaffoldFiles: scaffold });
+    assert.equal(result.passed, true, result.evidence);
+  });
+
+  test("fails when a named table gained a row, and names it", () => {
+    const result = check({ ...output([
+      table("assignsAPen", ["small | 1", "large | 2"]),
+      table("chargesTheFee", ["small | 30", "large | 40"]),
+    ]), assertion, scaffoldFiles: scaffold });
+    assert.equal(result.passed, false);
+    assert.match(result.evidence, /chargesTheFee/);
+  });
+
+  test("fails when a named table is gone from the answer", () => {
+    const result = check({ ...output([table("assignsAPen", ["small | 1"])]), assertion, scaffoldFiles: scaffold });
+    assert.equal(result.passed, false);
+    assert.match(result.evidence, /chargesTheFee/);
+  });
+
+  test("fails loudly when the assertion names no function or the scaffold lacks one", () => {
+    assert.equal(check({ ...output([]), assertion: { id: "untouched-tables-unchanged" }, scaffoldFiles: scaffold }).passed, false);
+    const missing = check({ ...output([]), assertion: { ...assertion, functions: ["nope"] }, scaffoldFiles: scaffold });
+    assert.equal(missing.passed, false);
+    assert.match(missing.evidence, /scaffold/);
+  });
+});

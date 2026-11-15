@@ -175,6 +175,123 @@ function swiftBraceDepthAt(content, index) {
 }
 
 /**
+ * Swift source with the text of every string literal and comment replaced by spaces, so the
+ * result has the same length and every index still points at the same character. Braces, `?`
+ * and keywords in a table literal or a doc comment then cannot read as code.
+ */
+function maskSwiftLiteralsAndComments(content) {
+  const out = content.split("");
+  const blank = (from, to) => {
+    for (let k = from; k < to && k < out.length; k++) if (out[k] !== "\n") out[k] = " ";
+  };
+  let i = 0;
+  while (i < content.length) {
+    if (content.startsWith('"""', i)) {
+      const close = content.indexOf('"""', i + 3);
+      const end = close === -1 ? content.length : close + 3;
+      blank(i, end);
+      i = end;
+    } else if (content[i] === '"') {
+      let j = i + 1;
+      while (j < content.length && content[j] !== '"' && content[j] !== "\n") j += content[j] === "\\" ? 2 : 1;
+      blank(i, j + 1);
+      i = j + 1;
+    } else if (content.startsWith("//", i)) {
+      const end = content.indexOf("\n", i);
+      const stop = end === -1 ? content.length : end;
+      blank(i, stop);
+      i = stop;
+    } else if (content.startsWith("/*", i)) {
+      const end = content.indexOf("*/", i + 2);
+      const stop = end === -1 ? content.length : end + 2;
+      blank(i, stop);
+      i = stop;
+    } else {
+      i++;
+    }
+  }
+  return out.join("");
+}
+
+/** The index of the `}` that closes the `{` at `open`, in masked source; content.length if none. */
+function matchingBrace(masked, open) {
+  let depth = 0;
+  for (let i = open; i < masked.length; i++) {
+    if (masked[i] === "{") depth++;
+    else if (masked[i] === "}" && --depth === 0) return i;
+  }
+  return masked.length;
+}
+
+/**
+ * Every type block and every function of one Swift file.
+ *
+ * A block is `{kind, name, start, end}`: an `enum`, `extension`, `struct`, `class` or `actor`,
+ * with the last component of its name (`extension Tests.Ward` is `Ward`). A function is
+ * `{name, parameters, body, start, enclosing}`, where `enclosing` lists the blocks around it,
+ * innermost last. Read from masked source, so a table literal never opens a scope.
+ */
+function swiftDeclarations(content) {
+  const masked = maskSwiftLiteralsAndComments(content);
+  const blocks = [];
+  const blockStart = /\b(enum|extension|struct|class|actor)\s+([\w.]+)[^{;\n]*\{/g;
+  let match;
+  while ((match = blockStart.exec(masked)) !== null) {
+    const open = match.index + match[0].length - 1;
+    blocks.push({ kind: match[1], name: match[2].split(".").pop(), start: match.index, end: matchingBrace(masked, open) });
+  }
+
+  const functions = [];
+  const funcStart = /\bfunc\s+(\w+|`[^`]+`)\s*(?:<[^>]*>)?\s*\(/g;
+  while ((match = funcStart.exec(masked)) !== null) {
+    const parametersStart = match.index + match[0].length;
+    let depth = 1;
+    let i = parametersStart;
+    while (i < masked.length && depth > 0) {
+      if (masked[i] === "(") depth++;
+      else if (masked[i] === ")") depth--;
+      i++;
+    }
+    const open = masked.indexOf("{", i);
+    if (open === -1) continue;
+    const close = matchingBrace(masked, open);
+    functions.push({
+      name: match[1],
+      parameters: content.slice(parametersStart, i - 1),
+      body: content.slice(open + 1, close),
+      maskedBody: masked.slice(open + 1, close),
+      start: match.index,
+      enclosing: blocks.filter((b) => b.start < match.index && match.index < b.end),
+    });
+  }
+  return { blocks, functions, masked };
+}
+
+/** Swift test files only: not `Package.swift`, nothing under `Sources/`. */
+function swiftTestFiles(allFiles) {
+  return (allFiles || []).filter((f) => f.path.endsWith(".swift")
+    && !/(^|\/)Package\.swift$/.test(f.path) && !/(^|\/)Sources\//.test(f.path));
+}
+
+const escapeRegExp = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * The branches a function body takes on `value`: a `switch` on it, an `if` or `guard` that
+ * compares it with a case or matches a case, or a ternary whose condition compares it with a case.
+ * A bare comparison passed on as a flag (`intensiveCare: ward == .intensiveCare`) is not a branch.
+ */
+function branchesOn(maskedBody, value) {
+  const v = `(?:self\\.)?${escapeRegExp(value)}\\b`;
+  const comparesWithCase = `(?:${v}\\s*[!=]==?\\s*\\.\\w+|\\.\\w+\\s*[!=]==?\\s*${v})`;
+  const found = [];
+  if (new RegExp(`\\bswitch\\s+\\(?${v}`).test(maskedBody)) found.push(`switch on ${value}`);
+  if (new RegExp(`\\b(?:if|guard)\\b[^{\\n]*${comparesWithCase}`).test(maskedBody)) found.push(`if/guard on ${value}`);
+  if (new RegExp(`\\b(?:if|guard)\\s+case\\b[^{\\n]*=\\s*${v}`).test(maskedBody)) found.push(`if case on ${value}`);
+  if (new RegExp(`${comparesWithCase}\\s*\\)?\\s+\\?\\s`).test(maskedBody)) found.push(`ternary on ${value}`);
+  return found;
+}
+
+/**
  * Every markdown table in the content, as its pipe-delimited lines.
  *
  * **The alignment row is what identifies a table**, and requiring it is deliberate: a prose
@@ -1393,6 +1510,92 @@ const checkers = {
     return outside.length === 0
       ? { passed: true, evidence: `${functions.length} @TableTest function(s), each inside a type` }
       : { passed: false, evidence: `@TableTest at file scope: ${outside.join(", ")}` };
+  },
+
+  // A test-local enum with `String` raw values reads a situation or an action from its cell and
+  // builds the fixture. Its branch belongs in a member of the enum: a helper of the test type that
+  // takes the enum and branches on it is the branch of the test function, moved one call away.
+  "no-branch-on-table-enum-outside-it": ({ allFiles }) => {
+    const violations = [];
+    let enums = 0;
+    for (const file of swiftTestFiles(allFiles)) {
+      const { functions, masked } = swiftDeclarations(file.content);
+      const names = [...masked.matchAll(/\benum\s+(\w+)\s*:\s*String\b/g)].map((m) => m[1]);
+      enums += names.length;
+      for (const enumName of names) {
+        const typed = new RegExp(`^(?:inout\\s+)?(?:[\\w]+\\.)*${enumName}[?!]?$`);
+        const properties = [...masked.matchAll(new RegExp(`\\b(?:let|var)\\s+(\\w+)\\s*:\\s*(?:\\w+\\.)*${enumName}\\b`, "g"))]
+          .map((m) => m[1]);
+        for (const fn of functions) {
+          const member = fn.enclosing.some((b) => (b.kind === "enum" || b.kind === "extension") && b.name === enumName);
+          if (member) continue;
+          const values = parseParameterList(fn.parameters)
+            .filter((p) => typed.test(p.type.trim()))
+            .map((p) => p.name)
+            .concat(properties);
+          const found = [...new Set(values)].flatMap((value) => branchesOn(fn.maskedBody, value));
+          if (found.length > 0) {
+            violations.push(`${file.path}: ${fn.name} branches on the test-local enum ${enumName} (${found.join(", ")}) outside enum ${enumName}`);
+          }
+        }
+      }
+    }
+    if (violations.length === 0 && enums === 0) {
+      return {
+        passed: true,
+        evidence: "VACUOUS: the test files declare no enum with String raw values, so there was no branch to place.",
+      };
+    }
+    return verdict(violations, `${enums} test-local enum(s); every branch on one is a member of that enum`);
+  },
+
+  // A default or an optional map in the body converts a cell on the way in: the body takes a
+  // branch the table does not show. The conversion belongs in a conformance in the test target.
+  "no-default-in-test-function": ({ fileContent, allFiles }) => {
+    const files = swiftTestFiles(allFiles);
+    const sources = files.length > 0 ? files : [{ path: null, content: fileContent }];
+    const functions = sources.flatMap((f) => swiftTableTestFunctions(f.content));
+    if (functions.length === 0) return { passed: false, evidence: "No Swift @TableTest function found" };
+
+    const violations = [];
+    for (const fn of functions) {
+      const body = maskSwiftLiteralsAndComments(fn.body);
+      if (/\?\?/.test(body)) violations.push(`${fn.name} defaults a value with ??`);
+      for (const p of parseParameterList(fn.parameters)) {
+        if (new RegExp(`\\b${escapeRegExp(p.name)}\\s*\\??\\.(?:map|flatMap|compactMap)\\b`).test(body)) {
+          violations.push(`${fn.name} maps its parameter ${p.name}`);
+        }
+      }
+    }
+    return verdict(violations, `${functions.length} @TableTest function(s); no ?? and no .map on a parameter`);
+  },
+
+  // The tables a change does not touch stay as they were. The assertion names them in eval.json
+  // (`functions`), and the runner hands the scaffold's own test files in as `scaffoldFiles`.
+  "untouched-tables-unchanged": ({ allFiles, assertion, scaffoldFiles }) => {
+    const names = (assertion && assertion.functions) || [];
+    if (names.length === 0) {
+      return { passed: false, evidence: 'The assertion names no table: give it "functions" in eval.json.' };
+    }
+    const literalsByFunction = (files) => {
+      const found = new Map();
+      for (const f of swiftTestFiles(files)) {
+        for (const attribute of tableTestAttributes(f.content)) {
+          const fn = swiftFunctionAfter(f.content.slice(attribute.end));
+          if (fn) found.set(fn.name, attribute.literal);
+        }
+      }
+      return found;
+    };
+    const before = literalsByFunction(scaffoldFiles);
+    const after = literalsByFunction(allFiles);
+    const violations = [];
+    for (const name of names) {
+      if (!before.has(name)) violations.push(`the scaffold has no @TableTest function ${name}`);
+      else if (!after.has(name)) violations.push(`${name} is no longer a @TableTest in the answer`);
+      else if (after.get(name) !== before.get(name)) violations.push(`the table of ${name} differs from the scaffold's`);
+    }
+    return verdict(violations, `${names.length} table(s) byte-equal to the scaffold: ${names.join(", ")}`);
   },
 
   // --- Swift (table-driven-testing skill) ---

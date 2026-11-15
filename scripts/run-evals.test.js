@@ -2190,3 +2190,31 @@ describe("parseEvalIds", () => {
     assert.deepEqual(parseEvalIds("15, 20"), [15, 20]);
   });
 });
+
+describe("a checker that compares the answer with the scaffold", () => {
+  const { runDeterministicAssertions, loadScaffoldTestFiles } = require("./run-evals.js");
+
+  test("receives its own assertion and the scaffold's test files", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "scaffold-"));
+    const tests = path.join(root, "project/Tests/KennelTests");
+    fs.mkdirSync(tests, { recursive: true });
+    fs.mkdirSync(path.join(root, "project/Sources/Kennel"), { recursive: true });
+    const table = 'struct KennelTests {\n    @TableTest("""\n        Size | Pen?\n        small | 1\n        """)\n    func assignsAPen(size: String, pen: Int) {\n        #expect(true)\n    }\n}\n';
+    fs.writeFileSync(path.join(tests, "KennelTests.swift"), table);
+    fs.writeFileSync(path.join(root, "project/Sources/Kennel/Pen.swift"), "public enum Pen {}\n");
+
+    const scaffold = loadScaffoldTestFiles(root, { testDirs: ["Tests"], testFilePattern: /\.swift$/ });
+    assert.deepEqual(scaffold.map((f) => f.path), ["Tests/KennelTests/KennelTests.swift"]);
+
+    const assertion = { id: "untouched-tables-unchanged", type: "deterministic", text: "t", functions: ["assignsAPen"] };
+    const same = runDeterministicAssertions([assertion], table, [{ path: "Tests/KennelTests/KennelTests.swift", content: table }],
+      "kennel", 99, "tabletest-swift", scaffold);
+    assert.equal(same[0].passed, true, same[0].evidence);
+
+    const changed = table.replace("small | 1", "small | 2");
+    const moved = runDeterministicAssertions([assertion], changed, [{ path: "Tests/KennelTests/KennelTests.swift", content: changed }],
+      "kennel", 99, "tabletest-swift", scaffold);
+    assert.equal(moved[0].passed, false);
+    fs.rmSync(root, { recursive: true });
+  });
+});

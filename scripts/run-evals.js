@@ -1986,7 +1986,19 @@ function loadOutputFiles(evalDir) {
   return files;
 }
 
-function runDeterministicAssertions(assertions, fileContent, allFiles, evalSlug, evalNumber, skillName) {
+/**
+ * The scaffold's own test files, as {path, content} relative to `project/`, for a checker that
+ * compares the answer with what the agent was given. Empty when the eval has no scaffold tests.
+ */
+function loadScaffoldTestFiles(sourceDir, profile) {
+  if (!sourceDir) return [];
+  const projectDir = path.join(sourceDir, "project");
+  return profile.testDirs
+    .flatMap((dir) => findFiles(path.join(projectDir, dir), profile.testFilePattern))
+    .map((file) => ({ path: path.relative(projectDir, file), content: fs.readFileSync(file, "utf-8") }));
+}
+
+function runDeterministicAssertions(assertions, fileContent, allFiles, evalSlug, evalNumber, skillName, scaffoldFiles = []) {
   const results = [];
   for (const a of assertions) {
     // A hand-written checker wins where one exists; otherwise the assertion is graded by the
@@ -2001,7 +2013,7 @@ function runDeterministicAssertions(assertions, fileContent, allFiles, evalSlug,
       continue;
     }
     try {
-      const result = checker({ fileContent, allFiles, evalSlug });
+      const result = checker({ fileContent, allFiles, evalSlug, assertion: a, scaffoldFiles });
       results.push({ id: a.id, text: a.text, passed: result.passed, evidence: result.evidence });
     } catch (err) {
       results.push({ id: a.id, text: a.text, passed: false, evidence: `Checker error: ${err.message}` });
@@ -2135,7 +2147,8 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, prov
   // Run deterministic assertions
   const deterministicResults = gated
     ? deterministicAssertions.map(gate)
-    : runDeterministicAssertions(deterministicAssertions, fileContent, allFiles, evalDef.slug, evalDef.id, evalDef.skill);
+    : runDeterministicAssertions(deterministicAssertions, fileContent, allFiles, evalDef.slug, evalDef.id, evalDef.skill,
+      loadScaffoldTestFiles(evalDef.sourceDir, profile));
 
   // Run build assertions
   const buildResults = gated
@@ -3526,6 +3539,7 @@ if (require.main === module) {
 // collaborators as arguments, so the suite needs no network and no eval fixtures.
 module.exports = {
   runDeterministicAssertions,
+  loadScaffoldTestFiles,
   classifyGenerationFailure,
   contaminationHits,
   mergeResultEvents,
