@@ -1,0 +1,90 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest attribute",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "tabletest-function-in-a-type",
+      "text": "Every @TableTest function is declared inside a type (a struct, class, enum or an extension of one), not at file scope.",
+      "passed": true,
+      "evidence": "1 @TableTest function(s), each inside a type"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test function body contains no if, guard or switch statement and no ternary",
+      "passed": true,
+      "evidence": "1 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "no-default-in-test-function",
+      "text": "No @TableTest function body defaults a value with ??, or calls .map, .flatMap or .compactMap on one of its parameters.",
+      "passed": true,
+      "evidence": "1 @TableTest function(s); no ?? and no .map on a parameter"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Result?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Replacement?, Ana's Vote After?, Tally After?"
+    },
+    {
+      "id": "no-branch-on-table-enum-outside-it",
+      "text": "A switch, an if or guard that compares with a case, or a ternary on a case, of a test-local enum with String raw values is in a member of that enum (the enum itself or an extension of it), never in another function of the test type that takes the enum or reads a property of its type.",
+      "passed": true,
+      "evidence": "VACUOUS: the test files declare no enum with String raw values, so there was no branch to place."
+    },
+    {
+      "id": "each-refusal-has-a-row",
+      "text": "Each of the three refusals has its own row, or its own value-set member, with its reason in an expectation cell: the poll is closed (pollClosed), the voter has no vote in the box (noVoteToReplace), the voter's ballot is sealed (ballotSealed). FAILS when a reason has no case.",
+      "passed": true,
+      "evidence": "Rows: \"refused(pollClosed)\", \"refused(noVoteToReplace)\", \"refused(ballotSealed)\", each with its own scenario row."
+    },
+    {
+      "id": "unchanged-state-asserted",
+      "text": "A refused case asserts the state of the box after the call — the voter's vote (vote(of:)) and the tally — read from the box, in addition to the returned refusal. FAILS when a refused case asserts only the returned value.",
+      "passed": true,
+      "evidence": "#expect(box.vote(of: \"ana\") == voteAfter) and #expect(box.tally == tallyAfter) run for every row, including refused ones."
+    },
+    {
+      "id": "unchanged-state-has-a-contrast",
+      "text": "The state after a refusal is asserted in one of three forms: a table that also has a row where the state changes (the accepted replacement); one row with a value set of the refusal reasons; or a before-state column whose cells differ between the refused rows, so that the after-state column differs too. FAILS when an after-state column (the voter's vote or the tally after the call) has the same cell in every row of a table with two or more rows, and when the unchanged state is asserted with a constant in the test body.",
+      "passed": true,
+      "evidence": "Same table has accepted rows (\"replaced\", Ana's Vote After \"no\", Tally After [yes: 1, no: 1]) that differ from refused rows."
+    },
+    {
+      "id": "refusal-as-data",
+      "text": "The refusal reason is an expectation cell (such as refused(pollClosed), or a Refusal column), and the replaced and refused rows share one assertion. FAILS when the body chooses what to assert by a branch, or when the refusal is a constant in the body rather than a cell.",
+      "passed": true,
+      "evidence": "Replacement? column holds \"replaced\"/\"refused(pollClosed)\"; one #expect(result == replacement) serves all rows, no branch in the test body."
+    },
+    {
+      "id": "no-decoder-in-app-code",
+      "text": "No init(from:) is written into the app code under Sources/.",
+      "passed": true,
+      "evidence": "No init(from:) in app code"
+    },
+    {
+      "id": "compiles",
+      "text": "swift build --build-tests succeeds against the package scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 12,
+  "assertions_total": 12,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 4574,
+    "output_tokens": 754,
+    "total_tokens": 5328,
+    "calls": 1,
+    "cost_usd": 0.016688,
+    "rates_usd_per_mtok": {
+      "input": 2,
+      "output": 10
+    }
+  }
+}

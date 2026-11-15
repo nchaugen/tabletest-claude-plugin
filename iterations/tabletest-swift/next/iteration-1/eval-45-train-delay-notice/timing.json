@@ -1,0 +1,6 @@
+{
+  "error": "claude exited with code 1:\n  result: You've hit your 5-hour limit · resets 6pm (Europe/Oslo)\n  stderr: ",
+  "failure_kind": "crash",
+  "duration_ms": 45976,
+  "harvested_files": 1
+}

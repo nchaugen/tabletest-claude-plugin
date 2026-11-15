@@ -1,0 +1,287 @@
+{
+  "skill_name": "tabletest-swift (next)",
+  "iteration": 1,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5-5",
+  "grading_effort": null,
+  "skill_commit": "f3a9ca83e614e820f0e7e82dbc2cd8e645f97784",
+  "skill_digest": "8aa3a968b1500965",
+  "generation_auth": "subscription",
+  "timestamp": "2026-11-15T13:36:52.324Z",
+  "evals": [
+    {
+      "id": "eval-36-bowling-lanes-convert",
+      "name": "bowling lanes convert",
+      "skill": "tabletest-swift",
+      "fingerprint": "669e7c86441d",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 11,
+        "assertions_total": 11,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 152818,
+        "duration_ms": 32868,
+        "cost_usd": 0.21225059999999998,
+        "grading_usage": {
+          "input_tokens": 3462,
+          "output_tokens": 243,
+          "total_tokens": 3705,
+          "calls": 1,
+          "cost_usd": 0.009354,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-37-ev-charging-arguments",
+      "name": "ev charging arguments",
+      "skill": "tabletest-swift",
+      "fingerprint": "efbcd9a192db",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 10,
+        "assertions_total": 10,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 153324,
+        "duration_ms": 29356,
+        "cost_usd": 0.2140763,
+        "grading_usage": {
+          "input_tokens": 3064,
+          "output_tokens": 321,
+          "total_tokens": 3385,
+          "calls": 1,
+          "cost_usd": 0.009338,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-38-washing-machine-cells",
+      "name": "washing machine cells",
+      "skill": "tabletest-swift",
+      "fingerprint": "177aaa30318b",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 11,
+        "assertions_total": 12,
+        "pass_rate": 0.9166666666666666,
+        "failed_assertions": [
+          "outcome-cell-spelled-as-swift"
+        ],
+        "total_tokens": 278221,
+        "duration_ms": 68024,
+        "cost_usd": 0.28359999999999996,
+        "grading_usage": {
+          "input_tokens": 6098,
+          "output_tokens": 1199,
+          "total_tokens": 7297,
+          "calls": 1,
+          "cost_usd": 0.024186,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-39-playlist-screen-columns",
+      "name": "playlist screen columns",
+      "skill": "tabletest-swift",
+      "fingerprint": "1fd57085a2e4",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 12,
+        "assertions_total": 12,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 273838,
+        "duration_ms": 55395,
+        "cost_usd": 0.24924449999999998,
+        "grading_usage": {
+          "input_tokens": 5870,
+          "output_tokens": 991,
+          "total_tokens": 6861,
+          "calls": 1,
+          "cost_usd": 0.02165,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-40-parcel-locker-rules",
+      "name": "parcel locker rules",
+      "skill": "tabletest-swift",
+      "fingerprint": "8087dda4c5a2",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 12,
+        "assertions_total": 13,
+        "pass_rate": 0.9230769230769231,
+        "failed_assertions": [
+          "scenario-names-describe-conditions"
+        ],
+        "total_tokens": 212671,
+        "duration_ms": 63481,
+        "cost_usd": 0.268154,
+        "grading_usage": {
+          "input_tokens": 6676,
+          "output_tokens": 1511,
+          "total_tokens": 8187,
+          "calls": 1,
+          "cost_usd": 0.028462,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-41-hotel-cancellation-routing",
+      "name": "hotel cancellation routing",
+      "skill": "tabletest-swift",
+      "fingerprint": "f6b372d7d2fb",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 9,
+        "assertions_total": 9,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 172493,
+        "duration_ms": 38688,
+        "cost_usd": 0.22103840000000002,
+        "grading_usage": {
+          "input_tokens": 3146,
+          "output_tokens": 351,
+          "total_tokens": 3497,
+          "calls": 1,
+          "cost_usd": 0.009802,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-42-dog-daycare-admission",
+      "name": "dog daycare admission",
+      "skill": "tabletest-swift",
+      "fingerprint": "754f2b1bde31",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 12,
+        "assertions_total": 12,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 163847,
+        "duration_ms": 33245,
+        "cost_usd": 0.1172686,
+        "grading_usage": {
+          "input_tokens": 3398,
+          "output_tokens": 273,
+          "total_tokens": 3671,
+          "calls": 1,
+          "cost_usd": 0.009526,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-44-ballot-box-replacement",
+      "name": "ballot box replacement",
+      "skill": "tabletest-swift",
+      "fingerprint": "efc5e2d61213",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 12,
+        "assertions_total": 12,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 442316,
+        "duration_ms": 76149,
+        "cost_usd": 0.3047951,
+        "grading_usage": {
+          "input_tokens": 4574,
+          "output_tokens": 754,
+          "total_tokens": 5328,
+          "calls": 1,
+          "cost_usd": 0.016688,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-45-train-delay-notice",
+      "name": "train delay notice",
+      "skill": "tabletest-swift",
+      "fingerprint": "06127da5bb65",
+      "results": {
+        "model": null,
+        "assertions_passed": 0,
+        "assertions_total": 8,
+        "pass_rate": 0,
+        "failed_assertions": [
+          "has-tabletest-annotation",
+          "tabletest-function-in-a-type",
+          "no-if-switch-in-method",
+          "no-default-in-test-function",
+          "has-question-mark-column",
+          "no-decoder-in-app-code",
+          "compiles",
+          "tests-pass"
+        ],
+        "total_tokens": 0,
+        "duration_ms": 45976,
+        "cost_usd": 0,
+        "error": "claude exited with code 1:\n  result: You've hit your 5-hour limit · resets 6pm (Europe/Oslo)\n  stderr: "
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 89,
+    "assertions_total": 91,
+    "pass_rate": 0.978021978021978,
+    "errored_evals": [
+      "eval-45-train-delay-notice"
+    ],
+    "truncated_evals": [],
+    "total_tokens": 1849528,
+    "total_duration_ms": 443182,
+    "total_cost_usd": 1.8704275,
+    "grading": {
+      "input_tokens": 36288,
+      "output_tokens": 5643,
+      "total_tokens": 41931,
+      "calls": 8,
+      "cost_usd": 0.129006,
+      "evals_measured": 8,
+      "rates_usd_per_mtok": {
+        "input": 2,
+        "output": 10
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5-5",
+  "cost_basis": "cli-list-price-estimate"
+}

@@ -1,0 +1,7 @@
+[
+  {
+    "kind": "agent-memory",
+    "tool": "Read",
+    "evidence": "{\"file_path\":\"/Users/nch/.claude/projects/-private-var-folders-fz-zxx-qbvj49gbql83cc5l47pr0000gn-T-eval-next-1794749531658-eval-39-work/1f7b52ce-451e-4d8f-9c87-e023b4f20015/tool-results/b7anaoz2j.txt\",\"limit\":600,\"offset\":20}"
+  }
+]
