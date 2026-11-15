@@ -199,6 +199,9 @@ const EVAL_DOMAIN_TERMS = [
   // The tabletest-swift suite (evals 36–41).
   "bowling", "charger", "charging session", "washing machine", "laundry", "playlist",
   "parcel locker", "pickup code",
+  // Evals 42–45.
+  "daycare", "puppy", "puppies", "skier", "ski rental", "release setting", "boot sole", "ballot",
+  "voter", "delay notice", "departure",
 ];
 
 /**
