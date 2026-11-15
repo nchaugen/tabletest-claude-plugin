@@ -1,0 +1,48 @@
+{
+  "id": 45,
+  "slug": "train-delay-notice",
+  "skill": "tabletest-swift",
+  "language": "swift",
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest attribute",
+      "type": "deterministic"
+    },
+    {
+      "id": "tabletest-function-in-a-type",
+      "text": "Every @TableTest function is declared inside a type (a struct, class, enum or an extension of one), not at file scope.",
+      "type": "deterministic"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test function body contains no if, guard or switch statement and no ternary",
+      "type": "deterministic"
+    },
+    {
+      "id": "no-default-in-test-function",
+      "text": "No @TableTest function body defaults a value with ??, or calls .map, .flatMap or .compactMap on one of its parameters.",
+      "type": "deterministic"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Text?')",
+      "type": "deterministic"
+    },
+    {
+      "id": "no-decoder-in-app-code",
+      "text": "No init(from:) is written into the app code under Sources/.",
+      "type": "deterministic"
+    },
+    {
+      "id": "compiles",
+      "text": "swift build --build-tests succeeds against the package scaffolding",
+      "type": "build"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The tests pass when run against DelayNotice",
+      "type": "build"
+    }
+  ]
+}

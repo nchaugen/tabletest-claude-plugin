@@ -1,0 +1,147 @@
+{
+  "skill_name": "tabletest-swift (reference)",
+  "iteration": 2,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5-5",
+  "grading_effort": null,
+  "skill_commit": "unknown",
+  "skill_digest": "unknown",
+  "generation_auth": "unknown",
+  "timestamp": "2026-11-15T13:19:52.507Z",
+  "evals": [
+    {
+      "id": "eval-42-dog-daycare-admission",
+      "name": "dog daycare admission",
+      "skill": "tabletest-swift",
+      "fingerprint": "754f2b1bde31",
+      "results": {
+        "model": null,
+        "assertions_passed": 12,
+        "assertions_total": 12,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 0,
+        "duration_ms": 0,
+        "cost_usd": 0,
+        "grading_usage": {
+          "input_tokens": 3136,
+          "output_tokens": 248,
+          "total_tokens": 3384,
+          "calls": 1,
+          "cost_usd": 0.008752,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-43-ski-rental-bindings",
+      "name": "ski rental bindings",
+      "skill": "tabletest-swift",
+      "fingerprint": "bad6b8bf421e",
+      "results": {
+        "model": null,
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 0,
+        "duration_ms": 0,
+        "cost_usd": 0,
+        "grading_usage": {
+          "input_tokens": 3698,
+          "output_tokens": 354,
+          "total_tokens": 4052,
+          "calls": 1,
+          "cost_usd": 0.010936,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-44-ballot-box-replacement",
+      "name": "ballot box replacement",
+      "skill": "tabletest-swift",
+      "fingerprint": "efc5e2d61213",
+      "results": {
+        "model": null,
+        "assertions_passed": 12,
+        "assertions_total": 12,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 0,
+        "duration_ms": 0,
+        "cost_usd": 0,
+        "grading_usage": {
+          "input_tokens": 3976,
+          "output_tokens": 276,
+          "total_tokens": 4252,
+          "calls": 1,
+          "cost_usd": 0.010712,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-45-train-delay-notice",
+      "name": "train delay notice",
+      "skill": "tabletest-swift",
+      "fingerprint": "06127da5bb65",
+      "results": {
+        "model": null,
+        "assertions_passed": 8,
+        "assertions_total": 8,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 0,
+        "duration_ms": 0,
+        "cost_usd": 0,
+        "grading_usage": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "total_tokens": 0,
+          "calls": 0,
+          "cost_usd": 0,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 45,
+    "assertions_total": 45,
+    "pass_rate": 1,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 0,
+    "total_duration_ms": 0,
+    "total_cost_usd": 0,
+    "grading": {
+      "input_tokens": 10810,
+      "output_tokens": 878,
+      "total_tokens": 11688,
+      "calls": 3,
+      "cost_usd": 0.030399999999999996,
+      "evals_measured": 4,
+      "rates_usd_per_mtok": {
+        "input": 2,
+        "output": 10
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": [],
+  "cost_basis": "cli-list-price-estimate"
+}
