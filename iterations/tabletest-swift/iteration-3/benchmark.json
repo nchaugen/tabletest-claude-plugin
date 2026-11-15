@@ -1,0 +1,149 @@
+{
+  "skill_name": "tabletest-swift",
+  "iteration": 3,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5-5",
+  "grading_effort": null,
+  "skill_commit": "ee146b30222a8fe1017c1e01687557d86c17e7e3",
+  "skill_digest": "3820a9b36bf4e1d8",
+  "generation_auth": "subscription",
+  "timestamp": "2026-11-15T13:22:12.017Z",
+  "evals": [
+    {
+      "id": "eval-42-dog-daycare-admission",
+      "name": "dog daycare admission",
+      "skill": "tabletest-swift",
+      "fingerprint": "754f2b1bde31",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 11,
+        "assertions_total": 12,
+        "pass_rate": 0.9166666666666666,
+        "failed_assertions": [
+          "scenario-names-add-to-the-row"
+        ],
+        "total_tokens": 190472,
+        "duration_ms": 33618,
+        "cost_usd": 0.2136632,
+        "grading_usage": {
+          "input_tokens": 3463,
+          "output_tokens": 252,
+          "total_tokens": 3715,
+          "calls": 1,
+          "cost_usd": 0.009446,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-43-ski-rental-bindings",
+      "name": "ski rental bindings",
+      "skill": "tabletest-swift",
+      "fingerprint": "bad6b8bf421e",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 77670,
+        "duration_ms": 17615,
+        "cost_usd": 0.0668294,
+        "grading_usage": {
+          "input_tokens": 3780,
+          "output_tokens": 368,
+          "total_tokens": 4148,
+          "calls": 1,
+          "cost_usd": 0.01124,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-44-ballot-box-replacement",
+      "name": "ballot box replacement",
+      "skill": "tabletest-swift",
+      "fingerprint": "efc5e2d61213",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 12,
+        "assertions_total": 12,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 329747,
+        "duration_ms": 56809,
+        "cost_usd": 0.2602411,
+        "grading_usage": {
+          "input_tokens": 4593,
+          "output_tokens": 564,
+          "total_tokens": 5157,
+          "calls": 1,
+          "cost_usd": 0.014826,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-45-train-delay-notice",
+      "name": "train delay notice",
+      "skill": "tabletest-swift",
+      "fingerprint": "06127da5bb65",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 8,
+        "assertions_total": 8,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 165358,
+        "duration_ms": 51524,
+        "cost_usd": 0.2726488,
+        "grading_usage": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "total_tokens": 0,
+          "calls": 0,
+          "cost_usd": 0,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 44,
+    "assertions_total": 45,
+    "pass_rate": 0.9777777777777777,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 763247,
+    "total_duration_ms": 159566,
+    "total_cost_usd": 0.8133825,
+    "grading": {
+      "input_tokens": 11836,
+      "output_tokens": 1184,
+      "total_tokens": 13020,
+      "calls": 3,
+      "cost_usd": 0.035512,
+      "evals_measured": 4,
+      "rates_usd_per_mtok": {
+        "input": 2,
+        "output": 10
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5-5",
+  "cost_basis": "cli-list-price-estimate"
+}

@@ -1,0 +1,96 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest attribute",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "tabletest-function-in-a-type",
+      "text": "Every @TableTest function is declared inside a type (a struct, class, enum or an extension of one), not at file scope.",
+      "passed": true,
+      "evidence": "1 @TableTest function(s), each inside a type"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test function body contains no if, guard or switch statement and no ternary",
+      "passed": true,
+      "evidence": "1 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "no-default-in-test-function",
+      "text": "No @TableTest function body defaults a value with ??, or calls .map, .flatMap or .compactMap on one of its parameters.",
+      "passed": true,
+      "evidence": "1 @TableTest function(s); no ?? and no .map on a parameter"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Fits?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Fits?"
+    },
+    {
+      "id": "fix-made",
+      "text": "Binding.releaseSetting(for:) now gives a skier of exactly 80 kg the setting of the 80 kg-and-over class (7.0 for an intermediate, 6.5 for a beginner, 8.0 for an expert), and a test case at exactly 80 kg asserts it. FAILS when the code still gives 80 kg the lighter class, or when no test case is at 80 kg.",
+      "passed": true,
+      "evidence": "`if weightKg < 80 { return 5.5 }` ... `(Skier(heightCm: 180, weightKg: 80, level: .intermediate), 7.0)`"
+    },
+    {
+      "id": "no-lone-test-beside-the-table",
+      "text": "The 80 kg case is an element of the releaseSettings collection that the @Test(arguments:) reads, or a row of a @TableTest that replaces that test. FAILS when a new plain @Test, or a second @Test(arguments:) or @TableTest, holds the 80 kg case while the release-setting test over releaseSettings still exists.",
+      "passed": true,
+      "evidence": "80 kg tuple added inside `releaseSettings` array read by the existing @Test(arguments:)."
+    },
+    {
+      "id": "unconverted-table-reported",
+      "text": "The answer either converts the release-setting @Test(arguments:) to a @TableTest, or says in its response that this test stays a @Test(arguments:). FAILS when the test stays unconverted and the response does not name it.",
+      "passed": true,
+      "evidence": "\"I added the rows to the existing array-based test, not a `@TableTest`, because `Level` is not a string-backed enum\""
+    },
+    {
+      "id": "conversion-kept-apart",
+      "text": "When the answer converts the release-setting test to a @TableTest, the response states the conversion as a step apart from the fix (its own step, commit or paragraph), not as part of the fix. PASSES when the answer does not convert it.",
+      "passed": true,
+      "evidence": "The answer does not convert the release-setting test; it remains @Test(arguments:)."
+    },
+    {
+      "id": "original-cases-kept",
+      "text": "The six original release-setting cases remain with the same weights, levels and settings (35 kg beginner 2.5, 55 kg intermediate 4.5, 70 kg intermediate 5.5, 72 kg expert 6.5, 90 kg intermediate 7.0, 95 kg beginner 6.5), beside the new case or cases at 80 kg. FAILS when an original case is dropped or one of its values changes.",
+      "passed": true,
+      "evidence": "All six originals remain: 35/2.5, 55/4.5, 70/5.5, 72/6.5, 90/7.0, 95/6.5 beside new 79 and 80 kg rows."
+    },
+    {
+      "id": "no-decoder-in-app-code",
+      "text": "No init(from:) is written into the app code under Sources/.",
+      "passed": true,
+      "evidence": "No init(from:) in app code"
+    },
+    {
+      "id": "compiles",
+      "text": "swift build --build-tests succeeds against the package scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The tests pass when run against Binding",
+      "passed": true,
+      "evidence": "Tests passed"
+    }
+  ],
+  "assertions_passed": 13,
+  "assertions_total": 13,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 3780,
+    "output_tokens": 368,
+    "total_tokens": 4148,
+    "calls": 1,
+    "cost_usd": 0.01124,
+    "rates_usd_per_mtok": {
+      "input": 2,
+      "output": 10
+    }
+  }
+}

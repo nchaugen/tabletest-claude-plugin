@@ -1,0 +1,151 @@
+{
+  "skill_name": "tabletest-swift",
+  "iteration": 4,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5-5",
+  "grading_effort": null,
+  "skill_commit": "ee146b30222a8fe1017c1e01687557d86c17e7e3",
+  "skill_digest": "3820a9b36bf4e1d8",
+  "generation_auth": "subscription",
+  "timestamp": "2026-11-15T13:24:09.746Z",
+  "evals": [
+    {
+      "id": "eval-42-dog-daycare-admission",
+      "name": "dog daycare admission",
+      "skill": "tabletest-swift",
+      "fingerprint": "754f2b1bde31",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 11,
+        "assertions_total": 12,
+        "pass_rate": 0.9166666666666666,
+        "failed_assertions": [
+          "scenario-names-add-to-the-row"
+        ],
+        "total_tokens": 190282,
+        "duration_ms": 32836,
+        "cost_usd": 0.20786139999999997,
+        "grading_usage": {
+          "input_tokens": 3378,
+          "output_tokens": 304,
+          "total_tokens": 3682,
+          "calls": 1,
+          "cost_usd": 0.009796,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-43-ski-rental-bindings",
+      "name": "ski rental bindings",
+      "skill": "tabletest-swift",
+      "fingerprint": "bad6b8bf421e",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 13,
+        "assertions_total": 13,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 121262,
+        "duration_ms": 22584,
+        "cost_usd": 0.08196590000000001,
+        "grading_usage": {
+          "input_tokens": 3758,
+          "output_tokens": 586,
+          "total_tokens": 4344,
+          "calls": 1,
+          "cost_usd": 0.013376,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-44-ballot-box-replacement",
+      "name": "ballot box replacement",
+      "skill": "tabletest-swift",
+      "fingerprint": "efc5e2d61213",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 11,
+        "assertions_total": 12,
+        "pass_rate": 0.9166666666666666,
+        "failed_assertions": [
+          "no-branch-on-table-enum-outside-it"
+        ],
+        "total_tokens": 286015,
+        "duration_ms": 58746,
+        "cost_usd": 0.2798455,
+        "grading_usage": {
+          "input_tokens": 4949,
+          "output_tokens": 806,
+          "total_tokens": 5755,
+          "calls": 1,
+          "cost_usd": 0.017958,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-45-train-delay-notice",
+      "name": "train delay notice",
+      "skill": "tabletest-swift",
+      "fingerprint": "06127da5bb65",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 8,
+        "assertions_total": 8,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 161684,
+        "duration_ms": 40861,
+        "cost_usd": 0.22348069999999998,
+        "grading_usage": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "total_tokens": 0,
+          "calls": 0,
+          "cost_usd": 0,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 43,
+    "assertions_total": 45,
+    "pass_rate": 0.9555555555555556,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 759243,
+    "total_duration_ms": 155027,
+    "total_cost_usd": 0.7931535,
+    "grading": {
+      "input_tokens": 12085,
+      "output_tokens": 1696,
+      "total_tokens": 13781,
+      "calls": 3,
+      "cost_usd": 0.04113,
+      "evals_measured": 4,
+      "rates_usd_per_mtok": {
+        "input": 2,
+        "output": 10
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5-5",
+  "cost_basis": "cli-list-price-estimate"
+}
