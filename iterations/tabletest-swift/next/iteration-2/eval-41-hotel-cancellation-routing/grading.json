@@ -1,0 +1,72 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest attribute — in a Swift package that already depends on TableTest, the table-driven request is answered with @TableTest.",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "fee-cases-are-table-rows",
+      "text": "The fee cases are the rows of a @TableTest. FAILS when they are supplied with @Test(arguments:), a loop, or one test function per case, also when a @TableTest exists elsewhere in the answer.",
+      "passed": true,
+      "evidence": "@TableTest(\"\"\" Scenario | Booking Value (EUR) | Days Before Check-In | Fee (EUR)? ... with four rows of fee cases"
+    },
+    {
+      "id": "tabletest-function-in-a-type",
+      "text": "Every @TableTest function is declared inside a type (a struct, class, enum or an extension of one), not at file scope.",
+      "passed": true,
+      "evidence": "1 @TableTest function(s), each inside a type"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test function body contains no if, guard or switch statement and no ternary",
+      "passed": true,
+      "evidence": "1 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Fee?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Fee (EUR)?"
+    },
+    {
+      "id": "full-tier-enumeration",
+      "text": "Every fee tier is represented (free, 50%, 80%, full value) and every boundary is tested from both sides: 30 days (free) vs 29 days (50%), 7 days (50%) vs 6 days (80%), 1 day (80%) vs 0 days (full value). Middle-tier boundaries (7/6 and 1/0) must not be skipped in favour of only the outer edges.",
+      "passed": true,
+      "evidence": "Rows {30, 90}→0, {7, 29}→150, {1, 6}→200, 0→180 cover 30/29, 7/6 and 1/0"
+    },
+    {
+      "id": "exception-case-separated",
+      "text": "The started-stay case is expressed as its own test using #expect(throws:) — not mixed into the fee table via sentinel values, optional expectations, or branching inside the test body.",
+      "passed": true,
+      "evidence": "@Test rejectsCancellationAfterStayStarted: #expect(throws: CancellationError.stayAlreadyStarted) with -1"
+    },
+    {
+      "id": "concrete-domain-values",
+      "text": "Row values are concrete domain values (days like 29, fees like 100 for a 200-euro booking) — not abstract placeholders, computed expressions like bookingValue / 2, or symbolic constants that hide the actual numbers from the reader.",
+      "passed": true,
+      "evidence": "Literal cells such as 200 | {30, 90} | 0 and 300 | {7, 29} | 150; no expressions or constants"
+    },
+    {
+      "id": "compiles",
+      "text": "swift build --build-tests succeeds against the package scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    }
+  ],
+  "assertions_passed": 9,
+  "assertions_total": 9,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 3142,
+    "output_tokens": 648,
+    "total_tokens": 3790,
+    "calls": 1,
+    "cost_usd": 0.012764,
+    "rates_usd_per_mtok": {
+      "input": 2,
+      "output": 10
+    }
+  }
+}
