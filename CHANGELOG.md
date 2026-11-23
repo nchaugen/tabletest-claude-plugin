@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+
+- **tabletest-swift**: The skill loads at under a third of its former size (27 kB against 88 kB). A change to the rows of a table that exists needs only that part. The table-design rules move to `references/table-design.md`, which the skill reads in full before it writes a new table, converts a test, or adds or removes a column
+
+### Added
+
+- **tabletest-swift**: A workflow for changing a table that exists — the new row goes beside its neighbours and takes their form, a missing column makes it a design change, and a case for a `@Test(arguments:)` test goes into its collection, never into a plain `@Test` beside it
+
 ## [1.10.0] - 2026-11-11
 
 ### Added

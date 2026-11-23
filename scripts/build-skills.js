@@ -23,7 +23,7 @@
  * The region lives in `SKILL.md` by default: `SKILL.md` is the only thing loaded when a skill
  * triggers, and measured across the stored transcripts a `references/` file is opened in 14 of 103
  * runs while a second skill is invoked in none of 123. See
- * products/claude-plugin/decisions/measured-guidance-lives-in-skill-md.md in the private docs repo.
+ * products/claude-plugin/decisions/a-reference-gated-on-an-action-is-read.md in the private docs repo.
  * A skill may move a region into `references/*.md` behind a gate the agent can observe; the build
  * fills and checks it there the same way.
  *
