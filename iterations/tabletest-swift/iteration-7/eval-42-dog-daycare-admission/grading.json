@@ -1,0 +1,90 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest attribute",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "tabletest-function-in-a-type",
+      "text": "Every @TableTest function is declared inside a type (a struct, class, enum or an extension of one), not at file scope.",
+      "passed": true,
+      "evidence": "3 @TableTest function(s), each inside a type"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test function body contains no if, guard or switch statement and no ternary",
+      "passed": true,
+      "evidence": "3 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "no-default-in-test-function",
+      "text": "No @TableTest function body defaults a value with ??, or calls .map, .flatMap or .compactMap on one of its parameters.",
+      "passed": true,
+      "evidence": "3 @TableTest function(s); no ?? and no .map on a parameter"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Decision?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Decision?, Play Group?, Daily Fee (NOK)?"
+    },
+    {
+      "id": "new-cases-are-rows-of-the-existing-table",
+      "text": "The cases of the new rule (a puppy under 16 weeks needs a second vaccination) are rows of the existing admission table, the one that already has the age and vaccination columns. FAILS when a new @TableTest or @Test function holds any of them, or when the admission table is split in two.",
+      "passed": true,
+      "evidence": "New rows like \"Youngest age, second vaccination | 12 | 2 | admitted\" were added to the existing admission @TableTest; no new test function."
+    },
+    {
+      "id": "untouched-tables-unchanged",
+      "text": "The play-group table and the daily-fee table are byte-equal to the scaffold's.",
+      "passed": true,
+      "evidence": "2 table(s) byte-equal to the scaffold: putsADogInThePlayGroupForItsWeight, chargesTheDailyFeeOfThePlayGroupAndTheStay"
+    },
+    {
+      "id": "sixteen-weeks-both-sides",
+      "text": "With one vaccination, the admission table shows both sides of the 16-week line: a dog under 16 weeks gives needsVaccination and a dog of 16 weeks gives admitted. Rows at 15 and 16 weeks pass, and so does a value set whose largest member is 15 beside a row at 16. FAILS when no row is at 16 weeks, or when no row or value-set member is at 15 weeks.",
+      "passed": true,
+      "evidence": "\"Last week of puppyhood, one shot | 15 | 1 | needsVaccination\" and \"First week past puppyhood | 16 | 1 | admitted\""
+    },
+    {
+      "id": "scenario-names-add-to-the-row",
+      "text": "Read each scenario name the answer added or changed in the admission table beside the input cells of its own row. A name passes when it says where its row stands against the rule: a boundary (the youngest age, the 16-week line), a span of weeks, or the dose the rule asks for. FAILS when every added or changed name only repeats the words or values of its own input cells, such as \"15 weeks, one vaccination\" beside 15 and 1, or when the answer removes the scenario column.",
+      "passed": true,
+      "evidence": "\"Last week of puppyhood, one shot\" and \"First week past puppyhood\" name boundary positions beyond cell values."
+    },
+    {
+      "id": "no-decoder-in-app-code",
+      "text": "No init(from:) is written into the app code under Sources/.",
+      "passed": true,
+      "evidence": "No init(from:) in app code"
+    },
+    {
+      "id": "compiles",
+      "text": "swift build --build-tests succeeds against the package scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The tests pass when run against Admission",
+      "passed": true,
+      "evidence": "Tests passed"
+    }
+  ],
+  "assertions_passed": 12,
+  "assertions_total": 12,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 3443,
+    "output_tokens": 259,
+    "total_tokens": 3702,
+    "calls": 1,
+    "cost_usd": 0.009476,
+    "rates_usd_per_mtok": {
+      "input": 2,
+      "output": 10
+    }
+  }
+}
