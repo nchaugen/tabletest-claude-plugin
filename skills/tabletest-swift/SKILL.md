@@ -336,8 +336,14 @@ branches.
 
 *Model Rejection as an Expected Column* (in `references/table-design.md`) decides **whether**
 accepted and rejected rows share a table. When they share one, the column holds the error, and is
-blank where nothing is rejected. The error enum gets `String` raw values or `Codable`, and
-`Equatable`:
+blank where nothing is rejected.
+
+**Where the call returns the rejection as a case of its result, not as a thrown error,** there is no
+separate rejection column. The result column holds the outcome of every row, and the rejection is one
+cell with its data, as *Enums with Associated Values* writes it: `restRequired(hours: 10)` beside
+`fit`. Never a column of the rejection's data alone, read out of the result by a helper.
+
+For a thrown error, the error enum gets `String` raw values or `Codable`, and `Equatable`:
 
 ```swift
 @TableTest("""
