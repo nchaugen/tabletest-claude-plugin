@@ -507,9 +507,9 @@ at all.
 
 ```
 Scenario                  | Bin Before     | Action            | Bin After?     | Message?
-Accept a labelled item    | [:]            | deposit cardboard | [cardboard: 1] | Accepted
+Labelled item, empty bin  | [:]            | deposit cardboard | [cardboard: 1] | Accepted
 Fill to the bulk limit    | [cardboard: 1] | deposit cardboard | [cardboard: 2] | Accepted
-Reject a mismatched item  | [cardboard: 1] | deposit solvent   | [cardboard: 1] | Wrong stream
+Mismatched item           | [cardboard: 1] | deposit solvent   | [cardboard: 1] | Wrong stream
 ```
 
 ### Assume the Table Is Published
@@ -844,10 +844,10 @@ intermediate becomes an expectation in one table and an input in the next.
 
 ```swift
 @TableTest("""
-    Scenario                    | Body Weight (kg) | Renal Function | Dose Band? | Daily Dose (mg)?
-    Adult, normal function      | 70               | normal         | standard   | 500
-    Adult, impaired function    | 70               | impaired       | reduced    | 250
-    Low weight, normal function | 40               | normal         | low        | 300
+    Body Weight (kg) | Renal Function | Dose Band? | Daily Dose (mg)?
+    70               | normal         | standard   | 500
+    70               | impaired       | reduced    | 250
+    40               | normal         | low        | 300
     """)
 func setsTheDailyDose(bodyWeight: Int, renalFunction: RenalFunction, doseBand: DoseBand, dailyDose: Int) { ... }
 ```
@@ -1003,6 +1003,8 @@ struct MedicationChartReviewTests {
     enum Ward: String {
         case general = "general ward"
         case intensiveCare = "intensive care"
+
+        var isIntensiveCare: Bool { self == .intensiveCare }
     }
 
     enum Change: String {
@@ -1033,13 +1035,14 @@ struct MedicationChartReviewTests {
         """)
     func asksForTheSignOffsAChangeNeeds(ward: Ward, change: Change, signOffs: [SignOff]) {
         let review = ChartReview(onFile: Self.standingOrder, onScreen: change.applied(to: Self.standingOrder),
-                                 intensiveCare: ward == .intensiveCare)
+                                 intensiveCare: ward.isIntensiveCare)
         #expect(review.signOffs == signOffs)
     }
 }
 ```
 
-The `switch` is in the test-local enum, which builds the fixture. The test function has no branch.
+The `switch` and the comparison with a case are members of the test-local enums, which build the
+fixture. The test function has no branch, and no helper that takes the enum branches on it.
 The value sets show that the ward does not change three of the outcomes. Crossing the two columns
 finds every combination, so no row is missing.
 

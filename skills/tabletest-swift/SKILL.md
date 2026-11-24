@@ -449,8 +449,8 @@ workflows.
 - [ ] **In a type**: every `@TableTest` function is inside a struct, class, enum or extension
 - [ ] **Parameter alignment**: one parameter for each data column, in column order; the scenario
   column has none
-- [ ] **Straightforward function**: no `if`, `guard`, `switch`, ternary or loop in the test function;
-  it only arranges, acts and asserts
+- [ ] **Straightforward function**: no `if`, `guard`, `switch`, ternary or loop in the test function,
+  and no `??` or `.map` on a parameter; it only arranges, acts and asserts
 - [ ] **One word on the app type**: an app type in a cell converts through `Codable`, `CaseIterable`
   or `String` raw values on the app type — not a `switch`, a dictionary or a copy of the enum in the
   test target

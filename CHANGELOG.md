@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - **tabletest-swift**: The skill loads at under a third of its former size (27 kB against 88 kB). A change to the rows of a table that exists needs only that part. The table-design rules move to `references/table-design.md`, which the skill reads in full before it writes a new table, converts a test, or adds or removes a column
+- **tabletest-swift**: The examples follow the rules they illustrate: a comparison with a case is a member of the test-local enum, not an expression in the test function; scenario names say where the row stands, not what it does; and a table with nothing for the names to add has no scenario column. The check for a straightforward test function also names `??` and `.map` on a parameter
 
 ### Added
 
