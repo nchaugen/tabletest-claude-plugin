@@ -98,8 +98,9 @@ struct BinTests {
   At file scope it does not compile.
 - **The columns map to the parameters by order, not by name.** Give each data column one
   parameter, in the same order. Keep the header and the parameter names close.
-- **The scenario column is the extra first column.** When the table has one more column than the
-  function has parameters, the first column names each row in the test results. It maps to no
+- **Give every table a scenario column, as its first column.** Its names let a reader find a row
+  and talk about it, and they name each row in the test results. When the table has one more column
+  than the function has parameters, the first column is the scenario column. It maps to no
   parameter. There is no `@Scenario` parameter in Swift.
 - **A scenario name is unique in its table.** Xcode's result bundle merges two rows with one name.
 - **End each expectation header with `?`** (`Room Left?`). Never put `?` on an input header.
@@ -122,8 +123,11 @@ the domain context and the open questions. It must not publish the algorithm.
 ### Single Values and Quoting
 
 Text needs no quotes. The whitespace around a value is removed. Quote with `'…'` or `"…"` when the
-text has a `|`, has whitespace at its ends, is empty, or starts with `[` or `{`.
+text has a `|`, has whitespace at its ends, is empty, or starts with `[`, `{`, `'` or `"`.
 
+- **There is no escape character.** To put `'` in a value, quote it with `"`, and the other way
+  round: `"d'Yquem"`, `'"Vides"'`. Unquoted, `"Vides"` loses its quotes.
+- **The table is a Swift string literal**, so a backslash in a cell is `\\` in the source.
 - **A blank cell is `nil`.** Its parameter must be optional (`Int?`).
 - **`''` is an empty string.** It is not `nil`, and it does not convert to a number.
 - **A JSON text is one quoted cell**: `'{"rooms": 3}'`. Unquoted, it reads as a map.
@@ -159,6 +163,8 @@ func hasRoomBelowCapacity(binCapacity: Int, items: Int, roomLeft: Bool) {
 
 - **A value set replaces a whole cell.** `{a, b}` inside a list or a map is a `Set` in that
   position and adds no cases. To vary one part of a composite value, split it into columns first.
+- **A member can be a collection.** `{[], [2020], [2020, 2020]}` in an `[Int]` column is three
+  cases.
 - A parameter of type `Set`, an `OptionSet` or an optional of one takes the whole set.
 - An empty value set is an error.
 
@@ -219,7 +225,8 @@ word of the domain (`extra hot`). A case name in its cell is an error that names
    test target.**
 
 **Never add an `init(from:)` to an app type for a test.** The app's decoding would change with it.
-Steps 3 and 4 are the place for hand-written conversion code.
+Steps 3 and 4 are the place for hand-written conversion code, also for a cell type of the test
+target: a conformance is shorter than `init(from:)`, and a bad cell is reported by its value.
 
 **Never convert an app type by hand in the test.** A `String` column that a `switch` or a dictionary
 turns into the app's enum, a test-local copy of the app's enum, or a conformance that lists the
@@ -236,6 +243,11 @@ Swift facts that decide where the code can go:
   package, and `@retroactive` is an error.
 - A type that conforms to `TableTextDecodable` cannot be a field of a synthesised `Decodable`
   struct.
+- **In an app target with default main-actor isolation**, the synthesised conformances of an app
+  type are main-actor-isolated. A test type that is not `@MainActor` cannot convert a cell to it:
+  the error names an "isolated conformance". Mark the app type `nonisolated`.
+- **A nested type does not inherit `@MainActor` from the test type.** A member of a test-local
+  enum that builds a main-actor fixture needs `@MainActor` itself.
 
 ### Enums with Associated Values
 
@@ -264,7 +276,8 @@ func clearsAPilotForTheNextSector(hoursSinceRest: Int, sectorsFlown: Int, cleara
 ```
 
 A value with no label is given by its position: `between(8, 12)`. In a list, quote a spelling that
-has a label or two values: `['restRequired(hours: 10)', fit]`.
+has a label or two values: `['restRequired(hours: 10)', fit]`. Spellings nest as Swift writes them,
+with no quotes: `period(month(year: 2025, month: 3))`, `grape([key: chardonnay])`.
 
 ### Structs
 
@@ -397,7 +410,7 @@ reports a malformed table at compile time.
 1. Read the table and its doc comment. The new case takes the form of the rows beside it.
 2. Add the row where its neighbours are: a boundary beside its other side, a tier in tier order.
 3. Give it a scenario name that is unique in the table, in the form of the other names. Where the
-   table has no scenario column, add none.
+   table has no scenario column, add one, and give every row a name.
 4. Where an input does not change the outcome of the new case, use a value set.
 5. **Where the case needs a column that the table does not have, or an assertion that the body
    does not make, this is a design change: read `references/table-design.md` first.**
@@ -460,9 +473,10 @@ workflows.
 - [ ] **One word on the app type**: an app type in a cell converts through `Codable`, `CaseIterable`
   or `String` raw values on the app type — not a `switch`, a dictionary or a copy of the enum in the
   test target
-- [ ] **No decoder in the app**: no `init(from:)` added to an app type for a test; hand-written
-  conversion is a `TableValueDecodable` or `TableTextDecodable` conformance in the test target, with
-  a `public` witness, and `@retroactive` only in an Xcode app project
+- [ ] **No decoder in the app**: no `init(from:)` added to an app type for a test, or written for
+  a cell type of the test target; hand-written conversion is a `TableValueDecodable` or
+  `TableTextDecodable` conformance in the test target, with a `public` witness on an app type, and
+  `@retroactive` only in an Xcode app project
 - [ ] **Outcomes as Swift spells them**: an enum result with data is one cell
   (`restRequired(hours: 10)`), not columns that the body puts back together
 - [ ] **Unique scenario names**: no two rows in one table have the same scenario name

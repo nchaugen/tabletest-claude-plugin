@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+
+- **tabletest-swift**: Every table has a scenario column, as in the JVM skill: its names let a reader find a row and talk about it. A row change adds the column to a table that has none
+- **tabletest-swift**: Before converting a test of a function that calls another, find the function that decides the result. Where it already has a table, the missing cases go there as rows, and one test of the calling function stays
+
+### Added
+
+- **tabletest-swift**: Quoting: a value that starts with `'` or `"` is quoted with the other character, and a backslash in a cell is `\\` in the Swift source
+- **tabletest-swift**: Examples of a nested enum spelling (`period(month(year: 2025, month: 3))`) and of a value set whose members are lists
+- **tabletest-swift**: Two Swift isolation facts: under default main-actor isolation an app type in a cell needs `nonisolated`, and a test-local enum does not inherit `@MainActor` from its test type
+- **tabletest-swift**: A cell type in the test target converts through a TableTest conformance too, never a hand-written `init(from:)`
+
 ## [1.11.0] - 2026-11-24
 
 ### Changed

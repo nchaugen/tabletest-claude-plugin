@@ -844,10 +844,10 @@ intermediate becomes an expectation in one table and an input in the next.
 
 ```swift
 @TableTest("""
-    Body Weight (kg) | Renal Function | Dose Band? | Daily Dose (mg)?
-    70               | normal         | standard   | 500
-    70               | impaired       | reduced    | 250
-    40               | normal         | low        | 300
+    Scenario                    | Body Weight (kg) | Renal Function | Dose Band? | Daily Dose (mg)?
+    Adult, normal function      | 70               | normal         | standard   | 500
+    Adult, impaired function    | 70               | impaired       | reduced    | 250
+    Low weight, normal function | 40               | normal         | low        | 300
     """)
 func setsTheDailyDose(bodyWeight: Int, renalFunction: RenalFunction, doseBand: DoseBand, dailyDose: Int) { ... }
 ```
@@ -967,8 +967,8 @@ A column that only holds the data that builds the situation is not an input.
 
 **The sign of a wrong column: the scenario name states what decides the row, and no column does.**
 The columns hold two whole records, and the reader must compare them to find the difference that the
-name states. Make that difference the column. Then the scenario name often has nothing left to add,
-and the scenario column can go.
+name states. Make that difference the column. The scenario column stays: its name now says in a
+reader's words what the columns hold.
 
 **Data is the input only when the rule is about that data.** A rule about what a record contains
 takes the record. A rule about what the user did to the record takes the action.
@@ -1026,12 +1026,12 @@ struct MedicationChartReviewTests {
     static let standingOrder = MedicationOrder(drug: "paracetamol", doseGrams: 1, timesPerDay: 4)
 
     @TableTest("""
-        Ward                            | Change          | Sign-offs?
-        {general ward, intensive care}  | no change       | []
-        general ward                    | raises the dose | [secondNurse]
-        intensive care                  | raises the dose | [secondNurse, pharmacist]
-        {general ward, intensive care}  | lowers the dose | [secondNurse]
-        {general ward, intensive care}  | stops the drug  | [secondNurse]
+        Scenario                       | Ward                           | Change          | Sign-offs?
+        Prescription unchanged         | {general ward, intensive care} | no change       | []
+        Dose raised on a general ward  | general ward                   | raises the dose | [secondNurse]
+        Dose raised in intensive care  | intensive care                 | raises the dose | [secondNurse, pharmacist]
+        Dose lowered                   | {general ward, intensive care} | lowers the dose | [secondNurse]
+        Drug stopped                   | {general ward, intensive care} | stops the drug  | [secondNurse]
         """)
     func asksForTheSignOffsAChangeNeeds(ward: Ward, change: Change, signOffs: [SignOff]) {
         let review = ChartReview(onFile: Self.standingOrder, onScreen: change.applied(to: Self.standingOrder),
@@ -1050,9 +1050,14 @@ finds every combination, so no row is missing.
 
 ### Converting Existing Tests
 
-1. Find the tests with one structure and different data: plain `@Test` functions, `@Test(arguments:)`
+1. **Find the function that decides the result before you convert a test of a function that calls
+   it.** Where another test already has a table of the deciding function, do not convert into a
+   second copy of that table. Add the cases that the table lacks to it as rows. Keep one test of the
+   calling function, which shows that it uses the decision. Remove the rest, and name the covering
+   rows in your answer. The number of cases then falls, as expected.
+2. Find the tests with one structure and different data: plain `@Test` functions, `@Test(arguments:)`
    or XCTest methods.
-2. Make the varying parts columns: the inputs and the expected values. **Where the old test builds an
+3. Make the varying parts columns: the inputs and the expected values. **Where the old test builds an
    app value, decide by what the value is:**
    - a struct that only gathers the inputs of the call gets one column for each field, and the body
      builds it with its initialiser (see *Structs*);
@@ -1060,12 +1065,12 @@ finds every combination, so no row is missing.
      Conversion Code Goes*.
 
    Conversion code — a `switch`, a dictionary, parsing — never stays in the function body.
-3. Write the table: the scenario column first, then the inputs, then the expectations with `?`.
-4. Give the function one parameter for each data column, in column order.
-5. Check that every row uses the same assertion.
-6. Remove the old tests that the table covers. Run the tests before and after: the number of cases
+4. Write the table: the scenario column first, then the inputs, then the expectations with `?`.
+5. Give the function one parameter for each data column, in column order.
+6. Check that every row uses the same assertion.
+7. Remove the old tests that the table covers. Run the tests before and after: the number of cases
    stays the same, or your answer explains the change.
-7. **From XCTest, finish the migration to Swift Testing.** Replace `XCTAssert…` with `#expect`, and
+8. **From XCTest, finish the migration to Swift Testing.** Replace `XCTAssert…` with `#expect`, and
    `XCTestCase` subclasses with a struct. Remove `import XCTest` where nothing uses it.
 
 ### Writing New Tests from a Feature Description
