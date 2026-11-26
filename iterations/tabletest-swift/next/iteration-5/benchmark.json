@@ -1,0 +1,154 @@
+{
+  "skill_name": "tabletest-swift (next)",
+  "iteration": 5,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5-5",
+  "grading_effort": null,
+  "skill_commit": "ab909f13e579b0f15e112fc905b8f02cbcbbd792",
+  "skill_digest": "3204a3f07b9d08de",
+  "generation_auth": "subscription",
+  "timestamp": "2026-11-26T12:33:12.768Z",
+  "evals": [
+    {
+      "id": "eval-39-playlist-screen-columns",
+      "name": "playlist screen columns",
+      "skill": "tabletest-swift",
+      "fingerprint": "1fd57085a2e4",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 10,
+        "assertions_total": 12,
+        "pass_rate": 0.8333333333333334,
+        "failed_assertions": [
+          "irrelevant-input-is-a-value-set",
+          "crossing-the-inputs-finds-missing-rows"
+        ],
+        "total_tokens": 296602,
+        "duration_ms": 49402,
+        "cost_usd": 0.29415879999999994,
+        "grading_usage": {
+          "input_tokens": 5803,
+          "output_tokens": 1483,
+          "total_tokens": 7286,
+          "calls": 1,
+          "cost_usd": 0.026436,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-40-parcel-locker-rules",
+      "name": "parcel locker rules",
+      "skill": "tabletest-swift",
+      "fingerprint": "8087dda4c5a2",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 12,
+        "assertions_total": 13,
+        "pass_rate": 0.9230769230769231,
+        "failed_assertions": [
+          "scenario-names-describe-conditions"
+        ],
+        "total_tokens": 355132,
+        "duration_ms": 66185,
+        "cost_usd": 0.3239676,
+        "grading_usage": {
+          "input_tokens": 6679,
+          "output_tokens": 1554,
+          "total_tokens": 8233,
+          "calls": 1,
+          "cost_usd": 0.028898,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-42-dog-daycare-admission",
+      "name": "dog daycare admission",
+      "skill": "tabletest-swift",
+      "fingerprint": "754f2b1bde31",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 12,
+        "assertions_total": 12,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 107763,
+        "duration_ms": 19301,
+        "cost_usd": 0.1257727,
+        "grading_usage": {
+          "input_tokens": 3294,
+          "output_tokens": 245,
+          "total_tokens": 3539,
+          "calls": 1,
+          "cost_usd": 0.009038,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-44-ballot-box-replacement",
+      "name": "ballot box replacement",
+      "skill": "tabletest-swift",
+      "fingerprint": "efc5e2d61213",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 11,
+        "assertions_total": 12,
+        "pass_rate": 0.9166666666666666,
+        "failed_assertions": [
+          "no-branch-on-table-enum-outside-it"
+        ],
+        "total_tokens": 361883,
+        "duration_ms": 64829,
+        "cost_usd": 0.318742,
+        "grading_usage": {
+          "input_tokens": 4726,
+          "output_tokens": 306,
+          "total_tokens": 5032,
+          "calls": 1,
+          "cost_usd": 0.012512,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 45,
+    "assertions_total": 49,
+    "pass_rate": 0.9183673469387755,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 1121380,
+    "total_duration_ms": 199717,
+    "total_cost_usd": 1.0626411,
+    "grading": {
+      "input_tokens": 20502,
+      "output_tokens": 3588,
+      "total_tokens": 24090,
+      "calls": 4,
+      "cost_usd": 0.076884,
+      "evals_measured": 4,
+      "rates_usd_per_mtok": {
+        "input": 2,
+        "output": 10
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5-5",
+  "cost_basis": "cli-list-price-estimate"
+}

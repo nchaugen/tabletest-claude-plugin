@@ -1,0 +1,93 @@
+{
+  "skill_name": "tabletest-swift (next)",
+  "iteration": 6,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5-5",
+  "grading_effort": null,
+  "skill_commit": "ab909f13e579b0f15e112fc905b8f02cbcbbd792",
+  "skill_digest": "3204a3f07b9d08de",
+  "generation_auth": "subscription",
+  "timestamp": "2026-11-26T12:35:12.680Z",
+  "evals": [
+    {
+      "id": "eval-42-dog-daycare-admission",
+      "name": "dog daycare admission",
+      "skill": "tabletest-swift",
+      "fingerprint": "754f2b1bde31",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 12,
+        "assertions_total": 12,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 86410,
+        "duration_ms": 17449,
+        "cost_usd": 0.0814725,
+        "grading_usage": {
+          "input_tokens": 3323,
+          "output_tokens": 271,
+          "total_tokens": 3594,
+          "calls": 1,
+          "cost_usd": 0.009356,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-44-ballot-box-replacement",
+      "name": "ballot box replacement",
+      "skill": "tabletest-swift",
+      "fingerprint": "efc5e2d61213",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 12,
+        "assertions_total": 12,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 441147,
+        "duration_ms": 91777,
+        "cost_usd": 0.39045340000000006,
+        "grading_usage": {
+          "input_tokens": 5543,
+          "output_tokens": 294,
+          "total_tokens": 5837,
+          "calls": 1,
+          "cost_usd": 0.014026,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 24,
+    "assertions_total": 24,
+    "pass_rate": 1,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 527557,
+    "total_duration_ms": 109226,
+    "total_cost_usd": 0.47192590000000006,
+    "grading": {
+      "input_tokens": 8866,
+      "output_tokens": 565,
+      "total_tokens": 9431,
+      "calls": 2,
+      "cost_usd": 0.023382,
+      "evals_measured": 2,
+      "rates_usd_per_mtok": {
+        "input": 2,
+        "output": 10
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5-5",
+  "cost_basis": "cli-list-price-estimate"
+}

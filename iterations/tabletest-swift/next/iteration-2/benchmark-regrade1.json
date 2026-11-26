@@ -1,0 +1,70 @@
+{
+  "skill_name": "tabletest-swift (next)",
+  "iteration": 2,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5-5",
+  "grading_effort": null,
+  "skill_commit": "ab909f13e579b0f15e112fc905b8f02cbcbbd792",
+  "skill_digest": "a4d65c3b49f586a0",
+  "generation_auth": "subscription",
+  "timestamp": "2026-11-26T12:16:08.938Z",
+  "evals": [
+    {
+      "id": "eval-39-playlist-screen-columns",
+      "name": "playlist screen columns",
+      "skill": "tabletest-swift",
+      "fingerprint": "1fd57085a2e4",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 9,
+        "assertions_total": 12,
+        "pass_rate": 0.75,
+        "failed_assertions": [
+          "edit-columns-are-the-deciding-inputs",
+          "irrelevant-input-is-a-value-set",
+          "crossing-the-inputs-finds-missing-rows"
+        ],
+        "total_tokens": 306867,
+        "duration_ms": 54376,
+        "cost_usd": 0.3137562,
+        "grading_usage": {
+          "input_tokens": 5737,
+          "output_tokens": 380,
+          "total_tokens": 6117,
+          "calls": 1,
+          "cost_usd": 0.015274,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 9,
+    "assertions_total": 12,
+    "pass_rate": 0.75,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 306867,
+    "total_duration_ms": 54376,
+    "total_cost_usd": 0.3137562,
+    "grading": {
+      "input_tokens": 5737,
+      "output_tokens": 380,
+      "total_tokens": 6117,
+      "calls": 1,
+      "cost_usd": 0.015274,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 2,
+        "output": 10
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5-5",
+  "cost_basis": "cli-list-price-estimate"
+}
