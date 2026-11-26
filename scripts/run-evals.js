@@ -1155,7 +1155,7 @@ function setupWorktree(repoRoot, mode = "skill", args = {}) {
         removeAnswerKeys(path.join(skillEvalsDir, entry));
       }
     }
-    removals.push("eval definitions (eval.json + expected_output.md)");
+    removals.push("eval definitions (eval.json + expected_output.md + verify/)");
   }
 
   // Prior iteration outputs (model answers to the same prompts)
