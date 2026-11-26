@@ -451,8 +451,8 @@ checkpoint that a timeout cannot take away.
 
 **Read the tests once more before you build.** Read each test function and each helper that takes a
 cell value: no branch, loop, `??` or `.map` on a cell outside a conversion or a member of that
-cell's own type. Read each scenario name beside its row: no name has one of the three faults in *The Function
-and Its Table*.
+cell's own type. Read each scenario name beside its row: no name has one of the three faults in
+*The Function and Its Table*.
 
 **Build and test before you finish.** Run `swift build --build-tests`, then `swift test`. The macro
 reports a malformed table at compile time.
