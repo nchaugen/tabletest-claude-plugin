@@ -627,7 +627,9 @@ exactly one of them changed between the compared iterations.
   handed, after any variant was applied), so a stored result still answers "which skill state
   produced this?" once the iteration dirs around it are trimmed. A `--grade-only` run *inherits*
   these from the benchmark already in the iteration dir rather than restamping — provenance
-  belongs to the generation, and today's skill did not write yesterday's answers. Runs predating
+  belongs to the generation, and today's skill did not write yesterday's answers. It keeps that
+  benchmark's `skill_name` and `iteration` too, so a promoted partial still names the variant run
+  that wrote it. Runs predating
   this record `unknown`.
 
 ### Contamination protocol

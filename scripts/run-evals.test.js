@@ -51,6 +51,7 @@ const {
   digestDirectory,
   skillProvenance,
   inheritedProvenance,
+  inheritedIdentity,
   generationEnv,
   generationTimeoutFor,
   runBuildCommand,
@@ -955,6 +956,32 @@ describe("skillProvenance", () => {
       skillProvenance(worktree, "tabletest", worktree, "subscription").generation_auth,
       "subscription",
     );
+  });
+});
+
+describe("inheritedIdentity", () => {
+  let iterationDir;
+  beforeEach(() => { iterationDir = fs.mkdtempSync(path.join(os.tmpdir(), "identity-test-")); });
+  afterEach(() => { fs.rmSync(iterationDir, { recursive: true, force: true }); });
+
+  test("keeps the name and iteration of the run that generated the outputs", () => {
+    fs.writeFileSync(path.join(iterationDir, "benchmark.json"),
+      JSON.stringify({ skill_name: "tabletest-swift (next)", iteration: 2 }));
+
+    assert.deepEqual(inheritedIdentity(iterationDir, ""), { skill_name: "tabletest-swift (next)", iteration: 2 });
+  });
+
+  test("prefers the suffixed benchmark when re-grading an existing re-grade", () => {
+    fs.writeFileSync(path.join(iterationDir, "benchmark.json"), JSON.stringify({ skill_name: "a", iteration: 1 }));
+    fs.writeFileSync(path.join(iterationDir, "benchmark-m3.json"), JSON.stringify({ skill_name: "b", iteration: 5 }));
+
+    assert.deepEqual(inheritedIdentity(iterationDir, "-m3"), { skill_name: "b", iteration: 5 });
+  });
+
+  test("gives nothing when no benchmark records an identity", () => {
+    assert.deepEqual(inheritedIdentity(iterationDir, ""), {});
+    fs.writeFileSync(path.join(iterationDir, "benchmark.json"), "{ truncated");
+    assert.deepEqual(inheritedIdentity(iterationDir, ""), {});
   });
 });
 

@@ -2426,6 +2426,27 @@ function inheritedProvenance(iterationDir, suffix) {
   return { skill_commit: "unknown", skill_digest: "unknown", generation_auth: "unknown" };
 }
 
+/**
+ * Which run a benchmark describes belongs to the generation, as provenance does. A re-grade of a
+ * partial that came from a variant tree keeps that variant's name and iteration number, rather
+ * than the command line's, so the stored result still names the run that wrote the outputs.
+ */
+function inheritedIdentity(iterationDir, suffix) {
+  for (const name of [`benchmark${suffix}.json`, "benchmark.json"]) {
+    const file = path.join(iterationDir, name);
+    if (!fs.existsSync(file)) continue;
+    try {
+      const prior = JSON.parse(fs.readFileSync(file, "utf-8"));
+      if (prior.skill_name !== undefined && prior.iteration !== undefined) {
+        return { skill_name: prior.skill_name, iteration: prior.iteration };
+      }
+    } catch {
+      // Unreadable benchmark: fall through to the next candidate.
+    }
+  }
+  return {};
+}
+
 function unwrapSummary(benchmark) {
   if (!benchmark || !benchmark.summary) return null;
   if (benchmark.summary.assertions_passed !== undefined) return benchmark.summary;
@@ -2479,6 +2500,7 @@ function aggregateResults(evals, iterationDir, args, worktreePath, repoRoot) {
   const benchmark = {
     skill_name: args.variant ? `${args.skill} (${args.variant})` : args.skill,
     iteration: args.iteration,
+    ...(args.gradeOnly ? inheritedIdentity(iterationDir, suffix) : {}),
     model: args.model,
     provider: args.provider,
     ...(args.nudgeSkill ? { nudge_skill: true } : {}),
@@ -3595,6 +3617,7 @@ module.exports = {
   digestDirectory,
   skillProvenance,
   inheritedProvenance,
+  inheritedIdentity,
   generationEnv,
   // generation
   runClaude,
