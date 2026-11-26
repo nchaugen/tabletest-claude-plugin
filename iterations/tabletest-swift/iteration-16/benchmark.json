@@ -1,0 +1,69 @@
+{
+  "skill_name": "tabletest-swift",
+  "iteration": 16,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5-5",
+  "grading_effort": null,
+  "skill_commit": "224f1bc40a58a04fc18f2b742b5f9c4c3c801595",
+  "skill_digest": "fed5ec5d889ab96e",
+  "generation_auth": "api",
+  "timestamp": "2026-11-26T18:11:19.346Z",
+  "evals": [
+    {
+      "id": "eval-46-library-loan-reminder",
+      "name": "library loan reminder",
+      "skill": "tabletest-swift",
+      "fingerprint": "2425a5cefcdf",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 10,
+        "assertions_total": 12,
+        "pass_rate": 0.8333333333333334,
+        "failed_assertions": [
+          "rules-tested-on-the-decision",
+          "no-long-text-cell"
+        ],
+        "total_tokens": 215883,
+        "duration_ms": 50988,
+        "cost_usd": 0.19389050000000002,
+        "grading_usage": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "total_tokens": 0,
+          "calls": 0,
+          "cost_usd": 0,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 10,
+    "assertions_total": 12,
+    "pass_rate": 0.8333333333333334,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 215883,
+    "total_duration_ms": 50988,
+    "total_cost_usd": 0.19389050000000002,
+    "grading": {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "calls": 0,
+      "cost_usd": 0,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 2,
+        "output": 10
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5-5",
+  "cost_basis": "cli-list-price-estimate"
+}
