@@ -1032,6 +1032,17 @@ async function main() {
   if (comparisonWasVoid) process.exit(2);
 }
 
+/** The files of one eval directory that hold its answer key. The prompt and the project stay. */
+const ANSWER_KEY_ENTRIES = ["eval.json", "expected_output.md"];
+
+/** Removes an eval's answer key from a copy of its directory, so the agent cannot read it. */
+function removeAnswerKeys(evalDir) {
+  for (const entry of ANSWER_KEY_ENTRIES) {
+    const p = path.join(evalDir, entry);
+    if (fs.existsSync(p)) fs.rmSync(p, { recursive: true });
+  }
+}
+
 function setupWorktree(repoRoot, mode = "skill", args = {}) {
   const branch = `eval-${mode}-${Date.now()}`;
   const worktreePath = path.join(
@@ -1069,11 +1080,7 @@ function setupWorktree(repoRoot, mode = "skill", args = {}) {
       if (!fs.statSync(skillEvalsDir).isDirectory()) continue;
       for (const entry of fs.readdirSync(skillEvalsDir)) {
         if (!entry.startsWith("eval-")) continue;
-        const dir = path.join(skillEvalsDir, entry);
-        for (const file of ["eval.json", "expected_output.md"]) {
-          const p = path.join(dir, file);
-          if (fs.existsSync(p)) fs.rmSync(p);
-        }
+        removeAnswerKeys(path.join(skillEvalsDir, entry));
       }
     }
     removals.push("eval definitions (eval.json + expected_output.md)");
@@ -3561,6 +3568,7 @@ if (require.main === module) {
 // collaborators as arguments, so the suite needs no network and no eval fixtures.
 module.exports = {
   runDeterministicAssertions,
+  removeAnswerKeys,
   loadScaffoldTestFiles,
   classifyGenerationFailure,
   contaminationHits,
