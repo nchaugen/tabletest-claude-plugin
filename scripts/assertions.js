@@ -876,6 +876,34 @@ function namesEchoingTheirOwnRow({ headers, rows, scenarioIndex }, echoes) {
   return found;
 }
 
+/**
+ * The functions and computed properties of the app (`Sources/`) that the named function calls,
+ * each with the pattern that finds a call of it. `renderer` is a call prefix such as
+ * `text(for:`. Null when no app file declares the renderer.
+ */
+function appMembersCalledBy(allFiles, renderer) {
+  const [, rendererName, rendererLabel] = renderer.match(/^(\w+)\(\s*(\w*)/) || [];
+  const appFiles = (allFiles || []).filter((f) => /(^|\/)Sources\/.*\.swift$/.test(f.path));
+  const declarations = appFiles.map((f) => swiftDeclarations(f.content));
+  const firstLabel = (parameters) => {
+    const first = (parameters.split(",")[0] || "").trim();
+    const labelled = first.match(/^(\w+)\s+\w+\s*:/);
+    return labelled ? labelled[1] : (first.match(/^(\w+)\s*:/) || [])[1] || "";
+  };
+  const functions = declarations.flatMap((d) => d.functions).map((fn) => ({ ...fn, label: firstLabel(fn.parameters) }));
+  const isRenderer = (fn) => fn.name === rendererName && fn.label === (rendererLabel || "_");
+  const rendering = functions.find(isRenderer);
+  if (!rendering) return null;
+
+  const callOf = (fn) => fn.label === "_" || fn.label === ""
+    ? { label: `${fn.name}(`, pattern: new RegExp(`\\b${escapeRegExp(fn.name)}\\s*\\(\\s*(?!\\w+\\s*:)`) }
+    : { label: `${fn.name}(${fn.label}:`, pattern: new RegExp(`\\b${escapeRegExp(fn.name)}\\s*\\(\\s*${fn.label}\\s*:`) };
+  const properties = declarations.flatMap((d) => [...d.masked.matchAll(/\bvar\s+(\w+)\s*:\s*[^={\n]+\{/g)].map((m) => m[1]))
+    .map((name) => ({ label: `.${name}`, pattern: new RegExp(`\\.${escapeRegExp(name)}\\b(?!\\s*\\()`) }));
+  const members = [...functions.filter((fn) => !isRenderer(fn)).map(callOf), ...properties];
+  return members.filter((member) => member.pattern.test(rendering.maskedBody));
+}
+
 /** The `@TableTest` tables of the test files whose function body matches the call pattern. */
 function tablesCalling(allFiles, callPattern) {
   return swiftTestFiles(allFiles).flatMap((f) => {
@@ -1662,11 +1690,25 @@ const checkers = {
   // The rule is in the function that decides, so a table calls it and straddles each line the
   // rule draws. A boundary reached only through a rendering of the decision is tested inside the
   // rendering's text. The assertion names the call (`decides`) and the lines (`boundaries`).
+  //
+  // Where the agent is to add the deciding function, it chooses the name, so the assertion names
+  // the function that renders the decision instead (`decided_inside`). Any function or computed
+  // property of the app that the renderer calls can then hold the decision.
   "rules-tested-on-the-decision": ({ allFiles, assertion }) => {
     const call = assertion && assertion.decides;
+    const renderer = assertion && assertion.decided_inside;
     const boundaries = (assertion && assertion.boundaries) || [];
-    if (!call || boundaries.length === 0) {
-      return { passed: false, evidence: 'The assertion names no call: give it "decides" and "boundaries" in eval.json.' };
+    if ((!call && !renderer) || boundaries.length === 0) {
+      return { passed: false, evidence: 'The assertion names no call: give it "decides" or "decided_inside", and "boundaries", in eval.json.' };
+    }
+    if (!call) {
+      const seams = appMembersCalledBy(allFiles, renderer);
+      if (seams === null) return { passed: false, evidence: `No ${renderer}) found under Sources/` };
+      if (seams.length === 0) {
+        return { passed: false, evidence: `${renderer}) calls no function or property of the app: the decision has no seam` };
+      }
+      const tables = seams.flatMap((seam) => tablesCalling(allFiles, seam.pattern));
+      return boundaryVerdict([...new Set(tables)], boundaries, seams.map((seam) => seam.label).join(" or "));
     }
     const callPattern = new RegExp(`\\b${escapeRegExp(call).replace(/\\\(/, "\\s*\\(\\s*")}`);
     return boundaryVerdict(tablesCalling(allFiles, callPattern), boundaries, call);

@@ -1160,3 +1160,82 @@ describe("constant-text-not-restated", () => {
     assert.equal(result.passed, false);
   });
 });
+
+describe("rules-tested-on-the-decision, with the deciding function named by the agent", () => {
+  const check = checkers["rules-tested-on-the-decision"];
+  const assertion = { id: "rules-tested-on-the-decision", decided_inside: "message(for:", boundaries: [[19, 20]] };
+  const meterApp = (body, extra = "") => `public enum Charge: Equatable { case free, paid }
+public enum Meter {
+${extra}
+    public static func message(for minutes: Int) -> String {
+${body}
+    }
+}
+`;
+  const answer = (app, table) => ({
+    fileContent: "",
+    allFiles: [
+      { path: "Sources/Parking/Meter.swift", content: app },
+      ...meterTests(table).allFiles,
+    ],
+    assertion,
+  });
+  const decisionTable = (call) => `    @TableTest("""
+        Scenario          | Minutes | Charge?
+        Last free minute  | 19      | free
+        First paid minute | 20      | paid
+        """)
+    func decidesTheCharge(minutes: Int, charge: Charge) {
+        #expect(${call} == charge)
+    }`;
+
+  test("passes a table of a function that the text calls, with both sides of the line", () => {
+    const app = meterApp(`        charge(for: minutes) == .free ? "Free" : "Paid"`,
+      `    public static func charge(for minutes: Int) -> Charge { minutes < 20 ? .free : .paid }`);
+    const result = check(answer(app, decisionTable("Meter.charge(for: minutes)")));
+    assert.equal(result.passed, true, result.evidence);
+  });
+
+  test("passes a table of a computed property that the text reads", () => {
+    const app = `public enum Charge: Equatable { case free, paid }
+extension Int {
+    var charge: Charge { self < 20 ? .free : .paid }
+}
+public enum Meter {
+    public static func message(for minutes: Int) -> String {
+        minutes.charge == .free ? "Free" : "Paid"
+    }
+}
+`;
+    const result = check(answer(app, decisionTable("minutes.charge")));
+    assert.equal(result.passed, true, result.evidence);
+  });
+
+  test("fails when the text holds the decision itself, as the scaffold does", () => {
+    const app = meterApp(`        minutes < 20 ? "Free" : "Paid"`);
+    const result = check(answer(app, decisionTable(`Meter.message(for: minutes) == "Free" ? Charge.free : Charge.paid`)));
+    assert.equal(result.passed, false);
+    assert.match(result.evidence, /calls no function/);
+  });
+
+  test("fails a new function that the text does not call, since the decision is then in two places", () => {
+    const app = meterApp(`        minutes < 20 ? "Free" : "Paid"`,
+      `    public static func charge(for minutes: Int) -> Charge { minutes < 20 ? .free : .paid }`);
+    const result = check(answer(app, decisionTable("Meter.charge(for: minutes)")));
+    assert.equal(result.passed, false);
+  });
+
+  test("fails a table of the new function that misses a side of the line", () => {
+    const app = meterApp(`        charge(for: minutes) == .free ? "Free" : "Paid"`,
+      `    public static func charge(for minutes: Int) -> Charge { minutes < 20 ? .free : .paid }`);
+    const result = check(answer(app, `    @TableTest("""
+        Scenario   | Minutes | Charge?
+        Paid       | 20      | paid
+        """)
+    func decidesTheCharge(minutes: Int, charge: Charge) {
+        #expect(Meter.charge(for: minutes) == charge)
+    }`));
+    assert.equal(result.passed, false);
+    assert.match(result.evidence, /19/);
+  });
+});
