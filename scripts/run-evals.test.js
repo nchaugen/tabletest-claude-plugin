@@ -1678,10 +1678,14 @@ describe("generationEnv", () => {
     assert.equal(env.PATH, "/usr/bin");
   });
 
-  test("passes the key through with --api-generation, for a machine with no subscription", () => {
-    const env = generationEnv({ ANTHROPIC_API_KEY: "sk-test" }, { apiGeneration: true });
+  test("hands the agent the generation key with --api-generation, never the grading key", () => {
+    const env = generationEnv({ ANTHROPIC_API_KEY: "sk-grading" }, { apiGeneration: true, generationKey: "sk-generation" });
 
-    assert.equal(env.ANTHROPIC_API_KEY, "sk-test");
+    assert.equal(env.ANTHROPIC_API_KEY, "sk-generation");
+  });
+
+  test("refuses --api-generation with no generation key, so grading's key is never billed for it", () => {
+    assert.throws(() => generationEnv({ ANTHROPIC_API_KEY: "sk-grading" }, { apiGeneration: true }), /generation key/);
   });
 
   test("points at the local server for ollama and still withholds the key", () => {

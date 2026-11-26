@@ -101,12 +101,20 @@ An exported key is inherited by every child process and by anything that prints 
 was disclosed that way on 2026-08-02, from a shell expression that only meant to test whether it was
 set. **Never echo it, never test it by printing it** — `[ -n "$ANTHROPIC_API_KEY" ] && echo set` is
 the whole check. An explicit `ANTHROPIC_API_KEY=… node scripts/run-evals.js …` still wins for a
-one-off, and `--api-generation` bills generation to the key too. Two consequences:
+one-off grading key. **Generation has a key of its own**, read only with `--api-generation`, so the
+two spends stay apart and the agent never holds the grading key:
+
+```
+security add-generic-password -a "$USER" -s tabletest-eval-generation -w   # paste at the prompt
+```
+
+Without that entry, `--api-generation` refuses to start rather than bill the grading key. Two
+consequences:
 
 - **`cost_usd` is notional for generation, billed for grading.** Each `benchmark.json` stamps
   `generation_auth` (`subscription` \| `api` \| `unknown` on a regrade of an older run) — read it
-  before quoting a dollar figure. `--api-generation` bills generation to the key instead, for a
-  machine with no subscription login.
+  before quoting a dollar figure. `--api-generation` bills generation to the generation key
+  instead, for a machine with no subscription login or a run past the usage cap.
 - **The constraint is now the usage cap, and it fails quietly.** A rate-limited eval scores 0 rather
   than stopping the run, and a 0 swings the next two reports — once down, then back up as phantom
   improvements (same signature as § Timeouts). Keep `--parallel` at or below 4 for a full suite, and

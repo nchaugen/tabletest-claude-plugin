@@ -743,6 +743,12 @@ Rules:
  */
 const GRADING_KEY_SERVICE = "tabletest-eval-grading";
 
+/**
+ * Keychain service holding the generation key, read only with `--api-generation`. A key of its
+ * own keeps generation spend apart from grading spend, and the agent never holds the grading key.
+ */
+const GENERATION_KEY_SERVICE = "tabletest-eval-generation";
+
 function readKeyFromKeychain(service) {
   if (process.platform !== "darwin") return null;
   try {
@@ -918,7 +924,7 @@ function parseArgs(argv) {
     console.error("  --timeout SECONDS   Override each eval's generation timeout, ceiling included (slow local LLMs)");
     console.error("  --grade-runs N      Grade each assertion N times and take the majority verdict (default 1)");
     console.error("  --grade-only        Re-grade existing outputs");
-    console.error("  --api-generation    Bill generation to ANTHROPIC_API_KEY instead of the subscription");
+    console.error("  --api-generation    Bill generation to the keychain key tabletest-eval-generation instead of the subscription");
     console.error("  --report-only       Regenerate report from existing benchmark.json");
     console.error("");
     console.error("Exit codes: 0 ok · 1 the run failed · 2 the run succeeded but its comparison was");
@@ -1004,6 +1010,13 @@ async function main() {
     console.error(`  security add-generic-password -a "$USER" -s ${GRADING_KEY_SERVICE} -w`);
     console.error("(paste the key at the prompt; it is not echoed and does not reach shell history)");
     console.error("Or, for one run: ANTHROPIC_API_KEY=sk-... node scripts/run-evals.js ...");
+    process.exit(1);
+  }
+
+  if (args.apiGeneration && !args.gradeOnly && !args.rebuild && !readKeyFromKeychain(GENERATION_KEY_SERVICE)) {
+    console.error("Error: --api-generation needs a generation key of its own; the grading key is not used for it.");
+    console.error("Store it once, in the login keychain:");
+    console.error(`  security add-generic-password -a "$USER" -s ${GENERATION_KEY_SERVICE} -w`);
     process.exit(1);
   }
 
@@ -1234,14 +1247,20 @@ function cleanupWorktree(worktreePath) {
  * Generation runs on the Claude subscription by default: the CLI authenticates with
  * the logged-in account when no API key is in the environment, and generation is ~90%
  * of a run's cost. Nothing else about the run changes — same CLI, same model id, same
- * prompts — so a comparison across this switch stays valid. `--api-generation` keeps
- * the key, for a machine with no subscription login.
+ * prompts — so a comparison across this switch stays valid. `--api-generation` hands the
+ * agent the generation key (`GENERATION_KEY_SERVICE`) in place of the grading key.
  *
- * Grading is unaffected: it posts to the API directly and still needs the key.
+ * Grading is unaffected: it posts to the API directly with the grading key.
  */
-function generationEnv(baseEnv, { apiGeneration = false, provider = "anthropic" } = {}) {
+function generationEnv(baseEnv, { apiGeneration = false, provider = "anthropic", generationKey = null } = {}) {
   const env = { ...baseEnv };
-  if (!apiGeneration) delete env.ANTHROPIC_API_KEY;
+  delete env.ANTHROPIC_API_KEY;
+  if (apiGeneration) {
+    if (!generationKey) {
+      throw new Error(`--api-generation needs a generation key: security add-generic-password -a "$USER" -s ${GENERATION_KEY_SERVICE} -w`);
+    }
+    env.ANTHROPIC_API_KEY = generationKey;
+  }
   if (provider === "ollama") {
     env.ANTHROPIC_BASE_URL = "http://localhost:11434";
     env.ANTHROPIC_AUTH_TOKEN = "ollama";
@@ -1470,7 +1489,7 @@ const THINKING_DISPLAY_REQUEST = {
   },
 };
 
-function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, apiGeneration = false, timeoutMs = 600000, confinement = null }) {
+function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, apiGeneration = false, generationKey = null, timeoutMs = 600000, confinement = null }) {
   return new Promise((resolve, reject) => {
     let settled = false;
     const settle = (fn, value) => {
@@ -1497,7 +1516,7 @@ function runClaude({ prompt, systemPrompt, model, provider, cwd, pluginDir, apiG
     let stdout = "";
     let stderr = "";
 
-    const env = generationEnv(process.env, { apiGeneration, provider });
+    const env = generationEnv(process.env, { apiGeneration, provider, generationKey });
     if (confinement) env.PATH = `${confinement.commandsDir}${path.delimiter}${env.PATH}`;
 
     const [command, commandArgs] = confinement
@@ -1676,6 +1695,7 @@ async function generateOne(evalDef, worktreePath, iterationDir, args, repoRoot) 
       cwd: agentCwd,
       pluginDir: agentCwd,
       apiGeneration: args.apiGeneration,
+      generationKey: args.apiGeneration ? readKeyFromKeychain(GENERATION_KEY_SERVICE) : null,
       timeoutMs: generationTimeoutFor(evalDef, args),
     });
 
