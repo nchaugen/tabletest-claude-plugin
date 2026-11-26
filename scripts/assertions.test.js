@@ -1090,3 +1090,73 @@ describe("rules-tested-on-the-decision", () => {
     assert.match(result.evidence, /decides/);
   });
 });
+
+describe("constant-text-not-restated", () => {
+  const check = checkers["constant-text-not-restated"];
+  const SECOND_SENTENCE = "Parking is charged by the hour from the twentieth minute. Please keep your ticket until you leave the car park.";
+  const wordingTest = (name, sentence) => `    @Test func ${name}() {
+        #expect(Meter.message(minutes: 19) == "${sentence}")
+    }`;
+
+  test("fails a test for each constant sentence", () => {
+    const result = check(meterTests([wordingTest("wordsAFreeStay", LONG_SENTENCE), wordingTest("wordsAPaidStay", SECOND_SENTENCE)].join("\n\n")));
+    assert.equal(result.passed, false);
+    assert.match(result.evidence, /2 string literals/);
+  });
+
+  test("passes one sentence asserted as the wiring check", () => {
+    const result = check(meterTests(wordingTest("wordsAFreeStay", LONG_SENTENCE)));
+    assert.equal(result.passed, true, result.evidence);
+  });
+
+  test("passes a wiring check that compares with the rendering of the decided key", () => {
+    const result = check(meterTests(`    @Test func rendersTheDecidedCharge() {
+        #expect(Meter.message(minutes: 19) == Meter.text(of: .free))
+    }`));
+    assert.equal(result.passed, true, result.evidence);
+  });
+
+  test("measures a multi-line literal by its joined text", () => {
+    const split = (sentence) => `"""
+            ${sentence.slice(0, 60)}\\
+            ${sentence.slice(60)}
+            """`;
+    const result = check(meterTests(`    @Test func wordsAFreeStay() {
+        #expect(Meter.message(minutes: 19) == ${split(LONG_SENTENCE)})
+    }
+
+    @Test func wordsAPaidStay() {
+        #expect(Meter.message(minutes: 20) == ${split(SECOND_SENTENCE)})
+    }`));
+    assert.equal(result.passed, false);
+  });
+
+  test("leaves the cells of a table to the width check", () => {
+    const result = check(meterTests(`    @TableTest("""
+        Scenario       | Minutes | Message?
+        Inside the gap | 19      | ${LONG_SENTENCE}
+        Paid           | 20      | ${SECOND_SENTENCE}
+        """)
+    func explainsTheCharge(minutes: Int, message: String) {
+        #expect(Meter.message(minutes: minutes) == message)
+    }`));
+    assert.equal(result.passed, true, result.evidence);
+  });
+
+  test("ignores a sentence in a comment", () => {
+    const result = check(meterTests(`    // "${LONG_SENTENCE}"
+    // "${SECOND_SENTENCE}"
+    @Test func rendersTheDecidedCharge() {
+        #expect(Meter.message(minutes: 19) == Meter.text(of: .free))
+    }`));
+    assert.equal(result.passed, true, result.evidence);
+  });
+
+  test("takes its limits from the assertion", () => {
+    const result = check({
+      ...meterTests(wordingTest("wordsAFreeStay", LONG_SENTENCE)),
+      assertion: { id: "constant-text-not-restated", max_literal_chars: 100, max_long_literals: 0 },
+    });
+    assert.equal(result.passed, false);
+  });
+});

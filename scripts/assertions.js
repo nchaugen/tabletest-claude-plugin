@@ -213,6 +213,37 @@ function maskSwiftLiteralsAndComments(content) {
   return out.join("");
 }
 
+/**
+ * Every Swift string literal outside comments, as `{start, end, text}`. The text of a `"""`
+ * literal is its lines without their indentation, and a line that ends in `\` joins the next.
+ */
+function swiftStringLiterals(content) {
+  const literals = [];
+  let i = 0;
+  while (i < content.length) {
+    if (content.startsWith("//", i) || content.startsWith("/*", i)) {
+      const end = content.startsWith("//", i) ? content.indexOf("\n", i) : content.indexOf("*/", i + 2) + 2;
+      i = end <= i ? content.length : end;
+    } else if (content.startsWith('"""', i)) {
+      const close = content.indexOf('"""', i + 3);
+      const end = close === -1 ? content.length : close + 3;
+      const lines = content.slice(i + 3, close === -1 ? content.length : close).split("\n").slice(1, -1);
+      const text = lines.map((line) => line.trim())
+        .reduce((joined, line) => joined.endsWith("\\") ? joined.slice(0, -1) + line : (joined === "" ? line : `${joined}\n${line}`), "");
+      literals.push({ start: i, end, text });
+      i = end;
+    } else if (content[i] === '"') {
+      let j = i + 1;
+      while (j < content.length && content[j] !== '"' && content[j] !== "\n") j += content[j] === "\\" ? 2 : 1;
+      literals.push({ start: i, end: j + 1, text: content.slice(i + 1, j) });
+      i = j + 1;
+    } else {
+      i++;
+    }
+  }
+  return literals;
+}
+
 /** The index of the `}` that closes the `{` at `open`, in masked source; content.length if none. */
 function matchingBrace(masked, open) {
   let depth = 0;
@@ -1581,6 +1612,28 @@ const checkers = {
       .filter((cell) => cell.length > limit)
       .map((cell) => `${table.method}, row ${rowIndex + 1}: a cell of ${cell.length} characters`)));
     return verdict(violations, `${tables.length} table(s); no cell over ${limit} characters`);
+  },
+
+  // A person reads the wording, so a test that compares a constant sentence with a copy of it
+  // checks only that the two copies agree. One such sentence can be the wiring check; more is a
+  // test for each constant. The cells of a table are the width check's, so table literals are
+  // left out. The limits come from the assertion.
+  "constant-text-not-restated": ({ allFiles, assertion }) => {
+    const limit = (assertion && assertion.max_literal_chars) || 100;
+    const allowed = assertion && assertion.max_long_literals !== undefined ? assertion.max_long_literals : 1;
+    const files = swiftTestFiles(allFiles);
+    if (files.length === 0) return { passed: false, evidence: "No Swift test file found" };
+    const long = files.flatMap((file) => {
+      const tables = tableTestAttributes(file.content);
+      const inTable = (literal) => tables.some((t) => literal.start >= t.index && literal.end <= t.end);
+      return swiftStringLiterals(file.content)
+        .filter((literal) => !inTable(literal) && literal.text.length > limit)
+        .map((literal) => `${file.path}: a string literal of ${literal.text.length} characters`);
+    });
+    if (long.length > allowed) {
+      return { passed: false, evidence: `${long.length} string literals over ${limit} characters outside the tables (at most ${allowed}): ${long.join("; ")}` };
+    }
+    return { passed: true, evidence: `${long.length} string literal(s) over ${limit} characters outside the tables (at most ${allowed})` };
   },
 
   // The rule is in the function that decides, so a table calls it and straddles each line the
