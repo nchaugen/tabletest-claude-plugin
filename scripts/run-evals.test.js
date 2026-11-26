@@ -1883,9 +1883,11 @@ describe("harvesting a failed generation", () => {
 // 294s late.
 
 describe("runBuildCommand", () => {
-  test("a passing command reports success and no output", async () => {
-    const result = await runBuildCommand("exit 0", process.cwd(), 5000);
-    assert.deepEqual(result, { ok: true, output: "" });
+  test("a passing command reports success and its output, which a verify run counts tests in", async () => {
+    const result = await runBuildCommand("echo 'Test run with 1 test passed'; exit 0", process.cwd(), 5000);
+    assert.equal(result.ok, true);
+    assert.match(result.output, /Test run with 1 test passed/);
+    assert.match(result.stdout, /Test run with 1 test passed/);
   });
 
   test("a failing command reports its output unsliced, so the caller can match on all of it", async () => {
