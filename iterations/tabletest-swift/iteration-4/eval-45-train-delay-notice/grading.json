@@ -31,6 +31,18 @@
       "evidence": "Question-mark columns: Text?, Text?"
     },
     {
+      "id": "rules-tested-on-the-decision",
+      "text": "A @TableTest calls DelayNotice.notice(for:), the function that decides the notice, and its rows hold both sides of the 5-minute and the 60-minute line (4 and 5, 59 and 60). FAILS when the boundaries are tested only through the text of the notice.",
+      "passed": false,
+      "evidence": "No @TableTest function calls notice(for:"
+    },
+    {
+      "id": "no-long-text-cell",
+      "text": "No cell of a @TableTest table is longer than 100 characters. The table holds the decision as data, and a sentence is asserted outside the table. FAILS on a single long cell, since one long cell makes the whole table wide.",
+      "passed": false,
+      "evidence": "wordsTheNoticeFromTheDeparturesStatus, row 1: a cell of 153 characters; wordsTheNoticeFromTheDeparturesStatus, row 2: a cell of 150 characters; wordsTheNoticeFromTheDeparturesStatus, row 3: a cell of 151 characters"
+    },
+    {
       "id": "no-decoder-in-app-code",
       "text": "No init(from:) is written into the app code under Sources/.",
       "passed": true,
@@ -50,8 +62,8 @@
     }
   ],
   "assertions_passed": 8,
-  "assertions_total": 8,
-  "pass_rate": 1,
+  "assertions_total": 10,
+  "pass_rate": 0.8,
   "grading_usage": {
     "input_tokens": 0,
     "output_tokens": 0,

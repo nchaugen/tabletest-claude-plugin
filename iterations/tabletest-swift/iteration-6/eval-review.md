@@ -1,14 +1,16 @@
-# Eval Review — tabletest-swift variant=next, Iteration 2
+# Eval Review — tabletest-swift, Iteration 6
 
-**Model:** sonnet (claude-sonnet-5-5) · **Grading:** claude-sonnet-5-5 · **Date:** 2026-11-23 · **Evals:** 9
+**Model:** sonnet (claude-sonnet-5-5) · **Grading:** claude-sonnet-5-5 · **Date:** 2026-11-26 · **Evals:** 9
 
 ## Summary
 
-95/99 (96.0%) · 1890271 tokens · 366.2s · $2.2456
+95/101 (94.1%) · 1890271 tokens · 366.2s · $2.2456
 
 _Cost figures are Claude Code list-price estimates; actual billing may differ (e.g. promotional pricing). Timed-out evals score 0 with unrecorded token usage._
 
-## Delta vs Iteration 1
+> ⚠️ **4 assertion verdicts moved** vs iteration 5 (over 8 of 9 evals — the rest were not comparable). These are deltas, not attributions: read each eval's `outputs/` and `narration.md` before explaining any of them, and do not start the next iteration until every entry in `analysis-todo.md` has a cause.
+
+## Delta vs Iteration 5
 
 **Regressions (3):**
 - ❌ eval-42-dog-daycare-admission: `scenario-names-add-to-the-row`
@@ -19,15 +21,15 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 - ✅ eval-38-washing-machine-cells: `outcome-cell-spelled-as-swift`
 
 **Not comparable (1) — excluded from the deltas above:**
-- ⚠️ eval-45-train-delay-notice: fingerprint differs from iteration 1; re-baseline to compare
+- ⚠️ eval-45-train-delay-notice: fingerprint differs from iteration 5; re-baseline to compare
 
-## Resource Comparison vs Iteration 1
+## Resource Comparison vs Iteration 5
 
 | Eval | Pass Rate | Prev | Tokens | Prev | Time(s) | Prev |
 |------|-----------|------|--------|------|---------|------|
 | eval-42-dog-daycare-admission | 11/12 | 12/12 | 109495 | 163847 | 21.7 | 33.2 |
 | eval-44-ballot-box-replacement | 11/12 | 12/12 | 220357 | 442316 | 51.7 | 76.1 |
-| eval-45-train-delay-notice | 8/8 | 0/8 | 219493 | 0 | 40.5 | 46.0 |
+| eval-45-train-delay-notice | 8/10 | 0/10 | 219493 | 0 | 40.5 | 46.0 |
 | eval-36-bowling-lanes-convert | 11/11 | 11/11 | 213374 | 152818 | 28.6 | 32.9 |
 | eval-37-ev-charging-arguments | 10/10 | 10/10 | 127504 | 153324 | 24.2 | 29.4 |
 | eval-38-washing-machine-cells | 12/12 | 11/12 | 275676 | 278221 | 52.9 | 68.0 |
@@ -73,15 +75,19 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 - ✅ **no-decoder-in-app-code**: No init(from:) is written into the app code under Sources/.
 - ✅ **compiles**: swift build --build-tests succeeds against the package scaffolding
 
-### ✅ Eval eval-45-train-delay-notice
+### ⚠️ Eval eval-45-train-delay-notice
 
-**8/8** · 219493 tokens · 40527ms
+**8/10** · 219493 tokens · 40527ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest attribute
 - ✅ **tabletest-function-in-a-type**: Every @TableTest function is declared inside a type (a struct, class, enum or an extension of one), not at file scope.
 - ✅ **no-if-switch-in-method**: Test function body contains no if, guard or switch statement and no ternary
 - ✅ **no-default-in-test-function**: No @TableTest function body defaults a value with ??, or calls .map, .flatMap or .compactMap on one of its parameters.
 - ✅ **has-question-mark-column**: Table has at least one column name ending with '?' (e.g. 'Text?')
+- ❌ **rules-tested-on-the-decision**: A @TableTest calls DelayNotice.notice(for:), the function that decides the notice, and its rows hold both sides of the 5-minute and the 60-minute line (4 and 5, 59 and 60). FAILS when the boundaries are tested only through the text of the notice.
+  > No @TableTest function calls notice(for:
+- ❌ **no-long-text-cell**: No cell of a @TableTest table is longer than 100 characters. The table holds the decision as data, and a sentence is asserted outside the table. FAILS on a single long cell, since one long cell makes the whole table wide.
+  > tellsPassengersTheStatusOfADeparture, row 1: a cell of 153 characters; tellsPassengersTheStatusOfADeparture, row 2: a cell of 150 characters; tellsPassengersTheStatusOfADeparture, row 3: a cell of 154 characters
 - ✅ **no-decoder-in-app-code**: No init(from:) is written into the app code under Sources/.
 - ✅ **compiles**: swift build --build-tests succeeds against the package scaffolding
 - ✅ **tests-pass**: The tests pass when run against DelayNotice
@@ -184,36 +190,4 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 - ✅ **exception-case-separated**: The started-stay case is expressed as its own test using #expect(throws:) — not mixed into the fee table via sentinel values, optional expectations, or branching inside the test body.
 - ✅ **concrete-domain-values**: Row values are concrete domain values (days like 29, fees like 100 for a 200-euro booking) — not abstract placeholders, computed expressions like bookingValue / 2, or symbolic constants that hide the actual numbers from the reader.
 - ✅ **compiles**: swift build --build-tests succeeds against the package scaffolding
-
-## Variant vs Official (iterations 4, 3, 2, 1 merged)
-
-### Per-Eval Resource Comparison
-
-| Eval | Pass (off) | Pass (var) | Tokens (off) | Tokens (var) | Tok Δ | Cost (off) | Cost (var) | Cost Δ | Time (off) | Time (var) | Time Δ |
-|------|------------|------------|--------------|--------------|-------|------------|------------|--------|------------|------------|--------|
-| eval-42-dog-daycare-admission | 11/12 | 11/12 | 190282 | 109495 | -42% | $0.2079 | $0.0848 | -59% | 32.8s | 21.7s | -34% |
-| eval-44-ballot-box-replacement | 11/12 | 11/12 | 286015 | 220357 | -23% | $0.2798 | $0.2726 | -3% | 58.7s | 51.7s | -12% |
-| eval-45-train-delay-notice | 8/8 | 8/8 | 161684 | 219493 | +36% | $0.2235 | $0.2589 | +16% | 40.9s | 40.5s | -1% |
-| eval-36-bowling-lanes-convert | 11/11 | 11/11 | 217310 | 213374 | -2% | $0.2131 | $0.2638 | +24% | 33.7s | 28.6s | -15% |
-| eval-37-ev-charging-arguments | 10/10 | 10/10 | 164184 | 127504 | -22% | $0.1916 | $0.1880 | -2% | 19.9s | 24.2s | +22% |
-| eval-38-washing-machine-cells | 12/12 | 12/12 | 171235 | 275676 | +61% | $0.2423 | $0.2779 | +15% | 50.0s | 52.9s | +6% |
-| eval-39-playlist-screen-columns | 11/12 | 11/12 | 229854 | 225578 | -2% | $0.2489 | $0.2861 | +15% | 48.8s | 57.4s | +18% |
-| eval-40-parcel-locker-rules | 12/13 | 12/13 | 224699 | 221039 | -2% | $0.2452 | $0.2801 | +14% | 51.1s | 54.4s | +6% |
-| eval-41-hotel-cancellation-routing | 9/9 | 9/9 | 284062 | 277755 | -2% | $0.3154 | $0.3333 | +6% | 34.1s | 34.7s | +2% |
-| **Totals (9 comparable)** | **95/99** | **95/99** | **1929325** | **1890271** | **-2%** | **$2.1677** | **$2.2456** | **+4%** | **370.0s** | **366.2s** | **-1%** |
-
-**Comparable summary (9 evals in both):**
-
-| Source | Pass Rate | Tokens | Cost | Time |
-|--------|-----------|--------|------|------|
-| next (iter 2) | 95/99 (96.0%) | 1890271 | $2.2456 | 366.2s |
-| official | 95/99 (96.0%) | 1929325 | $2.1677 | 370.0s |
-| **Δ** | | **-2%** | **+4%** | **-1%** |
-
-### Per-Assertion Comparison
-
-| Eval | Assertion | official | next |
-|------|-----------|----------|------|
-
-No load-bearing assertions found — variant matches official on all comparable assertions.
 

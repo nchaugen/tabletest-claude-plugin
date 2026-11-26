@@ -20,7 +20,7 @@ Grader said: _Refusal table uses "Refusal Limit (°C)?" with 90/60/40 and a refu
 - Output: `eval-38-washing-machine-cells/outputs/`
 - Narration: `eval-38-washing-machine-cells/narration.md`
 - Raw transcript: `eval-38-washing-machine-cells/conversation.jsonl` (gitignored, trimmed each cycle — mine it now)
-- Cause (from artefact): A real fault, the draw 1 shape again (2 of 3 split draws, 0 of 2 before the split). The refusal table expects `Refusal Limit (°C)?` (blank, or 90/60/40) through a private `refusalLimit` projection on `WashOutcome`, not `tooHot(limit: 90)`. The narration follows *Expressing a Rejection* ("the column holds the error, and is blank where nothing is rejected") and reads the reference last, after the one-cell rule and its check in `SKILL.md`. Repair candidate: *Expressing a Rejection* states that a refusal with data is one cell as Swift spells it, never its data alone.
+- Cause (from artefact): 
 
 ## LOST `program-rows-state-only-what-they-set` — eval-38-washing-machine-cells
 
@@ -29,7 +29,7 @@ Grader said: _Refusal table gives every row all five settings: "Prewash | Extra 
 - Output: `eval-38-washing-machine-cells/outputs/`
 - Narration: `eval-38-washing-machine-cells/narration.md`
 - Raw transcript: `eval-38-washing-machine-cells/conversation.jsonl` (gitignored, trimmed each cycle — mine it now)
-- Cause (from artefact): A real fault, first in five draws. The narration settles "a shared column layout for every table", so the refusal table carries `Prewash`, `Extra Rinse` and `Delay Start (h)` that only one row sets. Cross-table consistency over-applied to the inputs a table does not vary. One draw: watch, no repair.
+- Cause (from artefact): 
 
 ## WON `scenario-names-add-to-the-row` — eval-42-dog-daycare-admission
 
@@ -38,4 +38,4 @@ Grader said: _"Last week of puppyhood, one shot" and "First week past puppyhood"
 - Output: `eval-42-dog-daycare-admission/outputs/`
 - Narration: `eval-42-dog-daycare-admission/narration.md`
 - Raw transcript: `eval-42-dog-daycare-admission/conversation.jsonl` (gitignored, trimmed each cycle — mine it now)
-- Cause (from artefact): Real: the new names ("Last week of puppyhood, one shot", "First week past puppyhood") name the boundary, not the cells. The slot flips (F F before, P F P since the split), so it is not attributed. This draw is the first split draw that called `Skill` and read no reference: peak context 35.5k against 52.6k, 110,407 tokens against 190,472 / 190,282.
+- Cause (from artefact): 

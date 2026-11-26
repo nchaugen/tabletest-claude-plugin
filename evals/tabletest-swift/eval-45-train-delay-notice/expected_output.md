@@ -1,5 +1,5 @@
-`@TableTest` tables inside `DelayNoticeTests` for the notice a departure gets and for the text of
-each notice. The tests pass.
+A `@TableTest` inside `DelayNoticeTests` for the notice a departure gets, and one plain test for
+the text of each notice. The tests pass.
 
 ## Two rules in one function
 
@@ -20,14 +20,14 @@ departure gives `cancelled` whatever its delay, which a value set shows.
 
 ## The wording
 
-Each of the four notices is asserted once in full, through `text(for:)` or the text of the notice.
-The full sentence comes from the code; a fragment compared with `contains` is a rule the doc comment
-must state.
+The wording is not a rule, so it is not in the table. Each of the four notices is asserted once in
+full, in a plain `@Test` through `text(for:)`, with the sentence split over source lines. No table
+cell holds a sentence. A fragment compared with `contains` is a rule the doc comment must state.
 
-## Also acceptable
+## Not acceptable here
 
-A single table over `text(for:)` with the full sentence as the expectation, when the doc comment
-says why the seam is not used. The rows are then long, and each still asserts the full text.
+A table over `text(for:)` with the full sentence as the expectation. The code has the seam, so the
+boundaries belong in the table of `notice(for:)`, and one long cell makes a table wide.
 
 ## Equally good
 

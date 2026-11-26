@@ -1,10 +1,10 @@
 # Eval Review — tabletest-swift, Iteration 4
 
-**Model:** sonnet (claude-sonnet-5-5) · **Grading:** claude-sonnet-5-5 · **Date:** 2026-11-15 · **Evals:** 4
+**Model:** sonnet (claude-sonnet-5-5) · **Grading:** claude-sonnet-5-5 · **Date:** 2026-11-26 · **Evals:** 4
 
 ## Summary
 
-43/45 (95.6%) · 759243 tokens · 155.0s · $0.7932
+43/47 (91.5%) · 759243 tokens · 155.0s · $0.7932
 
 _Cost figures are Claude Code list-price estimates; actual billing may differ (e.g. promotional pricing). Timed-out evals score 0 with unrecorded token usage._
 
@@ -22,7 +22,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 | eval-42-dog-daycare-admission | 11/12 | 11/12 | 190282 | 190472 | 32.8 | 33.6 |
 | eval-43-ski-rental-bindings | 13/13 | 13/13 | 121262 | 77670 | 22.6 | 17.6 |
 | eval-44-ballot-box-replacement | 11/12 | 12/12 | 286015 | 329747 | 58.7 | 56.8 |
-| eval-45-train-delay-notice | 8/8 | 8/8 | 161684 | 165358 | 40.9 | 51.5 |
+| eval-45-train-delay-notice | 8/10 | 8/10 | 161684 | 165358 | 40.9 | 51.5 |
 
 ## Per-Eval Results
 
@@ -80,15 +80,19 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 - ✅ **no-decoder-in-app-code**: No init(from:) is written into the app code under Sources/.
 - ✅ **compiles**: swift build --build-tests succeeds against the package scaffolding
 
-### ✅ Eval eval-45-train-delay-notice
+### ⚠️ Eval eval-45-train-delay-notice
 
-**8/8** · 161684 tokens · 40861ms
+**8/10** · 161684 tokens · 40861ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest attribute
 - ✅ **tabletest-function-in-a-type**: Every @TableTest function is declared inside a type (a struct, class, enum or an extension of one), not at file scope.
 - ✅ **no-if-switch-in-method**: Test function body contains no if, guard or switch statement and no ternary
 - ✅ **no-default-in-test-function**: No @TableTest function body defaults a value with ??, or calls .map, .flatMap or .compactMap on one of its parameters.
 - ✅ **has-question-mark-column**: Table has at least one column name ending with '?' (e.g. 'Text?')
+- ❌ **rules-tested-on-the-decision**: A @TableTest calls DelayNotice.notice(for:), the function that decides the notice, and its rows hold both sides of the 5-minute and the 60-minute line (4 and 5, 59 and 60). FAILS when the boundaries are tested only through the text of the notice.
+  > No @TableTest function calls notice(for:
+- ❌ **no-long-text-cell**: No cell of a @TableTest table is longer than 100 characters. The table holds the decision as data, and a sentence is asserted outside the table. FAILS on a single long cell, since one long cell makes the whole table wide.
+  > wordsTheNoticeFromTheDeparturesStatus, row 1: a cell of 153 characters; wordsTheNoticeFromTheDeparturesStatus, row 2: a cell of 150 characters; wordsTheNoticeFromTheDeparturesStatus, row 3: a cell of 151 characters
 - ✅ **no-decoder-in-app-code**: No init(from:) is written into the app code under Sources/.
 - ✅ **compiles**: swift build --build-tests succeeds against the package scaffolding
 - ✅ **tests-pass**: The tests pass when run against DelayNotice

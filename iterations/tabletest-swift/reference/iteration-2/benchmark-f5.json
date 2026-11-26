@@ -1,0 +1,68 @@
+{
+  "skill_name": "tabletest-swift (reference)",
+  "iteration": 2,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5-5",
+  "grading_effort": null,
+  "skill_commit": "unknown",
+  "skill_digest": "unknown",
+  "generation_auth": "unknown",
+  "timestamp": "2026-11-26T13:18:05.349Z",
+  "evals": [
+    {
+      "id": "eval-45-train-delay-notice",
+      "name": "train delay notice",
+      "skill": "tabletest-swift",
+      "fingerprint": "546539f9939a",
+      "results": {
+        "model": null,
+        "assertions_passed": 9,
+        "assertions_total": 10,
+        "pass_rate": 0.9,
+        "failed_assertions": [
+          "no-long-text-cell"
+        ],
+        "total_tokens": 0,
+        "duration_ms": 0,
+        "cost_usd": 0,
+        "grading_usage": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "total_tokens": 0,
+          "calls": 0,
+          "cost_usd": 0,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 9,
+    "assertions_total": 10,
+    "pass_rate": 0.9,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 0,
+    "total_duration_ms": 0,
+    "total_cost_usd": 0,
+    "grading": {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "calls": 0,
+      "cost_usd": 0,
+      "evals_measured": 1,
+      "rates_usd_per_mtok": {
+        "input": 2,
+        "output": 10
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": [],
+  "cost_basis": "cli-list-price-estimate"
+}

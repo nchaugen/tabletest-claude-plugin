@@ -1,10 +1,10 @@
 # Eval Review — tabletest-swift, Iteration 7
 
-**Model:** sonnet (claude-sonnet-5-5) · **Grading:** claude-sonnet-5-5 · **Date:** 2026-11-24 · **Evals:** 9
+**Model:** sonnet (claude-sonnet-5-5) · **Grading:** claude-sonnet-5-5 · **Date:** 2026-11-26 · **Evals:** 9
 
 ## Summary
 
-94/99 (94.9%) · 1999589 tokens · 399.5s · $2.3223
+94/101 (93.1%) · 1999589 tokens · 399.5s · $2.3223
 
 _Cost figures are Claude Code list-price estimates; actual billing may differ (e.g. promotional pricing). Timed-out evals score 0 with unrecorded token usage._
 
@@ -25,7 +25,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 |------|-----------|------|--------|------|---------|------|
 | eval-42-dog-daycare-admission | 12/12 | 11/12 | 110407 | 109495 | 24.3 | 21.7 |
 | eval-44-ballot-box-replacement | 11/12 | 11/12 | 279005 | 220357 | 46.5 | 51.7 |
-| eval-45-train-delay-notice | 8/8 | 8/8 | 209500 | 219493 | 36.7 | 40.5 |
+| eval-45-train-delay-notice | 8/10 | 8/10 | 209500 | 219493 | 36.7 | 40.5 |
 | eval-36-bowling-lanes-convert | 11/11 | 11/11 | 214227 | 213374 | 32.0 | 28.6 |
 | eval-37-ev-charging-arguments | 10/10 | 10/10 | 158816 | 127504 | 27.6 | 24.2 |
 | eval-38-washing-machine-cells | 10/12 | 12/12 | 170654 | 275676 | 70.7 | 52.9 |
@@ -70,15 +70,19 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 - ✅ **no-decoder-in-app-code**: No init(from:) is written into the app code under Sources/.
 - ✅ **compiles**: swift build --build-tests succeeds against the package scaffolding
 
-### ✅ Eval eval-45-train-delay-notice
+### ⚠️ Eval eval-45-train-delay-notice
 
-**8/8** · 209500 tokens · 36737ms
+**8/10** · 209500 tokens · 36737ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest attribute
 - ✅ **tabletest-function-in-a-type**: Every @TableTest function is declared inside a type (a struct, class, enum or an extension of one), not at file scope.
 - ✅ **no-if-switch-in-method**: Test function body contains no if, guard or switch statement and no ternary
 - ✅ **no-default-in-test-function**: No @TableTest function body defaults a value with ??, or calls .map, .flatMap or .compactMap on one of its parameters.
 - ✅ **has-question-mark-column**: Table has at least one column name ending with '?' (e.g. 'Text?')
+- ❌ **rules-tested-on-the-decision**: A @TableTest calls DelayNotice.notice(for:), the function that decides the notice, and its rows hold both sides of the 5-minute and the 60-minute line (4 and 5, 59 and 60). FAILS when the boundaries are tested only through the text of the notice.
+  > No @TableTest function calls notice(for:
+- ❌ **no-long-text-cell**: No cell of a @TableTest table is longer than 100 characters. The table holds the decision as data, and a sentence is asserted outside the table. FAILS on a single long cell, since one long cell makes the whole table wide.
+  > tellsPassengersTheStateOfTheirDeparture, row 1: a cell of 151 characters; tellsPassengersTheStateOfTheirDeparture, row 2: a cell of 148 characters; tellsPassengersTheStateOfTheirDeparture, row 3: a cell of 151 characters
 - ✅ **no-decoder-in-app-code**: No init(from:) is written into the app code under Sources/.
 - ✅ **compiles**: swift build --build-tests succeeds against the package scaffolding
 - ✅ **tests-pass**: The tests pass when run against DelayNotice
