@@ -4,7 +4,7 @@
 
 ## Summary
 
-95/101 (94.1%) · 1890271 tokens · 366.2s · $2.2456
+96/102 (94.1%) · 1890271 tokens · 366.2s · $2.2456
 
 _Cost figures are Claude Code list-price estimates; actual billing may differ (e.g. promotional pricing). Timed-out evals score 0 with unrecorded token usage._
 
@@ -29,7 +29,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 |------|-----------|------|--------|------|---------|------|
 | eval-42-dog-daycare-admission | 11/12 | 12/12 | 109495 | 163847 | 21.7 | 33.2 |
 | eval-44-ballot-box-replacement | 11/12 | 12/12 | 220357 | 442316 | 51.7 | 76.1 |
-| eval-45-train-delay-notice | 8/10 | 0/10 | 219493 | 0 | 40.5 | 46.0 |
+| eval-45-train-delay-notice | 9/11 | 0/8 | 219493 | 0 | 40.5 | 46.0 |
 | eval-36-bowling-lanes-convert | 11/11 | 11/11 | 213374 | 152818 | 28.6 | 32.9 |
 | eval-37-ev-charging-arguments | 10/10 | 10/10 | 127504 | 153324 | 24.2 | 29.4 |
 | eval-38-washing-machine-cells | 12/12 | 11/12 | 275676 | 278221 | 52.9 | 68.0 |
@@ -77,7 +77,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-45-train-delay-notice
 
-**8/10** · 219493 tokens · 40527ms
+**9/11** · 219493 tokens · 40527ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest attribute
 - ✅ **tabletest-function-in-a-type**: Every @TableTest function is declared inside a type (a struct, class, enum or an extension of one), not at file scope.
@@ -88,6 +88,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
   > No @TableTest function calls notice(for:
 - ❌ **no-long-text-cell**: No cell of a @TableTest table is longer than 100 characters. The table holds the decision as data, and a sentence is asserted outside the table. FAILS on a single long cell, since one long cell makes the whole table wide.
   > tellsPassengersTheStatusOfADeparture, row 1: a cell of 153 characters; tellsPassengersTheStatusOfADeparture, row 2: a cell of 150 characters; tellsPassengersTheStatusOfADeparture, row 3: a cell of 154 characters
+- ✅ **constant-text-not-restated**: Outside the @TableTest tables, the tests hold at most one string literal longer than 100 characters. A person reads the wording, so a copy of a constant sentence only checks that the two copies agree. One sentence can be the wiring check. FAILS on a test for each sentence.
 - ✅ **no-decoder-in-app-code**: No init(from:) is written into the app code under Sources/.
 - ✅ **compiles**: swift build --build-tests succeeds against the package scaffolding
 - ✅ **tests-pass**: The tests pass when run against DelayNotice

@@ -1,5 +1,5 @@
-A `@TableTest` inside `DelayNoticeTests` for the notice a departure gets, and one plain test for
-the text of each notice. The tests pass.
+A `@TableTest` inside `DelayNoticeTests` for the notice a departure gets, and one plain test that
+shows that the text is the rendering of the decided notice. The tests pass.
 
 ## Two rules in one function
 
@@ -20,15 +20,22 @@ departure gives `cancelled` whatever its delay, which a value set shows.
 
 ## The wording
 
-The wording is not a rule, so it is not in the table. Each of the four notices is asserted once in
-full, in a plain `@Test` through `text(for:)`, with the sentence split over source lines. No table
-cell holds a sentence. A fragment compared with `contains` is a rule the doc comment must state.
+A person reads the text, so the wording is for a reader to review, not a rule to test. A test that
+compares a constant sentence with a copy of it checks only that the two copies agree. One plain
+`@Test` through `text(for:)` is the wiring check: it shows that the text renders the notice the
+departure gets. It may assert one sentence in full, split over source lines, or compare with the
+rendering of the decided notice. No table cell holds a sentence. A fragment compared with
+`contains` is a rule the doc comment must state.
 
 ## Not acceptable here
 
 A table over `text(for:)` with the full sentence as the expectation. The code has the seam, so the
 boundaries belong in the table of `notice(for:)`, and one long cell makes a table wide.
 
+A plain test for each of the four sentences. Each restates a constant.
+
 ## Equally good
 
-The destination, the times and the delays chosen, the titles and the column names.
+The destination, the times and the delays chosen, the titles and the column names. The form of the
+wiring check: one sentence in full, or a comparison with the rendering of the decided notice. A
+remark in the answer that the texts are in the code, and that keys would separate them.

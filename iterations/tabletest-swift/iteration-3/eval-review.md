@@ -4,7 +4,7 @@
 
 ## Summary
 
-44/47 (93.6%) · 763247 tokens · 159.6s · $0.8134
+45/48 (93.8%) · 763247 tokens · 159.6s · $0.8134
 
 _Cost figures are Claude Code list-price estimates; actual billing may differ (e.g. promotional pricing). Timed-out evals score 0 with unrecorded token usage._
 
@@ -25,7 +25,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 | eval-42-dog-daycare-admission | 11/12 | — | 190472 | — | 33.6 | — |
 | eval-43-ski-rental-bindings | 13/13 | — | 77670 | — | 17.6 | — |
 | eval-44-ballot-box-replacement | 12/12 | — | 329747 | — | 56.8 | — |
-| eval-45-train-delay-notice | 8/10 | — | 165358 | — | 51.5 | — |
+| eval-45-train-delay-notice | 9/11 | — | 165358 | — | 51.5 | — |
 
 ## Per-Eval Results
 
@@ -84,7 +84,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
 
 ### ⚠️ Eval eval-45-train-delay-notice
 
-**8/10** · 165358 tokens · 51524ms
+**9/11** · 165358 tokens · 51524ms
 
 - ✅ **has-tabletest-annotation**: Output contains a @TableTest attribute
 - ✅ **tabletest-function-in-a-type**: Every @TableTest function is declared inside a type (a struct, class, enum or an extension of one), not at file scope.
@@ -95,6 +95,7 @@ _Cost figures are Claude Code list-price estimates; actual billing may differ (e
   > No @TableTest function calls notice(for:
 - ❌ **no-long-text-cell**: No cell of a @TableTest table is longer than 100 characters. The table holds the decision as data, and a sentence is asserted outside the table. FAILS on a single long cell, since one long cell makes the whole table wide.
   > tellsPassengersTheStatusOfADeparture, row 1: a cell of 151 characters; tellsPassengersTheStatusOfADeparture, row 2: a cell of 148 characters; tellsPassengersTheStatusOfADeparture, row 3: a cell of 149 characters
+- ✅ **constant-text-not-restated**: Outside the @TableTest tables, the tests hold at most one string literal longer than 100 characters. A person reads the wording, so a copy of a constant sentence only checks that the two copies agree. One sentence can be the wiring check. FAILS on a test for each sentence.
 - ✅ **no-decoder-in-app-code**: No init(from:) is written into the app code under Sources/.
 - ✅ **compiles**: swift build --build-tests succeeds against the package scaffolding
 - ✅ **tests-pass**: The tests pass when run against DelayNotice

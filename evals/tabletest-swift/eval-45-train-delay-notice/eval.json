@@ -52,6 +52,13 @@
       "text": "No cell of a @TableTest table is longer than 100 characters. The table holds the decision as data, and a sentence is asserted outside the table. FAILS on a single long cell, since one long cell makes the whole table wide."
     },
     {
+      "id": "constant-text-not-restated",
+      "type": "deterministic",
+      "max_literal_chars": 100,
+      "max_long_literals": 1,
+      "text": "Outside the @TableTest tables, the tests hold at most one string literal longer than 100 characters. A person reads the wording, so a copy of a constant sentence only checks that the two copies agree. One sentence can be the wiring check. FAILS on a test for each sentence."
+    },
+    {
       "id": "no-decoder-in-app-code",
       "text": "No init(from:) is written into the app code under Sources/.",
       "type": "deterministic"
