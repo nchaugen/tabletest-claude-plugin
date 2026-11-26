@@ -56,6 +56,7 @@ const {
   installVerifyTests,
   runVerifyCheck,
   runBuildAssertions,
+  verifyTestsRan,
   generationEnv,
   generationTimeoutFor,
   runBuildCommand,
@@ -2326,5 +2327,20 @@ describe("verify tests", () => {
     assert.match(failed.evidence, /boundary moved/);
     assert.equal(missing.passed, false);
     assert.match(missing.evidence, /no verify result/);
+  });
+});
+
+describe("verifyTestsRan", () => {
+  test("accepts a Swift Testing run of at least one test", () => {
+    assert.equal(verifyTestsRan("✔ Test run with 1 test in 1 suite passed after 0.001 seconds."), true);
+  });
+
+  test("accepts an XCTest run of at least one test", () => {
+    assert.equal(verifyTestsRan("Executed 2 tests, with 0 failures (0 unexpected) in 0.002 seconds"), true);
+  });
+
+  test("refuses a filter that matched no test, which swift test reports with exit 0", () => {
+    assert.equal(verifyTestsRan("warning: No matching test cases were run"), false);
+    assert.equal(verifyTestsRan("✔ Test run with 0 tests in 0 suites passed after 0.001 seconds."), false);
   });
 });

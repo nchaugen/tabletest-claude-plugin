@@ -140,10 +140,10 @@ const execAsync = promisify(exec);
  */
 async function runBuildCommand(command, worktreePath, timeoutMs) {
   try {
-    await execAsync(command, { cwd: worktreePath, timeout: timeoutMs });
-    return { ok: true, output: "" };
+    const { stdout, stderr } = await execAsync(command, { cwd: worktreePath, timeout: timeoutMs });
+    return { ok: true, output: `${stdout || ""}${stderr || ""}`, stdout: `${stdout || ""}` };
   } catch (err) {
-    return { ok: false, output: (err.stderr || err.stdout || "").toString() };
+    return { ok: false, output: (err.stderr || err.stdout || "").toString(), stdout: (err.stdout || "").toString() };
   }
 }
 
@@ -204,6 +204,14 @@ function installVerifyTests(evalSourceDir, packageDir) {
   return files;
 }
 
+/**
+ * Whether a test run ran at least one test. `swift test --filter` exits 0 when the filter matches
+ * nothing, so a misnamed verify type would otherwise pass.
+ */
+function verifyTestsRan(output) {
+  return /Test run with [1-9]\d* tests? .*passed/.test(output) || /Executed [1-9]\d* tests?, with 0 failures/.test(output);
+}
+
 /** The build result with the verify result added, or unchanged when the eval has no verify tests. */
 async function runVerifyCheck(evalSourceDir, packageDir, buildResult) {
   if (!fs.existsSync(path.join(evalSourceDir, VERIFY_DIR))) return buildResult;
@@ -215,7 +223,11 @@ async function runVerifyCheck(evalSourceDir, packageDir, buildResult) {
   }
   installVerifyTests(evalSourceDir, packageDir);
   const run = await runBuildCommand(`swift test --filter ${VERIFY_FILTER}`, packageDir, 300000);
-  return { ...buildResult, verify_pass: run.ok, verify_output: run.ok ? "" : run.output.slice(0, 2000) };
+  if (run.ok && !verifyTestsRan(run.output)) {
+    return { ...buildResult, verify_pass: false, verify_output: `No verify test ran: name each verify type ${VERIFY_FILTER}…` };
+  }
+  const failures = `${run.stdout}\n${run.output}`.split("\n").filter((line) => /✘|error:/.test(line)).join("\n");
+  return { ...buildResult, verify_pass: run.ok, verify_output: run.ok ? "" : (failures || run.output.slice(-2000)).slice(0, 2000) };
 }
 
 /** The agent's build check, then the eval's verify tests. */
@@ -3625,6 +3637,7 @@ module.exports = {
   installVerifyTests,
   runVerifyCheck,
   runBuildAssertions,
+  verifyTestsRan,
   loadScaffoldTestFiles,
   classifyGenerationFailure,
   contaminationHits,
