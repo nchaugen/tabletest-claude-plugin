@@ -1,0 +1,90 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest attribute",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "tabletest-function-in-a-type",
+      "text": "Every @TableTest function is declared inside a type (a struct, class, enum or an extension of one), not at file scope.",
+      "passed": true,
+      "evidence": "1 @TableTest function(s), each inside a type"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test function body contains no if, guard or switch statement and no ternary",
+      "passed": true,
+      "evidence": "1 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "no-default-in-test-function",
+      "text": "No @TableTest function body defaults a value with ??, or calls .map, .flatMap or .compactMap on one of its parameters.",
+      "passed": true,
+      "evidence": "1 @TableTest function(s); no ?? and no .map on a parameter"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Text?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Reminder?"
+    },
+    {
+      "id": "rules-tested-on-the-decision",
+      "text": "LoanReminder.text(for:) calls a function or a computed property of the app that decides the reminder, and a @TableTest calls that function with rows on both sides of the 3-day, the due-date and the 30-day line (4 and 3, 0 and -1, -29 and -30). FAILS when the decision stays inside text(for:), and when the new function is a copy that text(for:) does not call.",
+      "passed": true,
+      "evidence": "choosesTheReminderForALoan calls kind(for: and holds 4/3, 0/-1, -29/-30"
+    },
+    {
+      "id": "no-long-text-cell",
+      "text": "No cell of a @TableTest table is longer than 100 characters. The table holds the decision as data, and a reader reviews the wording. FAILS on a single long cell, since one long cell makes the whole table wide.",
+      "passed": true,
+      "evidence": "1 table(s); no cell over 100 characters"
+    },
+    {
+      "id": "constant-text-not-restated",
+      "text": "Outside the @TableTest tables, the tests hold at most one string literal longer than 100 characters. A person reads the wording, so a copy of a constant sentence only checks that the two copies agree. One sentence can be the wiring check. FAILS on a test for each sentence.",
+      "passed": true,
+      "evidence": "1 string literal(s) over 100 characters outside the tables (at most 1)"
+    },
+    {
+      "id": "no-decoder-in-app-code",
+      "text": "No init(from:) is written into the app code under Sources/.",
+      "passed": true,
+      "evidence": "No init(from:) in app code"
+    },
+    {
+      "id": "compiles",
+      "text": "swift build --build-tests succeeds against the package scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The tests pass when run against LoanReminder",
+      "passed": true,
+      "evidence": "Tests passed"
+    },
+    {
+      "id": "verify-tests-pass",
+      "text": "The eval's own tests pass against the changed app code: text(for:) gives the same text as before on both sides of each line, also for a reserved item.",
+      "passed": true,
+      "evidence": "The eval's verify tests passed"
+    }
+  ],
+  "assertions_passed": 12,
+  "assertions_total": 12,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0,
+    "calls": 0,
+    "cost_usd": 0,
+    "rates_usd_per_mtok": {
+      "input": 2,
+      "output": 10
+    }
+  }
+}

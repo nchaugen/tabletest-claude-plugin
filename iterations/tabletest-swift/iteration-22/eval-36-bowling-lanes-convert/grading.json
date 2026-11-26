@@ -1,0 +1,84 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest attribute",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "tabletest-function-in-a-type",
+      "text": "Every @TableTest function is declared inside a type (a struct, class, enum or an extension of one), not at file scope.",
+      "passed": true,
+      "evidence": "1 @TableTest function(s), each inside a type"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test function body contains no if, guard or switch statement and no ternary",
+      "passed": true,
+      "evidence": "1 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "scenario-column-present",
+      "text": "Table has a scenario/description column as the leftmost column",
+      "passed": true,
+      "evidence": "First column(s): \"Scenario\""
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Price?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Price (€)?"
+    },
+    {
+      "id": "price-tests-become-one-table",
+      "text": "The five price tests become one @TableTest with exactly five rows, one per original test, each keeping that test's lane, hours, membership and price (standard 2 h → 60, deluxe 2 h → 90, kids 1 h → 20, standard 5 h → 90, deluxe 2 h as a member → 72). FAILS when a row is added or dropped, when a value changes, or when the five original price tests are kept beside the table.",
+      "passed": false,
+      "evidence": "Table has six rows; the 5 h row was replaced by \"standard | 3\" and \"standard | 4\" rows."
+    },
+    {
+      "id": "rejection-stays-its-own-test",
+      "text": "The zero-hours case stays its own test that expects BookingError.noHours (for example with #expect(throws:)). FAILS when it becomes a row of the price table with an optional, sentinel or error-text price, or when it is deleted.",
+      "passed": true,
+      "evidence": "@Test func rejectsABookingWithoutHours() { ... #expect(throws: BookingError.noHours)"
+    },
+    {
+      "id": "lane-converts-on-the-app-type",
+      "text": "The lane cell converts because the app's Lane enum gained a one-word conformance in Sources/ (CaseIterable, Codable, Decodable, or String raw values). FAILS when the test target turns a word into a Lane itself: a String column mapped by a switch or a dictionary, a test-local copy of the enum, or a TableTextDecodable / TableValueDecodable that lists the cases by hand.",
+      "passed": true,
+      "evidence": "public enum Lane: CaseIterable, Sendable in Sources/Bowling/LanePrice.swift; no test-side mapping"
+    },
+    {
+      "id": "no-decoder-in-app-code",
+      "text": "No init(from:) is written into the app code under Sources/.",
+      "passed": true,
+      "evidence": "No init(from:) in app code"
+    },
+    {
+      "id": "compiles",
+      "text": "swift build --build-tests succeeds against the package scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The converted tests pass when run against LanePrice",
+      "passed": true,
+      "evidence": "Tests passed"
+    }
+  ],
+  "assertions_passed": 10,
+  "assertions_total": 11,
+  "pass_rate": 0.9090909090909091,
+  "grading_usage": {
+    "input_tokens": 3707,
+    "output_tokens": 223,
+    "total_tokens": 3930,
+    "calls": 1,
+    "cost_usd": 0.009644,
+    "rates_usd_per_mtok": {
+      "input": 2,
+      "output": 10
+    }
+  }
+}

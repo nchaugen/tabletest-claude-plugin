@@ -1,0 +1,90 @@
+{
+  "assertions": [
+    {
+      "id": "has-tabletest-annotation",
+      "text": "Output contains a @TableTest attribute",
+      "passed": true,
+      "evidence": "Found @TableTest annotation"
+    },
+    {
+      "id": "tabletest-function-in-a-type",
+      "text": "Every @TableTest function is declared inside a type (a struct, class, enum or an extension of one), not at file scope.",
+      "passed": true,
+      "evidence": "4 @TableTest function(s), each inside a type"
+    },
+    {
+      "id": "no-if-switch-in-method",
+      "text": "Test function body contains no if, guard or switch statement and no ternary",
+      "passed": true,
+      "evidence": "4 method(s) checked — no if/switch/ternary"
+    },
+    {
+      "id": "has-question-mark-column",
+      "text": "Table has at least one column name ending with '?' (e.g. 'Outcome?')",
+      "passed": true,
+      "evidence": "Question-mark columns: Outcome?, Outcome?, Outcome?, Outcome?"
+    },
+    {
+      "id": "outcome-cell-spelled-as-swift",
+      "text": "The expected outcome is one cell that spells the WashOutcome case as Swift code does, such as runs(minutes: 120) or tooHot(limit: 40), because WashOutcome gained Codable (or Decodable) in Sources/. FAILS when the outcome is split into a case-name column and number columns that the body puts back together, when the body builds the expected outcome from other columns, or when the test target maps words to cases by hand.",
+      "passed": true,
+      "evidence": "Outcome? column holds whole cells like \"runs(minutes: 170)\" and \"tooHot(limit: 90)\"; WashOutcome is Codable."
+    },
+    {
+      "id": "fabric-converts-on-the-app-type",
+      "text": "The fabric converts from a cell because the app's Fabric enum gained a one-word conformance in Sources/ (CaseIterable, Codable, Decodable, or String raw values). FAILS when the test target turns a word into a Fabric itself: a switch, a dictionary, a test-local copy of the enum, or a hand-written conversion.",
+      "passed": true,
+      "evidence": "Fabric is CaseIterable in Sources; the test takes \"fabric: Fabric\" from a cell with no switch or dictionary."
+    },
+    {
+      "id": "app-types-change-by-one-word",
+      "text": "The only changes to the app code under Sources/ are conformances added to type declarations; no field of WashProgram is made optional, loses its default, or changes type, and no initialiser or method is added. PASSES when Sources/ is unchanged apart from such conformances.",
+      "passed": true,
+      "evidence": "Only conformances were added (\"Fabric is now CaseIterable and WashOutcome is Codable\"); WashProgram fields keep their defaults and the init is public."
+    },
+    {
+      "id": "no-decoder-in-app-code",
+      "text": "No init(from:) is written into the app code under Sources/.",
+      "passed": true,
+      "evidence": "No init(from:) in app code"
+    },
+    {
+      "id": "program-rows-state-only-what-they-set",
+      "text": "Each row states only the program settings that the rule under test varies; the other settings keep the app's defaults. Either the settings are columns and the body builds the WashProgram, or a map cell names only the settings it sets and a TableValueDecodable conformance in the test target reads it (for example with readingFields). FAILS when every row must spell all five settings to decode, or when a map cell is read by an init(from:) or a synthesised Decodable that the app was changed to allow.",
+      "passed": true,
+      "evidence": "Columns approach: body builds WashProgram(fabric:temperature:prewash:...) and omits unset settings, which keep their defaults."
+    },
+    {
+      "id": "each-rule-has-its-rows",
+      "text": "Each of the four rules of the doc comment has rows that show it: each fabric at its temperature limit and one step above it; the base time of each fabric and the 10-minute step for 10 °C; a prewash, an extra rinse, and both together; and a delayed start against no delay. FAILS when a rule has no row, or when a limit is shown on one side only.",
+      "passed": true,
+      "evidence": "Limits at 90/91, 60/61, 40/41; bases 120/90/50; cotton 40/50/60; prewash, rinse and both; delay 3 and 12 against blank."
+    },
+    {
+      "id": "compiles",
+      "text": "swift build --build-tests succeeds against the package scaffolding",
+      "passed": true,
+      "evidence": "Compilation succeeded"
+    },
+    {
+      "id": "tests-pass",
+      "text": "The tests pass when run against WashPlanner",
+      "passed": true,
+      "evidence": "Tests passed"
+    }
+  ],
+  "assertions_passed": 12,
+  "assertions_total": 12,
+  "pass_rate": 1,
+  "grading_usage": {
+    "input_tokens": 6197,
+    "output_tokens": 1134,
+    "total_tokens": 7331,
+    "calls": 1,
+    "cost_usd": 0.023734,
+    "rates_usd_per_mtok": {
+      "input": 2,
+      "output": 10
+    }
+  }
+}

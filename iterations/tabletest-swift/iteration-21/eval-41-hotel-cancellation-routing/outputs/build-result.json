@@ -1,0 +1,6 @@
+{
+  "compiles": true,
+  "tests_pass": false,
+  "compile_output": "",
+  "test_output": "Building for debugging...\n[Computing dependencies]\n[Pre-planning 1 / 768]\n[Planning deferred tasks]\n[3 / 4] HotelBookingTests-product\nBuild complete! (0,67 secs)\n"
+}
