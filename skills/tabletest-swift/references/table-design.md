@@ -1103,6 +1103,26 @@ in place of tests.
 
 1. **Understand**: read the code, and find what varies.
 2. **Design**: decide the concerns and each table's axis before you write a row.
+
+   **"Tests for X" names the subject, not the only function the tests may call.** Before you write
+   a row, ask what each expected value states, and who reads it:
+   - **A program reads it** (an error code, a protocol value, a file format, output a script
+     parses): it is a contract, and the table compares it exactly.
+   - **A person reads it**: it is wording, and a reader reviews it. Where X renders the result of a
+     decision, the table tests the decision. It calls the function that returns the key, such as
+     an enum case, and the key is one cell (see *Enums with Associated Values* in `SKILL.md`).
+   - **Where no function returns the key, the seam is missing** (see *Separate Rules from
+     Arithmetic*). Where X keeps its results and the prompt does not forbid a change, add the key:
+     a type for it and a function that decides it, which X then calls. Say in your answer what you
+     changed. Otherwise, name the missing function in the doc comment and in your answer. Never
+     build a localisation layer (language files, a String Catalog) unasked.
+   - **One plain `@Test` through X is the wiring check** (see *Wiring is not a rule*). Do not
+     assert each constant sentence: a copy only checks that the two copies agree. Split a long
+     expected string over source lines: a `"""` literal with `\` at the end of each line except
+     the last.
+   - **A part that the app's own code generates is a rule** (a plural, a formatted amount, a clause
+     that appears under a condition). Table it at the function that generates it, with short cells.
+   - Never compare a fragment with `contains` in place of the decision.
 3. **Implement**: write the full table.
 4. **Run**: build and test at once, for fast feedback on the conversions.
 5. **Refine**: read the table again and fix what the rules catch. Write domain names in the first
