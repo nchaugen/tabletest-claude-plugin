@@ -743,10 +743,10 @@ Rules:
  */
 const GRADING_KEY_SERVICE = "tabletest-eval-grading";
 
-function readGradingKeyFromKeychain() {
+function readKeyFromKeychain(service) {
   if (process.platform !== "darwin") return null;
   try {
-    return execSync(`security find-generic-password -s ${GRADING_KEY_SERVICE} -w`, {
+    return execSync(`security find-generic-password -s ${service} -w`, {
       stdio: ["ignore", "pipe", "ignore"],
     }).toString().trim() || null;
   } catch {
@@ -993,7 +993,7 @@ async function main() {
   // how one was disclosed on 2026-08-02. The keychain entry is read only when the variable is unset,
   // so an explicit `ANTHROPIC_API_KEY=… node scripts/run-evals.js` still wins.
   if (!process.env.ANTHROPIC_API_KEY) {
-    const fromKeychain = readGradingKeyFromKeychain();
+    const fromKeychain = readKeyFromKeychain(GRADING_KEY_SERVICE);
     if (fromKeychain) process.env.ANTHROPIC_API_KEY = fromKeychain;
   }
 
