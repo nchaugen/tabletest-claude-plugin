@@ -942,3 +942,151 @@ ${rows.map((r) => `        ${r}`).join("\n")}
     assert.match(missing.evidence, /scaffold/);
   });
 });
+
+const meterTests = (tables) => {
+  const content = `import TableTest
+import Testing
+@testable import Parking
+
+struct MeterTests {
+${tables}
+}
+`;
+  return { fileContent: content, allFiles: [{ path: "Tests/ParkingTests/MeterTests.swift", content }] };
+};
+
+const LONG_SENTENCE = "You have parked for 19 minutes. Parking is free for the first 20 minutes, after which the meter charges by the hour.";
+
+describe("no-long-text-cell", () => {
+  const check = checkers["no-long-text-cell"];
+
+  test("fails a table whose expectation cell is a long sentence", () => {
+    const result = check(meterTests(`    @TableTest("""
+        Scenario       | Minutes | Message?
+        Inside the gap | 19      | ${LONG_SENTENCE}
+        """)
+    func explainsTheCharge(minutes: Int, message: String) {
+        #expect(Meter.message(minutes: minutes) == message)
+    }`));
+    assert.equal(result.passed, false);
+    assert.match(result.evidence, /explainsTheCharge/);
+    assert.match(result.evidence, /\d{3} characters/);
+  });
+
+  test("fails one long row even when every other row is short", () => {
+    const result = check(meterTests(`    @TableTest("""
+        Scenario       | Minutes | Message?
+        Before parking | 0       | Welcome
+        Inside the gap | 19      | ${LONG_SENTENCE}
+        """)
+    func explainsTheCharge(minutes: Int, message: String) {
+        #expect(Meter.message(minutes: minutes) == message)
+    }`));
+    assert.equal(result.passed, false);
+  });
+
+  test("passes a table of decisions, with the sentence in a plain test", () => {
+    const result = check(meterTests(`    @TableTest("""
+        Scenario          | Minutes | Charge?
+        Last free minute  | 19      | free
+        First paid minute | 20      | paid(hours: 1)
+        """)
+    func decidesTheCharge(minutes: Int, charge: Charge) {
+        #expect(Meter.charge(minutes: minutes) == charge)
+    }
+
+    @Test func wordsAFreeStay() {
+        #expect(Meter.message(minutes: 19) == "${LONG_SENTENCE}")
+    }`));
+    assert.equal(result.passed, true, result.evidence);
+  });
+
+  test("takes its width from the assertion", () => {
+    const table = meterTests(`    @TableTest("""
+        Scenario          | Minutes | Charge?
+        First paid minute | 20      | paid(hours: 1)
+        """)
+    func decidesTheCharge(minutes: Int, charge: Charge) {
+        #expect(Meter.charge(minutes: minutes) == charge)
+    }`);
+    const result = check({ ...table, assertion: { id: "no-long-text-cell", max_cell_chars: 10 } });
+    assert.equal(result.passed, false);
+  });
+
+  test("fails an answer with no table", () => {
+    const result = check(meterTests(`    @Test func wordsAFreeStay() {
+        #expect(Meter.message(minutes: 19) == "${LONG_SENTENCE}")
+    }`));
+    assert.equal(result.passed, false);
+  });
+});
+
+describe("rules-tested-on-the-decision", () => {
+  const check = checkers["rules-tested-on-the-decision"];
+  const assertion = { id: "rules-tested-on-the-decision", decides: "charge(minutes:", boundaries: [[19, 20], [139, 140]] };
+  const withAssertion = (tables) => ({ ...meterTests(tables), assertion });
+
+  test("passes a table that calls the deciding function on both sides of each line", () => {
+    const result = check(withAssertion(`    @TableTest("""
+        Scenario          | Minutes   | Charge?
+        Free stay         | {0, 19}   | free
+        First paid minute | 20        | paid(hours: 1)
+        Last short stay   | 139       | paid(hours: 2)
+        First long stay   | 140       | dailyRate
+        """)
+    func decidesTheCharge(minutes: Int, charge: Charge) {
+        #expect(Meter.charge(minutes: minutes) == charge)
+    }`));
+    assert.equal(result.passed, true, result.evidence);
+  });
+
+  test("fails boundaries tested only through the text function", () => {
+    const result = check(withAssertion(`    @TableTest("""
+        Scenario          | Minutes | Message?
+        Last free minute  | 19      | free
+        First paid minute | 20      | one hour
+        Last short stay   | 139     | two hours
+        First long stay   | 140     | daily rate
+        """)
+    func wordsTheCharge(minutes: Int, message: String) {
+        #expect(Meter.message(minutes: minutes) == message)
+    }`));
+    assert.equal(result.passed, false);
+    assert.match(result.evidence, /charge\(minutes:/);
+  });
+
+  test("fails a decision table that misses one side of a line", () => {
+    const result = check(withAssertion(`    @TableTest("""
+        Scenario          | Minutes | Charge?
+        Last free minute  | 19      | free
+        First paid minute | 20      | paid(hours: 1)
+        Long stay         | 200     | dailyRate
+        """)
+    func decidesTheCharge(minutes: Int, charge: Charge) {
+        #expect(Meter.charge(minutes: minutes) == charge)
+    }`));
+    assert.equal(result.passed, false);
+    assert.match(result.evidence, /139/);
+  });
+
+  test("does not count a call inside a comment", () => {
+    const result = check(withAssertion(`    @TableTest("""
+        Scenario          | Minutes | Message?
+        Last free minute  | 19      | free
+        First paid minute | 20      | one hour
+        Last short stay   | 139     | two hours
+        First long stay   | 140     | daily rate
+        """)
+    func wordsTheCharge(minutes: Int, message: String) {
+        // Meter.charge(minutes:) decides; this tests the words.
+        #expect(Meter.message(minutes: minutes) == message)
+    }`));
+    assert.equal(result.passed, false);
+  });
+
+  test("names the missing parameters when the assertion has none", () => {
+    const result = check({ ...meterTests(""), assertion: { id: "rules-tested-on-the-decision" } });
+    assert.equal(result.passed, false);
+    assert.match(result.evidence, /decides/);
+  });
+});

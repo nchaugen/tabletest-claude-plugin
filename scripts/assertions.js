@@ -1570,6 +1570,46 @@ const checkers = {
     return verdict(violations, `${functions.length} @TableTest function(s); no ?? and no .map on a parameter`);
   },
 
+  // A long text in a cell is the rendering of a decision. The table holds the decision as data,
+  // and a sentence is asserted outside the table. One long cell makes the whole table wide, so
+  // the test is on the longest cell, not on a count of rows. The width comes from the assertion.
+  "no-long-text-cell": ({ allFiles, assertion }) => {
+    const limit = (assertion && assertion.max_cell_chars) || 100;
+    const tables = swiftTestFiles(allFiles).flatMap((f) => tableTestTables(f.content));
+    if (tables.length === 0) return { passed: false, evidence: "No @TableTest table found" };
+    const violations = tables.flatMap((table) => table.rows.flatMap((row, rowIndex) => row
+      .filter((cell) => cell.length > limit)
+      .map((cell) => `${table.method}, row ${rowIndex + 1}: a cell of ${cell.length} characters`)));
+    return verdict(violations, `${tables.length} table(s); no cell over ${limit} characters`);
+  },
+
+  // The rule is in the function that decides, so a table calls it and straddles each line the
+  // rule draws. A boundary reached only through a rendering of the decision is tested inside the
+  // rendering's text. The assertion names the call (`decides`) and the lines (`boundaries`).
+  "rules-tested-on-the-decision": ({ allFiles, assertion }) => {
+    const call = assertion && assertion.decides;
+    const boundaries = (assertion && assertion.boundaries) || [];
+    if (!call || boundaries.length === 0) {
+      return { passed: false, evidence: 'The assertion names no call: give it "decides" and "boundaries" in eval.json.' };
+    }
+    const callPattern = new RegExp(`\\b${escapeRegExp(call).replace(/\\\(/, "\\s*\\(\\s*")}`);
+    const holds = (table, value) => table.rows.some((row) => row.some((cell) =>
+      cell === String(value) || (parseCollectionElements(cell) || []).map((e) => e.trim()).includes(String(value))));
+    const candidates = swiftTestFiles(allFiles).flatMap((f) => {
+      const bodies = new Map(swiftTableTestFunctions(f.content).map((fn) => [fn.name, maskSwiftLiteralsAndComments(fn.body)]));
+      return tableTestTables(f.content).filter((table) => callPattern.test(bodies.get(table.method) || ""));
+    });
+    if (candidates.length === 0) {
+      return { passed: false, evidence: `No @TableTest function calls ${call}` };
+    }
+    const missingIn = (table) => boundaries.flat().filter((value) => !holds(table, value));
+    const best = candidates.map((table) => ({ table, missing: missingIn(table) }))
+      .sort((a, b) => a.missing.length - b.missing.length)[0];
+    return best.missing.length === 0
+      ? { passed: true, evidence: `${best.table.method} calls ${call} and holds ${boundaries.map((b) => b.join("/")).join(", ")}` }
+      : { passed: false, evidence: `${best.table.method} calls ${call} but has no row for ${best.missing.join(", ")}` };
+  },
+
   // The tables a change does not touch stay as they were. The assertion names them in eval.json
   // (`functions`), and the runner hands the scaffold's own test files in as `scaffoldFiles`.
   "untouched-tables-unchanged": ({ allFiles, assertion, scaffoldFiles }) => {
