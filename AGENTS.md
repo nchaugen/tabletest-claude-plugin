@@ -36,7 +36,11 @@ The tag triggers `.github/workflows/release.yml`, which creates the GitHub relea
 Per-skill evals with variant comparison validate the skills. Directory roles:
 
 - `evals/<skill>/eval-X-name/` — definitions: `prompt.md`, `expected_output.md`, `eval.json`
-  (id, slug, skill, assertions, optional `timeout_ms`).
+  (id, slug, skill, assertions, optional `timeout_ms`). Optional `verify/`: the eval's own tests,
+  laid out as `project/` is, which the runner adds to the agent's package after its build check
+  and runs with `swift test --filter EvalVerify` (Swift only; every verify type has a name that
+  starts with `EvalVerify`). The `verify-tests-pass` build assertion reads the result. Use it to
+  show that the agent's code change kept what the scaffold did.
 - `iterations/<skill>/iteration-N/` — results: `benchmark.json` (pass rates, tokens),
   `eval-review.md` (report + regression detection), and per-eval `outputs/`, `grading.json`,
   `timing.json`. Variant results nest under `<variant-name>/` with their own numbering.
@@ -634,7 +638,7 @@ exactly one of them changed between the compared iterations.
 
 ### Contamination protocol
 
-`docs/`, `iterations/`, `skill-variants/`, each `eval.json`/`expected_output.md`, and the
+`docs/`, `iterations/`, `skill-variants/`, each `eval.json`/`expected_output.md`/`verify/`, and the
 project markdown (`README.md`, `AGENTS.md`, `CHANGELOG.md`) hold answer keys, prior responses,
 and eval strategy — an agent exploring during a run could use them and invalidate results.
 
@@ -643,5 +647,5 @@ and eval strategy — an agent exploring during a run could use them and invalid
 
 Running manually, replicate it: create a worktree, `rm -rf docs iterations skill-variants`,
 `rm -f {README,CLAUDE,AGENTS,CHANGELOG}.md`, remove eval answer keys
-(`find evals -name eval.json -o -name expected_output.md | xargs rm -f`), run with
+(`find evals -name eval.json -o -name expected_output.md | xargs rm -f`, and every `verify/`), run with
 `--disallowedTools "Bash(git:*)"`, then remove the worktree.

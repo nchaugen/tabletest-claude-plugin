@@ -52,6 +52,10 @@ const {
   skillProvenance,
   inheritedProvenance,
   inheritedIdentity,
+  removeAnswerKeys,
+  installVerifyTests,
+  runVerifyCheck,
+  runBuildAssertions,
   generationEnv,
   generationTimeoutFor,
   runBuildCommand,
@@ -2243,5 +2247,84 @@ describe("a checker that compares the answer with the scaffold", () => {
       "kennel", 99, "tabletest-swift", scaffold);
     assert.equal(moved[0].passed, false);
     fs.rmSync(root, { recursive: true });
+  });
+});
+
+describe("verify tests", () => {
+  let root;
+  beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), "verify-test-")); });
+  afterEach(() => { fs.rmSync(root, { recursive: true, force: true }); });
+
+  const write = (file, content = "") => {
+    fs.mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+    fs.writeFileSync(path.join(root, file), content);
+  };
+
+  test("removes the verify tests with the answer key, and keeps the prompt and the project", () => {
+    ["eval/eval.json", "eval/expected_output.md", "eval/verify/Tests/T/EvalVerifyX.swift", "eval/prompt.md", "eval/project/Package.swift"]
+      .forEach((f) => write(f));
+
+    removeAnswerKeys(path.join(root, "eval"));
+
+    assert.deepEqual(fs.readdirSync(path.join(root, "eval")).sort(), ["project", "prompt.md"]);
+  });
+
+  test("copies the verify tests into the package at their own paths", () => {
+    write("eval/verify/Tests/DeparturesTests/EvalVerifyText.swift", "struct EvalVerifyText {}");
+    write("work/Package.swift");
+
+    const installed = installVerifyTests(path.join(root, "eval"), path.join(root, "work"));
+
+    assert.deepEqual(installed, ["Tests/DeparturesTests/EvalVerifyText.swift"]);
+    assert.equal(fs.readFileSync(path.join(root, "work/Tests/DeparturesTests/EvalVerifyText.swift"), "utf-8"), "struct EvalVerifyText {}");
+  });
+
+  test("leaves the build result as it is for an eval with no verify tests", async () => {
+    write("work/Package.swift");
+    const build = { compiles: true, tests_pass: true };
+
+    assert.deepEqual(await runVerifyCheck(path.join(root, "eval"), path.join(root, "work"), build), build);
+  });
+
+  test("fails the verify tests of an answer that does not compile, without running them", async () => {
+    write("eval/verify/Tests/T/EvalVerifyX.swift");
+    write("work/Package.swift");
+
+    const result = await runVerifyCheck(path.join(root, "eval"), path.join(root, "work"), { compiles: false, tests_pass: null });
+
+    assert.equal(result.verify_pass, false);
+    assert.match(result.verify_output, /does not compile/);
+    assert.equal(fs.existsSync(path.join(root, "work/Tests/T/EvalVerifyX.swift")), false);
+  });
+
+  test("fails the verify tests of a project that is not a Swift package", async () => {
+    write("eval/verify/src/test/java/EvalVerifyX.java");
+    write("work/pom.xml");
+
+    const result = await runVerifyCheck(path.join(root, "eval"), path.join(root, "work"), { compiles: true, tests_pass: true });
+
+    assert.equal(result.verify_pass, false);
+    assert.match(result.verify_output, /Swift package/);
+  });
+
+  test("passes verify-tests-pass on the recorded verify result", () => {
+    write("eval/outputs/build-result.json", JSON.stringify({ compiles: true, tests_pass: true, verify_pass: true }));
+
+    const [result] = runBuildAssertions([{ id: "verify-tests-pass", text: "t", type: "build" }], path.join(root, "eval"));
+
+    assert.equal(result.passed, true, result.evidence);
+  });
+
+  test("fails verify-tests-pass on a failed or a missing verify result", () => {
+    const assertion = { id: "verify-tests-pass", text: "t", type: "build" };
+    write("eval/outputs/build-result.json", JSON.stringify({ compiles: true, verify_pass: false, verify_output: "boundary moved" }));
+    const [failed] = runBuildAssertions([assertion], path.join(root, "eval"));
+    write("eval/outputs/build-result.json", JSON.stringify({ compiles: true }));
+    const [missing] = runBuildAssertions([assertion], path.join(root, "eval"));
+
+    assert.equal(failed.passed, false);
+    assert.match(failed.evidence, /boundary moved/);
+    assert.equal(missing.passed, false);
+    assert.match(missing.evidence, /no verify result/);
   });
 });

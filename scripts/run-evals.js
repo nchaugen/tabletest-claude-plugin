@@ -177,6 +177,53 @@ async function runSwiftBuildCheck(worktreePath) {
   return result;
 }
 
+/**
+ * An eval's own tests, run against the agent's code after its build check: they show that the
+ * code still does what the scaffold did, which the agent's own tests cannot show. They live in
+ * the eval's `verify/`, laid out as the package is, and every verify type has a name that starts
+ * with `EvalVerify`, so the filter runs them and nothing else. They are added after the outputs
+ * are harvested, so `outputs/` never holds them.
+ */
+const VERIFY_DIR = "verify";
+const VERIFY_FILTER = "EvalVerify";
+
+/** Copies an eval's verify tests into the package; their paths relative to the package. */
+function installVerifyTests(evalSourceDir, packageDir) {
+  const verifyDir = path.join(evalSourceDir, VERIFY_DIR);
+  if (!fs.existsSync(verifyDir)) return [];
+  const files = [];
+  const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).forEach((entry) => {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) return walk(full);
+    const relative = path.relative(verifyDir, full);
+    fs.mkdirSync(path.dirname(path.join(packageDir, relative)), { recursive: true });
+    fs.copyFileSync(full, path.join(packageDir, relative));
+    files.push(relative);
+  });
+  walk(verifyDir);
+  return files;
+}
+
+/** The build result with the verify result added, or unchanged when the eval has no verify tests. */
+async function runVerifyCheck(evalSourceDir, packageDir, buildResult) {
+  if (!fs.existsSync(path.join(evalSourceDir, VERIFY_DIR))) return buildResult;
+  if (!buildResult || !buildResult.compiles) {
+    return { ...buildResult, verify_pass: false, verify_output: "Not run: the answer does not compile." };
+  }
+  if (!fs.existsSync(path.join(packageDir, "Package.swift"))) {
+    return { ...buildResult, verify_pass: false, verify_output: "Not run: verify tests need a Swift package." };
+  }
+  installVerifyTests(evalSourceDir, packageDir);
+  const run = await runBuildCommand(`swift test --filter ${VERIFY_FILTER}`, packageDir, 300000);
+  return { ...buildResult, verify_pass: run.ok, verify_output: run.ok ? "" : run.output.slice(0, 2000) };
+}
+
+/** The agent's build check, then the eval's verify tests. */
+async function buildAndVerify(evalDef, packageDir) {
+  const build = await runBuildCheck(packageDir);
+  return build ? runVerifyCheck(evalDef.sourceDir, packageDir, build) : build;
+}
+
 async function runPytestBuildCheck(worktreePath) {
   const result = { compiles: false, tests_pass: null, compile_output: "", test_output: "" };
 
@@ -1033,7 +1080,7 @@ async function main() {
 }
 
 /** The files of one eval directory that hold its answer key. The prompt and the project stay. */
-const ANSWER_KEY_ENTRIES = ["eval.json", "expected_output.md"];
+const ANSWER_KEY_ENTRIES = ["eval.json", "expected_output.md", "verify"];
 
 /** Removes an eval's answer key from a copy of its directory, so the agent cannot read it. */
 function removeAnswerKeys(evalDir) {
@@ -1676,7 +1723,7 @@ async function generateOne(evalDef, worktreePath, iterationDir, args, repoRoot) 
 
     // Run build verification if project scaffolding was present
     if (hasProject) {
-      const buildResult = await runBuildCheck(agentCwd);
+      const buildResult = await buildAndVerify(evalDef, agentCwd);
       if (buildResult) {
         fs.writeFileSync(
           path.join(evalDir, "outputs", "build-result.json"),
@@ -1726,7 +1773,7 @@ async function generateOne(evalDef, worktreePath, iterationDir, args, repoRoot) 
     );
 
     if (failure.countable && hasProject) {
-      const buildResult = await runBuildCheck(agentCwd);
+      const buildResult = await buildAndVerify(evalDef, agentCwd);
       if (buildResult) {
         fs.writeFileSync(
           path.join(evalDir, "outputs", "build-result.json"),
@@ -2047,6 +2094,12 @@ function runBuildAssertions(assertions, evalDir) {
         return { id: a.id, text: a.text, passed: true, evidence: "Test check skipped (spec-only eval)" };
       }
       return { id: a.id, text: a.text, passed: !!buildResult.tests_pass, evidence: buildResult.tests_pass ? "Tests passed" : `Tests failed: ${(buildResult.test_output || "").slice(0, 200)}` };
+    }
+    if (a.id === "verify-tests-pass") {
+      if (buildResult.verify_pass === undefined) {
+        return { id: a.id, text: a.text, passed: false, evidence: "The build result holds no verify result" };
+      }
+      return { id: a.id, text: a.text, passed: !!buildResult.verify_pass, evidence: buildResult.verify_pass ? "The eval's verify tests passed" : `Verify tests failed: ${(buildResult.verify_output || "").slice(0, 200)}` };
     }
     return { id: a.id, text: a.text, passed: false, evidence: `Unknown build assertion "${a.id}"` };
   });
@@ -3569,6 +3622,9 @@ if (require.main === module) {
 module.exports = {
   runDeterministicAssertions,
   removeAnswerKeys,
+  installVerifyTests,
+  runVerifyCheck,
+  runBuildAssertions,
   loadScaffoldTestFiles,
   classifyGenerationFailure,
   contaminationHits,
