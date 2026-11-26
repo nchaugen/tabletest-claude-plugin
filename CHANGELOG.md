@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - **tabletest-swift**: Code that reads a cell (a branch, a loop, a default or a reshape) lives in a member of that cell's own type, never in the test function or in a helper that takes the cell
 - **tabletest-swift**: A scenario name says where its row stands against the rule. The skill names three faults (a word of an expectation cell, a generic label, a repeat of the input cells), and a row change names its row by the same test
 - **tabletest-swift**: A rejection that leaves the state unchanged keeps a row where the state changes, or is one row with a value set of the reasons
+- **tabletest-swift**: The install snippet names tabletest-swift 0.3.0, the lowest release the guidance needs: a table's doc comment is its description in an exported report. Two rows with one scenario name are no longer merged in the test results; the skill still asks for unique names, because the results then tell the rows apart only by number
 
 ### Added
 

@@ -36,7 +36,7 @@ project tell the user the steps.**
        name: "WasteSorting",
        platforms: [.macOS(.v14)],
        dependencies: [
-           .package(url: "https://github.com/nchaugen/tabletest-swift.git", from: "0.1.2"),
+           .package(url: "https://github.com/nchaugen/tabletest-swift.git", from: "0.3.0"),
        ],
        targets: [
            .target(name: "WasteSorting"),
@@ -48,7 +48,7 @@ project tell the user the steps.**
    )
    ```
 
-   Write the version as it stands here. `0.1.2` is the lowest release this skill's guidance needs,
+   Write the version as it stands here. `0.3.0` is the lowest release this skill's guidance needs,
    and `from:` takes every later 0.x release, so there is no need to look up the newest one.
 
    In an Xcode project, the package is in the project, and the `TableTest` library is linked to the
@@ -111,7 +111,8 @@ struct BinTests {
   - the name only repeats the row's input cells (`8 items, capacity 8` beside `8` and `8`).
 
   `At capacity` passes all three. Repair a fault with a better name, never by removing the column.
-- **A scenario name is unique in its table.** Xcode's result bundle merges two rows with one name.
+- **A scenario name is unique in its table.** Where two rows have one name, the test results tell
+  them apart only by their row number.
 - **End each expectation header with `?`** (`Room Left?`). Never put `?` on an input header.
 - The function can be `static`, `async` and `throws`. The type's `init` can be `async` and `throws`.
   For main-actor code, put `@MainActor` on the type.

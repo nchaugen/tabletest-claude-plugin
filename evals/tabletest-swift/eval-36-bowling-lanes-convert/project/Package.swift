@@ -5,7 +5,7 @@ let package = Package(
     name: "Bowling",
     platforms: [.macOS(.v14)],
     dependencies: [
-        .package(url: "https://github.com/nchaugen/tabletest-swift.git", from: "0.1.2"),
+        .package(url: "https://github.com/nchaugen/tabletest-swift.git", from: "0.3.0"),
     ],
     targets: [
         .target(name: "Bowling"),

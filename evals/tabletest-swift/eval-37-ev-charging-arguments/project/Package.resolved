@@ -1,5 +1,5 @@
 {
-  "originHash" : "c5d76c1e17350da6b130aedf6577214ea312682291707e2e03312ac9821f5ccc",
+  "originHash" : "9874971b9044a5fb1f8cb1f47347fbd0acdca0ec28c76b139a953bfecd2878ba",
   "pins" : [
     {
       "identity" : "swift-syntax",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nchaugen/tabletest-swift.git",
       "state" : {
-        "revision" : "89af58421cd03e9c538c966b8ae697ade616794e",
-        "version" : "0.1.2"
+        "revision" : "e5f7a112225d36a52bfbe8b0ccdf1da3dffb1e3d",
+        "version" : "0.3.0"
       }
     }
   ],
