@@ -7,3 +7,5 @@ Low body weight            | [weightKg: 20]                     | 200
 Interacting drug           | [interaction: true]                | 400
 Renal and interacting drug | [renal: severe, interaction: true] | 200
 ```
+
+A map that names only the fields it sets converts with `readingFields` (*Structs* in `SKILL.md`).

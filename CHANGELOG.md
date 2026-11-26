@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file.
 
 - **tabletest-swift**: Every table has a scenario column, as in the JVM skill: its names let a reader find a row and talk about it. A row change adds the column to a table that has none
 - **tabletest-swift**: Before converting a test of a function that calls another, find the function that decides the result. Where it already has a table, the missing cases go there as rows, and one test of the calling function stays
+- **tabletest-swift**: Code that reads a cell (a branch, a loop, a default or a reshape) lives in a member of that cell's own type, never in the test function or in a helper that takes the cell
+- **tabletest-swift**: A scenario name says where its row stands against the rule. The skill names three faults (a word of an expectation cell, a generic label, a repeat of the input cells), and a row change names its row by the same test
+- **tabletest-swift**: A rejection that leaves the state unchanged keeps a row where the state changes, or is one row with a value set of the reasons
 
 ### Added
 
@@ -15,6 +18,9 @@ All notable changes to this project will be documented in this file.
 - **tabletest-swift**: Examples of a nested enum spelling (`period(month(year: 2025, month: 3))`) and of a value set whose members are lists
 - **tabletest-swift**: Two Swift isolation facts: under default main-actor isolation an app type in a cell needs `nonisolated`, and a test-local enum does not inherit `@MainActor` from its test type
 - **tabletest-swift**: A cell type in the test target converts through a TableTest conformance too, never a hand-written `init(from:)`
+- **tabletest-swift**: *A Threshold the Code Holds*: a ladder is not a threshold, and the test checks an app constant against its threshold column first
+- **tabletest-swift**: A value set cannot hold a blank, so a blank and a value with the same result are two rows; a conversion that reads several parts of its text gets its own table
+- **tabletest-swift**: A re-read of the test functions and the scenario names before the build
 
 ## [1.11.0] - 2026-11-24
 

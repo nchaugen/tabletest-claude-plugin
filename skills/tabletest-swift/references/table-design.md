@@ -147,6 +147,8 @@ Interacting drug           | [interaction: true]                | 400
 Renal and interacting drug | [renal: severe, interaction: true] | 200
 ```
 
+A map that names only the fields it sets converts with `readingFields` (*Structs* in `SKILL.md`).
+
 ### A Combining Table Needs Its Own Rule
 
 Once every rule has a table, the pull is to add one more that runs the whole feature end to end. It
@@ -226,10 +228,10 @@ the gap is invisible.
 
 Table 1 — the classification (how do these duty hours divide?):
 ```
-Scenario           | Duty Hours | Normal Hours? | Extended Hours?
-Below the limit    | 8          | 8             | 0
-At the limit       | 13         | 13            | 0
-Past the limit     | 14         | 13            | 1
+Scenario           | Duty Hours | Max Duty Hours (Policy) | Normal Hours? | Extended Hours?
+Below the limit    | 8          | 13                      | 8             | 0
+At the limit       | 13         | 13                      | 13            | 0
+Past the limit     | 14         | 13                      | 13            | 1
 ```
 
 Table 2 — the arithmetic (extended hours earn rest credit at double rate):
@@ -511,6 +513,9 @@ Labelled item, empty bin  | [:]            | deposit cardboard | [cardboard: 1] 
 Fill to the bulk limit    | [cardboard: 1] | deposit cardboard | [cardboard: 2] | Accepted
 Mismatched item           | [cardboard: 1] | deposit solvent   | [cardboard: 1] | Wrong stream
 ```
+
+`deposit cardboard` is a text form that you invent: a `TableTextDecodable` conformance (*Your Own
+Text Form* in `SKILL.md`), or a test-local enum when the action builds the fixture.
 
 ### Assume the Table Is Published
 
@@ -906,6 +911,9 @@ Within target range     | 55         | 21       | closed
 
 Observable readings in, observable position out. A `sensorPollCount` or `controllerInitialised`
 column would be internal state, not the contract.
+
+In Swift, the conversion helper of this rule is a `TableValueDecodable` or `TableTextDecodable`
+conformance, or a member of the cell's own type (*Where Conversion Code Goes* in `SKILL.md`).
 
 ### Keep the Tables of One Concern Consistent
 

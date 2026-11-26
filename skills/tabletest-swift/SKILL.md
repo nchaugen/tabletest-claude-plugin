@@ -21,7 +21,8 @@ file this long.
 
 ## Pre-Check
 
-Before you write a `@TableTest`, check three things. **If one is missing, add it.**
+Before you write a `@TableTest`, check three things. **If one is missing, add it, or in an Xcode
+project tell the user the steps.**
 
 1. **The dependency.** TableTest needs Swift 6.2 or later (Xcode 26), and macOS 13 or iOS 16 or
    later.
@@ -80,9 +81,9 @@ import Testing
 
 struct BinTests {
     @TableTest("""
-        Scenario  | Items | Bin Capacity | Room Left?
-        Half full | 4     | 8            | true
-        Full      | 8     | 8            | false
+        Scenario       | Items | Bin Capacity | Room Left?
+        Below capacity | 4     | 8            | true
+        At capacity    | 8     | 8            | false
         """)
     func knowsWhenABinHasRoom(items: Int, binCapacity: Int, roomLeft: Bool) {
         #expect(Bin(capacity: binCapacity, items: items).hasRoom == roomLeft)
@@ -102,6 +103,14 @@ struct BinTests {
   and talk about it, and they name each row in the test results. When the table has one more column
   than the function has parameters, the first column is the scenario column. It maps to no
   parameter. There is no `@Scenario` parameter in Swift.
+- **A scenario name says where its row stands against the rule**: a boundary, a tier, a reason, a
+  situation. Read each name beside its row. A name has a fault in three cases:
+  - a word of the name is, or paraphrases, a value in an expectation cell of its row (`Bin full`
+    beside `Room Left?` = `false`), also when the word describes the state the row starts in;
+  - the name is a generic label (`Case 2`);
+  - the name only repeats the row's input cells (`8 items, capacity 8` beside `8` and `8`).
+
+  `At capacity` passes all three. Repair a fault with a better name, never by removing the column.
 - **A scenario name is unique in its table.** Xcode's result bundle merges two rows with one name.
 - **End each expectation header with `?`** (`Room Left?`). Never put `?` on an input header.
 - The function can be `static`, `async` and `throws`. The type's `init` can be `async` and `throws`.
@@ -154,7 +163,7 @@ in two columns, the row runs once for each combination.
 ```swift
 @TableTest("""
     Scenario       | Bin Capacity | Items  | Room Left?
-    Space for more | 8            | {0, 7} | true
+    Below capacity | 8            | {0, 7} | true
     """)
 func hasRoomBelowCapacity(binCapacity: Int, items: Int, roomLeft: Bool) {
     #expect(Bin(capacity: binCapacity, items: items).hasRoom == roomLeft)
@@ -221,7 +230,7 @@ word of the domain (`extra hot`). A case name in its cell is an error that names
 3. **A form that the app never decodes is a `TableValueDecodable` conformance in the test target.**
    For example: a map cell that names only the fields it sets, or one word that stands for a
    catalogue entry. Read a map with `readingFields`.
-4. **A text form that you invent (`250 g`, `<50 ms`) is a `TableTextDecodable` conformance in the
+4. **A text form that you invent (`250 g`, `<50`) is a `TableTextDecodable` conformance in the
    test target.**
 
 **Never add an `init(from:)` to an app type for a test.** The app's decoding would change with it.
@@ -232,6 +241,12 @@ target: a conformance is shorter than `init(from:)`, and a bad cell is reported 
 turns into the app's enum, a test-local copy of the app's enum, or a conformance that lists the
 cases by hand — each is step 1 not taken. Conversion code in the test body is worse: the body must
 only arrange, act and assert.
+
+**Code that reads a cell lives with the type of the cell.** A branch on a cell's value, a loop over
+its elements, a default for it, or a reshape of it into the form an app API takes is in a conversion
+conformance (steps 3 and 4) or in a member of that cell's own type: a branch on a `Ward` cell is in
+`Ward`, never in a member of another enum. The test function has none of these. A helper of the test
+type that takes a cell value has none either: it calls the member of each cell.
 
 Swift facts that decide where the code can go:
 
@@ -336,12 +351,17 @@ extension Latency: TableTextDecodable {
 The `guard` is in the conversion, not in the test function. The test function stays free of
 branches.
 
+**A conversion that reads more than one part of the text is code that every row depends on.** Give it
+its own small `@TableTest`: the text in, the value out.
+
 ### Absent Values
 
 - **Blank is `nil`.** The system under test decides what `nil` means, never the test.
 - **Absence inside a collection is a domain word**, such as a `none` case of the app enum, or the
   element left out. A collection has no `nil` element.
 - **An empty collection is `[]`, `{}` or `[:]`**, not a blank cell.
+- **A value set cannot hold a blank.** Where a blank and a value give the same result, write two rows,
+  and name them by absence and presence. `''` is never a stand-in for `nil`.
 
 ## Expressing These Rules in TableTest for Swift
 
@@ -380,7 +400,34 @@ private func errorThrown<E: Error>(as type: E.Type, by action: () throws -> Void
 ```
 
 **When the rejection is a separate concern, it is its own test.** One rejected case is a plain `@Test`
-with `#expect(throws: DoseError.belowMinimum) { … }`. Several are a table with a `Rejected?` column.
+with `#expect(throws: DoseError.belowMinimum) { … }`. Several are a table with a `Rejected?` column,
+never one `#expect(throws:)` that every row shares.
+
+**A rejection that leaves the state unchanged needs a row where the state changes.** Show the state
+before and after the call as columns, and keep the accepted case as a row of the table. Without that
+row, the after-state column is the same in every row, and no row shows that the test can see a
+change. Where the accepted case is its own table, the unchanged state is one row, with a value set of
+the reasons.
+
+### A Threshold the Code Holds
+
+A threshold column holds the one limit that the row's boundary straddles. **A ladder is not a
+threshold:** each step of a ladder is a row, and no column lists the steps.
+
+Where the code reads the limit from an app constant, the body asserts the constant against the column
+first. The table then fails when the constant moves:
+
+```swift
+@TableTest("""
+    Scenario       | Hours Since Rest | Max Duty Hours (Policy) | Fit To Fly?
+    At the limit   | 13               | 13                      | true
+    Past the limit | 14               | 13                      | false
+    """)
+func decidesFitnessToFly(hoursSinceRest: Int, maxDutyHours: Int, fitToFly: Bool) {
+    #expect(DutyRules.maximumDutyHours == maxDutyHours)
+    #expect(DutyRules.isFitToFly(hoursSinceRest: hoursSinceRest) == fitToFly)
+}
+```
 
 ### Converting `@Test(arguments:)`
 
@@ -402,6 +449,11 @@ analysing one concern again, stop and write code.
 **Write incrementally.** Write one `@TableTest` function at a time. Each function written is a
 checkpoint that a timeout cannot take away.
 
+**Read the tests once more before you build.** Read each test function and each helper that takes a
+cell value: no branch, loop, `??` or `.map` on a cell outside a conversion or a member of that
+cell's own type. Read each scenario name beside its row: no name has one of the three faults in *The Function
+and Its Table*.
+
 **Build and test before you finish.** Run `swift build --build-tests`, then `swift test`. The macro
 reports a malformed table at compile time.
 
@@ -409,7 +461,8 @@ reports a malformed table at compile time.
 
 1. Read the table and its doc comment. The new case takes the form of the rows beside it.
 2. Add the row where its neighbours are: a boundary beside its other side, a tier in tier order.
-3. Give it a scenario name that is unique in the table, in the form of the other names. Where the
+3. Give it a scenario name that is unique in the table, in the form of the other names, and that
+   says where the row stands against the rule (see *The Function and Its Table*). Where the
    table has no scenario column, add one, and give every row a name.
 4. Where an input does not change the outcome of the new case, use a value set.
 5. **Where the case needs a column that the table does not have, or an assertion that the body
@@ -469,7 +522,8 @@ workflows.
 - [ ] **Parameter alignment**: one parameter for each data column, in column order; the scenario
   column has none
 - [ ] **Straightforward function**: no `if`, `guard`, `switch`, ternary or loop in the test function,
-  and no `??` or `.map` on a parameter; it only arranges, acts and asserts
+  and no `??` or `.map` on a parameter; a helper or an enum member has none of these on a cell of
+  another type, and calls that cell's own member
 - [ ] **One word on the app type**: an app type in a cell converts through `Codable`, `CaseIterable`
   or `String` raw values on the app type — not a `switch`, a dictionary or a copy of the enum in the
   test target
