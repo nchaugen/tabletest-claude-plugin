@@ -1239,3 +1239,46 @@ public enum Meter {
     assert.match(result.evidence, /19/);
   });
 });
+
+describe("rules-tested-on-the-decision, on an app the answer left unchanged", () => {
+  const check = checkers["rules-tested-on-the-decision"];
+  const assertion = { id: "rules-tested-on-the-decision", decided_inside: "message(for:", boundaries: [[19, 20]] };
+  const scaffold = (body, extra = "") => [{ path: "Sources/Parking/Meter.swift", content: `public enum Charge: Equatable { case free, paid }
+public enum Meter {
+${extra}
+    public static func message(for minutes: Int) -> String {
+${body}
+    }
+}
+` }];
+  const table = `    @TableTest("""
+        Scenario          | Minutes | Charge?
+        Last free minute  | 19      | free
+        First paid minute | 20      | paid
+        """)
+    func decidesTheCharge(minutes: Int, charge: Charge) {
+        #expect(Meter.charge(for: minutes) == charge)
+    }`;
+
+  test("reads the renderer from the scaffold, and finds no seam where the scaffold has none", () => {
+    const result = check({ ...meterTests(table), assertion, scaffoldAppFiles: scaffold(`        minutes < 20 ? "Free" : "Paid"`) });
+    assert.equal(result.passed, false);
+    assert.match(result.evidence, /no seam/);
+  });
+
+  test("passes where the scaffold's renderer already calls the deciding function", () => {
+    const app = scaffold(`        charge(for: minutes) == .free ? "Free" : "Paid"`,
+      `    public static func charge(for minutes: Int) -> Charge { minutes < 20 ? .free : .paid }`);
+    const result = check({ ...meterTests(table), assertion, scaffoldAppFiles: app });
+    assert.equal(result.passed, true, result.evidence);
+  });
+
+  test("reads the answer's copy of an app file in place of the scaffold's", () => {
+    const changed = scaffold(`        charge(for: minutes) == .free ? "Free" : "Paid"`,
+      `    public static func charge(for minutes: Int) -> Charge { minutes < 20 ? .free : .paid }`);
+    const answer = meterTests(table);
+    const result = check({ ...answer, allFiles: [...changed, ...answer.allFiles], assertion,
+      scaffoldAppFiles: scaffold(`        minutes < 20 ? "Free" : "Paid"`) });
+    assert.equal(result.passed, true, result.evidence);
+  });
+});

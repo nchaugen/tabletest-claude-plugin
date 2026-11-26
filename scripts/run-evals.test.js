@@ -2257,6 +2257,34 @@ describe("a checker that compares the answer with the scaffold", () => {
   });
 });
 
+describe("a checker that reads the scaffold's app code", () => {
+  const { runDeterministicAssertions, loadScaffoldAppFiles } = require("./run-evals.js");
+
+  test("loads the app files of the scaffold, not its tests", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "scaffold-app-"));
+    fs.mkdirSync(path.join(root, "project/Sources/Kennel"), { recursive: true });
+    fs.mkdirSync(path.join(root, "project/Tests/KennelTests"), { recursive: true });
+    fs.writeFileSync(path.join(root, "project/Sources/Kennel/Pen.swift"), "public enum Pen {}\n");
+    fs.writeFileSync(path.join(root, "project/Tests/KennelTests/PenTests.swift"), "struct PenTests {}\n");
+
+    const app = loadScaffoldAppFiles(root, { appDirs: ["Sources"], testFilePattern: /\.swift$/ });
+
+    assert.deepEqual(app.map((f) => f.path), ["Sources/Kennel/Pen.swift"]);
+    fs.rmSync(root, { recursive: true });
+  });
+
+  test("hands the scaffold's app files to a checker beside the answer's", () => {
+    const app = [{ path: "Sources/Kennel/Pen.swift", content: "public enum Pen {\n    public static func label(for size: Int) -> String {\n        \"Pen\"\n    }\n}\n" }];
+    const assertion = { id: "rules-tested-on-the-decision", type: "deterministic", text: "t", decided_inside: "label(for:", boundaries: [[1, 2]] };
+    const tests = [{ path: "Tests/KennelTests/PenTests.swift", content: "struct PenTests {}\n" }];
+
+    const [result] = runDeterministicAssertions([assertion], "", tests, "kennel", 99, "tabletest-swift", [], app);
+
+    assert.equal(result.passed, false);
+    assert.match(result.evidence, /no seam/);
+  });
+});
+
 describe("verify tests", () => {
   let root;
   beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), "verify-test-")); });

@@ -878,12 +878,15 @@ function namesEchoingTheirOwnRow({ headers, rows, scenarioIndex }, echoes) {
 
 /**
  * The functions and computed properties of the app (`Sources/`) that the named function calls,
+ * read from the answer's changed app files and, for the rest, the scaffold's,
  * each with the pattern that finds a call of it. `renderer` is a call prefix such as
  * `text(for:`. Null when no app file declares the renderer.
  */
-function appMembersCalledBy(allFiles, renderer) {
+function appMembersCalledBy(allFiles, renderer, scaffoldAppFiles = []) {
   const [, rendererName, rendererLabel] = renderer.match(/^(\w+)\(\s*(\w*)/) || [];
-  const appFiles = (allFiles || []).filter((f) => /(^|\/)Sources\/.*\.swift$/.test(f.path));
+  const isApp = (f) => /(^|\/)Sources\/.*\.swift$/.test(f.path);
+  const changed = (allFiles || []).filter(isApp);
+  const appFiles = [...changed, ...scaffoldAppFiles.filter((f) => isApp(f) && !changed.some((c) => c.path === f.path))];
   const declarations = appFiles.map((f) => swiftDeclarations(f.content));
   const firstLabel = (parameters) => {
     const first = (parameters.split(",")[0] || "").trim();
@@ -1694,7 +1697,7 @@ const checkers = {
   // Where the agent is to add the deciding function, it chooses the name, so the assertion names
   // the function that renders the decision instead (`decided_inside`). Any function or computed
   // property of the app that the renderer calls can then hold the decision.
-  "rules-tested-on-the-decision": ({ allFiles, assertion }) => {
+  "rules-tested-on-the-decision": ({ allFiles, assertion, scaffoldAppFiles = [] }) => {
     const call = assertion && assertion.decides;
     const renderer = assertion && assertion.decided_inside;
     const boundaries = (assertion && assertion.boundaries) || [];
@@ -1702,7 +1705,7 @@ const checkers = {
       return { passed: false, evidence: 'The assertion names no call: give it "decides" or "decided_inside", and "boundaries", in eval.json.' };
     }
     if (!call) {
-      const seams = appMembersCalledBy(allFiles, renderer);
+      const seams = appMembersCalledBy(allFiles, renderer, scaffoldAppFiles);
       if (seams === null) return { passed: false, evidence: `No ${renderer}) found under Sources/` };
       if (seams.length === 0) {
         return { passed: false, evidence: `${renderer}) calls no function or property of the app: the decision has no seam` };

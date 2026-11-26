@@ -2084,7 +2084,19 @@ function loadScaffoldTestFiles(sourceDir, profile) {
     .map((file) => ({ path: path.relative(projectDir, file), content: fs.readFileSync(file, "utf-8") }));
 }
 
-function runDeterministicAssertions(assertions, fileContent, allFiles, evalSlug, evalNumber, skillName, scaffoldFiles = []) {
+/**
+ * The scaffold's app files. The outputs hold only the app files the agent changed, so a checker
+ * that reads the app code reads these, with the answer's changed files in their place.
+ */
+function loadScaffoldAppFiles(sourceDir, profile) {
+  if (!sourceDir) return [];
+  const projectDir = path.join(sourceDir, "project");
+  return (profile.appDirs || [])
+    .flatMap((dir) => findFiles(path.join(projectDir, dir), profile.testFilePattern))
+    .map((file) => ({ path: path.relative(projectDir, file), content: fs.readFileSync(file, "utf-8") }));
+}
+
+function runDeterministicAssertions(assertions, fileContent, allFiles, evalSlug, evalNumber, skillName, scaffoldFiles = [], scaffoldAppFiles = []) {
   const results = [];
   for (const a of assertions) {
     // A hand-written checker wins where one exists; otherwise the assertion is graded by the
@@ -2099,7 +2111,7 @@ function runDeterministicAssertions(assertions, fileContent, allFiles, evalSlug,
       continue;
     }
     try {
-      const result = checker({ fileContent, allFiles, evalSlug, assertion: a, scaffoldFiles });
+      const result = checker({ fileContent, allFiles, evalSlug, assertion: a, scaffoldFiles, scaffoldAppFiles });
       results.push({ id: a.id, text: a.text, passed: result.passed, evidence: result.evidence });
     } catch (err) {
       results.push({ id: a.id, text: a.text, passed: false, evidence: `Checker error: ${err.message}` });
@@ -2240,7 +2252,7 @@ async function gradeOne(evalDef, iterationDir, model, gradingSuffix = null, prov
   const deterministicResults = gated
     ? deterministicAssertions.map(gate)
     : runDeterministicAssertions(deterministicAssertions, fileContent, allFiles, evalDef.slug, evalDef.id, evalDef.skill,
-      loadScaffoldTestFiles(evalDef.sourceDir, profile));
+      loadScaffoldTestFiles(evalDef.sourceDir, profile), loadScaffoldAppFiles(evalDef.sourceDir, profile));
 
   // Run build assertions
   const buildResults = gated
@@ -3659,6 +3671,7 @@ module.exports = {
   runBuildAssertions,
   verifyTestsRan,
   loadScaffoldTestFiles,
+  loadScaffoldAppFiles,
   classifyGenerationFailure,
   contaminationHits,
   mergeResultEvents,
