@@ -876,6 +876,29 @@ function namesEchoingTheirOwnRow({ headers, rows, scenarioIndex }, echoes) {
   return found;
 }
 
+/** The `@TableTest` tables of the test files whose function body matches the call pattern. */
+function tablesCalling(allFiles, callPattern) {
+  return swiftTestFiles(allFiles).flatMap((f) => {
+    const bodies = new Map(swiftTableTestFunctions(f.content).map((fn) => [fn.name, maskSwiftLiteralsAndComments(fn.body)]));
+    return tableTestTables(f.content).filter((table) => callPattern.test(bodies.get(table.method) || ""));
+  });
+}
+
+/** Passes when one of the tables holds both sides of every boundary, as a cell or a value-set element. */
+function boundaryVerdict(tables, boundaries, call) {
+  if (tables.length === 0) {
+    return { passed: false, evidence: `No @TableTest function calls ${call}` };
+  }
+  const holds = (table, value) => table.rows.some((row) => row.some((cell) =>
+    cell === String(value) || (parseCollectionElements(cell) || []).map((e) => e.trim()).includes(String(value))));
+  const missingIn = (table) => boundaries.flat().filter((value) => !holds(table, value));
+  const best = tables.map((table) => ({ table, missing: missingIn(table) }))
+    .sort((a, b) => a.missing.length - b.missing.length)[0];
+  return best.missing.length === 0
+    ? { passed: true, evidence: `${best.table.method} calls ${call} and holds ${boundaries.map((b) => b.join("/")).join(", ")}` }
+    : { passed: false, evidence: `${best.table.method} calls ${call} but has no row for ${best.missing.join(", ")}` };
+}
+
 const checkers = {
   "scenario-names-describe-conditions": ({ fileContent, evalSlug }) => {
     const echoes = SCENARIO_NAME_ECHOES[evalSlug];
@@ -1646,21 +1669,7 @@ const checkers = {
       return { passed: false, evidence: 'The assertion names no call: give it "decides" and "boundaries" in eval.json.' };
     }
     const callPattern = new RegExp(`\\b${escapeRegExp(call).replace(/\\\(/, "\\s*\\(\\s*")}`);
-    const holds = (table, value) => table.rows.some((row) => row.some((cell) =>
-      cell === String(value) || (parseCollectionElements(cell) || []).map((e) => e.trim()).includes(String(value))));
-    const candidates = swiftTestFiles(allFiles).flatMap((f) => {
-      const bodies = new Map(swiftTableTestFunctions(f.content).map((fn) => [fn.name, maskSwiftLiteralsAndComments(fn.body)]));
-      return tableTestTables(f.content).filter((table) => callPattern.test(bodies.get(table.method) || ""));
-    });
-    if (candidates.length === 0) {
-      return { passed: false, evidence: `No @TableTest function calls ${call}` };
-    }
-    const missingIn = (table) => boundaries.flat().filter((value) => !holds(table, value));
-    const best = candidates.map((table) => ({ table, missing: missingIn(table) }))
-      .sort((a, b) => a.missing.length - b.missing.length)[0];
-    return best.missing.length === 0
-      ? { passed: true, evidence: `${best.table.method} calls ${call} and holds ${boundaries.map((b) => b.join("/")).join(", ")}` }
-      : { passed: false, evidence: `${best.table.method} calls ${call} but has no row for ${best.missing.join(", ")}` };
+    return boundaryVerdict(tablesCalling(allFiles, callPattern), boundaries, call);
   },
 
   // The tables a change does not touch stay as they were. The assertion names them in eval.json
