@@ -1,7 +1,7 @@
 {
   "name": "tabletest",
   "description": "Skills for writing TableTest tests in Java, Kotlin and Swift, table-driven tests in other ecosystems (Python, Swift Testing, JavaScript, Go, C#), and clarifying behaviour through concrete example tables",
-  "version": "1.11.0",
+  "version": "1.12.0",
   "author": {
     "name": "Nils Christian Haugen",
     "url": "https://github.com/nchaugen"
