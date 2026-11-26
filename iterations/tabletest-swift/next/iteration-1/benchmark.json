@@ -1,0 +1,93 @@
+{
+  "skill_name": "tabletest-swift (next)",
+  "iteration": 1,
+  "model": "sonnet",
+  "provider": "anthropic",
+  "grading_model": "claude-sonnet-5-5",
+  "grading_effort": null,
+  "skill_commit": "ac7425667b9485795e22455da4565c794c4f1d8e",
+  "skill_digest": "13f9c8f94ae85243",
+  "generation_auth": "api",
+  "timestamp": "2026-11-26T18:14:48.960Z",
+  "evals": [
+    {
+      "id": "eval-45-train-delay-notice",
+      "name": "train delay notice",
+      "skill": "tabletest-swift",
+      "fingerprint": "d2a76d5f8c07",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 11,
+        "assertions_total": 11,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 274686,
+        "duration_ms": 44451,
+        "cost_usd": 0.18221649999999998,
+        "grading_usage": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "total_tokens": 0,
+          "calls": 0,
+          "cost_usd": 0,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "eval-46-library-loan-reminder",
+      "name": "library loan reminder",
+      "skill": "tabletest-swift",
+      "fingerprint": "2425a5cefcdf",
+      "results": {
+        "model": "claude-sonnet-5-5",
+        "assertions_passed": 12,
+        "assertions_total": 12,
+        "pass_rate": 1,
+        "failed_assertions": [],
+        "total_tokens": 206166,
+        "duration_ms": 39494,
+        "cost_usd": 0.1810158,
+        "grading_usage": {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "total_tokens": 0,
+          "calls": 0,
+          "cost_usd": 0,
+          "rates_usd_per_mtok": {
+            "input": 2,
+            "output": 10
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "assertions_passed": 23,
+    "assertions_total": 23,
+    "pass_rate": 1,
+    "errored_evals": [],
+    "truncated_evals": [],
+    "total_tokens": 480852,
+    "total_duration_ms": 83945,
+    "total_cost_usd": 0.36323229999999995,
+    "grading": {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "calls": 0,
+      "cost_usd": 0,
+      "evals_measured": 2,
+      "rates_usd_per_mtok": {
+        "input": 2,
+        "output": 10
+      },
+      "priced": true
+    }
+  },
+  "model_resolved": "claude-sonnet-5-5",
+  "cost_basis": "cli-list-price-estimate"
+}
